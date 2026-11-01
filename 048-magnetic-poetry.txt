@@ -1,0 +1,20 @@
+TITLE: MAGNETIC FRIDGE
+DESCRIPTION: A kitchen fridge door as a poem machine. Forty-one glossy word tiles — serif, sans and mono, each ringed by a colored magnet border with a round magnet on its underside — are scattered across brushed appliance white. Words drag anywhere with a gentle magnetic snap onto implicit 56px baselines so lines read true. Snapshot mode flashes, sounds a shutter, and prints your current arrangement inside a polaroid frame with a tape strip and a mono caption of your poem. Optional synthesized fridge hum (60/120 Hz with a warbling triangle overtone), a scatter button, an extra-words drawer, and a brushed-steel finish toggle.
+TECHNIQUES:
+- Appliance realism: layered gradients with inset white highlights and door-seam shadow; brushed-steel mode adds fine vertical repeating stripes
+- Word tiles with CSS magnet: colored border edge, radial-gradient magnet dot positioned below, ink variation classes (rotation, tracking, size) per tile
+- Baseline snapping: dragging finds the nearest implicit line within 14px and glues the tile's y to it
+- Polaroid print: cloned tiles rendered into a mini fridge shot with percentage positions, flash overlay animation, shutter/click WebAudio blips, and a caption assembled by sorting tiles into reading lines
+- Fridge hum: user-initiated oscillators (60 Hz sine, 120 Hz sine, detuned 179.8 Hz triangle through lowpass) with slow fade-in and gain-ramped stop
+INTERACTION:
+- Drag any word anywhere; it snaps to the nearest poetic baseline; arrow keys nudge tiles when focused
+- "Frame the Poem" (or F key) triggers flash + shutter and opens the polaroid with your poem captioned; click outside or press Escape to put it back
+- "Scatter" (D), "More Words" (S) spill tiles; "Fridge Hum: On" (M) starts the drone; "Brushed Steel" switches the finish
+PROMPT:
+Design MAGNETIC FRIDGE: a warm, dark kitchen scene with a huge appliance-white fridge front (#e9e9e6) as the hero — rounded corners, deep drop shadow, inset white top highlight, a horizontal door seam near the top, and optional fine vertical brushed-steel stripes. Header on the dark wall above: mono letterspaced eyebrow "Kitchen · Third Magnet From the Left · Est. Whenever", bold uppercase "MAGNETIC FRIDGE", and an italic serif sub about a 1994 flea-market bag of words.
+
+On the door: a small row of pill chips (mono caps, glassy white) reading "Fridge Hum: Off", "Brushed Steel", "Scatter", "More Words". Below, the door surface holds 41 word tiles: white-cream gradient tiles with colored magnet borders (red #b03a2e, teal #2e6e6a, gold #c99a3a, cobalt #2b44ff), a round magnet dot on each tile's bottom edge, and per-tile ink variation — slight rotation, tracking, or size. Fonts mix Georgia serif, system sans and Courier mono (poem words: the, a, and, moon, kitchen, light, we, held, small, magnets, of, every, winter, in, our, waited, for, hum, morning, quietly, bread, warms, still, life, door, opens, both, ways, butter, melts, into, gold, says, nothing, beautifully, cold, keeps, its, promise, again, night). Tiles are draggable with grab/grabbing cursors, lift shadow while held, and snap gently to implicit baselines every 56px so arranged lines read true.
+
+Right rail on dark glass panels: "SNAPSHOT" with a warm amber "Frame the Poem" button and italic note; "House Rules" listing keyboard shortcuts (D scatter, F frame, M hum, S more words) with key-cap styling; "Care & Feeding" humor about the synthesized hum.
+
+Signature moment: pressing Frame the Poem — the screen flashes white, a shutter click plays, and a tilted polaroid prints in a dimmed overlay: cream frame, tape strip on top, a mini rendered shot of your tiled door inside, and a mono caption line assembled by reading your tiles left-to-right/top-to-bottom into lines joined by " / ". A "Keep It" button closes it. Footer: "Magnet inventory: forty-one words, four colors, one vowel missing since the move." Warm selection color, dark scrollbar, dashed cobalt focus rings, Escape closes the polaroid, reduced-motion kills the flash animation and transitions, and the AudioContext only starts on user click with visibilitychange suspend.

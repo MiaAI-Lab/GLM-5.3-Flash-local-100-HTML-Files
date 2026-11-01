@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Press Room — a risograph halftone poster lab. Duotone dots, deliberate misregistration, paper grain, crop marks and an ink registration slider.">
+<title>Press Room — Riso Halftone Lab, Edition No. 41</title>
+<style>
+  :root{
+    --riso-blue:#2b44ff;
+    --riso-pink:#ff48b0;
+    --paper:#f5f1e6;
+    --paper-2:#ece7d8;
+    --key:#141414;
+    --key-soft:#3a3a3a;
+    --press-grey:#232323;
+    --press-grey-2:#161616;
+    --tape:#e8e0c8;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--riso-pink); color:#fff; }
+  html{ scrollbar-color:#3a3a3a var(--press-grey-2); }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:var(--press-grey-2); }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(#4a4a4a, #2c2c2c); border-radius:6px; border:2px solid var(--press-grey-2); }
+
+  body{
+    min-height:100vh;
+    font-family:system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:var(--paper);
+    background:
+      radial-gradient(130% 90% at 50% 0%, #2c2c2e 0%, var(--press-grey) 48%, var(--press-grey-2) 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* faint studio dust */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:.35; z-index:0;
+    background-image:
+      radial-gradient(1px 1px at 12% 30%, rgba(245,241,230,.5), transparent 60%),
+      radial-gradient(1px 1px at 68% 12%, rgba(245,241,230,.4), transparent 60%),
+      radial-gradient(1.4px 1.4px at 84% 60%, rgba(255,72,176,.25), transparent 60%),
+      radial-gradient(1px 1px at 30% 78%, rgba(43,68,255,.3), transparent 60%);
+  }
+  header.sign, main, footer.colophon{ position:relative; z-index:1; }
+
+  header.sign{ padding:clamp(22px, 4vw, 50px) 16px 0; }
+  .sign-row{
+    max-width:1240px; margin:0 auto;
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .plate-tag{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.68rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--riso-pink);
+    border:1px solid rgba(255,72,176,.45);
+    border-radius:4px; padding:5px 10px;
+  }
+  h1{
+    font-size:clamp(2.2rem, 7vw, 5rem);
+    font-weight:900;
+    letter-spacing:-0.03em;
+    text-transform:uppercase;
+    line-height:.92;
+    color:var(--paper);
+  }
+  h1 .blue{ color:var(--riso-blue); }
+  h1 .pink{ color:var(--riso-pink); }
+  .sign-sub{
+    max-width:1240px; margin:10px auto 0;
+    font-size:clamp(.8rem, 1.9vw, .95rem);
+    color:rgba(245,241,230,.66);
+    max-width:64ch;
+    line-height:1.6;
+  }
+
+  main{
+    max-width:1240px; margin:0 auto;
+    padding:clamp(18px, 3vw, 38px) clamp(12px, 2.4vw, 28px) clamp(44px, 6vw, 80px);
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(280px, 360px);
+    gap:clamp(18px, 3vw, 40px);
+    align-items:start;
+  }
+
+  /* ============ THE PRESS SHEET ============ */
+  .pressbed{ position:relative; }
+  .sheet{
+    position:relative;
+    background:var(--paper);
+    border-radius:2px;
+    box-shadow:0 30px 70px rgba(0,0,0,.6), 0 2px 0 rgba(245,241,230,.08);
+    padding:clamp(18px, 3.4vw, 46px);
+    overflow:hidden;
+    transform:rotate(-.35deg);
+  }
+  /* paper grain */
+  .sheet::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.55;
+    background:
+      repeating-linear-gradient(1deg, rgba(20,20,20,.028) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(91deg, rgba(20,20,20,.02) 0 1px, transparent 1px 4px),
+      radial-gradient(120% 100% at 30% 0%, rgba(255,255,255,.5), transparent 60%);
+    mix-blend-mode:multiply;
+  }
+  /* worn edges */
+  .sheet::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    box-shadow:inset 0 0 46px rgba(20,20,20,.12);
+  }
+  .crop{ position:absolute; width:26px; height:26px; pointer-events:none; opacity:.8; }
+  .crop i{ position:absolute; background:var(--key); }
+  .crop .h{ width:18px; height:1.5px; }
+  .crop .v{ width:1.5px; height:18px; }
+  .crop.tl{ top:8px; left:8px; }
+  .crop.tr{ top:8px; right:8px; transform:scaleX(-1); }
+  .crop.bl{ bottom:8px; left:8px; transform:scaleY(-1); }
+  .crop.br{ bottom:8px; right:8px; transform:scale(-1); }
+  .crop .h{ left:0; top:0; }
+  .crop .v{ left:0; top:0; }
+
+  .poster{ position:relative; }
+  .poster-eyebrow{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.6rem, 1.4vw, .75rem);
+    letter-spacing:.34em; text-transform:uppercase;
+    color:var(--key-soft);
+  }
+  .poster-head{
+    font-family:system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-weight:900;
+    font-size:clamp(2.6rem, 9vw, 6.4rem);
+    line-height:.88;
+    letter-spacing:-0.035em;
+    text-transform:uppercase;
+    margin:10px 0 4px;
+    color:var(--key);
+  }
+  .poster-head .mis-a{ position:relative; display:inline-block; color:var(--key); }
+  .poster-head .mis-a::before{
+    content:attr(data-t);
+    position:absolute; left:0; top:0;
+    color:var(--riso-blue);
+    z-index:-1;
+  }
+  .poster-head .mis-b{ position:relative; display:inline-block; color:var(--key); }
+  .poster-head .mis-b::before{
+    content:attr(data-t);
+    position:absolute; left:0; top:0;
+    color:var(--riso-pink);
+    z-index:-1;
+  }
+  .poster-sub{
+    font-size:clamp(.85rem, 2.2vw, 1.1rem);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--key-soft);
+    margin-top:10px;
+  }
+  .figure-row{
+    margin-top:clamp(14px, 2.6vw, 26px);
+    display:grid;
+    grid-template-columns:minmax(0, 1.6fr) minmax(0, 1fr);
+    gap:clamp(12px, 2vw, 22px);
+    align-items:stretch;
+  }
+  .halftone-frame{
+    position:relative;
+    border:2px solid var(--key);
+    background:
+      radial-gradient(140% 120% at 50% -20%, rgba(43,68,255,.14), transparent 55%),
+      var(--paper-2);
+    min-height:clamp(220px, 36vw, 380px);
+    overflow:hidden;
+  }
+  .halftone-frame canvas{ display:block; width:100%; height:100%; position:absolute; inset:0; }
+  .frame-tag{
+    position:absolute; left:10px; bottom:8px;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.6rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--key-soft);
+    background:rgba(245,241,230,.85);
+    padding:3px 8px; border-radius:2px;
+  }
+  .press-note{
+    border:2px solid var(--key);
+    padding:clamp(12px, 2vw, 20px);
+    display:flex; flex-direction:column; gap:10px;
+    background:var(--paper);
+  }
+  .press-note h3{
+    font-size:clamp(1rem, 2.4vw, 1.35rem);
+    font-weight:900; text-transform:uppercase; letter-spacing:-0.01em;
+    line-height:1;
+    color:var(--key);
+  }
+  .press-note h3 span{ color:var(--riso-pink); }
+  .press-note p{
+    font-size:clamp(.78rem, 1.8vw, .92rem);
+    line-height:1.65; color:var(--key-soft);
+  }
+  .press-note .dotline{
+    display:flex; gap:6px; align-items:center;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--key-soft);
+  }
+  .press-note .dotline i{
+    width:10px; height:10px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #5c73ff, var(--riso-blue) 70%);
+  }
+  .press-note .dotline i.p{ background:radial-gradient(circle at 40% 35%, #ff8ac6, var(--riso-pink) 70%); }
+  .footmeta{
+    margin-top:clamp(14px, 2.4vw, 24px);
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.58rem, 1.4vw, .7rem);
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--key-soft);
+    border-top:1.5px solid var(--key);
+    padding-top:10px;
+  }
+
+  /* ============ CONSOLE ============ */
+  .console{
+    background:linear-gradient(175deg, #26262a, #1a1a1d);
+    border:1px solid rgba(245,241,230,.14);
+    border-radius:14px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(245,241,230,.14);
+    padding:clamp(16px, 2.4vw, 28px);
+    color:var(--paper);
+    display:flex; flex-direction:column; gap:18px;
+    position:sticky; top:16px;
+  }
+  .console h2{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.8rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--riso-pink);
+    padding-bottom:10px;
+    border-bottom:1px dashed rgba(245,241,230,.25);
+  }
+  .ctrl{ display:flex; flex-direction:column; gap:6px; }
+  .ctrl-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:.7rem; letter-spacing:.18em; text-transform:uppercase;
+    color:rgba(245,241,230,.78);
+  }
+  .ctrl-head output{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.7rem; color:var(--riso-pink); letter-spacing:.05em;
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:28px; background:transparent; cursor:ew-resize;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:6px; border-radius:3px;
+    background:linear-gradient(90deg, rgba(43,68,255,.65), rgba(255,72,176,.65));
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.6);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:18px; height:22px; margin-top:-8px; border-radius:3px;
+    background:linear-gradient(180deg, #f0ede2, #c9c4b4);
+    border:1px solid #0c0c0c;
+    box-shadow:0 2px 6px rgba(0,0,0,.6);
+  }
+  input[type="range"]::-moz-range-track{
+    height:6px; border-radius:3px;
+    background:linear-gradient(90deg, rgba(43,68,255,.65), rgba(255,72,176,.65));
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:16px; height:20px; border-radius:3px;
+    background:linear-gradient(180deg, #f0ede2, #c9c4b4);
+    border:1px solid #0c0c0c;
+  }
+  input[type="range"]:focus-visible{ outline:2px dashed var(--riso-pink); outline-offset:4px; border-radius:4px; }
+
+  .inkrow{ display:flex; gap:10px; }
+  .inkpot{
+    flex:1;
+    border:1px solid rgba(245,241,230,.2);
+    border-radius:8px;
+    background:none;
+    padding:9px 6px;
+    cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:transform .18s ease, border-color .2s ease;
+    touch-action:manipulation;
+    min-height:64px;
+  }
+  .inkpot i{
+    width:22px; height:22px; border-radius:50%;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 2px 6px rgba(0,0,0,.5);
+  }
+  .inkpot span{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.58rem; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(245,241,230,.75);
+  }
+  .inkpot:hover{ transform:translateY(-2px); }
+  .inkpot:focus-visible{ outline:2px dashed var(--riso-pink); outline-offset:3px; }
+  .inkpot[aria-pressed="true"]{ border-color:var(--riso-pink); background:rgba(255,72,176,.09); }
+  .pot-blue i{ background:radial-gradient(circle at 38% 32%, #6a7dff, var(--riso-blue) 70%); }
+  .pot-pink i{ background:radial-gradient(circle at 38% 32%, #ff8ac6, var(--riso-pink) 70%); }
+  .pot-key i{ background:radial-gradient(circle at 38% 32%, #4a4a4a, #101010 70%); }
+
+  .modes{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .mode{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.66rem; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(245,241,230,.8);
+    background:rgba(245,241,230,.06);
+    border:1px solid rgba(245,241,230,.18);
+    border-radius:6px;
+    padding:10px 8px; cursor:pointer;
+    transition:filter .18s ease, transform .18s ease;
+    min-height:44px; touch-action:manipulation;
+  }
+  .mode:hover{ filter:brightness(1.3); transform:translateY(-1px); }
+  .mode:focus-visible{ outline:2px dashed var(--riso-pink); outline-offset:3px; }
+  .mode[aria-pressed="true"]{
+    background:linear-gradient(180deg, rgba(255,72,176,.28), rgba(43,68,255,.22));
+    border-color:var(--riso-pink); color:#fff;
+  }
+  .console .fine{
+    font-size:.72rem; line-height:1.6; color:rgba(245,241,230,.55);
+    font-style:italic;
+  }
+  .console .fine b{ color:var(--riso-pink); font-style:normal; }
+
+  footer.colophon{
+    max-width:1240px; margin:0 auto;
+    padding:0 clamp(12px, 2.4vw, 28px) clamp(32px, 5vw, 60px);
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
+    color:rgba(245,241,230,.45);
+  }
+
+  @media (max-width:920px){
+    main{ grid-template-columns:1fr; }
+    .console{ position:static; }
+    .figure-row{ grid-template-columns:1fr; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .inkpot, .mode, .sheet{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="sign">
+  <div class="sign-row">
+    <h1>Press <span class="blue">Room</span></h1>
+    <span class="plate-tag">Riso MZ790 · Drum Blue/Pink · Edition 41</span>
+  </div>
+  <p class="sign-sub">Two drums, one misaligned drum-frame, a stack of paper that never quite feeds straight. Pull the registration slider and watch the plates drift in and out of truth — perfectly aligned is rarely the interesting setting.</p>
+</header>
+
+<main>
+  <section class="pressbed" aria-label="The printed sheet">
+    <div class="sheet">
+      <div class="crop tl" aria-hidden="true"><i class="h"></i><i class="v"></i></div>
+      <div class="crop tr" aria-hidden="true"><i class="h"></i><i class="v"></i></div>
+      <div class="crop bl" aria-hidden="true"><i class="h"></i><i class="v"></i></div>
+      <div class="crop br" aria-hidden="true"><i class="h"></i><i class="v"></i></div>
+
+      <article class="poster">
+        <p class="poster-eyebrow">The Print Dept. presents · One night only · Doors 20:00</p>
+        <h2 class="poster-head">
+          <span class="mis-a" data-t="SLOW">SLOW</span><br>
+          <span class="mis-b" data-t="WIRE">WIRE</span>
+        </h2>
+        <p class="poster-sub">An evening of drones, tape loops &amp; shortwave choir</p>
+
+        <div class="figure-row">
+          <figure class="halftone-frame">
+            <canvas id="ht" aria-label="Halftone portrait built from riso ink dots"></canvas>
+            <figcaption class="frame-tag">Plate A · 45 lpi · duotone</figcaption>
+          </figure>
+          <aside class="press-note">
+            <h3>Slow<br><span>Wire</span></h3>
+            <p>A duotone study in two inks that never agree on where the edge of a face is. Printed on 90gsm offcut stock, dried between newsprint, trimmed crooked on purpose.</p>
+            <p class="dotline"><i></i> Blue drum — pass one</p>
+            <p class="dotline"><i class="p"></i> Fluorescent pink — pass two</p>
+            <p class="dotline"><i style="background:radial-gradient(circle at 40% 35%, #4a4a4a, #101010 70%);"></i> Black key — type only</p>
+          </aside>
+        </div>
+
+        <div class="footmeta">
+          <span>Printed at the open bench · someone else's studio</span>
+          <span id="regRead">Registration ±0.0 mm · trims honest</span>
+          <span>Ed. of 41 · signed on the back</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <aside class="console" aria-label="Press console">
+    <h2>Press Console</h2>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="reg">Registration</label><output id="regOut">±0.0 mm</output></div>
+      <input type="range" id="reg" min="-9" max="9" step="0.1" value="0">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="lpi">Screen Ruling</label><output id="lpiOut">45 lpi</output></div>
+      <input type="range" id="lpi" min="14" max="80" step="1" value="45">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="angle">Screen Angle</label><output id="angleOut">15°</output></div>
+      <input type="range" id="angle" min="0" max="45" step="1" value="15">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="grain">Paper Grain</label><output id="grainOut">40%</output></div>
+      <input type="range" id="grain" min="0" max="100" step="1" value="40">
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><span>Ink pots</span></div>
+      <div class="inkrow" role="group" aria-label="Ink choices">
+        <button class="inkpot pot-blue" type="button" data-pot="blue" aria-pressed="true"><i></i><span>Blue</span></button>
+        <button class="inkpot pot-pink" type="button" data-pot="pink" aria-pressed="true"><i></i><span>Pink</span></button>
+        <button class="inkpot pot-key" type="button" data-pot="key" aria-pressed="false"><i></i><span>Key</span></button>
+      </div>
+    </div>
+
+    <div class="modes">
+      <button class="mode" id="faceBtn" type="button" aria-pressed="true">Portrait</button>
+      <button class="mode" id="figureBtn" type="button" aria-pressed="false">Figure</button>
+      <button class="mode" id="wipeBtn" type="button">Wipe Drums</button>
+      <button class="mode" id="misfeedBtn" type="button">Misfeed</button>
+    </div>
+
+    <p class="fine">Hold <b>click</b> on the sheet — or press and hold anywhere on the plate — to feed the drum harder: dot size breathes with pressure. The type layer never moves; ink is honest, it is the paper that lies.</p>
+  </aside>
+</main>
+
+<footer class="colophon">
+  <span>MZ790 · drum 1 blue · drum 2 fluorescent pink</span>
+  <span id="clock">Job 041 · open bench</span>
+  <span>clean the squeegee before you leave</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- canvas setup ---------- */
+  var cv = document.getElementById("ht");
+  var ctx = cv.getContext("2d");
+  var regRead = document.getElementById("regRead");
+  var clockEl = document.getElementById("clock");
+
+  var state = {
+    reg: 0,        /* mm misregistration */
+    lpi: 45,       /* lines per inch-ish */
+    angle: 15,     /* screen angle deg */
+    grain: 0.4,
+    pots: { blue: true, pink: true, key: false },
+    subject: "face",
+    pressure: 0.5  /* 0..1, eased */
+  };
+
+  /* deterministic noise */
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- luminance field of the subject ---------- */
+  /* face: simple parametric head with shading; figure: seated silhouette with neck light */
+  function subjectLum(nx, ny, subject) {
+    /* nx, ny in 0..1 of frame */
+    if (subject === "face") {
+      var cx = 0.5, cy = 0.44;
+      var dx = (nx - cx) / 0.24, dy = (ny - cy) / 0.33;
+      var head = dx * dx + dy * dy;
+      var lum;
+      if (head < 1) {
+        /* shading from upper-left key light */
+        var shade = 0.34 + 0.5 * (dx * -0.7 + dy * -0.5); /* lighter where light hits */
+        lum = 1 - Math.min(1, Math.max(0, shade));
+        /* eyes */
+        var e1 = Math.hypot((nx - 0.42) / 0.07, (ny - 0.40) / 0.045);
+        var e2 = Math.hypot((nx - 0.58) / 0.07, (ny - 0.40) / 0.045);
+        if (e1 < 1 || e2 < 1) { lum = 0.95; }
+        /* brow shadow */
+        if (ny > 0.33 && ny < 0.37 && head < 0.9) { lum = Math.min(1, lum + 0.18); }
+        /* mouth */
+        var m = Math.hypot((nx - 0.5) / 0.1, (ny - 0.56) / 0.028);
+        if (m < 1) { lum = Math.min(1, lum + 0.3); }
+      } else {
+        lum = 1;
+      }
+      /* shoulders */
+      var sw = Math.abs(nx - 0.5) / 0.42;
+      var sh = (ny - 0.74) / 0.3;
+      if (sh > 0 && sh < 1 && sw + sh * sh * 0.2 < 1) {
+        lum = Math.min(lum, 0.62 + 0.3 * sh + 0.3 * Math.abs(nx - 0.42));
+      }
+      /* background gradient wash */
+      lum = Math.min(1, lum * (0.86 + 0.28 * ny));
+      return Math.min(1, Math.max(0, lum));
+    } else {
+      /* figure: a bowed seated silhouette */
+      var bodyX = 0.52, bodyY = 0.62;
+      var bx = (nx - bodyX) / 0.3, by = (ny - bodyY) / 0.34;
+      var torso = bx * bx * 1.1 + by * by;
+      var lum2 = 1;
+      if (torso < 1) {
+        lum2 = 0.55 + 0.4 * (bx * -0.6 + by * -0.6);
+        lum2 = Math.max(0, Math.min(1, lum2));
+      }
+      /* head bowed forward */
+      var hdx = (nx - 0.66) / 0.11, hdy = (ny - 0.34) / 0.12;
+      if (hdx * hdx + hdy * hdy < 1) { lum2 = Math.min(lum2, 0.18 + 0.5 * (hdx + hdy)); }
+      /* arm reaching down */
+      var ax = (nx - 0.4) / 0.09, ay = (ny - 0.62) / 0.26;
+      if (ax * ax + ay * ay < 1) { lum2 = 0.4; }
+      /* rim light from the left */
+      lum2 = Math.min(1, lum2 * (0.8 + 0.5 * nx));
+      lum2 = Math.min(1, lum2 * (0.9 + 0.25 * ny));
+      return Math.max(0, Math.min(1, lum2));
+    }
+  }
+
+  /* ---------- halftone renderer ---------- */
+  function render() {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var rect = cv.getBoundingClientRect();
+    var W = Math.max(80, Math.round(rect.width));
+    var H = Math.max(80, Math.round(rect.height));
+    if (cv.width !== W * dpr || cv.height !== H * dpr) {
+      cv.width = W * dpr; cv.height = H * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    /* paper */
+    ctx.fillStyle = "#f5f1e6";
+    ctx.fillRect(0, 0, W, H);
+
+    var pitch = Math.max(4, 260 / state.lpi) * (W / 520 + 0.55);
+    var rad = pitch * 0.62;
+    var ca = Math.cos(-state.angle * Math.PI / 180);
+    var sa = Math.sin(-state.angle * Math.PI / 180);
+
+    /* pressure breathing */
+    var breathe = 1 + state.pressure * 0.5;
+
+    /* pass order: blue, then pink with offset, optional key */
+    var offs = [
+      { ink: "blue", dx: -state.reg * 1.6, dy: -state.reg * 0.9 },
+      { ink: "pink", dx: state.reg * 1.6, dy: state.reg * 1.1 },
+      { ink: "key", dx: 0, dy: 0 }
+    ];
+    var colors = {
+      blue: ["#5c73ff", "#2b44ff", "#1a2eb0"],
+      pink: ["#ff8ac6", "#ff48b0", "#c22578"],
+      key: ["#4a4a4a", "#141414", "#000000"]
+    };
+
+    offs.forEach(function (pass) {
+      if (!state.pots[pass.ink]) { return; }
+      var cc = colors[pass.ink];
+      var r = mulberry32(41 + (pass.ink === "blue" ? 1 : pass.ink === "pink" ? 2 : 3));
+      ctx.save();
+      /* rotate screen */
+      ctx.translate(W / 2 + pass.dx * (W / 90), H / 2 + pass.dy * (W / 90));
+      ctx.rotate(-state.angle * Math.PI / 180);
+      ctx.translate(-W / 2, -H / 2);
+      var half = Math.ceil(Math.max(W, H) * 0.75);
+      var step = pitch;
+      for (var gy = -half; gy < half; gy += step) {
+        for (var gx = -half; gx < half; gx += step) {
+          /* staggered rows */
+          var px = gx + ((gy / step) % 2 ? step / 2 : 0);
+          var py = gy;
+          /* inverse-rotate sample point to subject space */
+          var sx0 = px - W / 2, sy0 = py - H / 2;
+          var sx = W / 2 + sx0 * ca - sy0 * sa;
+          var sy = H / 2 + sx0 * sa + sy0 * ca;
+          var nx = sx / W, ny = sy / H;
+          if (nx < -0.05 || nx > 1.05 || ny < -0.05 || ny > 1.05) { continue; }
+          var lum = subjectLum(nx, ny, state.subject);
+          /* ink coverage: dark subject = more dot */
+          var cov = (1 - lum);
+          cov = Math.pow(cov, 1.25);
+          /* grain breakup */
+          cov *= 0.86 + r() * 0.28 * state.grain * 2;
+          if (cov <= 0.035) { continue; }
+          var dotR = rad * Math.sqrt(cov) * breathe * (pass.ink === "key" ? 0.4 : 1);
+          if (dotR < 0.35) { continue; }
+          var tier = cov > 0.66 ? 2 : cov > 0.33 ? 1 : 0;
+          ctx.fillStyle = cc[tier];
+          ctx.globalAlpha = pass.ink === "key" ? 0.9 : 0.82;
+          ctx.beginPath();
+          ctx.arc(px, py, dotR, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    });
+    ctx.globalAlpha = 1;
+
+    /* paper grain over everything */
+    if (state.grain > 0.02) {
+      ctx.save();
+      ctx.globalAlpha = state.grain * 0.24;
+      var gr = mulberry32(4141);
+      for (var i = 0; i < Math.round(state.grain * 900); i++) {
+        var fx = gr() * W, fy = gr() * H;
+        ctx.fillStyle = gr() < 0.5 ? "#8a836f" : "#ffffff";
+        ctx.fillRect(fx, fy, 1 + gr(), 1 + gr() * 1.4);
+      }
+      ctx.restore();
+    }
+    regRead.textContent = "Registration ±" + Math.abs(state.reg).toFixed(1) + " mm · " + (Math.abs(state.reg) < 0.6 ? "trims honest" : Math.abs(state.reg) < 3.5 ? "drifting" : "deliciously sloppy");
+  }
+
+  /* ---------- interactions ---------- */
+  function bind(id, outId, key, fmt, scale) {
+    var el = document.getElementById(id);
+    var out = document.getElementById(outId);
+    function sync() {
+      state[key] = parseFloat(el.value) * (scale || 1);
+      out.textContent = fmt(state[key]);
+      schedule();
+    }
+    el.addEventListener("input", sync);
+    sync();
+    return el;
+  }
+  var rafId = null;
+  function schedule() {
+    if (rafId !== null) { return; }
+    rafId = requestAnimationFrame(function () { rafId = null; render(); });
+  }
+
+  var rReg = bind("reg", "regOut", "reg", function (v) { return "±" + Math.abs(v).toFixed(1) + " mm"; });
+  var rLpi = bind("lpi", "lpiOut", "lpi", function (v) { return Math.round(v) + " lpi"; }, 1);
+  var rAngle = bind("angle", "angleOut", "angle", function (v) { return Math.round(v) + "°"; }, 1);
+  var rGrain = bind("grain", "grainOut", "grain", function (v) { return Math.round(v * 100) + "%"; }, 0.01);
+
+  document.querySelectorAll(".inkpot").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var pot = b.dataset.pot;
+      state.pots[pot] = !state.pots[pot];
+      b.setAttribute("aria-pressed", String(state.pots[pot]));
+      schedule();
+    });
+  });
+
+  var faceBtn = document.getElementById("faceBtn");
+  var figureBtn = document.getElementById("figureBtn");
+  faceBtn.addEventListener("click", function () {
+    state.subject = "face";
+    faceBtn.setAttribute("aria-pressed", "true");
+    figureBtn.setAttribute("aria-pressed", "false");
+    schedule();
+  });
+  figureBtn.addEventListener("click", function () {
+    state.subject = "figure";
+    figureBtn.setAttribute("aria-pressed", "true");
+    faceBtn.setAttribute("aria-pressed", "false");
+    schedule();
+  });
+
+  document.getElementById("wipeBtn").addEventListener("click", function () {
+    state.pots = { blue: false, pink: false, key: false };
+    document.querySelectorAll(".inkpot").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+    schedule();
+  });
+  document.getElementById("misfeedBtn").addEventListener("click", function () {
+    var r = mulberry32((Math.random() * 4294967295) | 0);
+    rReg.value = ((r() * 18) - 9).toFixed(1);
+    rReg.dispatchEvent(new Event("input"));
+    rAngle.value = String(Math.round(r() * 45));
+    rAngle.dispatchEvent(new Event("input"));
+    rLpi.value = String(14 + Math.round(r() * 60));
+    rLpi.dispatchEvent(new Event("input"));
+    state.pots = { blue: true, pink: true, key: r() < 0.35 };
+    document.querySelectorAll(".inkpot").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(state.pots[b.dataset.pot]));
+    });
+    schedule();
+  });
+
+  /* pressure: pointer held on the sheet feeds the drum */
+  var sheet = document.querySelector(".sheet");
+  var pressRAF = null;
+  function setPressureFromEvent(e) {
+    var r = sheet.getBoundingClientRect();
+    var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+    var dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+    var d = Math.min(1, Math.hypot(dx, dy));
+    return Math.max(0.08, 1 - d);
+  }
+  sheet.addEventListener("pointerdown", function (e) {
+    sheet.setPointerCapture(e.pointerId);
+    state.pressure = setPressureFromEvent(e);
+    schedule();
+    function move(ev) {
+      state.pressure = setPressureFromEvent(ev);
+      schedule();
+    }
+    function up() {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      /* ease back */
+      if (!RM) {
+        (function ease() {
+          state.pressure += (0.5 - state.pressure) * 0.12;
+          schedule();
+          if (Math.abs(state.pressure - 0.5) > 0.004) { pressRAF = requestAnimationFrame(ease); }
+          else { state.pressure = 0.5; pressRAF = null; }
+        })();
+      } else {
+        state.pressure = 0.5;
+        schedule();
+      }
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    e.preventDefault();
+  });
+
+  /* ambient drum wobble: subtle dot breathing on a slow loop */
+  if (!RM) {
+    var wobble = 0;
+    (function breatheLoop() {
+      wobble += 0.016;
+      state.pressure = 0.5 + Math.sin(wobble * 0.9) * 0.06 + Math.sin(wobble * 2.3) * 0.02;
+      schedule();
+      requestAnimationFrame(breatheLoop);
+    })();
+  }
+
+  window.addEventListener("resize", schedule);
+
+  /* job clock */
+  var jobMin = 41 * 7 % 60;
+  setInterval(function () {
+    jobMin = (jobMin + 1) % 60;
+    var h = 20 + Math.floor(jobMin / 45);
+    clockEl.textContent = "Job 041 · " + (h < 10 ? "0" : "") + h + ":" + (jobMin < 10 ? "0" : "") + jobMin + " · drum 2 feeding";
+  }, 4000);
+
+  render();
+})();
+</script>
+</body>
+</html>

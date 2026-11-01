@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUNSET DRIVE ∞ · №015 — Vaporwave Infinite Highway · The Gallery of 100</title>
+<style>
+:root{
+  --sky-1:  #3f1d6b;
+  --sky-2:  #b3268a;
+  --pink:   #ff6ec7;
+  --grid-a: #ff71ce;
+  --grid-b: #01cdfe;
+  --sun-1:  #ffd319;
+  --sun-2:  #ff901f;
+  --deep:   #12081f;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--mono);
+  background:var(--deep);
+  color:#ffe9fb;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--pink); color:#2a0a2e; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed var(--grid-b); outline-offset:3px; }
+
+/* ---------- scene ---------- */
+#scene{
+  position:fixed; inset:0; display:block;
+  touch-action:none;
+}
+.vhs-wrap{
+  position:fixed; inset:0; pointer-events:none; overflow:hidden;
+}
+/* scanlines */
+.scanlines{
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(
+    180deg,
+    rgba(0,0,0,0) 0 2px,
+    rgba(10,2,16,.22) 2px 4px
+  );
+  mix-blend-mode:multiply;
+}
+/* moving tracking band */
+.tracker{
+  position:absolute; left:0; right:0; height:64px;
+  background:linear-gradient(180deg,
+    transparent,
+    rgba(255,255,255,.045) 30%,
+    rgba(1,205,254,.10) 50%,
+    rgba(255,255,255,.045) 70%,
+    transparent);
+  filter:blur(1px);
+  opacity:0;
+  transform:translateY(-80px);
+}
+body.vhs .tracker{
+  opacity:1;
+  animation:trackRoll 4.5s linear infinite;
+}
+@keyframes trackRoll{
+  0%{ transform:translateY(-80px); }
+  100%{ transform:translateY(110vh); }
+}
+/* chromatic edge ghosting */
+body.vhs .chroma{
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, rgba(255,0,110,.07), transparent 12%, transparent 88%, rgba(0,220,255,.07));
+  mix-blend-mode:screen;
+}
+/* vignette */
+.vignette{
+  position:absolute; inset:0;
+  background:radial-gradient(120% 100% at 50% 42%, transparent 55%, rgba(10,2,18,.6) 100%);
+}
+/* occasional tear line */
+body.vhs .tear{
+  position:absolute; left:0; right:0; height:3px;
+  background:rgba(255,255,255,.16);
+  mix-blend-mode:screen;
+  opacity:0;
+}
+body.vhs .tear.a{ animation:tear 7.3s steps(1) infinite; }
+body.vhs .tear.b{ animation:tear 11.9s steps(1) infinite 2.2s; }
+@keyframes tear{
+  0%,92%{ opacity:0; transform:translateY(0); }
+  93%{ opacity:1; transform:translateY(18vh); }
+  94.5%{ opacity:0; }
+  95.5%{ opacity:.8; transform:translateY(64vh); }
+  96.5%{ opacity:0; }
+  100%{ opacity:0; }
+}
+
+/* ---------- chrome title ---------- */
+.chrome{
+  position:fixed; top:clamp(18px, 5vh, 56px); left:0; right:0;
+  text-align:center;
+  pointer-events:none;
+  z-index:5;
+}
+.chrome h1{
+  font-family:var(--serif);
+  font-style:italic;
+  font-weight:700;
+  font-size:clamp(2.3rem, 7.5vw, 6.2rem);
+  letter-spacing:.02em;
+  line-height:1;
+  margin:0;
+  background:linear-gradient(180deg,
+    #f7fbff 0%,
+    #cfe3f5 28%,
+    #8ea9c9 44%,
+    #f0d6ee 52%,
+    #ff9ad5 68%,
+    #b3268a 84%,
+    #6d1f57 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 3px 0 rgba(64,22,84,.9)) drop-shadow(0 10px 22px rgba(255,110,199,.35));
+}
+.chrome .sub{
+  margin-top:10px;
+  font-size:clamp(.6rem, 1.4vw, .78rem);
+  letter-spacing:.62em;
+  text-transform:uppercase;
+  color:rgba(255,233,251,.85);
+  text-shadow:0 0 12px rgba(255,110,199,.6);
+}
+.chrome .sub b{ color:var(--grid-b); font-weight:400; }
+
+/* ---------- marquee ---------- */
+.marquee{
+  position:fixed; top:clamp(96px, 17vh, 170px); left:0; right:0;
+  overflow:hidden; white-space:nowrap;
+  pointer-events:none; z-index:5;
+  font-size:clamp(.68rem, 1.6vw, .95rem);
+  letter-spacing:.5em; text-transform:uppercase;
+  color:rgba(255,255,255,.55);
+}
+.marquee .inner{
+  display:inline-block;
+  padding-left:100%;
+  animation:roll 26s linear infinite;
+}
+@keyframes roll{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-100%); }
+}
+
+/* ---------- HUD ---------- */
+.hud{
+  position:fixed; left:clamp(12px,2.5vw,28px); bottom:clamp(12px,2.5vh,24px);
+  display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap;
+  z-index:6;
+  font-size:.68rem; letter-spacing:.14em;
+  text-shadow:0 0 8px rgba(255,110,199,.45);
+}
+.hud .cell{
+  background:linear-gradient(180deg, rgba(63,29,107,.72), rgba(18,8,31,.72));
+  border:1px solid rgba(255,113,206,.5);
+  border-radius:6px;
+  padding:10px 14px;
+  min-width:112px;
+  backdrop-filter:blur(4px);
+}
+.hud .k{ display:block; font-size:.56rem; letter-spacing:.3em; color:rgba(255,233,251,.65); }
+.hud .v{ display:block; margin-top:5px; font-size:1.05rem; letter-spacing:.08em; color:#fff; font-variant-numeric:tabular-nums; }
+.hud .v.cyan{ color:var(--grid-b); text-shadow:0 0 10px rgba(1,205,254,.7); }
+.hud .v.pink{ color:var(--grid-a); text-shadow:0 0 10px rgba(255,113,206,.7); }
+
+/* ---------- throttle console ---------- */
+.console{
+  position:fixed; right:clamp(12px,2.5vw,28px); bottom:clamp(12px,2.5vh,24px);
+  z-index:6;
+  display:flex; flex-direction:column; gap:10px; align-items:flex-end;
+}
+.throttle{
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(180deg, rgba(63,29,107,.72), rgba(18,8,31,.72));
+  border:1px solid rgba(255,113,206,.5);
+  border-radius:8px;
+  padding:12px 16px;
+  backdrop-filter:blur(4px);
+}
+.throttle label{ font-size:.56rem; letter-spacing:.3em; color:rgba(255,233,251,.7); text-transform:uppercase; white-space:nowrap; }
+input[type="range"].th{
+  -webkit-appearance:none; appearance:none;
+  width:clamp(120px, 22vw, 220px); height:26px;
+  background:transparent; cursor:pointer; touch-action:none;
+}
+input[type="range"].th::-webkit-slider-runnable-track{
+  height:6px; border-radius:3px;
+  background:linear-gradient(90deg, var(--grid-b), var(--grid-a));
+  box-shadow:0 0 8px rgba(255,113,206,.5) inset;
+}
+input[type="range"].th::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:20px; height:20px; margin-top:-7px; border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, #fff, #ff9ad5 60%, #b3268a);
+  box-shadow:0 0 12px rgba(255,110,199,.8);
+  border:none;
+}
+input[type="range"].th::-moz-range-track{
+  height:6px; border-radius:3px;
+  background:linear-gradient(90deg, var(--grid-b), var(--grid-a));
+}
+input[type="range"].th::-moz-range-thumb{
+  width:20px; height:20px; border:none; border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, #fff, #ff9ad5 60%, #b3268a);
+  box-shadow:0 0 12px rgba(255,110,199,.8);
+}
+.th-val{ min-width:3.2em; text-align:right; font-size:.9rem; color:#fff; font-variant-numeric:tabular-nums; }
+
+.buttons{ display:flex; gap:10px; }
+.glow-btn{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.26em; text-transform:uppercase;
+  color:#ffe9fb;
+  background:linear-gradient(180deg, rgba(63,29,107,.75), rgba(18,8,31,.75));
+  border:1px solid rgba(255,113,206,.6);
+  border-radius:6px;
+  padding:11px 16px;
+  cursor:pointer;
+  transition:box-shadow .25s ease, transform .2s ease, border-color .25s ease;
+  touch-action:manipulation;
+}
+.glow-btn:hover{ transform:translateY(-2px); box-shadow:0 0 18px rgba(255,110,199,.55); }
+.glow-btn:active{ transform:translateY(0); }
+.glow-btn[aria-pressed="true"]{
+  border-color:var(--grid-b);
+  color:#dffaff;
+  box-shadow:0 0 20px rgba(1,205,254,.6), 0 0 8px rgba(1,205,254,.8) inset;
+}
+
+/* ---------- corner stamps ---------- */
+.stamp{
+  position:fixed; z-index:5; pointer-events:none;
+  font-size:.56rem; letter-spacing:.34em; text-transform:uppercase;
+  color:rgba(255,233,251,.5);
+}
+.stamp.tl{ top:14px; left:16px; }
+.stamp.tr{ top:14px; right:16px; text-align:right; }
+.stamp b{ color:var(--grid-a); font-weight:400; }
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; top:clamp(60px, 10vh, 110px); left:50%;
+  transform:translate(-50%,-8px);
+  font-size:.62rem; letter-spacing:.3em; text-transform:uppercase;
+  color:#dffaff;
+  background:rgba(18,8,31,.8);
+  border:1px solid rgba(1,205,254,.55);
+  border-radius:999px;
+  padding:8px 16px;
+  opacity:0; transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none; z-index:7;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* ---------- help strip ---------- */
+.help{
+  position:fixed; top:50%; left:clamp(12px,2.5vw,28px); transform:translateY(-50%);
+  z-index:5; pointer-events:none;
+  font-size:.56rem; letter-spacing:.24em; text-transform:uppercase;
+  color:rgba(255,233,251,.45);
+  line-height:2.2;
+  writing-mode:vertical-rl;
+}
+.help em{ font-style:normal; color:var(--grid-b); }
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .help{ display:none; }
+  .hud{ gap:10px; }
+  .hud .cell{ min-width:92px; padding:8px 10px; }
+  .console{ left:clamp(12px,2.5vw,28px); right:auto; align-items:stretch; width:calc(100% - 24px); }
+  .throttle{ justify-content:space-between; }
+  .buttons{ justify-content:space-between; }
+  .glow-btn{ flex:1; text-align:center; }
+  .stamp.tr{ display:none; }
+}
+@media (max-width:420px){
+  .hud .cell:last-child{ display:none; }
+  .th-val{ min-width:2.4em; }
+}
+@media (prefers-reduced-motion: reduce){
+  .marquee .inner{ animation:none; padding-left:0; }
+  body.vhs .tracker{ animation:none; opacity:.4; transform:translateY(30vh); }
+  body.vhs .tear{ animation:none; opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div class="vhs-wrap" aria-hidden="true">
+  <div class="chroma"></div>
+  <div class="scanlines"></div>
+  <div class="tracker"></div>
+  <div class="tear a"></div>
+  <div class="tear b"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="stamp tl" aria-hidden="true">NIGHT FM · <b>88.3</b></div>
+<div class="stamp tr" aria-hidden="true">SECTOR <b>015</b> · COASTLINE COPY</div>
+
+<div class="chrome">
+  <h1>Sunset Drive ∞</h1>
+  <p class="sub">endless · <b>frame-perfect</b> · nowhere to be</p>
+</div>
+
+<div class="marquee" aria-hidden="true">
+  <span class="inner">DRIVE FOREVER · THE SUN REFUSES TO SET · GAS IS A MEMORY · THE GRID GOES ON · CHROME HEARTS WELCOME · DRIVE FOREVER ·</span>
+</div>
+
+<div class="help" aria-hidden="true">
+  <div><em>↑↓</em> THROTTLE</div>
+  <div><em>S</em> SOUND</div>
+  <div><em>V</em> VHS</div>
+  <div><em>MOUSE X</em> STEER</div>
+</div>
+
+<div class="hud">
+  <div class="cell"><span class="k">SPEED</span><span class="v pink" id="hudSpeed">88</span></div>
+  <div class="cell"><span class="k">ODOmeter</span><span class="v" id="hudOdo">0000.0</span></div>
+  <div class="cell"><span class="k">RADIO</span><span class="v cyan" id="hudRadio">OFF</span></div>
+</div>
+
+<div class="console">
+  <div class="throttle">
+    <label for="throttle">Throttle</label>
+    <input type="range" id="throttle" class="th" min="0" max="100" value="55" aria-label="Throttle — grid scroll speed">
+    <span class="th-val" id="thVal">55</span>
+  </div>
+  <div class="buttons">
+    <button class="glow-btn" id="btnSound" type="button" aria-pressed="false">Sound · Off</button>
+    <button class="glow-btn" id="btnVhs" type="button" aria-pressed="false">VHS · Clean</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var cv = document.getElementById("scene");
+var ctx = cv.getContext("2d");
+var els = {
+  speed:document.getElementById("hudSpeed"),
+  odo:document.getElementById("hudOdo"),
+  radio:document.getElementById("hudRadio"),
+  th:document.getElementById("throttle"),
+  thVal:document.getElementById("thVal"),
+  sound:document.getElementById("btnSound"),
+  vhs:document.getElementById("btnVhs"),
+  toast:document.getElementById("toast")
+};
+
+/* ================= state ================= */
+var W=0, H=0, DPR=1, HORIZON=0;
+var throttle = 0.55;          /* 0..1 */
+var steer = 0;                /* -1..1 smoothed */
+var steerTarget = 0;
+var distance = 0;             /* odometer */
+var running = true, raf = 0, frame = 0, lastT = 0;
+var soundOn = false, vhsOn = false;
+
+/* palms & wires: fixed world objects with (angle around road, height) */
+var palms = [];
+var birds = [];
+
+/* ================= resize ================= */
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + "px";
+  cv.style.height = H + "px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  HORIZON = H * 0.42;
+  buildPalms();
+}
+function buildPalms(){
+  palms = [];
+  var n = 14;
+  for (var i = 0; i < n; i++){
+    palms.push({
+      side: (i % 2 === 0) ? -1 : 1,
+      z: 0.35 + (i / n) * 3.2 + Math.random()*0.3,   /* world depth units */
+      h: 120 + Math.random() * 150,                  /* screen height at z=1 */
+      sway: Math.random() * Math.PI * 2
+    });
+  }
+  birds = [];
+  for (var b = 0; b < 5; b++){
+    birds.push({ x:Math.random(), y:0.12+Math.random()*0.16, s:0.5+Math.random()*0.8, ph:Math.random()*6.28 });
+  }
+}
+
+/* ================= audio ================= */
+var AC=null, padGain=null, padOsc=[], lfo=null, noiseGain=null;
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  padGain = AC.createGain();
+  padGain.gain.value = 0.0001;
+  var filter = AC.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1400;
+  filter.Q.value = 0.4;
+  padGain.connect(filter);
+  filter.connect(AC.destination);
+  /* detuned saw pad: Amaj7-ish shimmer */
+  var freqs = [110, 164.81, 220, 277.18, 329.63, 440];
+  for (var i = 0; i < freqs.length; i++){
+    var o = AC.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.value = freqs[i];
+    var g = AC.createGain();
+    g.gain.value = (i === 0) ? 0.16 : 0.05;
+    o.connect(g); g.connect(padGain);
+    o.start();
+    padOsc.push(o);
+  }
+  /* slow filter LFO for breathing */
+  lfo = AC.createOscillator();
+  lfo.type = "sine"; lfo.frequency.value = 0.07;
+  var lg = AC.createGain(); lg.gain.value = 420;
+  lfo.connect(lg); lg.connect(filter.frequency); lfo.start();
+  /* wind noise bed */
+  var len = AC.sampleRate * 2;
+  var buf = AC.createBuffer(1, len, AC.sampleRate);
+  var d = buf.getChannelData(0);
+  var last = 0;
+  for (var j = 0; j < len; j++){
+    var w = Math.random()*2-1;
+    last = (last + 0.03*w)/1.03;
+    d[j] = last * 2.4;
+  }
+  var src = AC.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  var bp = AC.createBiquadFilter();
+  bp.type = "bandpass"; bp.frequency.value = 700; bp.Q.value = 0.4;
+  noiseGain = AC.createGain(); noiseGain.gain.value = 0.05;
+  src.connect(bp); bp.connect(noiseGain); noiseGain.connect(padGain);
+  src.start();
+  return true;
+}
+function setSound(on){
+  if (on){
+    if (!ensureAudio()){ showToast("AUDIO UNAVAILABLE"); return; }
+    if (AC.state === "suspended") AC.resume();
+    padGain.gain.setTargetAtTime(0.5, AC.currentTime, 0.8);
+    soundOn = true;
+    els.radio.textContent = "88.3 FM";
+    els.sound.setAttribute("aria-pressed","true");
+    els.sound.textContent = "Sound · On";
+    showToast("PAD DRONE · ENGAGED");
+  } else {
+    if (AC) padGain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.4);
+    soundOn = false;
+    els.radio.textContent = "OFF";
+    els.sound.setAttribute("aria-pressed","false");
+    els.sound.textContent = "Sound · Off";
+    showToast("RADIO · OFF");
+  }
+}
+
+/* ================= throttle ================= */
+function setThrottle(v, silent){
+  throttle = clamp(v, 0, 1);
+  els.th.value = String(Math.round(throttle * 100));
+  els.thVal.textContent = String(Math.round(throttle * 100));
+  if (!silent) { /* toast only on keyboard steps */ }
+}
+
+/* ================= toast ================= */
+var toastTimer = 0;
+function showToast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 1800);
+}
+
+/* ================= drawing helpers ================= */
+function skyGradient(){
+  var g = ctx.createLinearGradient(0, 0, 0, HORIZON);
+  g.addColorStop(0, "#1b0d33");
+  g.addColorStop(0.35, "#3f1d6b");
+  g.addColorStop(0.62, "#8a2d86");
+  g.addColorStop(0.82, "#d84b9b");
+  g.addColorStop(1, "#ff6ec7");
+  return g;
+}
+function drawSky(){
+  ctx.fillStyle = skyGradient();
+  ctx.fillRect(0, 0, W, HORIZON);
+  /* glow around sun */
+  var sunX = W/2 + steer * W * 0.18;
+  var sunY = HORIZON - H*0.13;
+  var sunR = Math.min(W, H) * 0.16;
+  var glow = ctx.createRadialGradient(sunX, sunY, sunR*0.4, sunX, sunY, sunR*2.6);
+  glow.addColorStop(0, "rgba(255,211,25,.55)");
+  glow.addColorStop(0.5, "rgba(255,144,31,.22)");
+  glow.addColorStop(1, "rgba(255,110,199,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,W,HORIZON);
+  /* striped sun */
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR, 0, Math.PI*2);
+  ctx.clip();
+  var sg = ctx.createLinearGradient(0, sunY - sunR, 0, sunY + sunR);
+  sg.addColorStop(0, "#fff3b0");
+  sg.addColorStop(0.5, "#ffd319");
+  sg.addColorStop(1, "#ff901f");
+  ctx.fillStyle = sg;
+  ctx.fillRect(sunX - sunR, sunY - sunR, sunR*2, sunR*2);
+  /* horizontal void stripes */
+  ctx.fillStyle = "#2a1046";
+  var stripeH = Math.max(2, sunR * 0.055);
+  var yy = sunY + sunR*0.08;
+  var gap = sunR * 0.16;
+  while (yy < sunY + sunR){
+    ctx.fillRect(sunX - sunR, yy, sunR*2, stripeH);
+    yy += gap + stripeH;
+    gap *= 0.92;
+  }
+  ctx.restore();
+  /* birds */
+  ctx.strokeStyle = "rgba(30,10,40,.8)";
+  ctx.lineWidth = 1.4;
+  for (var i = 0; i < birds.length; i++){
+    var bd = birds[i];
+    var bx = ((bd.x + frame * 0.00016 * bd.s) % 1.1) * W;
+    var by = bd.y * HORIZON + Math.sin(frame * 0.02 + bd.ph) * 4;
+    var f = Math.sin(frame * 0.14 + bd.ph) * 3;
+    ctx.beginPath();
+    ctx.moveTo(bx - 5*bd.s, by + f);
+    ctx.lineTo(bx, by - 2*bd.s);
+    ctx.lineTo(bx + 5*bd.s, by + f);
+    ctx.stroke();
+  }
+  /* horizon haze */
+  var haze = ctx.createLinearGradient(0, HORIZON - H*0.06, 0, HORIZON);
+  haze.addColorStop(0, "rgba(255,110,199,0)");
+  haze.addColorStop(1, "rgba(255,110,199,.35)");
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, HORIZON - H*0.06, W, H*0.06);
+}
+
+/* palm drawn at screen position with scale s and lean */
+function drawPalm(x, baseY, s, lean, sway){
+  if (s < 0.06) return;
+  var trunkH = 90 * s;
+  ctx.strokeStyle = "rgba(18,6,28,.92)";
+  ctx.lineWidth = Math.max(1, 5*s);
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.quadraticCurveTo(x + lean*14*s + Math.sin(sway)*3*s, baseY - trunkH*0.6, x + lean*30*s, baseY - trunkH);
+  ctx.stroke();
+  /* fronds */
+  var tx = x + lean*30*s, ty = baseY - trunkH;
+  ctx.lineWidth = Math.max(1, 3*s);
+  for (var i = 0; i < 7; i++){
+    var a = -Math.PI*0.5 + (i - 3) * 0.42 + Math.sin(sway + i)*0.06;
+    var len = (34 - Math.abs(i-3)*3) * s;
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.quadraticCurveTo(
+      tx + Math.cos(a)*len*0.6, ty + Math.sin(a)*len*0.6 - 4*s,
+      tx + Math.cos(a)*len, ty + Math.sin(a)*len + 8*s);
+    ctx.stroke();
+  }
+  /* coconuts */
+  if (s > 0.35){
+    ctx.fillStyle = "rgba(18,6,28,.9)";
+    ctx.beginPath(); ctx.arc(tx-3*s, ty+3*s, 2.4*s, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(tx+4*s, ty+2*s, 2.2*s, 0, 6.29); ctx.fill();
+  }
+}
+
+function project(pz){
+  /* world z in [near 0 .. far 4], camera moves toward +z */
+  var z = pz - (distance % 3.55);
+  if (z <= 0.02) z += 3.55;
+  /* perspective: screenY from z */
+  var t = 1 / (1 + z * z * 0.55);
+  var y = HORIZON + (H - HORIZON) * t;
+  var halfRoad = W * 0.5 * t;
+  return { y:y, half:halfRoad, s:t };
+}
+
+function drawGround(){
+  /* base ground */
+  var gg = ctx.createLinearGradient(0, HORIZON, 0, H);
+  gg.addColorStop(0, "#2a1046");
+  gg.addColorStop(0.25, "#1b0b30");
+  gg.addColorStop(1, "#0d0518");
+  ctx.fillStyle = gg;
+  ctx.fillRect(0, HORIZON, W, H - HORIZON);
+}
+
+function drawGrid(){
+  var scroll = (distance * 1.0) % 1;
+  var cx = W/2 + steer * W * 0.16;
+  ctx.lineWidth = 1.4;
+  /* verticals fanning from vanishing point */
+  for (var i = -14; i <= 14; i++){
+    var xd = i * 0.09;                    /* world x */
+    var xb = cx + xd * W * 0.5;           /* bottom */
+    ctx.strokeStyle = (i % 5 === 0) ? "rgba(1,205,254,.75)" : "rgba(255,113,206,.55)";
+    ctx.beginPath();
+    ctx.moveTo(cx + xd * 6, HORIZON);
+    ctx.lineTo(xb, H);
+    ctx.stroke();
+  }
+  /* horizontals scrolling toward viewer */
+  var n = 16;
+  for (var k = 0; k < n; k++){
+    var zf = ((k + scroll) / n);          /* 0 near .. 1 far */
+    var z = (1 - zf) * 4 + 0.05;
+    var t = 1 / (1 + z * z * 0.55);
+    var y = HORIZON + (H - HORIZON) * t;
+    var fade = 0.16 + t * 0.7;
+    ctx.strokeStyle = (k % 4 === 0) ? "rgba(1,205,254," + (fade*0.85).toFixed(3) + ")"
+                                    : "rgba(255,113,206," + fade.toFixed(3) + ")";
+    ctx.lineWidth = 1 + t * 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  /* road edge rails */
+  ctx.strokeStyle = "rgba(255,255,255,.85)";
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - W*0.30, H); ctx.lineTo(cx - 4, HORIZON); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + W*0.30, H); ctx.lineTo(cx + 4, HORIZON); ctx.stroke();
+  /* dashed centerline */
+  var dashes = 10;
+  for (var d = 0; d < dashes; d++){
+    var zf2 = ((d + scroll*2) / dashes);
+    var z2 = (1 - zf2) * 4 + 0.05;
+    var t2 = 1 / (1 + z2 * z2 * 0.55);
+    var y2 = HORIZON + (H - HORIZON) * t2;
+    var len = (H - HORIZON) * t2 * 0.10;
+    ctx.strokeStyle = "rgba(255,211,25,.9)";
+    ctx.lineWidth = 1 + t2 * 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, y2);
+    ctx.lineTo(cx, Math.min(H, y2 + len));
+    ctx.stroke();
+  }
+}
+
+function drawPalms(){
+  /* each palm has fixed world z in [0..3.55); recycle with distance */
+  for (var i = 0; i < palms.length; i++){
+    var p = palms[i];
+    var z = (p.z + 3.55 - (distance % 3.55)) % 3.55;
+    if (z < 0.06) continue;
+    var t = 1 / (1 + z * z * 0.55);
+    var y = HORIZON + (H - HORIZON) * t;
+    var x = W/2 + steer * W * 0.16 + p.side * (W * 0.34) * t + p.side * W * 0.05;
+    var s = t * (p.h / 260);
+    drawPalm(x, y + 2, s * 1.15, p.side * -0.3, p.sway + frame * 0.01);
+    /* power wires between tall palms */
+    if (p.side === 1 && i > 0){
+      var q = palms[i-1];
+      var zq = (q.z + 3.55 - (distance % 3.55)) % 3.55;
+      if (zq > 0.1){
+        var tq = 1 / (1 + zq * zq * 0.55);
+        var yq = HORIZON + (H - HORIZON) * tq;
+        var xq = W/2 + steer * W * 0.16 + q.side * (W*0.34) * tq + q.side * W*0.05;
+        ctx.strokeStyle = "rgba(18,6,28,.55)";
+        ctx.lineWidth = Math.max(0.6, 1.4 * t);
+        ctx.beginPath();
+        ctx.moveTo(x, y - 78*s);
+        ctx.quadraticCurveTo((x+xq)/2, Math.min(y,yq) - 96*s - 14*t, xq, yq - 78*s*1.15);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+/* stars */
+function drawStars(){
+  ctx.fillStyle = "rgba(255,255,255,.8)";
+  var seedBase = 7;
+  for (var i = 0; i < 46; i++){
+    var sx = ((i * 137.5 + seedBase) % 100) / 100 * W;
+    var sy = ((i * 61.8) % 100) / 100 * HORIZON * 0.7;
+    var tw = 0.35 + 0.65 * Math.abs(Math.sin(frame * 0.01 + i));
+    ctx.globalAlpha = tw * 0.7;
+    ctx.fillRect(sx, sy, 1.6, 1.6);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* speed streaks at high throttle */
+function drawStreaks(){
+  if (throttle < 0.75) return;
+  var strength = (throttle - 0.75) / 0.25;
+  ctx.strokeStyle = "rgba(255,255,255," + (0.05 + strength*0.1).toFixed(3) + ")";
+  for (var i = 0; i < 12; i++){
+    var x = ((i * 163.3 + frame * (3 + i) * 0.6) % (W + 200)) - 100;
+    var y = HORIZON + ((i * 97.7 + frame * 4) % (H - HORIZON));
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - strength * 60, y + strength * 14);
+    ctx.stroke();
+  }
+}
+
+/* ================= HUD ================= */
+function updateHud(){
+  var kmh = Math.round(throttle * 199);
+  if (frame % 6 === 0){
+    els.speed.textContent = String(kmh);
+    els.odo.textContent = (distance * 3.1).toFixed(1).padStart(6, "0");
+  }
+}
+
+/* ================= main loop ================= */
+function step(now){
+  if (!running) return;
+  raf = requestAnimationFrame(step);
+  frame++;
+  var dt = clamp((now - lastT) / 16.7, 0.2, 2.5);
+  lastT = now;
+  distance += throttle * 0.016 * dt * (reduced.matches ? 0.3 : 1);
+  steer = lerp(steer, steerTarget, 0.06 * dt);
+
+  ctx.clearRect(0, 0, W, H);
+  drawSky();
+  drawStars();
+  drawGround();
+  drawGrid();
+  drawPalms();
+  drawStreaks();
+  updateHud();
+}
+
+/* ================= events ================= */
+window.addEventListener("pointermove", function(e){
+  steerTarget = (e.clientX / W - 0.5) * 2;
+});
+els.th.addEventListener("input", function(){
+  setThrottle(parseInt(els.th.value,10) / 100, true);
+});
+els.sound.addEventListener("click", function(){ setSound(!soundOn); });
+els.vhs.addEventListener("click", function(){
+  vhsOn = !vhsOn;
+  document.body.classList.toggle("vhs", vhsOn);
+  els.vhs.setAttribute("aria-pressed", vhsOn ? "true" : "false");
+  els.vhs.textContent = vhsOn ? "VHS · Tracking" : "VHS · Clean";
+  showToast(vhsOn ? "TRACKING ERROR · CHARMING" : "TAPE · REWOUND");
+});
+window.addEventListener("keydown", function(e){
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowUp"){
+    e.preventDefault();
+    setThrottle(throttle + 0.1, false);
+  } else if (e.key === "ArrowDown"){
+    e.preventDefault();
+    setThrottle(throttle - 0.1, false);
+  } else if (e.key === "s" || e.key === "S"){
+    setSound(!soundOn);
+  } else if (e.key === "v" || e.key === "V"){
+    els.vhs.click();
+  }
+});
+
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 120);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(step); }
+});
+window.addEventListener("pagehide", function(){
+  running = false; cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+resize();
+setThrottle(0.55, true);
+lastT = performance.now();
+raf = requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>

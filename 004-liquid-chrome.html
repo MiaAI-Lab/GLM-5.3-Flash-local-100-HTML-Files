@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIQUID CHROME — A Study in Attracted Metal</title>
+<meta name="description" content="A dark gallery of floating mercury blobs that merge, chase the cursor and agitate on click, beneath a giant rippled metallic serif wordmark.">
+<style>
+/* ============================================================
+   LIQUID CHROME — 004
+   Eleven bodies of mercury. One will. Yours.
+   ============================================================ */
+
+:root {
+  --void: #05060a;
+  --silver: #c9d1d9;
+  --steel: #697386;
+  --silver-hi: #f3f6fa;
+  --ink-dim: rgba(201, 209, 217, 0.60);
+  --ink-faint: rgba(201, 209, 217, 0.34);
+  --iridescent-a: #8ab4f8;
+  --iridescent-b: #f0b6c9;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--void);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--void);
+  color: var(--silver);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(138, 180, 248, 0.35);
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(138, 180, 248, 0.7);
+  outline-offset: 4px;
+}
+
+button,
+input[type="range"] {
+  font: inherit;
+  color: inherit;
+}
+
+/* ------------------------------------------------------------
+   SCENE — canvas fills the room
+   ------------------------------------------------------------ */
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+#mercury {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: none;
+  touch-action: none;
+}
+
+/* room vignette + faint grain of the gallery wall */
+.room {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 42%, transparent 52%, rgba(2, 3, 6, 0.66) 100%),
+    repeating-conic-gradient(rgba(255, 255, 255, 0.012) 0% 0.0002%, transparent 0.0004% 0.0006%);
+}
+
+/* ------------------------------------------------------------
+   CUSTOM CURSOR — the stirring rod
+   ------------------------------------------------------------ */
+
+.rod {
+  position: fixed;
+  z-index: 40;
+  left: 0;
+  top: 0;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid rgba(201, 209, 217, 0.55);
+  box-shadow:
+    0 0 18px rgba(138, 180, 248, 0.28),
+    inset 0 0 12px rgba(240, 182, 201, 0.18);
+  transition: width 0.18s ease, height 0.18s ease, margin 0.18s ease, opacity 0.3s;
+  opacity: 0;
+  will-change: transform;
+}
+
+.rod::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--silver-hi);
+  box-shadow: 0 0 8px rgba(243, 246, 250, 0.9);
+}
+
+.rod.active {
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-color: rgba(240, 182, 201, 0.8);
+}
+
+@media (hover: none) {
+  .rod {
+    display: none;
+  }
+  #mercury {
+    cursor: crosshair;
+  }
+}
+
+/* ------------------------------------------------------------
+   GALLERY FURNITURE — labels floating over the metal
+   ------------------------------------------------------------ */
+
+.frame {
+  position: relative;
+  z-index: 10;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.frame > * {
+  pointer-events: none;
+}
+
+.mantle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: clamp(16px, 2.6vw, 30px) clamp(16px, 3.4vw, 46px);
+}
+
+.plate {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  line-height: 2;
+}
+
+.plate b {
+  color: var(--silver);
+  font-weight: 500;
+}
+
+.plate .tick {
+  color: rgba(138, 180, 248, 0.75);
+}
+
+.plate.right {
+  text-align: right;
+}
+
+/* vertical caption on the left wall */
+.wall-caption {
+  position: absolute;
+  left: clamp(10px, 2vw, 26px);
+  top: 50%;
+  transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------
+   THE WORDMARK — giant metallic serif with a ripple
+   ------------------------------------------------------------ */
+
+.spine {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 clamp(16px, 5vw, 80px);
+  gap: clamp(8px, 1.6vh, 18px);
+}
+
+.over-title {
+  font-family: var(--font-mono);
+  font-size: clamp(9.5px, 1.2vw, 12px);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.wordmark {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(3.4rem, 13.5vw, 12.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: transparent;
+  background:
+    linear-gradient(175deg,
+      #f7fafd 0%,
+      var(--silver) 22%,
+      #8d99ab 44%,
+      var(--steel) 58%,
+      #dfe6ee 72%,
+      var(--silver) 88%,
+      #9aa6b6 100%);
+  background-size: 100% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: url(#ripple) drop-shadow(0 18px 40px rgba(0, 0, 0, 0.65));
+  user-select: none;
+}
+
+.wordmark .swash {
+  font-style: italic;
+  letter-spacing: -0.015em;
+  background:
+    linear-gradient(175deg,
+      #ffffff 0%,
+      #dfe7f0 26%,
+      var(--steel) 52%,
+      #f0d9e0 66%,
+      #c7d3e2 84%,
+      #8d99ab 100%);
+  background-size: 100% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.no-ripple .wordmark {
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.65));
+}
+
+.sub-title {
+  max-width: 52ch;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.9vw, 1.3rem);
+  line-height: 1.7;
+  color: var(--ink-dim);
+}
+
+.sub-title b {
+  font-weight: 400;
+  color: var(--silver);
+}
+
+/* ------------------------------------------------------------
+   CONSOLE — the viscosity instrument
+   ------------------------------------------------------------ */
+
+.console {
+  pointer-events: auto;
+  margin: 0 auto clamp(16px, 3vh, 34px);
+  width: min(680px, calc(100% - clamp(24px, 5vw, 72px)));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 2vw, 22px);
+  padding: 14px clamp(14px, 2vw, 22px);
+  border: 1px solid rgba(201, 209, 217, 0.16);
+  border-radius: 14px;
+  background: linear-gradient(160deg, rgba(201, 209, 217, 0.07), rgba(201, 209, 217, 0.02));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.console-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.console-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--silver-hi);
+  text-align: right;
+  min-width: 7ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.vis-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.vis-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(240, 182, 201, 0.55), rgba(201, 209, 217, 0.55), rgba(138, 180, 248, 0.55));
+}
+
+.vis-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(240, 182, 201, 0.55), rgba(201, 209, 217, 0.55), rgba(138, 180, 248, 0.55));
+}
+
+.vis-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, #b9c4d2 46%, #5c6779 100%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 14px rgba(138, 180, 248, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.vis-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, #b9c4d2 46%, #5c6779 100%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6), 0 0 14px rgba(138, 180, 248, 0.35);
+}
+
+.vis-slider:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.vis-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid rgba(138, 180, 248, 0.8);
+  outline-offset: 2px;
+}
+
+.hint {
+  margin-top: 10px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.hint i {
+  font-style: normal;
+  color: rgba(240, 182, 201, 0.8);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .wall-caption {
+    display: none;
+  }
+  .plate.right {
+    display: none;
+  }
+  .console {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    text-align: center;
+  }
+  .console-value {
+    text-align: center;
+  }
+  .mantle {
+    padding-top: 14px;
+  }
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION — still metal, still beautiful
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .rod {
+    transition: none;
+  }
+  .wordmark {
+    filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.65));
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ripple distortion filter for the wordmark -->
+<svg width="0" height="0" aria-hidden="true" focusable="false"
+     style="position:absolute">
+  <defs>
+    <filter id="ripple" x="-20%" y="-40%" width="140%" height="180%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.05"
+                    numOctaves="1" seed="7" result="warp">
+        <animate attributeName="baseFrequency"
+                 dur="24s" values="0.012 0.05;0.016 0.07;0.012 0.05"
+                 repeatCount="indefinite" />
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="warp"
+                         scale="10" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+</svg>
+
+<div class="scene" aria-hidden="true">
+  <canvas id="mercury"></canvas>
+</div>
+<div class="room" aria-hidden="true"></div>
+<div class="rod" id="rod" aria-hidden="true"></div>
+
+<div class="frame">
+
+  <header class="mantle">
+    <p class="plate">
+      The Gallery of 100 <span class="tick">/</span> <b>Room 04</b><br>
+      Element 80 <span class="tick">·</span> Hg <span class="tick">·</span> 200.59 u
+    </p>
+    <p class="plate right">
+      <b>Slow metal</b> in residence<br>
+      Do not touch the exhibit — it touches back
+    </p>
+  </header>
+
+  <p class="wall-caption">Exhibit 04 — a study in attracted metal — eleven bodies, one will</p>
+
+  <main class="spine">
+    <p class="over-title">Now showing</p>
+    <h1 class="wordmark"><span class="swash">Liquid</span> CHROME</h1>
+    <p class="sub-title">
+      Eleven bodies of mercury drift the dark, hungry for the light of your hand.
+      Lead them. <b>Stir them.</b> Strike the surface and watch the metal flinch —
+      then decide how thick the world should be.
+    </p>
+
+    <div class="console">
+      <label class="console-label" for="viscosity">Viscosity</label>
+      <input class="vis-slider" id="viscosity" type="range"
+             min="0" max="100" value="62" step="1"
+             aria-label="Viscosity — controls how cohesive the mercury feels">
+      <output class="console-value" id="viscosityOut" for="viscosity">0.62 poise</output>
+    </div>
+    <p class="hint">Move to attract <i>·</i> Click to agitate <i>·</i> Drag the slider to thicken time</p>
+  </main>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+
+  var cv = document.getElementById("mercury");
+  var ctx = cv.getContext("2d");
+  var off = document.createElement("canvas");
+  var offCtx = off.getContext("2d");
+  var img = null;                 /* ImageData at grid resolution */
+  var field = null;               /* Float32 field values */
+  var cols = 0, rows = 0, cell = 8;
+  var vw = 0, vh = 0;
+
+  /* ---------- palette (mirrors CSS) ---------- */
+  var C = {
+    skyHi:   [247, 250, 253],
+    silver:  [201, 209, 217],
+    steel:   [105, 115, 134],
+    deep:    [38, 44, 56],
+    iridA:   [138, 180, 248],
+    iridB:   [240, 182, 201]
+  };
+
+  /* ---------- blobs ---------- */
+  var BLOB_N = 11;
+  var blobs = [];
+  var mouse = { x: -9999, y: -9999, inside: false, down: false };
+  var viscosity = 0.62;         /* 0 runny .. 1 thick */
+  var rings = [];               /* agitation rings */
+
+  function seedBlobs() {
+    blobs = [];
+    var baseR = Math.min(vw, vh);
+    for (var i = 0; i < BLOB_N; i++) {
+      var fx = 0.14 + 0.72 * ((i * 0.618) % 1);
+      var fy = 0.18 + 0.64 * (((i * 0.381) + 0.31) % 1);
+      blobs.push({
+        x: fx * vw,
+        y: fy * vh,
+        vx: 0,
+        vy: 0,
+        r: baseR * (0.045 + 0.075 * (((i * 0.271) % 1))),
+        ax: vw * (0.16 + 0.22 * ((i * 0.447) % 1)),
+        ay: vh * (0.14 + 0.2 * (((i * 0.613) % 1))),
+        sa: 0.05 + 0.09 * ((i * 0.317) % 1),
+        sb: 0.04 + 0.08 * (((i * 0.541) % 1)),
+        p1: i * 1.7,
+        p2: i * 2.9,
+        breathe: (i % 3) * 0.7
+      });
+    }
+  }
+
+  function home(b, t) {
+    return {
+      x: vw * 0.5 + Math.sin(t * b.sa + b.p1) * b.ax,
+      y: vh * 0.5 + Math.sin(t * b.sb + b.p2) * b.ay
+    };
+  }
+
+  /* ---------- physics ---------- */
+  var simT = 0;
+
+  function stepPhysics(dt) {
+    var t = simT;
+    var damp = Math.pow(viscosity > 0.5
+        ? 0.958 + (viscosity - 0.5) * 0.05
+        : 0.90 + viscosity * 0.11, dt * 60);
+    var kHome = 1.4 + viscosity * 7.0;
+    var pull = (2600 - 1500 * viscosity) ;
+    var attractR = Math.min(vw, vh) * 0.52;
+
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+      var h = home(b, t);
+      /* home orbit pull */
+      b.vx += (h.x - b.x) * kHome * dt;
+      b.vy += (h.y - b.y) * kHome * dt;
+
+      /* cursor attraction */
+      if (mouse.inside) {
+        var dx = mouse.x - b.x;
+        var dy = mouse.y - b.y;
+        var d2 = dx * dx + dy * dy;
+        var rad = attractR;
+        if (d2 < rad * rad && d2 > 1) {
+          var d = Math.sqrt(d2);
+          var f = pull * (1 - d / rad);
+          b.vx += (dx / d) * f * dt;
+          b.vy += (dy / d) * f * dt;
+        }
+      }
+
+      /* slight breathing of radius */
+      b.rNow = b.r * (1 + 0.06 * Math.sin(t * 0.9 + b.breathe));
+    }
+
+    /* pairwise separation — bodies refuse to fully stack */
+    for (var a = 0; a < blobs.length; a++) {
+      for (var c = a + 1; c < blobs.length; c++) {
+        var A = blobs[a], Bb = blobs[c];
+        var ddx = Bb.x - A.x, ddy = Bb.y - A.y;
+        var dd2 = ddx * ddx + ddy * ddy;
+        var minD = (A.r + Bb.r) * 0.62;
+        if (dd2 < minD * minD && dd2 > 0.01) {
+          var dd = Math.sqrt(dd2);
+          var push = (minD - dd) / minD * 220;
+          var ux = ddx / dd, uy = ddy / dd;
+          A.vx -= ux * push * dt;
+          A.vy -= uy * push * dt;
+          Bb.vx += ux * push * dt;
+          Bb.vy += uy * push * dt;
+        }
+      }
+    }
+
+    for (var k = 0; k < blobs.length; k++) {
+      var bl = blobs[k];
+      bl.vx *= damp;
+      bl.vy *= damp;
+      bl.x += bl.vx * dt;
+      bl.y += bl.vy * dt;
+      /* soft walls */
+      var m = bl.r * 0.4;
+      if (bl.x < -m) { bl.x = -m; bl.vx = Math.abs(bl.vx) * 0.4; }
+      if (bl.x > vw + m) { bl.x = vw + m; bl.vx = -Math.abs(bl.vx) * 0.4; }
+      if (bl.y < -m) { bl.y = -m; bl.vy = Math.abs(bl.vy) * 0.4; }
+      if (bl.y > vh + m) { bl.y = vh + m; bl.vy = -Math.abs(bl.vy) * 0.4; }
+    }
+
+    /* agitation rings fade */
+    for (var rI = rings.length - 1; rI >= 0; rI--) {
+      rings[rI].age += dt;
+      if (rings[rI].age > 0.9) rings.splice(rI, 1);
+    }
+  }
+
+  function agitate(x, y) {
+    var maxD = Math.min(vw, vh) * 0.6;
+    for (var i = 0; i < blobs.length; i++) {
+      var b = blobs[i];
+      var dx = b.x - x, dy = b.y - y;
+      var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      if (d < maxD) {
+        var imp = 1500 * (1 - d / maxD) + 260;
+        b.vx += (dx / d) * imp;
+        b.vy += (dy / d) * imp;
+      }
+    }
+    rings.push({ x: x, y: y, age: 0 });
+    if (rings.length > 6) rings.shift();
+  }
+
+  /* ---------- environment reflection ---------- */
+  function env(nx, ny, t, out) {
+    /* ny: -1 top .. 1 bottom; nx: -1 left .. 1 right */
+    var y = ny * 0.5 + 0.5;
+    /* vertical chrome bands with a slow drift */
+    var band = y + 0.08 * Math.sin(nx * 3.1 + t * 0.35);
+    var r, g, bB;
+    if (band < 0.30) {
+      var u1 = band / 0.30;
+      r = C.skyHi[0] + (C.silver[0] - C.skyHi[0]) * u1;
+      g = C.skyHi[1] + (C.silver[1] - C.skyHi[1]) * u1;
+      bB = C.skyHi[2] + (C.silver[2] - C.skyHi[2]) * u1;
+    } else if (band < 0.55) {
+      var u2 = (band - 0.30) / 0.25;
+      r = C.silver[0] + (C.steel[0] - C.silver[0]) * u2;
+      g = C.silver[1] + (C.steel[1] - C.silver[1]) * u2;
+      bB = C.silver[2] + (C.steel[2] - C.silver[2]) * u2;
+    } else {
+      var u3 = Math.min(1, (band - 0.55) / 0.45);
+      r = C.steel[0] + (C.deep[0] - C.steel[0]) * u3;
+      g = C.steel[1] + (C.deep[1] - C.steel[1]) * u3;
+      bB = C.steel[2] + (C.deep[2] - C.steel[2]) * u3;
+    }
+    /* iridescent films — thin bands of blue and rose, ~10% */
+    var filmA = Math.exp(-Math.pow((band - 0.36) * 9, 2));
+    var filmB = Math.exp(-Math.pow((band - 0.62) * 11, 2));
+    r += (C.iridA[0] - r) * filmA * 0.22 + (C.iridB[0] - r) * filmB * 0.16;
+    g += (C.iridA[1] - g) * filmA * 0.22 + (C.iridB[1] - g) * filmB * 0.16;
+    bB += (C.iridA[2] - bB) * filmA * 0.22 + (C.iridB[2] - bB) * filmB * 0.16;
+    out[0] = r; out[1] = g; out[2] = bB;
+  }
+
+  /* ---------- metaball field render ---------- */
+  var envTmp = [0, 0, 0];
+
+  function render(t) {
+    var gi = 0;
+    var i, j, k;
+    for (j = 0; j < rows; j++) {
+      var py = (j + 0.5) * cell;
+      for (i = 0; i < cols; i++, gi++) {
+        var px = (i + 0.5) * cell;
+        var sum = 0;
+        for (k = 0; k < blobs.length; k++) {
+          var b = blobs[k];
+          var dx = px - b.x;
+          var dy = py - b.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 < 1) d2 = 1;
+          var rr = b.rNow || b.r;
+          var v = (rr * rr) / d2;
+          if (v > 0.004) sum += v;
+        }
+        field[gi] = sum;
+      }
+    }
+
+    var data = img.data;
+    var T0 = 0.82, T1 = 1.06;   /* threshold band for antialias */
+    gi = 0;
+    for (j = 0; j < rows; j++) {
+      for (i = 0; i < cols; i++, gi++) {
+        var f = field[gi];
+        var o = gi * 4;
+        if (f < T0) {
+          data[o + 3] = 0;
+          continue;
+        }
+        var alpha = f >= T1 ? 1 : (f - T0) / (T1 - T0);
+        alpha = alpha * alpha * (3 - 2 * alpha);
+
+        /* normal from field gradient */
+        var l = field[j * cols + Math.max(0, i - 1)];
+        var r2 = field[j * cols + Math.min(cols - 1, i + 1)];
+        var u = field[Math.max(0, j - 1) * cols + i];
+        var dn = field[Math.min(rows - 1, j + 1) * cols + i];
+        var gx = (r2 - l) * 1.6;
+        var gy = (dn - u) * 1.6;
+        var nz = 2.4;
+        var inv = 1 / Math.sqrt(gx * gx + gy * gy + nz * nz);
+        var nxN = -gx * inv, nyN = -gy * inv, nzn = nz * inv;
+
+        var pxn = (i / (cols - 1)) * 2 - 1;
+        var pyn = (j / (rows - 1)) * 2 - 1;
+        env(pxn, pyn, t, envTmp);
+
+        /* specular from upper-left light */
+        var Lx = -0.42, Ly = -0.62, Lz = 0.66;
+        var dot = nxN * Lx + nyN * Ly + nzn * Lz;
+        if (dot < 0) dot = 0;
+        var spec = Math.pow(dot, 34) * 235;
+
+        /* fresnel rim */
+        var rim = Math.pow(1 - nzn, 2.4) * 190;
+
+        var er = envTmp[0], eg = envTmp[1], eb = envTmp[2];
+        er = er * (0.55 + 0.45 * dot) + spec + rim;
+        eg = eg * (0.55 + 0.45 * dot) + spec + rim;
+        eb = eb * (0.55 + 0.45 * dot) + spec + rim;
+
+        data[o]     = er > 255 ? 255 : er;
+        data[o + 1] = eg > 255 ? 255 : eg;
+        data[o + 2] = eb > 255 ? 255 : eb;
+        data[o + 3] = alpha * 255;
+      }
+    }
+
+    offCtx.putImageData(img, 0, 0);
+    ctx.clearRect(0, 0, vw, vh);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(off, 0, 0, cols, rows, 0, 0, vw, vh);
+
+    /* agitation rings */
+    for (var rI = 0; rI < rings.length; rI++) {
+      var rg = rings[rI];
+      var pr = rg.age / 0.9;
+      var rad = 30 + pr * Math.min(vw, vh) * 0.34;
+      ctx.beginPath();
+      ctx.arc(rg.x, rg.y, rad, 0, 6.2832);
+      ctx.strokeStyle = "rgba(240,182,201," + (0.34 * (1 - pr)).toFixed(3) + ")";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(rg.x, rg.y, rad * 0.62, 0, 6.2832);
+      ctx.strokeStyle = "rgba(138,180,248," + (0.26 * (1 - pr)).toFixed(3) + ")";
+      ctx.stroke();
+    }
+  }
+
+  /* ---------- sizing ---------- */
+  function size() {
+    vw = window.innerWidth;
+    vh = window.innerHeight;
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    cell = Math.max(5, Math.round(Math.min(vw, vh) / 105));
+    cols = Math.ceil(vw / cell);
+    rows = Math.ceil(vh / cell);
+    off.width = cols;
+    off.height = rows;
+    field = new Float32Array(cols * rows);
+    img = offCtx.createImageData(cols, rows);
+    /* fully transparent start */
+    for (var p = 3; p < img.data.length; p += 4) img.data[p] = 0;
+
+    /* keep blobs in proportional places on resize */
+    if (blobs.length) {
+      for (var i2 = 0; i2 < blobs.length; i2++) {
+        var b2 = blobs[i2];
+        b2.x = Math.min(vw, Math.max(0, b2.x * vw / Math.max(1, vw)));
+      }
+    } else {
+      seedBlobs();
+    }
+    for (var s = 0; s < blobs.length; s++) {
+      blobs[s].ax = vw * (0.16 + 0.22 * ((s * 0.447) % 1));
+      blobs[s].ay = vh * (0.14 + 0.2 * (((s * 0.613) % 1)));
+    }
+  }
+
+  /* ---------- pointer ---------- */
+  var rod = document.getElementById("rod");
+
+  window.addEventListener("pointermove", function (e) {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.inside = true;
+    if (rod) {
+      rod.style.opacity = "1";
+      rod.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+    }
+  }, { passive: true });
+
+  window.addEventListener("pointerdown", function (e) {
+    mouse.inside = true;
+    if (rod) rod.classList.add("active");
+    if (!reduced) agitate(e.clientX, e.clientY);
+    else render(simT);
+  });
+
+  window.addEventListener("pointerup", function () {
+    if (rod) rod.classList.remove("active");
+  });
+
+  document.addEventListener("pointerleave", function () {
+    mouse.inside = false;
+    if (rod) rod.style.opacity = "0";
+  });
+
+  /* ---------- viscosity control ---------- */
+  var slider = document.getElementById("viscosity");
+  var out = document.getElementById("viscosityOut");
+  function applyVis() {
+    viscosity = slider.value / 100;
+    out.textContent = viscosity.toFixed(2) + " poise";
+    if (reduced) render(simT);
+  }
+  slider.addEventListener("input", applyVis);
+  applyVis();
+
+  /* ---------- main loop ---------- */
+  var rafId = 0;
+  var last = performance.now();
+  var statEvery = 0;
+
+  function frame(now) {
+    var dt = Math.min(0.048, (now - last) / 1000);
+    last = now;
+    if (!document.hidden) {
+      simT += dt;
+      stepPhysics(dt);
+      render(simT);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    size();
+    if (reduced) render(simT);
+  });
+
+  size();
+  seedBlobs();
+
+  if (reduced) {
+    document.body.classList.add("no-ripple");
+    /* a calm, pre-composed still life */
+    for (var i0 = 0; i0 < blobs.length; i0++) {
+      var h0 = home(blobs[i0], 1.4);
+      blobs[i0].x = h0.x;
+      blobs[i0].y = h0.y;
+      blobs[i0].rNow = blobs[i0].r;
+    }
+    render(1.4);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

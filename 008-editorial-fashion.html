@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maison Édition 04 — The Oxblood Number</title>
+<meta name="description" content="A high-fashion editorial spread: asymmetric grid, oversized italic masthead, duotone gradient photography with grain, vertical captions, folio numbers, a fold-out cover story and a filmstrip of looks.">
+<style>
+/* ============================================================
+   MAISON ÉDITION 04 — 008
+   Ivory paper, ink type, and photographs made of light alone.
+   ============================================================ */
+
+:root {
+  --ivory: #f3efe7;
+  --ivory-deep: #eae4d6;
+  --ink: #141210;
+  --ink-soft: rgba(20, 18, 16, 0.62);
+  --ink-faint: rgba(20, 18, 16, 0.36);
+  --oxblood: #6e1423;
+  --mustard: #c99a2e;
+  --hairline: rgba(20, 18, 16, 0.22);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--ivory);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--ivory);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--oxblood);
+  color: var(--ivory);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ivory-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--ivory-deep);
+  border-radius: 6px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   PAPER
+   ------------------------------------------------------------ */
+
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    radial-gradient(1.1px 1.1px at 14% 22%, rgba(20, 18, 16, 0.06), transparent 100%),
+    radial-gradient(1px 1px at 72% 64%, rgba(20, 18, 16, 0.05), transparent 100%),
+    radial-gradient(1.2px 1.2px at 38% 78%, rgba(20, 18, 16, 0.05), transparent 100%),
+    radial-gradient(1px 1px at 88% 12%, rgba(20, 18, 16, 0.06), transparent 100%),
+    radial-gradient(1px 1px at 52% 34%, rgba(20, 18, 16, 0.04), transparent 100%),
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(20, 18, 16, 0.008) 2px 3px);
+}
+
+/* ------------------------------------------------------------
+   MASTHEAD
+   ------------------------------------------------------------ */
+
+.masthead {
+  padding: clamp(18px, 3.4vh, 40px) clamp(18px, 4vw, 60px) clamp(14px, 2.4vh, 28px);
+}
+
+.mast-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 2.5px solid var(--ink);
+  padding-bottom: 12px;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.mast-top .red {
+  color: var(--oxblood);
+}
+
+.mast-mid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(14px, 3vw, 40px);
+  padding-top: clamp(10px, 2vh, 22px);
+}
+
+h1.mast-title {
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(3rem, 10.5vw, 9rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+h1.mast-title .no {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.16em;
+  letter-spacing: 0.42em;
+  vertical-align: super;
+  color: var(--oxblood);
+}
+
+.mast-vol {
+  text-align: right;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  line-height: 2.1;
+  color: var(--ink-soft);
+  flex: 0 0 auto;
+}
+
+.mast-vol b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   SPREAD — asymmetric editorial grid
+   ------------------------------------------------------------ */
+
+.spread {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(14px, 1.8vw, 26px);
+  padding: 0 clamp(18px, 4vw, 60px);
+  align-items: stretch;
+}
+
+.col-left {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vw, 26px);
+  min-width: 0;
+}
+
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vw, 26px);
+  min-width: 0;
+}
+
+/* duotone photographs */
+.duo {
+  position: relative;
+  overflow: hidden;
+  background: var(--ivory-deep);
+}
+
+.duo .plate-img {
+  position: absolute;
+  inset: 0;
+  transition: filter 0.65s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: filter, transform;
+}
+
+/* the duotones: gradient-built "photographs" */
+.duo.d-ov-pit .plate-img {
+  background:
+    radial-gradient(58% 46% at 50% 34%, rgba(243, 239, 231, 0.95) 0%, rgba(243, 239, 231, 0) 58%),
+    radial-gradient(48% 40% at 30% 66%, rgba(201, 154, 46, 0.5), transparent 70%),
+    radial-gradient(70% 62% at 68% 30%, rgba(110, 20, 35, 0.78), transparent 76%),
+    radial-gradient(120% 100% at 50% 108%, rgba(110, 20, 35, 0.95), transparent 70%),
+    linear-gradient(200deg, #9c2233 0%, #6e1423 44%, #3c0a13 100%);
+}
+
+.duo.d-portrait .plate-img {
+  background:
+    radial-gradient(40% 34% at 52% 30%, rgba(243, 239, 231, 0.9), transparent 62%),
+    radial-gradient(30% 26% at 44% 62%, rgba(201, 154, 46, 0.42), transparent 70%),
+    linear-gradient(168deg, #2a2118 0%, #141210 52%, #000 100%);
+}
+
+.duo.d-detail .plate-img {
+  background:
+    repeating-linear-gradient(112deg,
+      rgba(201, 154, 46, 0.34) 0 2px,
+      transparent 2px 14px),
+    radial-gradient(64% 54% at 50% 44%, rgba(110, 20, 35, 0.55), transparent 78%),
+    linear-gradient(150deg, #8f1e2c, #4a0d16 60%, #2a060c);
+}
+
+.duo.d-look4 .plate-img {
+  background:
+    radial-gradient(46% 40% at 62% 38%, rgba(201, 154, 46, 0.55), transparent 68%),
+    radial-gradient(70% 60% at 30% 70%, rgba(110, 20, 35, 0.6), transparent 76%),
+    linear-gradient(140deg, #6e1423, #241016 62%, #0c0709);
+}
+
+/* hover swap: the duotone re-grades and the plate breathes */
+.spread .duo:hover .plate-img,
+.spread .duo:focus-within .plate-img {
+  filter: hue-rotate(-38deg) saturate(1.42) contrast(1.1);
+  transform: scale(1.035);
+}
+
+/* film grain inside each plate */
+.duo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 22% 30%, rgba(255, 255, 255, 0.14), transparent 100%),
+    radial-gradient(1px 1px at 68% 22%, rgba(255, 255, 255, 0.1), transparent 100%),
+    radial-gradient(1.2px 1.2px at 44% 62%, rgba(0, 0, 0, 0.28), transparent 100%),
+    radial-gradient(1px 1px at 78% 74%, rgba(0, 0, 0, 0.24), transparent 100%),
+    radial-gradient(1px 1px at 12% 80%, rgba(255, 255, 255, 0.12), transparent 100%);
+  mix-blend-mode: overlay;
+}
+
+/* plate captions */
+.plate-caption {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(243, 239, 231, 0.85);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.folio {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(243, 239, 231, 0.8);
+}
+
+.folio b {
+  font-weight: 400;
+  color: var(--mustard);
+}
+
+/* pull-quote drawer (signature) */
+.drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(20, 18, 16, 0.0), rgba(20, 18, 16, 0.9) 30%, rgba(20, 18, 16, 0.96));
+  color: var(--ivory);
+  padding: 34px 22px 18px;
+  transform: translateY(101%);
+  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.24, 1);
+  pointer-events: none;
+}
+
+.spread .duo:hover .drawer,
+.spread .duo:focus-within .drawer {
+  transform: translateY(0);
+}
+
+.drawer blockquote {
+  font-style: italic;
+  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  line-height: 1.5;
+  max-width: 34ch;
+  margin-bottom: 8px;
+}
+
+.drawer cite {
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--mustard);
+}
+
+/* plates layout */
+.d-ov-pit {
+  aspect-ratio: 4 / 4.6;
+}
+
+.duo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 3fr);
+  gap: clamp(14px, 1.8vw, 26px);
+}
+
+.d-portrait {
+  aspect-ratio: 3 / 4;
+}
+
+.d-detail {
+  aspect-ratio: 3 / 4.4;
+}
+
+/* cover story text panel */
+.story {
+  border-top: 2.5px solid var(--ink);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.story .kicker {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--oxblood);
+}
+
+.story h2 {
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.4vw, 2.7rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.story p.lede {
+  font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+  line-height: 1.72;
+  color: var(--ink);
+}
+
+.story p.lede::first-letter {
+  font-size: 3.1em;
+  float: left;
+  font-style: italic;
+  line-height: 0.78;
+  padding: 4px 8px 0 0;
+  color: var(--oxblood);
+}
+
+.story p.body {
+  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  line-height: 1.78;
+  color: var(--ink-soft);
+}
+
+.byline {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--hairline);
+  padding-top: 10px;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.byline b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* index list panel */
+.index-panel {
+  border-top: 2.5px solid var(--ink);
+  padding-top: 12px;
+}
+
+.index-panel h3 {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.index-panel ol {
+  list-style: none;
+}
+
+.index-panel li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-serif);
+}
+
+.index-panel li:last-child {
+  border-bottom: none;
+}
+
+.index-panel .no {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--oxblood);
+  min-width: 3ch;
+}
+
+.index-panel .ttl {
+  font-style: italic;
+  font-size: 1.02rem;
+  flex: 1;
+}
+
+.index-panel .pg {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------
+   FILMSTRIP — horizontal scroll of looks
+   ------------------------------------------------------------ */
+
+.filmstrip {
+  margin: clamp(20px, 3.6vh, 44px) 0 0;
+  padding-bottom: clamp(18px, 3vh, 34px);
+}
+
+.strip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 0 clamp(18px, 4vw, 60px) 12px;
+}
+
+.strip-head h2 {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.strip-head h2 b {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+.strip-head p {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+}
+
+.strip {
+  display: flex;
+  gap: clamp(10px, 1.4vw, 18px);
+  overflow-x: auto;
+  padding: 2px clamp(18px, 4vw, 60px) 14px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) var(--ivory-deep);
+}
+
+.strip::-webkit-scrollbar {
+  height: 6px;
+}
+
+.strip::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border-radius: 3px;
+}
+
+.look {
+  flex: 0 0 auto;
+  width: clamp(190px, 24vw, 300px);
+  scroll-snap-align: start;
+  position: relative;
+}
+
+.look .duo {
+  aspect-ratio: 3 / 4.1;
+}
+
+.look p {
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.look p b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.look .duo .plate-img,
+.look .duo::after {
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.look:hover .duo .plate-img {
+  transform: scale(1.04);
+}
+
+/* ------------------------------------------------------------
+   FOOTER COLOPHON
+   ------------------------------------------------------------ */
+
+.colophon {
+  border-top: 2.5px solid var(--ink);
+  margin: clamp(10px, 2vh, 24px) clamp(18px, 4vw, 60px) 0;
+  padding: 16px 0 clamp(24px, 4vh, 44px);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.colophon b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.colophon .red {
+  color: var(--oxblood);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 980px) {
+  .spread {
+    grid-template-columns: 1fr;
+  }
+  .col-right {
+    order: -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .duo-row {
+    grid-template-columns: 1fr;
+  }
+  .d-ov-pit {
+    aspect-ratio: 4 / 4.2;
+  }
+  .mast-vol {
+    display: none;
+  }
+}
+
+/* reduced motion: calm transitions */
+@media (prefers-reduced-motion: reduce) {
+  .duo .plate-img,
+  .drawer {
+    transition: none;
+  }
+  .spread .duo:hover .drawer,
+  .spread .duo:focus-within .drawer {
+    transform: translateY(0);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="paper-grain" aria-hidden="true"></div>
+
+<header class="masthead">
+  <div class="mast-top">
+    <span>The Gallery of 100 — Room 08</span>
+    <span class="red">The Oxblood Number</span>
+    <span>Édition 04 · Autumn</span>
+  </div>
+  <div class="mast-mid">
+    <h1 class="mast-title">Maison<br><span class="no">Nº</span>Édition</h1>
+    <div class="mast-vol">
+      <p><b>Vol. IV</b> — The Couture Issue</p>
+      <p>Photographs in light &amp; grain</p>
+      <p>Ivory · Ink · Oxblood · Mustard</p>
+    </div>
+  </div>
+</header>
+
+<main class="spread">
+
+  <div class="col-left">
+
+    <figure class="duo d-ov-pit" tabindex="0" aria-label="Photograph: the oxblood pit — hover for the pull-quote">
+      <div class="plate-img" aria-hidden="true"></div>
+      <figcaption class="plate-caption">Plate I — The oxblood pit, worn low</figcaption>
+      <span class="folio"><b>04</b> / 100</span>
+      <div class="drawer">
+        <blockquote>“Elegance is refusal —
+          but the refusal must be tailored.”</blockquote>
+        <cite>Atelier note, pinned to look 04</cite>
+      </div>
+    </figure>
+
+    <div class="duo-row">
+      <figure class="duo d-portrait" tabindex="0" aria-label="Photograph: portrait against ink — hover for the pull-quote">
+        <div class="plate-img" aria-hidden="true"></div>
+        <figcaption class="plate-caption">Plate II — Study, collar &amp; shadow</figcaption>
+        <span class="folio"><b>17</b> / 100</span>
+        <div class="drawer">
+          <blockquote>“Cut the cloth as if
+            the body were an argument
+            you intend to win.”</blockquote>
+          <cite>The tailor, second fitting</cite>
+        </div>
+      </figure>
+
+      <figure class="duo d-detail" tabindex="0" aria-label="Photograph: pleat detail in mustard and oxblood — hover for the pull-quote">
+        <div class="plate-img" aria-hidden="true"></div>
+        <figcaption class="plate-caption">Plate III — Pleats, mustard on oxblood</figcaption>
+        <span class="folio"><b>29</b> / 100</span>
+        <div class="drawer">
+          <blockquote>“A pleat is a decision
+            the fabric remembers
+            longer than you do.”</blockquote>
+          <cite>Archive ledger, 1974</cite>
+        </div>
+      </figure>
+    </div>
+
+    <section class="story">
+      <p class="kicker">Cover story</p>
+      <h2>The Season the House Learned to Whisper</h2>
+      <p class="lede">There is a moment in every atelier when the cloth stops
+        obeying and starts agreeing. This season began there — in the hush
+        after the last fitting, when the oxblood finally sat still on the
+        shoulder and the mustard fell the way water falls, without opinion.</p>
+      <p class="body">The collection keeps its voice down. Shoulders are cut
+        close enough to remember the body, hems long enough to forget the
+        floor. Four looks carry the entire argument: a pit-deep oxblood gown,
+        a portrait collar in ink, a pleated skirt graded from mustard into
+        dark, and a closing silhouette the house simply calls <em>the
+        remainder</em>. Nothing shouts. Everything answers.</p>
+      <div class="byline">
+        <span>Words — <b>C. Aubry</b></span>
+        <span>Photographs — <b>The House Studio</b></span>
+        <span>Set — <b>Room 08</b></span>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="col-right">
+
+    <section class="index-panel" aria-label="In this édition">
+      <h3>In this édition</h3>
+      <ol>
+        <li><span class="no">04</span><span class="ttl">The Oxblood Pit</span><span class="pg">p. 04</span></li>
+        <li><span class="no">09</span><span class="ttl">Letters to the Tailor</span><span class="pg">p. 12</span></li>
+        <li><span class="no">17</span><span class="ttl">Study in Collar &amp; Shadow</span><span class="pg">p. 17</span></li>
+        <li><span class="no">23</span><span class="ttl">Mustard, Considered</span><span class="pg">p. 23</span></li>
+        <li><span class="no">29</span><span class="ttl">A Ledger of Pleats</span><span class="pg">p. 29</span></li>
+        <li><span class="no">36</span><span class="ttl">The Remainder</span><span class="pg">p. 36</span></li>
+      </ol>
+    </section>
+
+    <section class="story">
+      <p class="kicker">Editor's letter</p>
+      <h2>Notes from the Fitting Room</h2>
+      <p class="body">We made this number in a single room, which is to say we
+        made it the way the house makes everything — under one lamp, with
+        more pins than minutes. The ivory you are reading is the same ivory
+        as the muslin. The oxblood is the same oxblood as the ribbon that
+        closed the last box of the season.</p>
+      <p class="body">If fashion is a language, this issue is spoken mostly
+        in pauses. Turn the pages slowly. The photographs are made of light
+        and grain, and they reward the same patience the cloth did.</p>
+      <div class="byline">
+        <span>From — <b>The Editor</b></span>
+        <span>At — <b>The last fitting</b></span>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<section class="filmstrip" aria-label="The looks, in sequence">
+  <div class="strip-head">
+    <h2>The Looks <b>— in sequence</b></h2>
+    <p>drag / scroll — 9 plates</p>
+  </div>
+  <div class="strip" tabindex="0" aria-label="Filmstrip of nine looks, scroll horizontally">
+
+    <figure class="look">
+      <div class="duo d-ov-pit" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 01</b><span>Oxblood pit gown</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-portrait" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 02</b><span>Ink portrait collar</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-detail" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 03</b><span>Mustard pleat study</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-look4" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 04</b><span>The remainder</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-detail" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 05</b><span>Pleats, regraded</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-portrait" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 06</b><span>Collar, unlit</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-look4" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 07</b><span>Oxblood, folded twice</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-portrait" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 08</b><span>Ink, at rest</span></p>
+    </figure>
+
+    <figure class="look">
+      <div class="duo d-ov-pit" tabindex="0"><div class="plate-img" aria-hidden="true"></div></div>
+      <p><b>Look 09</b><span>Closing look</span></p>
+    </figure>
+
+  </div>
+</section>
+
+<footer class="colophon">
+  <p><b>Maison Édition 04</b> — printed in light</p>
+  <p><span class="red">The Gallery of 100</span> · Room 08 · The Oxblood Number</p>
+  <p>Ivory #f3efe7 · Ink #141210 · <span class="red">Oxblood #6e1423</span> · Mustard #c99a2e</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     MAISON ÉDITION 04 — no engine, only typography in motion.
+     The one script duty: filmstrip wheel-to-horizontal scroll
+     and keyboard paging for the strip.
+     ============================================================ */
+  var strip = document.querySelector(".strip");
+  if (!strip) return;
+
+  /* vertical wheel over the strip scrolls it sideways */
+  strip.addEventListener("wheel", function (e) {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      var max = strip.scrollWidth - strip.clientWidth;
+      if (max > 0) {
+        var atStart = strip.scrollLeft <= 0 && e.deltaY < 0;
+        var atEnd = strip.scrollLeft >= max - 1 && e.deltaY > 0;
+        if (!atStart && !atEnd) {
+          e.preventDefault();
+          strip.scrollLeft += e.deltaY;
+        }
+      }
+    }
+  }, { passive: false });
+
+  /* keyboard paging when the strip holds focus */
+  strip.addEventListener("keydown", function (e) {
+    var step = strip.clientWidth * 0.8;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      strip.scrollBy({ left: step, behavior: "smooth" });
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      strip.scrollBy({ left: -step, behavior: "smooth" });
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      strip.scrollTo({ left: 0, behavior: "smooth" });
+    } else if (e.key === "End") {
+      e.preventDefault();
+      strip.scrollTo({ left: strip.scrollWidth, behavior: "smooth" });
+    }
+  });
+})();
+</script>
+</body>
+</html>

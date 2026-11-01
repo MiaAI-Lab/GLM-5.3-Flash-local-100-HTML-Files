@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BOOGIE WOOGIE — a living Mondrian, 1943</title>
+<style>
+/* ============================================================
+   BOOGIE WOOGIE — a living Mondrian
+   white streets · black avenues · red/yellow/blue traffic
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --white: #f6f5f0;
+  --white-warm: #efece3;
+  --black: #101010;
+  --red: #d0202e;
+  --yellow: #f5c400;
+  --blue: #1e4fa0;
+  --gray-line: #c9c5ba;
+  --paper-shadow: rgba(16, 16, 16, 0.16);
+  --beat: 0;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--white);
+  color: var(--black);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--yellow); color: var(--black); }
+::-moz-selection { background: var(--yellow); color: var(--black); }
+
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: var(--white-warm); }
+::-webkit-scrollbar-thumb { background: var(--black); border: 3px solid var(--white-warm); }
+
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- frame ---------- */
+.frame {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(14px, 2.6vw, 38px) clamp(16px, 3.4vw, 54px) clamp(16px, 3vw, 40px);
+  max-width: 1680px;
+  margin: 0 auto;
+}
+
+/* ---------- masthead ---------- */
+.masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(14px, 2.5vw, 40px);
+  border-bottom: 4px solid var(--black);
+  padding-bottom: clamp(10px, 1.6vw, 20px);
+  flex-wrap: wrap;
+}
+.mast-title {
+  margin: 0;
+  font-weight: 900;
+  font-size: clamp(2.1rem, 7.2vw, 5.6rem);
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+.mast-title .r-dot {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.62em;
+  background: var(--red);
+  margin-left: 0.12em;
+  transform: translateY(-0.04em);
+  animation: dotPulse 2.4s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: translateY(-0.04em) scale(1); }
+  50% { transform: translateY(-0.1em) scale(1.14); }
+}
+.mast-sub {
+  margin: 0.6em 0 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: clamp(0.6rem, 1.3vw, 0.72rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #55524a;
+}
+.mast-meta {
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: clamp(0.58rem, 1.2vw, 0.7rem);
+  letter-spacing: 0.16em;
+  line-height: 2.05;
+  text-transform: uppercase;
+  color: #55524a;
+}
+.mast-meta b { color: var(--black); font-weight: 600; }
+.mast-meta .live {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--gray-line);
+  margin-right: 6px;
+  vertical-align: baseline;
+}
+body.playing .mast-meta .live { background: var(--red); }
+
+/* ---------- main split ---------- */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.72fr) minmax(300px, 1fr);
+  gap: clamp(18px, 3vw, 52px);
+  align-items: start;
+  padding-top: clamp(16px, 2.6vw, 34px);
+}
+
+/* ---------- the grid ---------- */
+.plate-wrap { position: relative; }
+.plate {
+  position: relative;
+  width: 100%;
+  max-width: 780px;
+  aspect-ratio: 1;
+  background: var(--black);
+  border: 4px solid var(--black);
+  box-shadow: 0 30px 60px -30px var(--paper-shadow), 0 4px 0 rgba(16,16,16,0.06);
+  overflow: hidden;
+}
+.cell {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: var(--white);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.5s ease;
+  will-change: transform;
+}
+.cell:hover { filter: brightness(0.955); }
+.cell.c-red    { background: var(--red); }
+.cell.c-yellow { background: var(--yellow); }
+.cell.c-blue   { background: var(--blue); }
+.cell.dealing {
+  transition: background-color 0.5s ease, transform 0.34s cubic-bezier(0.2, 1.4, 0.3, 1);
+}
+.cell .shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 42%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.cell:hover .shine { opacity: 1; }
+
+.plate-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #55524a;
+}
+.plate-caption b { color: var(--black); font-weight: 600; }
+
+/* ---------- right rail ---------- */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.2vw, 28px);
+  padding-top: clamp(2px, 0.8vw, 10px);
+}
+.rail-block { border-top: 3px solid var(--black); padding-top: 14px; }
+.rail-block h2 {
+  margin: 0 0 0.7em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+.rail-block p {
+  margin: 0 0 1em;
+  font-size: clamp(0.9rem, 1.5vw, 1.02rem);
+  line-height: 1.7;
+  color: #2b2a26;
+  max-width: 46em;
+}
+.rail-block p em {
+  font-style: italic;
+}
+.rail-block .first::first-letter {
+  font-weight: 900;
+  font-size: 2.1em;
+  float: left;
+  line-height: 0.85;
+  padding-right: 0.08em;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 18px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3c3a33;
+}
+.legend li {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 26px;
+}
+.legend ul { margin: 0; padding: 0; display: contents; }
+.swatch {
+  width: 16px; height: 16px;
+  flex: none;
+  border: 2px solid var(--black);
+}
+.sw-red { background: var(--red); }
+.sw-yellow { background: var(--yellow); }
+.sw-blue { background: var(--blue); }
+.sw-white { background: var(--white); }
+
+/* ---------- console ---------- */
+.console {
+  border: 3px solid var(--black);
+  background: var(--white-warm);
+  padding: clamp(12px, 1.8vw, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.console-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.btn {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--white);
+  border: 3px solid var(--black);
+  padding: 0.9em 1.3em;
+  cursor: pointer;
+  flex: 1 1 auto;
+  min-height: 52px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.2s ease;
+  box-shadow: 3px 3px 0 var(--black);
+}
+.btn:hover { background: var(--yellow); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--black); }
+.btn[aria-pressed="true"] { background: var(--red); color: var(--white); }
+.btn.blue[aria-pressed="true"] { background: var(--blue); }
+.btn .bpm-read {
+  display: block;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-weight: 400;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  margin-top: 0.35em;
+  opacity: 0.75;
+}
+
+.metro {
+  height: 10px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+.metro i {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 25%;
+  background: var(--red);
+  transform: translateX(-105%);
+}
+.metro i:nth-child(2) { background: var(--yellow); }
+.metro i:nth-child(3) { background: var(--blue); }
+.metro i:nth-child(4) { background: var(--black); }
+
+.console-note {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #55524a;
+  line-height: 1.9;
+}
+
+/* ---------- footer ---------- */
+.colophon {
+  border-top: 3px solid var(--black);
+  margin-top: clamp(18px, 3vw, 40px);
+  padding-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #55524a;
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .mast-title .r-dot { animation: none; }
+  .cell { transition: background-color 0.6s ease; }
+  .cell.dealing { transition: background-color 0.6s ease; }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 980px) {
+  .main { grid-template-columns: 1fr; }
+  .plate { max-width: none; }
+  .mast-meta { text-align: left; }
+}
+@media (max-width: 480px) {
+  .legend { grid-template-columns: 1fr; }
+  .btn { flex-basis: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <header class="masthead">
+    <div>
+      <h1 class="mast-title">Boogie Woogie<span class="r-dot" aria-hidden="true"></span></h1>
+      <p class="mast-sub">Broadway, heard through a grid — a composition that never sits still</p>
+    </div>
+    <p class="mast-meta">
+      <span class="live" aria-hidden="true"></span><b id="stateWord">DORMANT</b><br>
+      COMPOSITION <b id="compNo">Nº 1</b> OF <b>∞</b><br>
+      TEMPO <b id="tempoRead">132 BPM</b> · SWING <b>2:1</b><br>
+      MEDIUM <b>DIVS ON WHITE</b> · 100 × 100 UNITS
+    </p>
+  </header>
+
+  <main class="main">
+    <section class="plate-wrap" aria-label="The living composition">
+      <div class="plate" id="plate" role="group" aria-label="Interactive grid — click any cell to cycle its color"></div>
+      <div class="plate-caption">
+        <span>Click a cell to cycle <b>white → red → yellow → blue</b></span>
+        <span>Cells <b id="cellCount">—</b></span>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <div class="rail-block">
+        <h2>Programme Note</h2>
+        <p class="first">Mondrian arrived in New York and heard the city: not its buildings, but its traffic —
+        lights stepping down avenues, taxis blinking at corners, jazz leaking from doorway to doorway.
+        He answered with his only titled debt to music, <em>Broadway Boogie Woogie</em>, and replaced
+        his black lattice with streets of living color.</p>
+        <p>This page lets that painting finish its thought. The cells are the piano's keys laid flat:
+        press play and the reds walk the bass, the yellows answer on the off-beats, the blues hold
+        the changes. Stop it, and the city holds its breath.</p>
+      </div>
+
+      <div class="rail-block">
+        <h2>Orchestration</h2>
+        <div class="legend">
+          <ul>
+            <li><span class="swatch sw-red" aria-hidden="true"></span> Left hand — bass</li>
+            <li><span class="swatch sw-yellow" aria-hidden="true"></span> Off-beat answer</li>
+            <li><span class="swatch sw-blue" aria-hidden="true"></span> Chord changes</li>
+            <li><span class="swatch sw-white" aria-hidden="true"></span> Rests &amp; streets</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rail-block">
+        <h2>Conduct</h2>
+        <div class="console">
+          <div class="console-row">
+            <button class="btn blue" id="playBtn" type="button" aria-pressed="false">
+              Play<span class="bpm-read" id="playMeta">stopped · grid at rest</span>
+            </button>
+            <button class="btn" id="dealBtn" type="button">New Composition</button>
+          </div>
+          <div class="console-row">
+            <button class="btn" id="soundBtn" type="button" aria-pressed="false">Sound On</button>
+            <button class="btn" id="tempoBtn" type="button">
+              Tempo<span class="bpm-read" id="tempoBtnRead">132 bpm</span>
+            </button>
+          </div>
+          <div class="metro" aria-hidden="true">
+            <i id="m1"></i><i id="m2"></i><i id="m3"></i><i id="m4"></i>
+          </div>
+          <p class="console-note" id="consoleNote">The metronome marks four beats to the bar. Sound is synthesized live — nothing recorded, nothing loaded.</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="colophon">
+    <span>After Piet Mondrian, Broadway Boogie Woogie, 1942–43</span>
+    <span>Spacebar conducts · C cycles colors anywhere</span>
+  </footer>
+</div>
+
+<p class="visually-hidden" id="liveStatus" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var plate = $('plate');
+  var playBtn = $('playBtn');
+  var playMeta = $('playMeta');
+  var dealBtn = $('dealBtn');
+  var soundBtn = $('soundBtn');
+  var tempoBtn = $('tempoBtn');
+  var tempoBtnRead = $('tempoBtnRead');
+  var tempoRead = $('tempoRead');
+  var stateWord = $('stateWord');
+  var compNo = $('compNo');
+  var cellCountEl = $('cellCount');
+  var liveStatus = $('liveStatus');
+  var metros = [$('m1'), $('m2'), $('m3'), $('m4')];
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var COLORS = ['white', 'red', 'yellow', 'blue'];
+  var COLOR_CLASS = { white: '', red: 'c-red', yellow: 'c-yellow', blue: 'c-blue' };
+
+  /* ---------------- authored first composition ----------------
+     rects on a 24x24 lattice: [x, y, w, h, colorHint] */
+  var FIRST = [
+    [0, 0, 24, 2, 'street'], [0, 0, 2, 24, 'street'],
+    [2, 2, 7, 5, 'yellow'], [9, 2, 4, 3, 'red'], [13, 2, 9, 4, 'white'],
+    [2, 7, 4, 4, 'white'], [6, 7, 5, 4, 'blue'], [11, 5, 2, 6, 'street'],
+    [13, 6, 4, 5, 'yellow'], [17, 6, 5, 3, 'red'], [17, 9, 5, 2, 'white'],
+    [2, 11, 9, 2, 'street'], [11, 11, 11, 3, 'white'],
+    [2, 13, 3, 4, 'red'], [5, 13, 6, 4, 'yellow'], [11, 14, 3, 3, 'white'],
+    [14, 14, 4, 4, 'blue'], [18, 11, 2, 7, 'street'], [20, 11, 2, 7, 'white'],
+    [2, 17, 9, 2, 'street'], [2, 19, 4, 3, 'white'], [6, 19, 5, 3, 'red'],
+    [11, 17, 6, 2, 'street'], [11, 19, 3, 3, 'yellow'], [14, 19, 8, 3, 'white'],
+    [11, 11, 11, 3, 'white'], [2, 22, 20, 2, 'white']
+  ];
+
+  var cells = [];
+  var compNumber = 1;
+  var soundOn = false;
+  var playing = false;
+  var bpm = 132;
+  var rafId = 0;
+
+  /* ---------------- dealing ---------------- */
+  function clearPlate() {
+    while (plate.firstChild) { plate.removeChild(plate.firstChild); }
+    cells = [];
+  }
+
+  function makeCell(rect, idx, colorOverride) {
+    var el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'cell dealing' + (colorOverride ? ' ' + COLOR_CLASS[colorOverride] : '');
+    el.setAttribute('aria-label',
+      'Cell ' + (idx + 1) + ', ' + (colorOverride || 'white') + '. Click to cycle color.');
+    el.style.left = (rect.x * 100 / 24) + '%';
+    el.style.top = (rect.y * 100 / 24) + '%';
+    el.style.width = (rect.w * 100 / 24) + '%';
+    el.style.height = (rect.h * 100 / 24) + '%';
+    var shine = document.createElement('span');
+    shine.className = 'shine';
+    shine.setAttribute('aria-hidden', 'true');
+    el.appendChild(shine);
+    var state = { el: el, color: colorOverride || 'white', role: assignRole(idx) };
+    el.__state = state;
+    el.addEventListener('click', function () {
+      cycleCell(state);
+      if (soundOn) { pluck(state.color); }
+    });
+    cells.push(state);
+    plate.appendChild(el);
+    if (!reduced) {
+      el.style.transform = 'scale(0.12)';
+      window.setTimeout(function () { el.style.transform = ''; }, 40 + idx * 9);
+      window.setTimeout(function () { el.classList.remove('dealing'); }, 900 + idx * 9);
+    } else {
+      window.setTimeout(function () { el.classList.remove('dealing'); }, 60);
+    }
+    return state;
+  }
+
+  function dealAuthored() {
+    clearPlate();
+    FIRST.forEach(function (r, i) {
+      var colors = { street: 'white', yellow: 'yellow', red: 'red', blue: 'blue', white: 'white' };
+      makeCell({ x: r[0], y: r[1], w: r[2], h: r[3] }, i, colors[r[4]]);
+    });
+    afterDeal();
+  }
+
+  /* random re-deal: BSP subdivisions of the square */
+  function dealRandom() {
+    clearPlate();
+    var rects = [{ x: 0, y: 0, w: 24, h: 24 }];
+    var targetCount = 26 + Math.floor(Math.random() * 10);
+    var guard = 0;
+    while (rects.length < targetCount && guard < 400) {
+      guard++;
+      var pick = Math.floor(Math.random() * rects.length);
+      var r = rects[pick];
+      if (r.w < 4 && r.h < 4) { continue; }
+      var vertical = r.w > r.h ? true : (r.h > r.w ? false : Math.random() < 0.5);
+      if (vertical) {
+        if (r.w < 4) { continue; }
+        var cut = 2 + Math.floor(Math.random() * (r.w - 3));
+        rects.splice(pick, 1);
+        rects.push({ x: r.x, y: r.y, w: cut, h: r.h });
+        rects.push({ x: r.x + cut, y: r.y, w: r.w - cut, h: r.h });
+      } else {
+        if (r.h < 4) { continue; }
+        var cut2 = 2 + Math.floor(Math.random() * (r.h - 3));
+        rects.splice(pick, 1);
+        rects.push({ x: r.x, y: r.y, w: r.w, h: cut2 });
+        rects.push({ x: r.x, y: r.y + cut2, w: r.w, h: r.h - cut2 });
+      }
+    }
+    rects.forEach(function (r, i) {
+      var roll = Math.random();
+      var color = 'white';
+      if (roll < 0.14) { color = 'red'; }
+      else if (roll < 0.30) { color = 'yellow'; }
+      else if (roll < 0.42) { color = 'blue'; }
+      makeCell(r, i, color);
+    });
+    afterDeal();
+  }
+
+  function afterDeal() {
+    cellCountEl.textContent = String(cells.length);
+    liveStatus.textContent = 'Composition ' + compNumber + ' dealt with ' + cells.length + ' cells.';
+  }
+
+  function cycleCell(state) {
+    var next = COLORS[(COLORS.indexOf(state.color) + 1) % COLORS.length];
+    state.color = next;
+    state.el.className = 'cell' + (next === 'white' ? '' : ' ' + COLOR_CLASS[next]);
+    state.el.setAttribute('aria-label', 'Cell, ' + next + '. Click to cycle color.');
+  }
+
+  /* roles drive the choreography */
+  function assignRole(idx) {
+    var roles = ['bass', 'answer', 'changes', 'rest'];
+    return roles[idx % 4 === 0 ? 0 : (idx % 3 === 0 ? 1 : (idx % 5 === 0 ? 2 : 3))];
+  }
+
+  /* ---------------- audio ---------------- */
+  var ac = null, master = null, comp = null;
+  var schedulerId = 0;
+  var nextNoteTime = 0;
+  var eighthCount = 0;
+  var LOOKAHEAD = 0.12;
+  var SWING = 0.62; /* first eighth of a pair gets 62% of the beat */
+
+  function ensureAudio() {
+    if (ac) { if (ac.state === 'suspended') { ac.resume(); } return true; }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { return false; }
+    ac = new Ctx();
+    comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.ratio.value = 5;
+    master = ac.createGain();
+    master.gain.value = 0.5;
+    master.connect(comp);
+    comp.connect(ac.destination);
+    return true;
+  }
+
+  function note(t, freq, dur, vol, type, cutoff) {
+    var o = ac.createOscillator();
+    o.type = type || 'triangle';
+    o.frequency.value = freq;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    var f = ac.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = cutoff || 1200;
+    o.connect(f);
+    f.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+
+  function hat(t, vol) {
+    var len = Math.floor(ac.sampleRate * 0.05);
+    var buf = ac.createBuffer(1, len, ac.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = (Math.random() * 2 - 1) * (1 - i / len); }
+    var s = ac.createBufferSource();
+    s.buffer = buf;
+    var f = ac.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = 6000;
+    var g = ac.createGain();
+    g.gain.value = vol;
+    s.connect(f);
+    f.connect(g);
+    g.connect(master);
+    s.start(t);
+  }
+
+  /* boogie woogie rolling bass in C: C2 E2 G2 A2 C3 A2 G2 E2 */
+  var BASS = [65.41, 82.41, 98.0, 110.0, 130.81, 110.0, 98.0, 82.41];
+  var CHANGES = [
+    [261.63, 329.63, 392.0],   /* C */
+    [261.63, 329.63, 392.0],   /* C */
+    [220.0, 261.63, 329.63],   /* Am */
+    [233.08, 293.66, 349.23]   /* G7-ish */
+  ];
+
+  function scheduleEighth(t, count) {
+    var idx = count % 8;
+    var bar = Math.floor(count / 8) % 4;
+    /* bass walks every eighth; accents on downbeats */
+    note(t, BASS[idx], 0.22, idx % 2 === 0 ? 0.30 : 0.2, 'sawtooth', 620);
+    if (idx % 2 === 1) { hat(t, 0.05); }
+    /* chord stab on beats 2 and 4 */
+    if (idx === 2 || idx === 6) {
+      CHANGES[bar].forEach(function (f) {
+        note(t, f, 0.16, 0.055, 'triangle', 2200);
+      });
+    }
+    /* melody sparkle occasionally */
+    if (Math.random() < 0.18) {
+      var mel = [523.25, 587.33, 659.25, 783.99, 880][Math.floor(Math.random() * 5)];
+      note(t, mel, 0.12, 0.05, 'triangle', 4000);
+    }
+  }
+
+  function scheduler() {
+    if (!playing || !ac) { return; }
+    var secPerEighth = 60 / bpm / 2;
+    while (nextNoteTime < ac.currentTime + LOOKAHEAD) {
+      scheduleEighth(nextNoteTime, eighthCount);
+      nextNoteTime += secPerEighth;
+      eighthCount++;
+    }
+  }
+
+  function pluck(color) {
+    if (!ac || !soundOn) { return; }
+    var t = ac.currentTime;
+    var map = { white: 392, red: 261.63, yellow: 523.25, blue: 329.63 };
+    note(t, map[color] || 392, 0.14, 0.08, 'triangle', 3000);
+  }
+
+  /* ---------------- visual rhythm ---------------- */
+  var beatTimes = []; /* recent eighth timestamps (performance.now) for sync */
+  var playStart = 0;
+
+  function visualFrame(now) {
+    if (!playing) { return; }
+    var secPerEighth = 60 / bpm / 2;
+    var elapsed = (now - playStart) / 1000;
+    var count = Math.floor(elapsed / secPerEighth);
+    var idx = count % 8;
+    var frac = (elapsed / secPerEighth) - count;
+
+    for (var i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      var t = 0;
+      if (!reduced) {
+        if (c.role === 'bass' && c.color !== 'white') {
+          t = idx % 2 === 0 ? Math.max(0, 1 - frac * 3.2) : 0;
+        } else if (c.role === 'answer' && c.color !== 'white') {
+          t = idx % 2 === 1 ? Math.max(0, 1 - frac * 3.2) : 0;
+        } else if (c.role === 'changes' && c.color === 'blue') {
+          t = (idx === 2 || idx === 6) ? Math.max(0, 1 - frac * 2.4) : 0;
+        }
+        var scale = 1 + t * 0.055;
+        var hop = t * -3.5;
+        c.el.style.transform = 'scale(' + scale.toFixed(3) + ') translateY(' + hop.toFixed(1) + 'px)';
+      }
+    }
+
+    /* color shuffling: every bar, two random colored cells trade hues */
+    if (!reduced && idx === 0 && frac < 0.06 && !visualFrame.barDone) {
+      visualFrame.barDone = true;
+      shuffleTwo();
+      /* metronome sweep: one bar-wide stripe glides across */
+      metros.forEach(function (m) {
+        m.style.transition = 'none';
+        m.style.transform = 'translateX(-105%)';
+      });
+      requestAnimationFrame(function () {
+        metros[0].style.transition = 'transform ' + (secPerEighth * 8).toFixed(2) + 's linear';
+        metros[0].style.transform = 'translateX(405%)';
+      });
+    }
+    if (idx !== 0) { visualFrame.barDone = false; }
+
+    rafId = requestAnimationFrame(visualFrame);
+  }
+
+  function shuffleTwo() {
+    var pool = cells.filter(function (c) { return c.color !== 'white'; });
+    if (pool.length < 2) { return; }
+    var a = pool[Math.floor(Math.random() * pool.length)];
+    var b = pool[Math.floor(Math.random() * pool.length)];
+    if (a === b) { return; }
+    var tmp = a.color;
+    a.color = b.color;
+    b.color = tmp;
+    a.el.className = 'cell' + (a.color === 'white' ? '' : ' ' + COLOR_CLASS[a.color]);
+    b.el.className = 'cell' + (b.color === 'white' ? '' : ' ' + COLOR_CLASS[b.color]);
+  }
+
+  /* ---------------- transport ---------------- */
+  function startPlaying() {
+    if (playing) { return; }
+    playing = true;
+    document.body.classList.add('playing');
+    playBtn.setAttribute('aria-pressed', 'true');
+    playBtn.firstChild.textContent = 'Pause';
+    stateWord.textContent = 'PLAYING';
+    playMeta.textContent = soundOn ? 'swinging · ' + bpm + ' bpm' : 'visual rhythm only · ' + bpm + ' bpm';
+    playStart = performance.now();
+    visualFrame.barDone = false;
+    if (soundOn && ensureAudio()) {
+      nextNoteTime = ac.currentTime + 0.06;
+      eighthCount = 0;
+      schedulerId = window.setInterval(scheduler, 25);
+    }
+    rafId = requestAnimationFrame(visualFrame);
+    liveStatus.textContent = 'Playing at ' + bpm + ' beats per minute.';
+  }
+
+  function stopPlaying() {
+    playing = false;
+    document.body.classList.remove('playing');
+    playBtn.setAttribute('aria-pressed', 'false');
+    playBtn.firstChild.textContent = 'Play';
+    stateWord.textContent = 'DORMANT';
+    playMeta.textContent = 'stopped · grid at rest';
+    window.clearInterval(schedulerId);
+    cancelAnimationFrame(rafId);
+    cells.forEach(function (c) { c.el.style.transform = ''; });
+    metros.forEach(function (m) { m.style.transform = 'translateX(-105%)'; });
+    liveStatus.textContent = 'Stopped.';
+  }
+
+  playBtn.addEventListener('click', function () {
+    if (playing) { stopPlaying(); } else { startPlaying(); }
+  });
+
+  dealBtn.addEventListener('click', function () {
+    compNumber++;
+    compNo.textContent = 'Nº ' + compNumber;
+    dealRandom();
+    if (soundOn) { pluck('red'); }
+  });
+
+  soundBtn.addEventListener('click', function () {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    soundBtn.textContent = soundOn ? 'Sound Off' : 'Sound On';
+    if (soundOn) {
+      if (ensureAudio()) {
+        $('consoleNote').textContent = 'Stride bass, chord stabs and brushed hats — synthesized from oscillators and noise in real time.';
+        if (playing) {
+          nextNoteTime = ac.currentTime + 0.06;
+          schedulerId = window.setInterval(scheduler, 25);
+        }
+      } else {
+        soundOn = false;
+        soundBtn.setAttribute('aria-pressed', 'false');
+        soundBtn.textContent = 'Sound On';
+        $('consoleNote').textContent = 'This browser keeps quiet — WebAudio is unavailable, so the grid dances silently.';
+      }
+    } else {
+      window.clearInterval(schedulerId);
+      $('consoleNote').textContent = 'Sound muted — the rhythm continues visually.';
+    }
+    if (playing) {
+      playMeta.textContent = soundOn ? 'swinging · ' + bpm + ' bpm' : 'visual rhythm only · ' + bpm + ' bpm';
+    }
+  });
+
+  var TEMPOS = [96, 112, 132, 152, 176];
+  var tempoIdx = 2;
+  tempoBtn.addEventListener('click', function () {
+    tempoIdx = (tempoIdx + 1) % TEMPOS.length;
+    bpm = TEMPOS[tempoIdx];
+    tempoRead.textContent = bpm + ' BPM';
+    tempoBtnRead.textContent = bpm + ' bpm';
+    if (playing) {
+      playMeta.textContent = soundOn ? 'swinging · ' + bpm + ' bpm' : 'visual rhythm only · ' + bpm + ' bpm';
+      if (soundOn && ac) {
+        nextNoteTime = Math.max(nextNoteTime, ac.currentTime + 0.03);
+      }
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target !== document.body) { return; }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (playing) { stopPlaying(); } else { startPlaying(); }
+    } else if (e.key === 'c' || e.key === 'C') {
+      cells.forEach(function (c, i) {
+        if (i % 3 === 0) { cycleCell(c); }
+      });
+    } else if (e.key === 'n' || e.key === 'N') {
+      dealBtn.click();
+    }
+  });
+
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(rafId);
+    window.clearInterval(schedulerId);
+    if (ac) { try { ac.close(); } catch (err) {} }
+  });
+
+  /* boot */
+  dealAuthored();
+})();
+</script>
+</body>
+</html>

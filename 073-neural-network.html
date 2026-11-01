@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SYNAPSES — a neural-network laboratory: fire input pulses, drag weight handles to bend the synapses, and watch the loss curve descend.">
+<meta name="theme-color" content="#0d1117">
+<title>SYNAPSES — A Neural Network Laboratory</title>
+<style>
+  :root{
+    --lab:#0d1117;
+    --lab-2:#10161f;
+    --panel:rgba(22,32,44,.66);
+    --panel-line:rgba(110,168,254,.16);
+    --cyan:#22d3ee;
+    --violet:#a78bfa;
+    --pos:#4ade80;
+    --neg:#fb7185;
+    --amber:#fbbf24;
+    --text:#dbe7f3;
+    --dim:rgba(219,231,243,.55);
+    --faint:rgba(219,231,243,.3);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Courier New",Courier,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(900px 500px at 12% -6%, rgba(34,211,238,.07), transparent 60%),
+      radial-gradient(800px 500px at 90% 108%, rgba(167,139,250,.08), transparent 60%),
+      var(--lab);
+    color:var(--text);
+    font-family:var(--sans);
+    overflow:hidden;
+  }
+  ::selection{background:var(--cyan);color:#06222a}
+  body::-webkit-scrollbar{width:10px}
+  body::-webkit-scrollbar-track{background:#0a0e13}
+  body::-webkit-scrollbar-thumb{background:#24384c;border-radius:5px}
+
+  .lab{
+    height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:10px;
+    padding:clamp(10px,1.6vh,20px) clamp(12px,2vw,26px) clamp(10px,1.6vh,16px);
+  }
+
+  /* ————— Masthead ————— */
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(22px,3.2vw,34px);
+    letter-spacing:.42em;
+    text-indent:.42em;
+    color:var(--text);
+    text-transform:uppercase;
+  }
+  .masthead h1 b{color:var(--cyan);font-weight:500}
+  .masthead .tag{
+    font-family:var(--mono);
+    font-size:clamp(9px,1.1vw,11px);
+    letter-spacing:.22em;
+    color:var(--dim);
+    text-transform:uppercase;
+  }
+
+  /* ————— Main stage ————— */
+  .main{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) clamp(240px,24vw,320px);
+    gap:12px;
+    min-height:0;
+  }
+  .netwrap{
+    position:relative;
+    border:1px solid var(--panel-line);
+    background:linear-gradient(180deg, rgba(18,26,37,.7), rgba(13,18,26,.75));
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:inset 0 0 60px rgba(8,12,18,.8), 0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  .netwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+  .netwrap canvas.grabbing{cursor:grabbing}
+  .stagechip{
+    position:absolute;
+    top:12px;left:14px;
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--faint);
+    pointer-events:none;
+  }
+  .stagechip b{color:var(--cyan);font-weight:400}
+  .grabnote{
+    position:absolute;
+    bottom:10px;left:14px;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--faint);
+    pointer-events:none;
+  }
+
+  /* ————— Side instruments ————— */
+  .side{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-height:0;
+    overflow-y:auto;
+    padding-right:2px;
+  }
+  .side::-webkit-scrollbar{width:8px}
+  .side::-webkit-scrollbar-track{background:transparent}
+  .side::-webkit-scrollbar-thumb{background:#24384c;border-radius:4px}
+
+  .glass{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:14px 16px 15px;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    box-shadow:0 10px 30px rgba(4,8,14,.5), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .glass h2{
+    font-family:var(--mono);
+    font-weight:400;
+    font-size:10px;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:var(--dim);
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .glass h2 .led{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--pos);
+    box-shadow:0 0 8px var(--pos);
+    opacity:.35;
+    transition:opacity .3s ease;
+  }
+  .glass h2 .led.hot{opacity:1}
+
+  /* loss plot */
+  .plotwrap{position:relative}
+  .plotwrap canvas{display:block;width:100%;height:clamp(90px,12vh,130px);border:1px solid rgba(110,168,254,.14);border-radius:8px;background:rgba(6,10,15,.6)}
+  .plotmeta{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--dim);
+    margin-top:8px;
+    letter-spacing:.08em;
+  }
+  .plotmeta b{color:var(--amber);font-weight:400;font-variant-numeric:tabular-nums}
+
+  /* buttons */
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button.act{
+    -webkit-appearance:none;appearance:none;
+    flex:1 1 auto;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--text);
+    background:rgba(34,211,238,.07);
+    border:1px solid rgba(34,211,238,.35);
+    border-radius:9px;
+    padding:11px 10px 10px;
+    cursor:pointer;
+    transition:background .18s ease, box-shadow .18s ease, border-color .18s ease, transform .1s ease;
+  }
+  button.act:hover,button.act:focus-visible{
+    background:rgba(34,211,238,.16);
+    border-color:var(--cyan);
+    box-shadow:0 0 18px rgba(34,211,238,.25);
+  }
+  button.act:active{transform:translateY(1px)}
+  button.act:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  button.act.violet{
+    background:rgba(167,139,250,.07);
+    border-color:rgba(167,139,250,.4);
+  }
+  button.act.violet:hover,button.act.violet:focus-visible{
+    background:rgba(167,139,250,.16);
+    border-color:var(--violet);
+    box-shadow:0 0 18px rgba(167,139,250,.28);
+  }
+  button.act[aria-pressed="true"]{
+    background:rgba(74,222,128,.14);
+    border-color:var(--pos);
+    box-shadow:0 0 16px rgba(74,222,128,.22);
+  }
+  button.act:disabled{opacity:.4;cursor:not-allowed}
+
+  /* sliders */
+  .ctl{margin-top:12px}
+  .ctl:first-of-type{margin-top:0}
+  .ctl label{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--dim);
+    margin-bottom:7px;
+  }
+  .ctl label output{color:var(--cyan)}
+  input[type="range"]{
+    -webkit-appearance:none;appearance:none;
+    width:100%;
+    height:22px;
+    background:transparent;
+    cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:3px;
+    border-radius:2px;
+    background:linear-gradient(90deg, rgba(34,211,238,.5), rgba(167,139,250,.5));
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:16px;height:16px;border-radius:50%;
+    background:var(--lab);
+    border:2px solid var(--cyan);
+    margin-top:-6.5px;
+    box-shadow:0 0 10px rgba(34,211,238,.5);
+  }
+  input[type="range"]::-moz-range-track{
+    height:3px;border-radius:2px;
+    background:linear-gradient(90deg, rgba(34,211,238,.5), rgba(167,139,250,.5));
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:14px;height:14px;border-radius:50%;
+    background:var(--lab);
+    border:2px solid var(--cyan);
+    box-shadow:0 0 10px rgba(34,211,238,.5);
+  }
+  input[type="range"]:focus-visible{outline:2px solid var(--violet);outline-offset:2px;border-radius:4px}
+
+  /* dataset picker */
+  .dsets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .dsets button{
+    -webkit-appearance:none;appearance:none;
+    border:1px solid rgba(110,168,254,.2);
+    background:rgba(6,10,15,.5);
+    border-radius:8px;
+    padding:7px 4px 5px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dsets button svg{display:block;width:100%;height:26px}
+  .dsets button:hover,.dsets button:focus-visible{border-color:var(--cyan)}
+  .dsets button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .dsets button[aria-pressed="true"]{border-color:var(--violet);background:rgba(167,139,250,.1)}
+  .dsetname{
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.18em;
+    color:var(--dim);
+    text-transform:uppercase;
+    text-align:center;
+    margin-top:6px;
+  }
+
+  /* fire inputs */
+  .fires{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .fires button{
+    -webkit-appearance:none;appearance:none;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:var(--cyan);
+    border:1px solid rgba(34,211,238,.3);
+    background:rgba(34,211,238,.05);
+    border-radius:9px;
+    padding:11px 4px 10px;
+    cursor:pointer;
+    transition:background .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .fires button:hover,.fires button:focus-visible{background:rgba(34,211,238,.16);border-color:var(--cyan);box-shadow:0 0 14px rgba(34,211,238,.3)}
+  .fires button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  .fires button.on{background:rgba(34,211,238,.3);color:#eafffe}
+  .fires button:disabled{opacity:.35;cursor:default;box-shadow:none}
+
+  /* readout list */
+  .io{font-family:var(--mono);font-size:10.5px;line-height:1.9;color:var(--dim);letter-spacing:.05em}
+  .io .v{color:var(--text);font-variant-numeric:tabular-nums}
+  .io .out{color:var(--violet)}
+  .io .ymax{color:var(--amber)}
+
+  .noscript{
+    position:fixed;inset:0;display:grid;place-items:center;
+    font-family:var(--mono);font-size:12px;color:var(--dim);
+  }
+
+  @media (max-width:880px){
+    .lab{height:auto;min-height:100vh;overflow-y:auto}
+    body{overflow:auto}
+    .main{grid-template-columns:1fr}
+    .netwrap{min-height:52vh}
+    .side{overflow:visible}
+  }
+  @media (prefers-reduced-motion: reduce){
+    button.act,.dsets button,.fires button{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="lab">
+
+  <header class="masthead">
+    <h1>Syn<b>apses</b></h1>
+    <p class="tag">Perceptron bench &#183; 4&#8211;5&#8211;4&#8211;1 &#183; handle every weight by hand</p>
+  </header>
+
+  <div class="main">
+
+    <section class="netwrap" aria-label="Network canvas">
+      <canvas id="net"></canvas>
+      <p class="stagechip" id="stagechip">IDLE &#183; <b>fire an input to see the signal travel</b></p>
+      <p class="grabnote">drag any joint on an edge to bend the weight &#183; drag nodes to rearrange &#183; scroll = nothing, everything fits</p>
+    </section>
+
+    <aside class="side">
+
+      <section class="glass" aria-label="Fire inputs">
+        <h2>Fire an input <span class="led" id="ledFire"></span></h2>
+        <div class="fires" id="fires">
+          <button type="button" data-i="0" aria-label="Fire input x1">x&#8321;</button>
+          <button type="button" data-i="1" aria-label="Fire input x2">x&#8322;</button>
+          <button type="button" data-i="2" aria-label="Fire input x3">x&#8323;</button>
+          <button type="button" data-i="3" aria-label="Fire input x4">x&#8324;</button>
+        </div>
+        <div class="ctl" style="margin-top:14px">
+          <label for="biasSlider">Bias current <output id="biasOut">0.00</output></label>
+          <input type="range" id="biasSlider" min="-1.5" max="1.5" step="0.01" value="0">
+        </div>
+      </section>
+
+      <section class="glass" aria-label="Training">
+        <h2>Gradient descent <span class="led" id="ledTrain"></span></h2>
+        <div class="plotwrap">
+          <canvas id="lossplot" width="560" height="220" aria-label="Training loss curve"></canvas>
+        </div>
+        <div class="plotmeta">
+          <span>epoch <b id="epochOut">0</b></span>
+          <span>loss <b id="lossOut">&#8212;</b></span>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="act" id="btnTrain" type="button">Train</button>
+          <button class="act violet" id="btnReset" type="button">Reweight</button>
+        </div>
+        <div class="ctl">
+          <label for="lrSlider">Learning rate <output id="lrOut">0.05</output></label>
+          <input type="range" id="lrSlider" min="0.005" max="0.2" step="0.005" value="0.05">
+        </div>
+      </section>
+
+      <section class="glass" aria-label="Dataset">
+        <h2>Truth set</h2>
+        <div class="dsets" id="dsets" aria-label="Choose a target function"></div>
+        <p class="dsetname" id="dsetName">XOR &#8212; the classic gate</p>
+      </section>
+
+      <section class="glass" aria-label="Readout">
+        <h2>Readout</h2>
+        <p class="io">
+          last signal &#8212; <span class="v" id="ioLast">&#8212;</span><br>
+          prediction &#8212; <span class="out v" id="ioPred">&#8212;</span><br>
+          answer &#8212; <span class="ymax v" id="ioTruth">&#8212;</span>
+        </p>
+      </section>
+
+    </aside>
+
+  </div>
+
+</div>
+
+<div class="noscript" id="noscript" hidden>
+  This laboratory draws on canvas and needs JavaScript to think.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   SYNAPSES — a 4-5-4-1 feed-forward network drawn on canvas.
+   Signal pulses propagate layer by layer; edges carry weights
+   (green positive, coral negative, thickness = magnitude);
+   each interior joint is draggable to edit its weight; a tiny
+   backprop trainer descends the loss on a chosen truth set.
+   ============================================================ */
+
+var canvas = document.getElementById("net");
+var ctx = canvas.getContext("2d");
+var plotCanvas = document.getElementById("lossplot");
+var pctx = plotCanvas.getContext("2d");
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+var W = 0, H = 0;
+var raf = null;
+var time = 0;
+var tPrev = 0;
+
+var ARCH = [4, 5, 4, 1];
+
+/* network state */
+var nodes = [];   /* {x,y,baseY,layer,idx,a (activation),glow,glowC} */
+var edges = [];   /* {li,i,j,w,bendY,dash (pulse offset)} */
+var pulses = [];  /* {edge, t, speed, dir} */
+
+/* training state */
+var training = false;
+var epoch = 0;
+var loss = null;
+var lossHist = [];
+var lr = 0.05;
+var biasGlobal = 0;
+var trainQueue = [];
+var trainStepCount = 0;
+var pendingRedraw = false;
+
+/* datasets: {name, note, pts:[{x:[a,b,c,d], y}]} */
+var DATASETS = [
+  { name:"XOR", note:"XOR — the classic gate",
+    fn:function(p){ var c = p[0] + p[1] + p[2] + p[3]; return (c === 1 || c === 3) ? 1 : 0; } },
+  { name:"OR", note:"OR — any voice suffices",
+    fn:function(p){ return (p[0] + p[1] + p[2] + p[3]) >= 1 ? 1 : 0; } },
+  { name:"AND", note:"AND — consensus required",
+    fn:function(p){ return (p[0] + p[1] + p[2] + p[3]) >= 4 ? 1 : 0; } },
+  { name:"MAJ", note:"MAJORITY — the vote decides",
+    fn:function(p){ return (p[0] + p[1] + p[2] + p[3]) >= 3 ? 1 : 0; } }
+];
+var dsIndex = 0;
+
+/* ————————————————— Build network ————————————————— */
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function buildNetwork(){
+  var rnd = mulberry32(1986);
+  nodes = [];
+  edges = [];
+  for (var l = 0; l < ARCH.length; l++){
+    var n = ARCH[l];
+    for (var i = 0; i < n; i++){
+      nodes.push({
+        layer: l, idx: i,
+        fx: 0.12 + l * (0.76 / (ARCH.length - 1)),
+        fy: (i + 1) / (n + 1),
+        x: 0, y: 0,
+        a: 0, glow: 0, glowC: "#22d3ee",
+        ox: 0, oy: 0
+      });
+    }
+  }
+  for (var l2 = 0; l2 < ARCH.length - 1; l2++){
+    for (var i2 = 0; i2 < ARCH[l2]; i2++){
+      for (var j = 0; j < ARCH[l2 + 1]; j++){
+        edges.push({
+          li: l2, i: i2, j: j,
+          w: (rnd() * 2 - 1) * 0.9,
+          bend: 0,
+          a: 0 /* highlight energy */
+        });
+      }
+    }
+  }
+  layoutNodes();
+}
+
+function nodeAt(layer, idx){
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i];
+    if (n.layer === layer && n.idx === idx) return n;
+  }
+  return null;
+}
+
+function layoutNodes(){
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i];
+    n.x = n.fx * W;
+    n.y = n.fy * H;
+  }
+}
+
+/* ————————————————— Forward pass ————————————————— */
+
+function sig(z){ return 1 / (1 + Math.exp(-z)); }
+
+function forward(input){
+  /* returns activations per layer; also stores weighted sums */
+  var acts = [input.slice()];
+  var sums = [input.slice()];
+  var cur = input;
+  for (var l = 0; l < ARCH.length - 1; l++){
+    var next = [];
+    var nsum = [];
+    for (var j = 0; j < ARCH[l + 1]; j++){
+      var z = biasGlobal * (l === 0 ? 0.6 : 1);
+      for (var i = 0; i < ARCH[l]; i++){
+        var w = getWeight(l, i, j);
+        z += cur[i] * w;
+      }
+      nsum.push(z);
+      next.push(sig(z));
+    }
+    sums.push(nsum);
+    acts.push(next);
+    cur = next;
+  }
+  return { acts: acts, sums: sums };
+}
+
+function getWeight(l, i, j){
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    if (e.li === l && e.i === i && e.j === j) return e.w;
+  }
+  return 0;
+}
+function setWeight(l, i, j, w){
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    if (e.li === l && e.i === i && e.j === j) e.w = Math.max(-3.5, Math.min(3.5, w));
+  }
+}
+
+function fireInput(idx, value){
+  var input = [0, 0, 0, 0];
+  input[idx] = value;
+  var res = forward(input);
+  /* glow nodes */
+  for (var l = 0; l < ARCH.length; l++){
+    for (var i = 0; i < ARCH[l]; i++){
+      var n = nodeAt(l, i);
+      var a = res.acts[l][i];
+      n.a = a;
+      n.glow = Math.min(1, Math.max(0.25, a));
+      n.glowC = a > 0.5 ? "#a78bfa" : "#22d3ee";
+    }
+  }
+  /* enqueue pulses layer by layer */
+  var delay = 0;
+  for (var l2 = 0; l2 < ARCH.length - 1; l2++){
+    for (var i2 = 0; i2 < ARCH[l2]; i2++){
+      for (var j = 0; j < ARCH[l2 + 1]; j++){
+        var w = getWeight(l2, i2, j);
+        var strength = Math.min(1, Math.abs(res.sums[l2][i2] * w) * 0.5 + Math.abs(w) * 0.22);
+        pulses.push({
+          li: l2, i: i2, j: j,
+          t: -delay,
+          speed: 1.6,
+          strength: strength,
+          sign: w >= 0 ? 1 : -1
+        });
+      }
+    }
+    delay += 0.55;
+  }
+  /* edge flash */
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    e.a = Math.max(e.a, Math.min(1, Math.abs(e.w) * 0.4 + 0.2));
+  }
+  showPrediction(res.acts[ARCH.length - 1][0], input);
+}
+
+var lastInput = null;
+var lastPred = null;
+
+function showPrediction(pred, input){
+  lastPred = pred;
+  lastInput = input.slice();
+  var truth = DATASETS[dsIndex].fn(input);
+  document.getElementById("ioLast").textContent = fmtInput(input);
+  document.getElementById("ioPred").textContent = pred.toFixed(3);
+  document.getElementById("ioTruth").textContent = truth.toFixed(0) + (truth === Math.round(pred) ? "  ✓" : "  ✗");
+  var chip = document.getElementById("stagechip");
+  chip.innerHTML = "SIGNAL &#183; <b>x" + (input.indexOf(1) + 1) + " fired, output " + pred.toFixed(2) + "</b>";
+}
+
+function fmtInput(input){
+  var s = "[";
+  for (var i = 0; i < input.length; i++){
+    s += input[i].toFixed(0);
+    if (i < input.length - 1) s += ",";
+  }
+  return s + "]";
+}
+
+/* ————————————————— Training (tiny backprop) ————————————————— */
+
+function trainBatch(steps){
+  var ds = DATASETS[dsIndex];
+  var rnd = mulberry32(epoch * 977 + trainStepCount);
+  var totalLoss = 0;
+  for (var s = 0; s < steps; s++){
+    var p = [Math.round(rnd()), Math.round(rnd()), Math.round(rnd()), Math.round(rnd())];
+    var y = ds.fn(p);
+    var fwd = forward(p);
+    var out = fwd.acts[ARCH.length - 1][0];
+    var err = out - y;
+    totalLoss += err * err;
+    /* delta at the output neuron: err * sigmoid'(z_out) */
+    var deltaOut = err * out * (1 - out);
+    /* hidden layer 2 (second hidden) and its incoming weights */
+    for (var j = 0; j < ARCH[2]; j++){
+      var w2 = getWeight(2, j, 0);
+      var h2 = fwd.acts[2][j];
+      var h2p = h2 * (1 - h2);
+      /* ∂L/∂w1(i,j) = deltaOut * w2 * h2' * h1 */
+      for (var i = 0; i < ARCH[1]; i++){
+        var w1 = getWeight(1, i, j);
+        var h1 = fwd.acts[1][i];
+        setWeight(1, i, j, w1 - lr * deltaOut * w2 * h2p * h1);
+      }
+      /* ∂L/∂w2(j) = deltaOut * h2 */
+      setWeight(2, j, 0, w2 - lr * deltaOut * h2);
+    }
+    /* first hidden weights: chain through every active path */
+    for (var i0 = 0; i0 < ARCH[0]; i0++){
+      var a0 = fwd.acts[0][i0];
+      for (var j0 = 0; j0 < ARCH[1]; j0++){
+        var w0 = getWeight(0, i0, j0);
+        var h1b = fwd.acts[1][j0];
+        var h1p = h1b * (1 - h1b);
+        var chain = 0;
+        for (var jj = 0; jj < ARCH[2]; jj++){
+          var h2c = fwd.acts[2][jj];
+          chain += deltaOut * getWeight(2, jj, 0) * h2c * (1 - h2c) * getWeight(1, i0, jj);
+        }
+        /* ∂L/∂w0 = Σ_j deltaOut·w2·h2'·w1 × h1' × a0 */
+        setWeight(0, i0, j0, w0 - lr * chain * h1p * a0);
+      }
+    }
+    epoch++;
+  }
+  loss = totalLoss / steps;
+  lossHist.push(loss);
+  if (lossHist.length > 240) lossHist.shift();
+  document.getElementById("epochOut").textContent = epoch.toLocaleString("en-US");
+  document.getElementById("lossOut").textContent = loss.toFixed(4);
+  pendingRedraw = true;
+}
+
+function reweight(){
+  var rnd = mulberry32((Math.random() * 1e9) | 0);
+  for (var k = 0; k < edges.length; k++){
+    edges[k].w = (rnd() * 2 - 1) * 1.1;
+    edges[k].a = 1;
+  }
+  lossHist = [];
+  loss = null;
+  epoch = 0;
+  document.getElementById("epochOut").textContent = "0";
+  document.getElementById("lossOut").textContent = "—";
+  drawPlot();
+  if (!REDUCED) trainQueue = [];
+}
+
+/* ————————————————— Loss plot ————————————————— */
+
+function drawPlot(){
+  var w = plotCanvas.width, h = plotCanvas.height;
+  pctx.clearRect(0, 0, w, h);
+  /* grid */
+  pctx.strokeStyle = "rgba(110,168,254,.10)";
+  pctx.lineWidth = 1;
+  for (var gy = 0; gy <= 4; gy++){
+    var y = 14 + gy * (h - 28) / 4;
+    pctx.beginPath(); pctx.moveTo(10, y); pctx.lineTo(w - 10, y); pctx.stroke();
+  }
+  if (lossHist.length < 2){
+    pctx.fillStyle = "rgba(219,231,243,.35)";
+    pctx.font = "12px ui-monospace, 'Courier New', monospace";
+    pctx.textAlign = "center";
+    pctx.fillText("awaiting gradient descent", w / 2, h / 2 + 4);
+    return;
+  }
+  var maxL = Math.max(0.02, lossHist[0]);
+  var minL = 0;
+  pctx.beginPath();
+  for (var i = 0; i < lossHist.length; i++){
+    var x = 10 + i * (w - 20) / (lossHist.length - 1);
+    var yv = h - 14 - (lossHist[i] - minL) / (maxL - minL) * (h - 28);
+    if (i === 0) pctx.moveTo(x, yv); else pctx.lineTo(x, yv);
+  }
+  pctx.strokeStyle = "rgba(251,191,36,.9)";
+  pctx.lineWidth = 2;
+  pctx.stroke();
+  /* area fill */
+  var lastX = 10 + (lossHist.length - 1) * (w - 20) / (lossHist.length - 1);
+  var lastY = h - 14 - (lossHist[lossHist.length - 1] - minL) / (maxL - minL) * (h - 28);
+  pctx.lineTo(lastX, h - 14);
+  pctx.lineTo(10, h - 14);
+  pctx.closePath();
+  pctx.fillStyle = "rgba(251,191,36,.10)";
+  pctx.fill();
+  /* last point */
+  pctx.fillStyle = "#fbbf24";
+  pctx.beginPath();
+  pctx.arc(lastX, lastY, 3.4, 0, Math.PI * 2);
+  pctx.fill();
+}
+
+/* ————————————————— Geometry ————————————————— */
+
+function edgeGeom(e){
+  var n1 = nodeAt(e.li, e.i);
+  var n2 = nodeAt(e.li + 1, e.j);
+  var mx = (n1.x + n2.x) / 2;
+  var my = (n1.y + n2.y) / 2 + e.bend;
+  return { n1: n1, n2: n2, mx: mx, my: my };
+}
+
+function pointOnEdge(e, t){
+  var g = edgeGeom(e);
+  var x = (1 - t) * (1 - t) * g.n1.x + 2 * (1 - t) * t * g.mx + t * t * g.n2.x;
+  var y = (1 - t) * (1 - t) * g.n1.y + 2 * (1 - t) * t * g.my + t * t * g.n2.y;
+  return { x: x, y: y };
+}
+
+/* ————————————————— Render ————————————————— */
+
+function resize(){
+  var wrap = canvas.parentElement.getBoundingClientRect();
+  W = Math.max(320, Math.round(wrap.width));
+  H = Math.max(280, Math.round(wrap.height));
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  layoutNodes();
+  if (REDUCED) drawNetwork(0);
+}
+
+function colorForWeight(w){
+  var mag = Math.min(1, Math.abs(w) / 2.5);
+  if (w >= 0) return "rgba(74,222,128," + (0.25 + mag * 0.6).toFixed(3) + ")";
+  return "rgba(251,113,133," + (0.25 + mag * 0.6).toFixed(3) + ")";
+}
+
+function drawNetwork(t){
+  ctx.clearRect(0, 0, W, H);
+
+  /* faint grid backdrop */
+  ctx.strokeStyle = "rgba(110,168,254,.05)";
+  ctx.lineWidth = 1;
+  var gs = 44;
+  for (var gx = gs; gx < W; gx += gs){
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+  }
+  for (var gy2 = gs; gy2 < H; gy2 += gs){
+    ctx.beginPath(); ctx.moveTo(0, gy2); ctx.lineTo(W, gy2); ctx.stroke();
+  }
+
+  /* layer labels */
+  ctx.fillStyle = "rgba(219,231,243,.3)";
+  ctx.font = "10px ui-monospace, 'Courier New', monospace";
+  ctx.textAlign = "center";
+  var labels = ["INPUT", "HIDDEN", "HIDDEN", "OUTPUT"];
+  for (var l = 0; l < ARCH.length; l++){
+    var lx = 0.12 + l * (0.76 / (ARCH.length - 1));
+    ctx.fillText(labels[l], lx * W, H - 12);
+  }
+
+  /* edges */
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    var g = edgeGeom(e);
+    var mag = Math.min(1, Math.abs(e.w) / 2.5);
+    var lw = 0.8 + mag * 4.2;
+    ctx.strokeStyle = colorForWeight(e.w);
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    ctx.moveTo(g.n1.x, g.n1.y);
+    ctx.quadraticCurveTo(g.mx, g.my, g.n2.x, g.n2.y);
+    ctx.stroke();
+
+    /* joint handle (interior layers only, to keep hit areas sane) */
+    if (e.li >= 0 && e.li <= 2){
+      var hot = e.a > 0.03 || (dragEdge === e);
+      ctx.fillStyle = hot ? "rgba(219,231,243,.95)" : colorForWeight(e.w);
+      ctx.beginPath();
+      ctx.arc(g.mx, g.my, hot ? 5.5 : 3 + mag * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /* pulses */
+  for (var p = pulses.length - 1; p >= 0; p--){
+    var pu = pulses[p];
+    pu.t += pu.speed * 0.016;
+    if (pu.t > 1){ pulses.splice(p, 1); continue; }
+    if (pu.t < 0) continue;
+    var e2 = edgeFor(pu.li, pu.i, pu.j);
+    if (!e2) { pulses.splice(p, 1); continue; }
+    var pt = pointOnEdge(e2, pu.t);
+    var r = 3 + pu.strength * 5;
+    var col = pu.sign > 0 ? "74,222,128" : "251,113,133";
+    var grad = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r * 3);
+    grad.addColorStop(0, "rgba(" + col + "," + (0.5 + pu.strength * 0.5).toFixed(2) + ")");
+    grad.addColorStop(1, "rgba(" + col + ",0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* nodes */
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i];
+    var R = n.layer === 0 || n.layer === ARCH.length - 1 ? 15 : 12;
+    var glowA = n.glow * 0.5;
+    if (glowA > 0.01){
+      var ng = ctx.createRadialGradient(n.x, n.y, 2, n.x, n.y, R * 3.4);
+      ng.addColorStop(0, hexA(n.glowC, glowA));
+      ng.addColorStop(1, hexA(n.glowC, 0));
+      ctx.fillStyle = ng;
+      ctx.beginPath(); ctx.arc(n.x, n.y, R * 3.4, 0, Math.PI * 2); ctx.fill();
+    }
+    /* ring shows activation fill */
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, R, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(10,16,24,.9)";
+    ctx.fill();
+    var frac = Math.max(0, Math.min(1, n.a));
+    ctx.beginPath();
+    ctx.moveTo(n.x, n.y);
+    ctx.arc(n.x, n.y, R - 1.5, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+    ctx.closePath();
+    ctx.fillStyle = n.a > 0.5 ? "rgba(167,139,250,.75)" : "rgba(34,211,238,.6)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(110,168,254,.55)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, R, 0, Math.PI * 2);
+    ctx.stroke();
+    /* value labels on input/output layers */
+    if (n.layer === 0 || n.layer === ARCH.length - 1){
+      ctx.fillStyle = "rgba(219,231,243,.7)";
+      ctx.font = "10px ui-monospace, 'Courier New', monospace";
+      ctx.textAlign = n.layer === 0 ? "right" : "left";
+      ctx.fillText(n.a.toFixed(2), n.x + (n.layer === 0 ? -22 : 22), n.y + 3.5);
+    }
+  }
+
+  /* decay edge energy */
+  for (var k2 = 0; k2 < edges.length; k2++){
+    edges[k2].a *= 0.96;
+  }
+  /* decay node glow */
+  for (var i2 = 0; i2 < nodes.length; i2++){
+    nodes[i2].glow *= 0.975;
+  }
+}
+
+function edgeFor(l, i, j){
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    if (e.li === l && e.i === i && e.j === j) return e;
+  }
+  return null;
+}
+
+function hexA(hex, a){
+  var r = parseInt(hex.slice(1, 3), 16);
+  var g = parseInt(hex.slice(3, 5), 16);
+  var b = parseInt(hex.slice(5, 7), 16);
+  return "rgba(" + r + "," + g + "," + b + "," + a.toFixed(3) + ")";
+}
+
+/* ————————————————— Loop ————————————————— */
+
+function loop(now){
+  var dt = Math.min(0.05, (now - tPrev) / 1000 || 0.016);
+  tPrev = now;
+  time += dt;
+
+  if (trainQueue.length){
+    var steps = trainQueue.shift();
+    trainBatch(steps);
+  }
+
+  drawNetwork(time);
+
+  if (pendingRedraw){
+    drawPlot();
+    pendingRedraw = false;
+  }
+
+  raf = requestAnimationFrame(loop);
+}
+
+/* ————————————————— Pointer interaction ————————————————— */
+
+var dragEdge = null;
+var dragNode = null;
+var dragOff = { x: 0, y: 0 };
+var hoverJoint = null;
+
+function canvasPos(e){
+  var r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function jointNear(p){
+  var best = null, bestD = 16 * 16;
+  for (var k = 0; k < edges.length; k++){
+    var e = edges[k];
+    var g = edgeGeom(e);
+    var dx = p.x - g.mx, dy = p.y - g.my;
+    var d2 = dx * dx + dy * dy;
+    if (d2 < bestD){ bestD = d2; best = e; }
+  }
+  return best;
+}
+
+function nodeNear(p){
+  for (var i = nodes.length - 1; i >= 0; i--){
+    var n = nodes[i];
+    var dx = p.x - n.x, dy = p.y - n.y;
+    if (dx * dx + dy * dy < 18 * 18) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener("pointerdown", function(e){
+  var p = canvasPos(e);
+  canvas.setPointerCapture(e.pointerId);
+  var n = nodeNear(p);
+  if (n && n.layer === 0){
+    fireInput(n.idx, 1);
+    flashFireButton(n.idx);
+    return;
+  }
+  var e2 = jointNear(p);
+  if (e2){
+    dragEdge = e2;
+    dragOff.y = p.y - e2.bend;
+    canvas.classList.add("grabbing");
+  }
+});
+
+canvas.addEventListener("pointermove", function(e){
+  var p = canvasPos(e);
+  if (dragEdge){
+    var base = (nodeAt(dragEdge.li, dragEdge.i).y + nodeAt(dragEdge.li + 1, dragEdge.j).y) / 2;
+    var dy = (p.y - dragOff.y) - base;
+    var maxBend = Math.min(H * 0.22, 90);
+    var clamped = Math.max(-maxBend, Math.min(maxBend, dy));
+    dragEdge.bend = clamped;
+    var target = -clamped / maxBend * 3.5;
+    dragEdge.w += (target - dragEdge.w) * 0.4;
+    dragEdge.a = 1;
+    return;
+  }
+  var j = jointNear(p);
+  if (j !== hoverJoint){
+    hoverJoint = j;
+    canvas.style.cursor = j ? "ns-resize" : "grab";
+  }
+});
+
+canvas.addEventListener("pointerup", function(e){
+  dragEdge = null;
+  canvas.classList.remove("grabbing");
+});
+canvas.addEventListener("pointercancel", function(){
+  dragEdge = null;
+  canvas.classList.remove("grabbing");
+});
+
+function flashFireButton(idx){
+  var btns = document.getElementById("fires").children;
+  for (var i = 0; i < btns.length; i++){
+    btns[i].classList.toggle("on", i === idx);
+  }
+  setTimeout(function(){
+    for (var i2 = 0; i2 < btns.length; i2++) btns[i2].classList.remove("on");
+  }, 420);
+}
+
+/* ————————————————— Controls ————————————————— */
+
+var fireWrap = document.getElementById("fires");
+fireWrap.addEventListener("click", function(ev){
+  var b = ev.target.closest("button");
+  if (!b) return;
+  var idx = parseInt(b.dataset.i, 10);
+  fireInput(idx, 1);
+  flashFireButton(idx);
+});
+fireWrap.addEventListener("pointerdown", function(ev){
+  var b = ev.target.closest("button");
+  if (!b) return;
+  var idx = parseInt(b.dataset.i, 10);
+  fireInput(idx, 1);
+  flashFireButton(idx);
+});
+
+var biasSlider = document.getElementById("biasSlider");
+var biasOut = document.getElementById("biasOut");
+biasSlider.addEventListener("input", function(){
+  biasGlobal = parseFloat(biasSlider.value);
+  biasOut.textContent = biasGlobal.toFixed(2);
+});
+
+var lrSlider = document.getElementById("lrSlider");
+var lrOut = document.getElementById("lrOut");
+lrSlider.addEventListener("input", function(){
+  lr = parseFloat(lrSlider.value);
+  lrOut.textContent = lr.toFixed(3);
+});
+
+var btnTrain = document.getElementById("btnTrain");
+var ledTrain = document.getElementById("ledTrain");
+btnTrain.addEventListener("click", function(){
+  if (training){ training = false; btnTrain.textContent = "Train"; btnTrain.setAttribute("aria-pressed", "false"); ledTrain.classList.remove("hot"); return; }
+  training = true;
+  btnTrain.textContent = "Stop";
+  btnTrain.setAttribute("aria-pressed", "true");
+  ledTrain.classList.add("hot");
+  scheduleTraining();
+});
+
+function scheduleTraining(){
+  if (!training) return;
+  trainQueue.push(12);
+  setTimeout(scheduleTraining, 40);
+}
+
+var btnReset = document.getElementById("btnReset");
+btnReset.addEventListener("click", reweight);
+
+/* dataset buttons */
+var dsetWrap = document.getElementById("dsets");
+var SAMPLE_COLORS = ["#22d3ee", "#a78bfa"];
+function buildDsets(){
+  for (var d = 0; d < DATASETS.length; d++){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("aria-label", DATASETS[d].note);
+    b.setAttribute("aria-pressed", d === 0 ? "true" : "false");
+    var svg = dsetGlyph(d);
+    b.innerHTML = svg;
+    (function(idx){
+      b.addEventListener("click", function(){
+        dsIndex = idx;
+        var btns = dsetWrap.children;
+        for (var i = 0; i < btns.length; i++) btns[i].setAttribute("aria-pressed", i === idx ? "true" : "false");
+        document.getElementById("dsetName").textContent = DATASETS[idx].note;
+        lossHist = [];
+        loss = null;
+        epoch = 0;
+        document.getElementById("epochOut").textContent = "0";
+        document.getElementById("lossOut").textContent = "—";
+        drawPlot();
+      });
+    })(d);
+    dsetWrap.appendChild(b);
+  }
+}
+function dsetGlyph(d){
+  /* tiny truth-table sparkline: 4 bars showing output for popcount 0..4 */
+  var vals = [];
+  for (var c = 0; c <= 4; c++){
+    var p = [0, 0, 0, 0];
+    for (var k = 0; k < c; k++) p[k] = 1;
+    vals.push(DATASETS[d].fn(p));
+  }
+  var svg = '<svg viewBox="0 0 100 44" aria-hidden="true">';
+  for (var i = 0; i < 5; i++){
+    var x = 8 + i * 18;
+    var hh = vals[i] ? 26 : 8;
+    var col = vals[i] ? SAMPLE_COLORS[1] : SAMPLE_COLORS[0];
+    svg += '<rect x="' + x + '" y="' + (36 - hh) + '" width="10" height="' + hh + '" rx="2" fill="' + col + '" opacity="' + (vals[i] ? "0.95" : "0.45") + '"/>';
+  }
+  svg += '</svg>';
+  return svg;
+}
+
+/* keyboard: 1-4 fire inputs */
+document.addEventListener("keydown", function(e){
+  if (e.key >= "1" && e.key <= "4"){
+    var idx = parseInt(e.key, 10) - 1;
+    fireInput(idx, 1);
+    flashFireButton(idx);
+  }
+  if (e.key === "t" || e.key === "T"){ btnTrain.click(); }
+});
+
+/* ————————————————— Lifecycle ————————————————— */
+
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){
+    if (raf){ cancelAnimationFrame(raf); raf = null; }
+  } else {
+    if (!raf){ tPrev = performance.now(); raf = requestAnimationFrame(loop); }
+  }
+});
+
+var resizeTimer = null;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 120);
+});
+
+if (!canvas.getContext) {
+  document.getElementById("noscript").hidden = false;
+}
+
+buildNetwork();
+buildDsets();
+drawPlot();
+resize();
+if (REDUCED){
+  drawNetwork(0);
+  /* still allow training in small steps driven by the button */
+  tPrev = performance.now();
+  raf = requestAnimationFrame(loop);
+} else {
+  tPrev = performance.now();
+  raf = requestAnimationFrame(loop);
+}
+
+})();
+</script>
+</body>
+</html>

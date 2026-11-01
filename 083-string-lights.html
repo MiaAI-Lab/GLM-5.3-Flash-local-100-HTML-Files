@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FÊTE — An Evening Garden Invitation</title>
+<meta name="description" content="Strings of festoon bulbs sway over a dusk garden while a bulb-lit marquee spells FÊTE letter by letter. Click bulbs to toggle their glow with soft chimes; set the breeze; flip the RSVP card.">
+<style>
+/* ============================================================
+   FÊTE — 083
+   The garden at dusk, strung with light.
+   ============================================================ */
+
+:root {
+  --dusk-a: #17203a;
+  --dusk-b: #2d3a5e;
+  --foliage: #0e1428;
+  --bulb: #ffd9a0;
+  --bulb-hot: #fff3dc;
+  --ivory: #f6f1e4;
+  --ivory-deep: #ece4d0;
+  --ink: #33302a;
+  --ink-soft: rgba(51, 48, 42, 0.62);
+  --gold: #c9a95c;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--dusk-a);
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 70% at 50% 108%, #3d4a6e 0%, transparent 55%),
+    linear-gradient(180deg, #101729 0%, var(--dusk-a) 34%, var(--dusk-b) 78%, #3a4566 100%);
+  color: var(--ivory);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--bulb);
+  color: #33230c;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bulb);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   GARDEN SCENE
+   ------------------------------------------------------------ */
+
+.garden {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding-bottom: clamp(70px, 12vh, 130px);
+}
+
+/* fireflies canvas */
+#fireflies {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* foliage silhouettes */
+.foliage {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: clamp(150px, 30vh, 300px);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.foliage svg {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* grass blades */
+.grass {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 2;
+  background:
+    repeating-conic-gradient(from 175deg at 50% 130%,
+      transparent 0deg 2deg,
+      rgba(14, 20, 40, 0.9) 2deg 2.6deg,
+      transparent 2.6deg 5deg);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   BULB STRINGS
+   ------------------------------------------------------------ */
+
+.strings {
+  position: relative;
+  z-index: 4;
+  width: min(1160px, 100%);
+  margin-top: clamp(6px, 1.4vh, 18px);
+}
+
+.string-row {
+  position: relative;
+  height: clamp(90px, 15vw, 150px);
+}
+
+.posts {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.post {
+  position: absolute;
+  bottom: 0;
+  width: 11px;
+  height: 100%;
+  background: linear-gradient(90deg, #101828, #1e2a44 45%, #0b1120);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
+}
+
+.post::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -3px;
+  width: 17px;
+  height: 10px;
+  border-radius: 5px 5px 0 0;
+  background: #223052;
+}
+
+#bulbRow {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.bulb {
+  position: absolute;
+  transform-origin: 50% 0;
+  will-change: transform;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.bulb:focus-visible {
+  outline: none;
+}
+
+.bulb:focus-visible .glass {
+  box-shadow: 0 0 0 2px var(--bulb), 0 0 18px rgba(255, 217, 160, 0.9);
+}
+
+/* the wire segment above the bulb is drawn per-bulb */
+.bulb .wire {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 2px;
+  height: 30px;
+  background: rgba(200, 210, 230, 0.4);
+}
+
+.bulb .glass {
+  display: block;
+  width: 22px;
+  height: 30px;
+  border-radius: 50% 50% 46% 46%;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 244, 220, 0.28), rgba(255, 217, 160, 0.10) 58%),
+    linear-gradient(180deg, rgba(210, 220, 240, 0.16), rgba(160, 175, 205, 0.08));
+  border: 1.5px solid rgba(220, 230, 250, 0.5);
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.15s;
+}
+
+.bulb .cap {
+  display: block;
+  width: 11px;
+  height: 8px;
+  margin: 0 auto;
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(180deg, #3d3a30, #171512);
+}
+
+/* lit state */
+.bulb.lit .glass {
+  background:
+    radial-gradient(circle at 50% 30%, var(--bulb-hot) 0%, var(--bulb) 46%, rgba(255, 190, 110, 0.85) 100%);
+  border-color: rgba(255, 236, 200, 0.95);
+  box-shadow:
+    0 0 12px 3px rgba(255, 217, 160, 0.75),
+    0 0 44px 14px rgba(255, 190, 110, 0.35),
+    0 0 90px 34px rgba(255, 170, 80, 0.14);
+}
+
+/* halo element behind glass */
+.bulb .halo {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 120px;
+  height: 120px;
+  margin-left: -60px;
+  margin-top: -40px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    rgba(255, 217, 160, 0.28) 0%,
+    rgba(255, 190, 110, 0.10) 42%,
+    transparent 70%);
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.bulb.lit .halo {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* bokeh wash over the garden (fixed) */
+.bokeh {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.75;
+  background:
+    radial-gradient(2.4px 2.4px at 12% 30%, rgba(255, 220, 170, 0.5), transparent 100%),
+    radial-gradient(3.6px 3.6px at 78% 22%, rgba(255, 205, 150, 0.34), transparent 100%),
+    radial-gradient(2px 2px at 32% 66%, rgba(255, 230, 190, 0.4), transparent 100%),
+    radial-gradient(3px 3px at 88% 58%, rgba(255, 210, 160, 0.3), transparent 100%),
+    radial-gradient(2.2px 2.2px at 56% 44%, rgba(255, 220, 170, 0.28), transparent 100%),
+    radial-gradient(3.4px 3.4px at 20% 82%, rgba(255, 205, 150, 0.22), transparent 100%),
+    radial-gradient(2px 2px at 66% 80%, rgba(255, 230, 190, 0.26), transparent 100%);
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate3d(-6px, -4px, 0); opacity: 0.6; }
+  to   { transform: translate3d(6px, 5px, 0); opacity: 0.9; }
+}
+
+/* ------------------------------------------------------------
+   MARQUEE — bulb-lit FÊTE
+   ------------------------------------------------------------ */
+
+.marquee {
+  position: relative;
+  z-index: 5;
+  margin-top: clamp(2px, 1vh, 12px);
+  display: flex;
+  gap: clamp(10px, 2.6vw, 30px);
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.m-letter {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(14px) scale(0.9);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+
+.m-letter.on {
+  opacity: 1;
+  transform: none;
+}
+
+.m-letter .bar {
+  display: flex;
+  gap: 5px;
+}
+
+.m-letter .bar i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 217, 160, 0.16);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.m-letter.on .bar i {
+  background: var(--bulb);
+  box-shadow: 0 0 8px rgba(255, 217, 160, 0.9), 0 0 20px rgba(255, 190, 110, 0.5);
+}
+
+.m-letter .glyph {
+  font-weight: 700;
+  font-size: clamp(2.6rem, 9vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: 0.06em;
+  color: rgba(246, 241, 228, 0.16);
+  text-shadow: none;
+  transition: color 0.4s, text-shadow 0.4s;
+}
+
+.m-letter.on .glyph {
+  color: var(--ivory);
+  text-shadow:
+    0 0 8px rgba(255, 217, 160, 0.65),
+    0 0 30px rgba(255, 190, 110, 0.35);
+}
+
+.m-letter .cord {
+  width: 2px;
+  height: 16px;
+  background: rgba(200, 210, 230, 0.35);
+}
+
+/* ------------------------------------------------------------
+   INVITE CARD + RSVP FLIP
+   ------------------------------------------------------------ */
+
+.card-zone {
+  position: relative;
+  z-index: 6;
+  margin-top: clamp(14px, 3vh, 30px);
+  perspective: 1400px;
+  width: min(560px, calc(100% - 32px));
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background:
+    linear-gradient(165deg, rgba(255, 253, 246, 0.97), rgba(236, 228, 208, 0.97));
+  color: var(--ink);
+  border-radius: 4px;
+  box-shadow:
+    0 24px 50px rgba(4, 8, 20, 0.55),
+    inset 0 0 0 1px rgba(201, 169, 92, 0.45),
+    inset 0 0 60px rgba(201, 169, 92, 0.12);
+  padding: clamp(22px, 4vw, 38px) clamp(20px, 4.4vw, 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.face.back {
+  transform: rotateY(180deg);
+  justify-content: center;
+}
+
+.face .rule {
+  width: 60px;
+  height: 1px;
+  background: var(--gold);
+  margin: 2px 0;
+}
+
+.face .kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.face h2 {
+  font-weight: 500;
+  font-size: clamp(1.5rem, 4.4vw, 2.3rem);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
+.face h2 em {
+  font-style: italic;
+}
+
+.face .body {
+  font-style: italic;
+  font-size: clamp(0.92rem, 2vw, 1.08rem);
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-width: 40ch;
+}
+
+.face .when {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 2;
+}
+
+.face .when b {
+  color: var(--gold);
+  font-weight: 400;
+}
+
+.flip-btn {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border: 1px solid var(--gold);
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: rgba(201, 169, 92, 0.08);
+  transition: background 0.25s, box-shadow 0.25s;
+  min-height: 40px;
+}
+
+.flip-btn:hover,
+.flip-btn:focus-visible {
+  background: rgba(201, 169, 92, 0.2);
+  box-shadow: 0 0 18px rgba(201, 169, 92, 0.35);
+}
+
+/* RSVP back face */
+.rsvp-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rsvp-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  border: 1.5px solid var(--ink);
+  padding: 11px 18px;
+  min-width: 110px;
+  min-height: 42px;
+  background: transparent;
+  transition: background 0.2s, color 0.2s;
+  border-radius: 2px;
+}
+
+.rsvp-btn:hover {
+  background: rgba(51, 48, 42, 0.08);
+}
+
+.rsvp-btn.yes.chosen {
+  background: #2e5641;
+  border-color: #2e5641;
+  color: var(--ivory);
+}
+
+.rsvp-btn.no.chosen {
+  background: #7a3030;
+  border-color: #7a3030;
+  color: var(--ivory);
+}
+
+.rsvp-note {
+  min-height: 1.4em;
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------
+   BREEZE CONTROL
+   ------------------------------------------------------------ */
+
+.breeze {
+  position: relative;
+  z-index: 6;
+  margin-top: clamp(14px, 2.6vh, 26px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 228, 0.6);
+  user-select: none;
+}
+
+.breeze input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: clamp(130px, 22vw, 220px);
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.breeze input::-webkit-slider-runnable-track {
+  height: 2px;
+  background: rgba(246, 241, 228, 0.3);
+  border-radius: 2px;
+}
+
+.breeze input::-moz-range-track {
+  height: 2px;
+  background: rgba(246, 241, 228, 0.3);
+  border-radius: 2px;
+}
+
+.breeze input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--bulb);
+  box-shadow: 0 0 10px rgba(255, 217, 160, 0.8);
+}
+
+.breeze input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bulb);
+  box-shadow: 0 0 10px rgba(255, 217, 160, 0.8);
+}
+
+.breeze .val {
+  min-width: 7ch;
+  color: var(--bulb);
+}
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+
+.fete-foot {
+  position: relative;
+  z-index: 6;
+  margin-top: clamp(10px, 2vh, 18px);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 228, 0.35);
+  text-align: center;
+  line-height: 2;
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .bokeh {
+    animation: none;
+  }
+  .m-letter {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .card {
+    transition: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="bokeh" aria-hidden="true"></div>
+<canvas id="fireflies" aria-hidden="true"></canvas>
+
+<main class="garden">
+
+  <div class="strings" aria-label="Strings of festoon bulbs — click a bulb to light or dim it">
+    <div class="string-row">
+      <div class="posts">
+        <span class="post" style="left:1%"></span>
+        <span class="post" style="left:25.6%"></span>
+        <span class="post" style="left:50.2%"></span>
+        <span class="post" style="left:74.8%"></span>
+        <span class="post" style="left:98%"></span>
+      </div>
+      <div id="bulbRow"></div>
+    </div>
+  </div>
+
+  <div class="marquee" id="marquee" aria-label="FÊTE in bulb-lit letters">
+    <span class="m-letter"><span class="cord" aria-hidden="true"></span><span class="bar"><i></i><i></i><i></i><i></i><i></i></span><span class="glyph">F</span></span>
+    <span class="m-letter"><span class="cord" aria-hidden="true"></span><span class="bar"><i></i><i></i><i></i><i></i><i></i></span><span class="glyph">Ê</span></span>
+    <span class="m-letter"><span class="cord" aria-hidden="true"></span><span class="bar"><i></i><i></i><i></i><i></i><i></i></span><span class="glyph">T</span></span>
+    <span class="m-letter"><span class="cord" aria-hidden="true"></span><span class="bar"><i></i><i></i><i></i><i></i><i></i></span><span class="glyph">E</span></span>
+  </div>
+
+  <div class="card-zone">
+    <div class="card" id="card">
+      <section class="face front" aria-label="Invitation">
+        <p class="kicker">The Garden Committee requests</p>
+        <div class="rule" aria-hidden="true"></div>
+        <h2>An Evening of <em>String Light</em></h2>
+        <p class="body">When the dusk turns blue, the garden is strung from post to post
+          with little suns. There will be slow music, colder air, warmer light,
+          and conversation that stays until the bulbs grow dim.</p>
+        <p class="when">
+          <b>Saturday</b> · the ninth hour of evening<br>
+          Walled Garden · Gate on the Linden Side
+        </p>
+        <button class="flip-btn" id="flipBtn" type="button">Turn for RSVP</button>
+      </section>
+
+      <section class="face back" aria-label="RSVP">
+        <p class="kicker">Répondez, s'il vous plaît</p>
+        <div class="rule" aria-hidden="true"></div>
+        <p class="body">The chairs are counted from the lantern posts.
+          Tell us whether to keep one for you.</p>
+        <div class="rsvp-row">
+          <button class="rsvp-btn yes" id="rsvpYes" type="button">I will come</button>
+          <button class="rsvp-btn no" id="rsvpNo" type="button">With regret</button>
+        </div>
+        <p class="rsvp-note" id="rsvpNote"></p>
+        <button class="flip-btn" id="flipBack" type="button">Turn back</button>
+      </section>
+    </div>
+  </div>
+
+  <div class="breeze">
+    <label for="breezeSlider">Breeze</label>
+    <input id="breezeSlider" type="range" min="0" max="100" value="36" aria-label="Breeze strength — how much the strings sway">
+    <span class="val" id="breezeVal">0.36</span>
+  </div>
+
+  <footer class="fete-foot">
+    Fête · the gallery of 100 · room 83<br>
+    every bulb remembers which hand lit it
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ============================================================
+     BULBS — layout along catenary-ish sag curves
+     ============================================================ */
+  var row = document.getElementById("bulbRow");
+  var bulbs = [];
+  var BULB_R = 22;
+
+  function catenaryY(t, sag) {
+    /* 0..1 across, returns 0..1 droop with slack in the middle */
+    var x = (t - 0.5) * 2;
+    return sag * (1 - (x * x) * 0.85);
+  }
+
+  function buildBulbs() {
+    row.textContent = "";
+    bulbs = [];
+    var w = row.clientWidth || 600;
+    var h = row.clientHeight || 120;
+    var spans = [
+      { from: 0.012, to: 0.245, n: 7, sag: 0.52 },
+      { from: 0.262, to: 0.492, n: 7, sag: 0.60 },
+      { from: 0.512, to: 0.738, n: 7, sag: 0.48 },
+      { from: 0.758, to: 0.985, n: 7, sag: 0.58 }
+    ];
+    spans.forEach(function (sp, si) {
+      for (var i = 0; i < sp.n; i++) {
+        var t = sp.n === 1 ? 0.5 : i / (sp.n - 1);
+        var bx = (sp.from + (sp.to - sp.from) * t) * w;
+        var drop = catenaryY(t, sp.sag) * (h - 46);
+        var el = document.createElement("button");
+        el.type = "button";
+        el.className = "bulb lit";
+        el.style.left = (bx - BULB_R) + "px";
+        el.style.top = (10 + drop) + "px";
+        el.setAttribute("aria-label", "Festoon bulb " + (si + 1) + "." + (i + 1) + " — click to toggle glow");
+        el.setAttribute("aria-pressed", "true");
+        el.innerHTML =
+          '<span class="halo" aria-hidden="true"></span>' +
+          '<span class="wire" aria-hidden="true"></span>' +
+          '<span class="glass" aria-hidden="true"></span>' +
+          '<span class="cap" aria-hidden="true"></span>';
+        row.appendChild(el);
+        bulbs.push({
+          el: el,
+          baseX: bx,
+          baseY: 10 + drop,
+          phase: Math.random() * 6.283,
+          spd: 0.5 + Math.random() * 0.5,
+          tiltSeed: Math.random() * 6.283
+        });
+        (function (b) {
+          b.el.addEventListener("click", function () { toggleBulb(b); });
+        })(el._ref = bulbs[bulbs.length - 1]);
+      }
+    });
+  }
+
+  var audio = null;
+
+  function ensureAudio() {
+    if (!audio) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audio = new AC();
+    }
+    if (audio.state === "suspended") audio.resume();
+    return audio;
+  }
+
+  function chime(up) {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.type = "sine";
+    o.frequency.value = up ? 740 : 520;
+    var o2 = ac.createOscillator();
+    var g2 = ac.createGain();
+    o2.type = "sine";
+    o2.frequency.value = (up ? 740 : 520) * 1.5;
+    g.gain.setValueAtTime(0.055, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+    g2.gain.setValueAtTime(0.02, t0);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+    o.connect(g).connect(ac.destination);
+    o2.connect(g2).connect(ac.destination);
+    o.start(t0); o2.start(t0);
+    o.stop(t0 + 0.55); o2.stop(t0 + 0.36);
+  }
+
+  function toggleBulb(b) {
+    var lit = b.el.classList.toggle("lit");
+    b.el.setAttribute("aria-pressed", lit ? "true" : "false");
+    chime(lit);
+  }
+
+  /* sway */
+  var breeze = 0.36;
+
+  function applySway(t) {
+    for (var i = 0; i < bulbs.length; i++) {
+      var b = bulbs[i];
+      var sw = Math.sin(t * b.spd + b.phase) * breeze;
+      var x = b.baseX + sw * 7;
+      var y = b.baseY + Math.cos(t * b.spd * 0.8 + b.phase) * breeze * 3.4;
+      var rot = Math.sin(t * b.spd + b.tiltSeed) * breeze * 9;
+      b.el.style.transform = "translate(" + (x - b.baseX).toFixed(2) + "px," + (y - b.baseY).toFixed(2) + "px) rotate(" + rot.toFixed(2) + "deg)";
+    }
+  }
+
+  var breezeSlider = document.getElementById("breezeSlider");
+  var breezeVal = document.getElementById("breezeVal");
+  breezeSlider.addEventListener("input", function () {
+    breeze = breezeSlider.value / 100;
+    breezeVal.textContent = breeze.toFixed(2);
+  });
+
+  /* ============================================================
+     FIREFLIES
+     ============================================================ */
+  var fCv = document.getElementById("fireflies");
+  var fctx = fCv.getContext("2d");
+  var fw = 0, fh = 0;
+  var flies = [];
+  var FLY_N = 26;
+
+  function sizeFireflies() {
+    fw = window.innerWidth;
+    fh = window.innerHeight;
+    fCv.width = Math.round(fw * Math.min(window.devicePixelRatio || 1, 2));
+    fCv.height = Math.round(fh * Math.min(window.devicePixelRatio || 1, 2));
+    fctx.setTransform(fCv.width / fw, 0, 0, fCv.width / fw, 0, 0);
+  }
+
+  function seedFlies() {
+    flies = [];
+    for (var i = 0; i < FLY_N; i++) {
+      flies.push({
+        x: Math.random() * fw,
+        y: fh * (0.4 + Math.random() * 0.55),
+        a: Math.random() * 6.283,
+        sp: 8 + Math.random() * 16,
+        turn: (Math.random() - 0.5) * 1.6,
+        ph: Math.random() * 6.283,
+        bl: 0.5 + Math.random() * 1.2
+      });
+    }
+  }
+
+  function drawFlies(t, dt) {
+    fctx.clearRect(0, 0, fw, fh);
+    for (var i = 0; i < flies.length; i++) {
+      var f = flies[i];
+      f.a += Math.sin(t * 0.7 + f.ph) * f.turn * dt;
+      f.x += Math.cos(f.a) * f.sp * dt;
+      f.y += Math.sin(f.a) * f.sp * dt * 0.6 - 2.4 * dt;
+      if (f.x < -20) f.x = fw + 20;
+      if (f.x > fw + 20) f.x = -20;
+      if (f.y < fh * 0.25) { f.y = fh * 0.25; f.a = -f.a; }
+      if (f.y > fh + 10) f.y = fh * 0.4;
+      var glow = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * f.bl * 2 + f.ph));
+      var r = 1.3 + glow * 1.1;
+      var g = fctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r * 6);
+      g.addColorStop(0, "rgba(255,236,180," + (0.85 * glow).toFixed(3) + ")");
+      g.addColorStop(0.4, "rgba(255,214,140," + (0.25 * glow).toFixed(3) + ")");
+      g.addColorStop(1, "rgba(255,214,140,0)");
+      fctx.fillStyle = g;
+      fctx.beginPath();
+      fctx.arc(f.x, f.y, r * 6, 0, 6.2832);
+      fctx.fill();
+      fctx.fillStyle = "rgba(255,246,214," + glow.toFixed(3) + ")";
+      fctx.beginPath();
+      fctx.arc(f.x, f.y, r * 0.7, 0, 6.2832);
+      fctx.fill();
+    }
+  }
+
+  /* ============================================================
+     MARQUEE REVEAL
+     ============================================================ */
+  var letters = document.querySelectorAll(".m-letter");
+  function revealMarquee() {
+    letters.forEach(function (L, i) {
+      setTimeout(function () { L.classList.add("on"); }, 350 + i * 420);
+    });
+  }
+
+  /* ============================================================
+     CARD FLIP + RSVP
+     ============================================================ */
+  var card = document.getElementById("card");
+  var flipBtn = document.getElementById("flipBtn");
+  var flipBack = document.getElementById("flipBack");
+  var rsvpYes = document.getElementById("rsvpYes");
+  var rsvpNo = document.getElementById("rsvpNo");
+  var rsvpNote = document.getElementById("rsvpNote");
+
+  function flip() {
+    card.classList.toggle("flipped");
+    if (!card.classList.contains("flipped")) {
+      setTimeout(function () { flipBtn.focus({ preventScroll: true }); }, 100);
+    } else {
+      setTimeout(function () { rsvpYes.focus({ preventScroll: true }); }, 100);
+    }
+  }
+  flipBtn.addEventListener("click", flip);
+  flipBack.addEventListener("click", flip);
+
+  rsvpYes.addEventListener("click", function () {
+    rsvpYes.classList.add("chosen");
+    rsvpNo.classList.remove("chosen");
+    rsvpNote.textContent = "One chair kept by the third lantern post. We are glad.";
+    chime(true);
+  });
+  rsvpNo.addEventListener("click", function () {
+    rsvpNo.classList.add("chosen");
+    rsvpYes.classList.remove("chosen");
+    rsvpNote.textContent = "The bulb above your chair will still be lit, in case.";
+    chime(false);
+  });
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var t = now / 1000;
+    if (!document.hidden) {
+      applySway(t);
+      if (!reduced) drawFlies(t, dt);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    buildBulbs();
+    sizeFireflies();
+    seedFlies();
+  });
+
+  buildBulbs();
+  sizeFireflies();
+  seedFlies();
+  revealMarquee();
+
+  if (reduced) {
+    drawFlies(1, 0.016);
+    fctx.clearRect(0, 0, fw, fh);
+    /* static fireflies: one soft frame */
+    for (var i0 = 0; i0 < flies.length; i0++) {
+      var f0 = flies[i0];
+      fctx.fillStyle = "rgba(255,236,180,0.5)";
+      fctx.beginPath();
+      fctx.arc(f0.x, f0.y, 1.6, 0, 6.2832);
+      fctx.fill();
+    }
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

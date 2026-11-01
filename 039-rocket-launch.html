@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="T-MINUS — a mission-control launch console. Hold to launch, watch the countdown callouts, ignition smoke, staged ascent and apogee plot; abort window adds the tension. Replay available.">
+<title>T-MINUS · Work Nº 039 — mission control launch</title>
+<style>
+/* ============================================================
+   T-MINUS — Work Nº 039
+   Every launch begins with a held breath.
+   ============================================================ */
+:root{
+  --console:    #101418;
+  --console-d:  #0a0d10;
+  --console-l:  #1a2026;
+  --panel:      #131a20;
+  --panel-edge: rgba(88,214,141,.14);
+  --green:      #58d68d;
+  --green-dim:  rgba(88,214,141,.35);
+  --amber:      #ffb454;
+  --amber-dim:  rgba(255,180,84,.32);
+  --alert:      #e05545;
+  --cream:      #dfe8e2;
+  --cream-dim:  rgba(223,232,226,.6);
+  --cream-fnt:  rgba(223,232,226,.32);
+  --rocket:     #e8e8e8;
+  --rocket-mk:  #b3402a;
+  --mono:       ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+  --stencil:    var(--mono);
+  --sans:       system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow:hidden;
+  font-family:var(--sans);
+  color:var(--cream);
+  background:var(--console-d);
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:var(--green); color:#04120a; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--green-dim); outline-offset:2px; border-radius:6px; }
+
+/* ------------------------------ shell -------------------------------- */
+.rack{
+  height:100%;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  max-width:1600px;
+  margin:0 auto;
+  padding:clamp(8px,1.4vh,16px) clamp(10px,2vw,30px) clamp(8px,1.6vh,16px);
+  gap:clamp(6px,1.2vh,12px);
+}
+@media (max-width:900px){
+  body{ overflow:auto; }
+  .rack{ height:auto; min-height:100%; grid-template-rows:auto auto auto; }
+}
+
+/* header */
+header.mc-top{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:12px; flex-wrap:wrap;
+}
+.mark-no{
+  margin:0 0 7px;
+  font:500 9px/1 var(--mono);
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--stencil);
+  font-weight:700;
+  font-size:clamp(30px,4.4vw,56px);
+  line-height:.92;
+  letter-spacing:.18em;
+  color:var(--cream);
+  text-shadow:0 0 30px rgba(88,214,141,.1);
+}
+.mark-word b{ color:var(--green); text-shadow:0 0 22px rgba(88,214,141,.3); }
+.mark-sub{
+  margin:8px 0 0;
+  font:italic 400 clamp(11px,1.3vw,13px)/1.5 var(--sans);
+  color:var(--cream-dim);
+  max-width:52ch;
+}
+.mission-block{ text-align:right; }
+.mission-tag{
+  font:700 10px/1.9 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mission-tag b{ color:var(--amber); font-weight:700; }
+.cd-big{
+  font:700 clamp(28px,3.6vw,44px)/1 var(--mono);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.1em;
+  color:var(--green);
+  text-shadow:0 0 20px rgba(88,214,141,.25);
+  transition:color .3s ease, text-shadow .3s ease;
+}
+.cd-big.warn{ color:var(--amber); text-shadow:0 0 20px rgba(255,180,84,.3); }
+.cd-big.crit{ color:var(--alert); text-shadow:0 0 22px rgba(224,85,69,.4); }
+.cd-lab{
+  margin:6px 0 0;
+  font:600 8.5px/1.6 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+
+/* main grid */
+.mc-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(280px,0.95fr);
+  gap:clamp(8px,1.6vw,18px);
+  min-height:0;
+}
+@media (max-width:900px){
+  .mc-grid{ grid-template-columns:1fr; }
+}
+
+/* flight bay */
+.flight-bay{
+  position:relative;
+  border-radius:12px;
+  overflow:hidden;
+  background:#07090c;
+  border:1px solid rgba(88,214,141,.1);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.4);
+  min-height:320px;
+}
+#sky{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  display:block;
+}
+.callout{
+  position:absolute; z-index:4;
+  left:clamp(12px,2vw,24px);
+  bottom:clamp(10px,2vh,20px);
+  max-width:min(70%, 440px);
+  font:600 10px/1.8 var(--mono);
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--green);
+  text-shadow:0 1px 8px rgba(0,0,0,.8);
+  pointer-events:none;
+}
+.callout.warn{ color:var(--amber); }
+.callout.crit{ color:var(--alert); }
+.callout .t{
+  display:block;
+  font:700 8.5px/1 var(--mono);
+  letter-spacing:.3em;
+  color:var(--cream-fnt);
+  margin-bottom:3px;
+}
+.alt-tag{
+  position:absolute; z-index:4;
+  right:clamp(12px,2vw,24px);
+  top:clamp(10px,2vh,18px);
+  text-align:right;
+  font:600 9px/1.8 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  pointer-events:none;
+  text-shadow:0 1px 6px rgba(0,0,0,.8);
+}
+.alt-tag b{
+  display:block;
+  font:700 15px/1.4 var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--cream-dim);
+}
+
+/* console column */
+.console-col{
+  display:flex; flex-direction:column; gap:clamp(6px,1.2vh,12px);
+  min-height:0;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(88,214,141,.3) transparent;
+  padding-right:2px;
+}
+.console-col::-webkit-scrollbar{ width:7px; }
+.console-col::-webkit-scrollbar-thumb{ background:rgba(88,214,141,.25); border-radius:4px; }
+.console-col::-webkit-scrollbar-track{ background:rgba(0,0,0,.3); }
+
+.panel{
+  background:linear-gradient(180deg, var(--panel), #0d1114);
+  border:1px solid var(--panel-edge);
+  border-radius:10px;
+  padding:12px 13px 11px;
+  box-shadow:0 10px 24px rgba(0,0,0,.35);
+}
+.panel-k{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font:700 8.5px/1 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  margin:0 0 9px;
+}
+.panel-k b{ color:var(--green); letter-spacing:.2em; }
+
+/* launch button */
+.hold-btn{
+  appearance:none;
+  width:100%;
+  min-height:64px;
+  border-radius:10px;
+  border:1px solid var(--alert);
+  background:linear-gradient(180deg, rgba(224,85,69,.26), rgba(224,85,69,.1));
+  color:#ffd9d2;
+  font:700 13px/1 var(--mono);
+  letter-spacing:.34em; text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 4px 0 rgba(90,20,12,.6), inset 0 1px 0 rgba(255,255,255,.16);
+  transition:transform .08s ease, box-shadow .08s ease, filter .2s ease;
+  touch-action:manipulation;
+  user-select:none;
+  -webkit-user-select:none;
+}
+@media (hover:hover){ .hold-btn:hover{ filter:brightness(1.15); } }
+.hold-btn:active, .hold-btn.holding{
+  transform:translateY(3px);
+  box-shadow:0 1px 0 rgba(90,20,12,.6), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.hold-btn[disabled]{ opacity:.42; cursor:not-allowed; transform:none; }
+.hold-btn.flight{ border-color:var(--amber); background:linear-gradient(180deg, rgba(255,180,84,.22), rgba(255,180,84,.07)); color:#ffe6c2; }
+.abort-row{ display:flex; gap:8px; margin-top:8px; }
+.abort-btn{
+  flex:1;
+  appearance:none;
+  min-height:40px;
+  border-radius:8px;
+  border:1px solid var(--amber-dim);
+  background:rgba(255,180,84,.08);
+  color:var(--amber);
+  font:700 10px/1 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  cursor:pointer;
+  transition:filter .16s ease, transform .08s ease;
+  touch-action:manipulation;
+}
+.abort-btn[disabled]{ opacity:.35; cursor:not-allowed; }
+@media (hover:hover){ .abort-btn:not([disabled]):hover{ filter:brightness(1.3); } }
+.abort-btn:active{ transform:scale(.98); }
+.abort-btn.abort{ border-color:rgba(224,85,69,.5); color:#ff9d90; background:rgba(224,85,69,.1); }
+
+/* telemetry */
+.tele-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:7px 12px;
+}
+.tele{
+  font:600 8.5px/1.7 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.tele b{
+  display:block;
+  font:700 14px/1.3 var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--green);
+}
+.tele b.amber{ color:var(--amber); }
+.tele b.crit{ color:var(--alert); }
+
+/* apogee graph */
+#apogee{
+  width:100%;
+  height:74px;
+  display:block;
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(88,214,141,.12);
+  border-radius:6px;
+}
+
+/* log */
+.log{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex; flex-direction:column; gap:5px;
+  max-height:150px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(88,214,141,.25) transparent;
+}
+.log::-webkit-scrollbar{ width:6px; }
+.log::-webkit-scrollbar-thumb{ background:rgba(88,214,141,.22); border-radius:3px; }
+.log li{
+  font:600 9.5px/1.5 var(--mono);
+  letter-spacing:.08em;
+  color:var(--cream-dim);
+  display:flex; gap:8px; align-items:baseline;
+}
+.log li .lt{ color:var(--cream-fnt); font-variant-numeric:tabular-nums; flex:none; }
+.log li.hot{ color:var(--amber); }
+.log li.crit{ color:var(--alert); }
+.log li.good{ color:var(--green); }
+.log li.new{ animation:logIn .3s ease both; }
+@keyframes logIn{ from{ opacity:0; transform:translateY(-4px); } }
+.log-empty{ color:var(--cream-fnt); font-style:italic; }
+
+/* status lamps */
+.lamps{ display:flex; gap:6px; flex-wrap:wrap; }
+.lamp{
+  display:inline-flex; align-items:center; gap:6px;
+  font:700 8.5px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  padding:6px 10px;
+  transition:color .25s ease, border-color .25s ease, background .25s ease;
+}
+.lamp i{
+  width:8px; height:8px; border-radius:50%;
+  background:#3a4147;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.2);
+  transition:background .25s ease, box-shadow .25s ease;
+}
+.lamp.go{ color:var(--green); border-color:rgba(88,214,141,.4); }
+.lamp.go i{ background:radial-gradient(circle at 35% 30%, #c9f2d8, var(--green) 55%, #1d5c37); box-shadow:0 0 8px rgba(88,214,141,.6); }
+.lamp.holdl{ color:var(--amber); border-color:rgba(255,180,84,.4); }
+.lamp.holdl i{ background:radial-gradient(circle at 35% 30%, #ffe6c2, var(--amber) 55%, #7a4c14); box-shadow:0 0 8px rgba(255,180,84,.6); }
+.lamp.bad{ color:var(--alert); border-color:rgba(224,85,69,.4); }
+.lamp.bad i{ background:radial-gradient(circle at 35% 30%, #ffd9d2, var(--alert) 55%, #6e2114); box-shadow:0 0 8px rgba(224,85,69,.6); }
+.lamp.blink i{ animation:lampB .5s steps(2, jump-none) infinite; }
+@keyframes lampB{ 50%{ opacity:.25; } }
+
+/* footer */
+.mc-foot{
+  display:flex; gap:8px 20px; flex-wrap:wrap; justify-content:center;
+  font:600 8.5px/1 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mc-foot b{ color:var(--cream-dim); font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* toast */
+.toast{
+  position:fixed; z-index:40;
+  left:50%; bottom:clamp(14px,3vh,26px);
+  transform:translate(-50%,10px);
+  background:rgba(10,13,16,.94);
+  border:1px solid rgba(88,214,141,.4);
+  color:var(--green);
+  font:600 10px/1 var(--mono);
+  letter-spacing:.16em;
+  padding:11px 16px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 32px);
+  text-align:center;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.no-js{
+  position:fixed; inset:0; z-index:50;
+  display:grid; place-items:center;
+  background:var(--console-d); color:var(--cream-dim);
+  font:italic 400 16px/1.6 var(--sans);
+  text-align:center; padding:32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="rack">
+
+  <header class="mc-top">
+    <div>
+      <p class="mark-no">The Gallery of 100 · Work Nº 039 · launch complex 39</p>
+      <h1 class="mark-word">T-MINUS <b>LIVE</b></h1>
+      <p class="mark-sub">Range is green, weather is lying to us, and the rocket doesn't care about your schedule. Hold the switch and count it down.</p>
+    </div>
+    <div class="mission-block">
+      <p class="mission-tag">MISSION <b>GLM-5</b> · PAYLOAD: ONE HIPPOPOTAMUS, UPRIGHT</p>
+      <p class="cd-big" id="cdBig">T—00:00:15</p>
+      <p class="cd-lab" id="cdLab">HOLD TO LAUNCH · TERMINAL COUNT</p>
+    </div>
+  </header>
+
+  <div class="mc-grid">
+
+    <div class="flight-bay">
+      <canvas id="sky" role="img"
+        aria-label="A rocket on a fog-shrouded night pad beneath a star field. Hold to launch; the camera follows the staged ascent into space with ignition smoke and engine flare."></canvas>
+      <div class="callout" id="callout">
+        <span class="t" id="calloutT">PAD SAFE</span>
+        <span id="calloutX">Vehicle on internal power. The beacon blinks. The fog does not move.</span>
+      </div>
+      <div class="alt-tag">
+        <span>ALTITUDE</span>
+        <b id="altTag">0 M</b>
+        <span style="opacity:.7;">VELOCITY <b id="velTag" style="display:inline;font-size:12px;">0 M/S</b></span>
+        <span style="opacity:.7;">APOGEE <b id="apoTag" style="display:inline;font-size:12px;">—</b></span>
+        <span style="opacity:.7;">Q <b id="qTag" style="display:inline;font-size:12px;">0</b></span>
+      </div>
+    </div>
+
+    <aside class="console-col" aria-label="Launch console">
+
+      <section class="panel" aria-label="Flight control">
+        <p class="panel-k"><span>Flight control</span><b id="phaseTag">PAD</b></p>
+        <button class="hold-btn" id="holdBtn">HOLD TO LAUNCH</button>
+        <div class="abort-row">
+          <button class="abort-btn" id="abortBtn" disabled>Abort</button>
+          <button class="abort-btn" id="replayBtn" disabled>Replay</button>
+          <button class="abort-btn" id="soundBtn" aria-pressed="true" title="Toggle console sound">Sound</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Telemetry">
+        <p class="panel-k"><span>Telemetry</span><span>DOWNLINK 2.2 GBPS</span></p>
+        <div class="tele-grid">
+          <span class="tele">ALTITUDE <b id="tAlt">0 m</b></span>
+          <span class="tele">VELOCITY <b id="tVel">0 m/s</b></span>
+          <span class="tele">STAGE <b id="tStage">1</b></span>
+          <span class="tele">THROTTLE <b id="tThr">0%</b></span>
+          <span class="tele">FUEL <b id="tFuel">100%</b></span>
+          <span class="tele">MAX-Q <b id="tQ" class="amber">—</b></span>
+          <span class="tele">APOGEE <b id="tApo">—</b></span>
+          <span class="tele">MISSION TIME <b id="tMet">T+00:00</b></span>
+  </div>
+      </section>
+
+      <section class="panel" aria-label="Apogee plot">
+        <p class="panel-k"><span>Apogee plot</span><span id="plotNote">AWAITING FLIGHT</span></p>
+        <canvas id="apogee" aria-hidden="true"></canvas>
+      </section>
+
+      <section class="panel" aria-label="Status lamps">
+        <p class="panel-k"><span>Status</span><span>GO / NO-GO</span></p>
+        <div class="lamps" id="lamps">
+          <span class="lamp go" id="lampRange"><i></i>RANGE</span>
+          <span class="lamp go" id="lampWeather"><i></i>WEATHER</span>
+          <span class="lamp go" id="lampEngine"><i></i>ENGINE</span>
+          <span class="lamp go" id="lampGuidance"><i></i>GUIDANCE</span>
+          <span class="lamp go" id="lampFuelL"><i></i>FUEL</span>
+          <span class="lamp holdl" id="lampAbort"><i></i>ABORT ARMED</span>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Flight log">
+        <p class="panel-k"><span>Flight log</span><span id="logCount">0 EVENTS</span></p>
+        <ul class="log" id="log">
+          <li class="log-empty" id="logEmpty">Quiet on the net. The range is yours when you're ready.</li>
+        </ul>
+      </section>
+
+    </aside>
+  </div>
+
+  <footer class="mc-foot" aria-label="Mission statistics">
+    <span>LAUNCHES <b id="ftLaunches">0</b></span>
+    <span>SUCCESS <b id="ftSuccess">0</b></span>
+    <span>BEST APOGEE <b id="ftBest">0 KM</b></span>
+    <span>ABORTS <b id="ftAborts">0</b></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The range needs JavaScript to count — please power the console.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+const rand = (a,b) => a+Math.random()*(b-a);
+const TAU = Math.PI*2;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ui = {
+  sky: $('sky'), callout: $('callout'), calloutT: $('calloutT'), calloutX: $('calloutX'),
+  cdBig: $('cdBig'), cdLab: $('cdLab'),
+  altTag: $('altTag'), altB: null, velTag: $('velTag'), apoTag: $('apoTag'), qTag: $('qTag'),
+  holdBtn: $('holdBtn'), abortBtn: $('abortBtn'), replayBtn: $('replayBtn'), soundBtn: $('soundBtn'),
+  phaseTag: $('phaseTag'),
+  tAlt: $('tAlt'), tVel: $('tVel'), tStage: $('tStage'), tThr: $('tThr'),
+  tFuel: $('tFuel'), tQ: $('tQ'), tApo: $('tApo'), tMet: $('tMet'),
+  apogee: $('apogee'), plotNote: $('plotNote'),
+  log: $('log'), logEmpty: $('logEmpty'), logCount: $('logCount'),
+  toast: $('toast'),
+  lampRange: $('lampRange'), lampWeather: $('lampWeather'), lampEngine: $('lampEngine'),
+  lampGuidance: $('lampGuidance'), lampFuelL: $('lampFuelL'), lampAbort: $('lampAbort'),
+  ftLaunches: $('ftLaunches'), ftSuccess: $('ftSuccess'), ftBest: $('ftBest'), ftAborts: $('ftAborts'),
+};
+const ctx = ui.sky.getContext('2d');
+const actx = ui.apogee.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+let AW = 0, AH = 0;
+
+/* ============================== audio ================================ */
+let AC = null, master = null, noiseBuf = null;
+let soundOn = true;
+let roarNode = null, roarGain = null;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.5;
+    master.connect(AC.destination);
+    const len = AC.sampleRate * 2;
+    noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < len; i++){
+      brown = (brown + (Math.random()*2-1) * 0.02) * 0.996;
+      d[i] = brown * 7;
+    }
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function clickTone(freq, vol){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'square';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol || 0.08, t0 + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + 0.08);
+}
+function startRoar(){
+  if (!soundOn || !ensureAudio() || roarNode) return;
+  roarNode = AC.createBufferSource();
+  roarNode.buffer = noiseBuf;
+  roarNode.loop = true;
+  const lp = AC.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 220;
+  roarGain = AC.createGain();
+  roarGain.gain.value = 0;
+  roarNode.connect(lp); lp.connect(roarGain); roarGain.connect(master);
+  roarNode.start();
+}
+function setRoar(v){
+  if (roarGain){
+    roarGain.gain.setTargetAtTime(clamp(v,0,1) * 0.5, AC.currentTime, 0.2);
+  }
+}
+function stopRoar(){
+  setRoar(0);
+}
+function alarmTone(){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  for (let i = 0; i < 3; i++){
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.type = 'square';
+    o.frequency.value = 660;
+    const t1 = t0 + i * 0.16;
+    g.gain.setValueAtTime(0.0001, t1);
+    g.gain.exponentialRampToValueAtTime(0.09, t1 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.1);
+    o.connect(g); g.connect(master);
+    o.start(t1); o.stop(t1 + 0.12);
+  }
+}
+
+/* ============================== stars & fog ========================== */
+let stars = [];
+let fogBanks = [];
+function buildSky(){
+  stars = [];
+  const n = 130;
+  for (let i = 0; i < n; i++){
+    stars.push({
+      bx: Math.random(), by: Math.random(),
+      r: rand(0.4, 1.5),
+      tw: rand(0, TAU),
+      ts: rand(0.4, 1.6),
+    });
+  }
+  fogBanks = [];
+  for (let i = 0; i < 7; i++){
+    fogBanks.push({
+      y: rand(0.72, 1.0),
+      x: Math.random(),
+      w: rand(0.5, 1.2),
+      h: rand(0.05, 0.14),
+      a: rand(0.05, 0.16),
+      sp: rand(3, 10),
+    });
+  }
+}
+
+/* ============================== rocket =============================== */
+const rocket = {
+  x: 0.5, y: 0.78,            /* normalized stage position */
+  alt: 0, vel: 0, met: 0,
+  stage: 1, fuel: 100, throttle: 0,
+  apogee: 0, maxQ: 0, q: 0,
+  flame: 0, alive: false, done: false,
+};
+let launches = 0, successes = 0, aborts = 0, bestApogee = 0;
+
+/* flight phases: pad | count | ascent | coast | abort | done */
+let phase = 'pad';
+let countT = 0;
+let flightPath = [];       /* {met, alt} samples for the plot */
+let shake = 0;
+let smoke = [];
+let flameParts = [];
+let stagingFlash = 0;
+let maxQDone = false;
+let camY = 0;              /* camera offset in stage heights */
+
+function resetVehicle(){
+  rocket.x = 0.5; rocket.y = 0.78;
+  rocket.alt = 0; rocket.vel = 0; rocket.met = 0;
+  rocket.stage = 1; rocket.fuel = 100; rocket.throttle = 0;
+  rocket.apogee = 0; rocket.maxQ = 0; rocket.q = 0;
+  rocket.flame = 0; rocket.alive = false; rocket.done = false;
+  flightPath = [];
+  smoke = [];
+  flameParts = [];
+  shake = 0;
+  maxQDone = false;
+  camY = 0;
+  phase = 'pad';
+  countT = 0;
+  stagingFlash = 0;
+  ui.phaseTag.textContent = 'PAD';
+  ui.holdBtn.textContent = 'HOLD TO LAUNCH';
+  ui.holdBtn.classList.remove('flight');
+  ui.holdBtn.disabled = false;
+  ui.abortBtn.disabled = true;
+  ui.replayBtn.disabled = false;
+  setLamp(ui.lampAbort, 'holdl');
+  setLamp(ui.lampEngine, 'go');
+  setLamp(ui.lampFuelL, 'go');
+  drawPlot();
+}
+
+/* ============================== logging ============================== */
+let events = 0;
+function stamp(){
+  const d = new Date();
+  const z = n => String(n).padStart(2, '0');
+  return z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+}
+function log(msg, cls){
+  if (ui.logEmpty && ui.logEmpty.parentNode) ui.logEmpty.remove();
+  const li = document.createElement('li');
+  li.className = 'new' + (cls ? ' ' + cls : '');
+  li.innerHTML = '<span class="lt">' + (rocket.met > 0 ? 'T+' + fmtMET(rocket.met) : stamp()) +
+    '</span><span>' + msg + '</span>';
+  ui.log.prepend(li);
+  while (ui.log.children.length > 22) ui.log.lastElementChild.remove();
+  events++;
+  ui.logCount.textContent = events + ' EVENTS';
+}
+function fmtMET(s){
+  const m = Math.floor(s / 60);
+  return String(m).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+}
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => ui.toast.classList.remove('show'), 2400);
+}
+toast.t = 0;
+function callout(tag, text, cls){
+  ui.calloutT.textContent = tag;
+  ui.calloutX.textContent = text;
+  ui.callout.className = 'callout' + (cls ? ' ' + cls : '');
+}
+function setLamp(lamp, state){
+  lamp.classList.remove('go', 'holdl', 'bad', 'blink');
+  if (state) lamp.classList.add(state);
+}
+
+/* ============================== countdown ============================ */
+const COUNT = 15;
+const CALLS = [
+  [15, 'RANGE GREEN', 'The range is yours. Beacons verified. Fog: still committed to the drama.'],
+  [13, 'GUIDANCE INTERNAL', 'All navigation aligned to a point in the sky that has not moved in centuries.'],
+  [11, 'TRANSFER TO INTERNAL POWER', 'The vehicle stops asking the pad for permission.'],
+  [9,  'ENGINE CHILL COMPLETE', 'Cryogenic plumbing settled. The engines are colder than your ex.'],
+  [7,  'STARTUP', 'Fuel valves opening. The rocket begins to inhale.'],
+  [5,  'IGNITION SEQUENCE', 'Spark igniters active. Something enormous is being patient.'],
+  [3,  'ENGINES RISING', 'Full push. The pad is louder than a thought should be.'],
+  [2,  'HOLD-DOWN RELEASE', 'The clamps have made their decision.'],
+  [1,  'LIFTOFF', 'The rocket leaves the ground exactly as slowly as physics allows.'],
+];
+let firedCalls = null;
+
+function startCountdown(){
+  phase = 'count';
+  countT = COUNT;
+  firedCalls = new Set();
+  launches++;
+  ui.ftLaunches.textContent = String(launches);
+  ui.holdBtn.disabled = true;
+  ui.abortBtn.disabled = false;
+  ui.phaseTag.textContent = 'COUNT';
+  callout('TERMINAL COUNT', 'Hold is confirmed. The count is running. Aborts remain armed until T-2.', 'warn');
+  log('Terminal count started · T-15s', 'hot');
+  clickTone(520, 0.1);
+}
+function abortFlight(reason){
+  if (phase !== 'count' && phase !== 'ascent' && phase !== 'coast') return;
+  aborts++;
+  ui.ftAborts.textContent = String(aborts);
+  alarmTone();
+  phase = 'abort';
+  rocket.throttle = 0;
+  rocket.flame = 0;
+  stopRoar();
+  setLamp(ui.lampRange, 'bad');
+  setLamp(ui.lampEngine, 'bad');
+  setLamp(ui.lampAbort, 'bad');
+  ui.phaseTag.textContent = 'ABORT';
+  ui.cdBig.textContent = 'HOLD';
+  ui.cdBig.className = 'cd-big crit';
+  ui.cdLab.textContent = 'COUNT SUSPENDED · SAFE THE PAD';
+  callout('ABORT · ' + reason, 'Safing complete. The rocket keeps its opinions to itself. Ready when you are.', 'crit');
+  log('ABORT — ' + reason, 'crit');
+  ui.holdBtn.textContent = 'HOLD TO LAUNCH';
+  ui.holdBtn.classList.remove('flight');
+  ui.holdBtn.disabled = false;
+  ui.abortBtn.disabled = true;
+  toast('Aborted — ' + reason.toLowerCase());
+  setTimeout(() => {
+    if (phase === 'abort'){
+      resetVehicle();
+      callout('PAD SAFE', 'Recycled. The count restarts when you hold the switch.', '');
+      log('Pad recycled — ready for another count', '');
+    }
+  }, 2600);
+}
+
+/* ============================== input ================================ */
+let holding = false, holdT = 0, holdRaf = 0;
+ui.holdBtn.addEventListener('pointerdown', e => {
+  if (ui.holdBtn.disabled) return;
+  if (phase === 'done'){
+    /* FLY AGAIN: reset the pad and go straight into a fresh count */
+    resetVehicle();
+    log('Replay — vehicle rolled back out', '');
+    startCountdown();
+    return;
+  }
+  if (phase !== 'pad') return;
+  holding = true;
+  ui.holdBtn.classList.add('holding');
+  ensureAudio();
+  clickTone(340, 0.09);
+  holdT = 0;
+  const started = performance.now();
+  const step = () => {
+    if (!holding) return;
+    holdT = (performance.now() - started) / 1000;
+    const need = 0.65;
+    ui.holdBtn.textContent = holdT < need
+      ? 'HOLD ' + '·'.repeat(Math.min(3, Math.floor(holdT / need * 3) + 1))
+      : 'ARMED…';
+    if (holdT >= need){
+      holding = false;
+      ui.holdBtn.classList.remove('holding');
+      startCountdown();
+      return;
+    }
+    holdRaf = requestAnimationFrame(step);
+  };
+  holdRaf = requestAnimationFrame(step);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(ev =>
+  ui.holdBtn.addEventListener(ev, () => {
+    if (holding && phase === 'pad'){
+      holding = false;
+      cancelAnimationFrame(holdRaf);
+      ui.holdBtn.classList.remove('holding');
+      ui.holdBtn.textContent = 'HOLD TO LAUNCH';
+      toast('Released too soon — the count needs a committed hand');
+    }
+  }));
+ui.abortBtn.addEventListener('click', () => {
+  if (phase === 'count') abortFlight('OFFICER COMMAND');
+  else if (phase === 'ascent' || phase === 'coast') abortFlight('RANGE SAFETY');
+});
+ui.replayBtn.addEventListener('click', () => {
+  resetVehicle();
+  log('Console reset — replay armed', '');
+  toast('Console reset — the pad is yours again');
+});
+ui.soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  ui.soundBtn.setAttribute('aria-pressed', String(soundOn));
+  if (!soundOn) stopRoar();
+  toast(soundOn ? 'Downlink audio on' : 'Downlink audio muted');
+});
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === 'Space'){
+    e.preventDefault();
+    if (phase === 'pad' && !ui.holdBtn.disabled) ui.holdBtn.dispatchEvent(new PointerEvent('pointerdown'));
+  }
+  else if (e.key.toLowerCase() === 'a' && !ui.abortBtn.disabled) ui.abortBtn.click();
+  else if (e.key.toLowerCase() === 'r' && !ui.replayBtn.disabled) ui.replayBtn.click();
+  else if (e.key.toLowerCase() === 'm') ui.soundBtn.click();
+});
+
+/* ============================== physics ============================== */
+function stepFlight(dt){
+  if (phase === 'count'){
+    countT -= dt;
+    const tRem = Math.max(0, countT);
+    ui.cdBig.textContent = 'T—00:00:' + String(Math.ceil(tRem)).padStart(2, '0');
+    ui.cdBig.className = 'cd-big' + (tRem <= 3 ? ' crit' : tRem <= 6 ? ' warn' : '');
+    /* abort window closes at T-2 */
+    if (tRem <= 2 && !ui.abortBtn.disabled){
+      ui.abortBtn.disabled = true;
+      setLamp(ui.lampAbort, 'bad');
+      ui.lampAbort.classList.add('blink');
+      log('Abort window closed — commit', 'crit');
+      callout('COMMIT', 'Abort window closed. Whatever happens next is aviation history.', 'crit');
+    }
+    for (const c of CALLS){
+      if (tRem <= c[0] && !firedCalls.has(c[0])){
+        firedCalls.add(c[0]);
+        if (c[0] <= 5) log('T-' + c[0] + 's · ' + c[1], c[0] <= 3 ? 'crit' : 'hot');
+        else log('T-' + c[0] + 's · ' + c[1], '');
+        callout('T-' + c[0] + ' · ' + c[1], c[2], tRem <= 3 ? 'crit' : tRem <= 6 ? 'warn' : '');
+      }
+    }
+    /* rumble rises in the last seconds */
+    if (tRem <= 4){
+      startRoar();
+      setRoar(clamp((4 - tRem) / 4, 0, 1) * 0.5);
+      shake = clamp((4 - tRem) / 4, 0, 1) * 3;
+    }
+    if (countT <= 0){
+      phase = 'ascent';
+      rocket.alive = true;
+      rocket.met = 0;
+      rocket.throttle = 100;
+      rocket.flame = 1;
+      stagingFlash = 1;
+      ui.cdBig.textContent = 'T+00:00';
+      ui.cdLab.textContent = 'FLIGHT · NOMINAL SO FAR';
+      callout('LIFTOFF', 'Thrusters to full. The pad is already history.', 'warn');
+      log('LIFTOFF', 'good');
+      setLamp(ui.lampAbort, null);
+      ui.lampAbort.classList.remove('blink');
+      ui.abortBtn.disabled = true;
+      ui.abortBtn.classList.add('abort');
+      setTimeout(() => ui.abortBtn.classList.remove('abort'), 800);
+      ui.abortBtn.disabled = false;
+    }
+  }
+  else if (phase === 'ascent' || phase === 'coast'){
+    rocket.met += dt;
+    const burn = rocket.stage === 1 ? 9.5 : 7.5;
+    if (rocket.stage === 1) rocket.fuel = clamp(100 - (rocket.met / burn) * 100, 0, 100);
+    else rocket.fuel = clamp(100 - ((rocket.met - burn) / (burn * 0.9)) * 100, 0, 100);
+    if (rocket.stage === 1){
+      rocket.throttle = rocket.fuel > 0 ? 100 : 0;
+      rocket.vel += (rocket.throttle / 100) * 46 * dt;
+    } else {
+      rocket.throttle = rocket.fuel > 0 ? 100 : 0;
+      rocket.vel += (rocket.throttle / 100) * 38 * dt - 9.8 * dt;
+    }
+    rocket.vel = Math.max(0, rocket.vel);
+    rocket.alt += rocket.vel * dt;
+    rocket.q = 0.5 * 1.225 * rocket.vel * rocket.vel * Math.exp(-rocket.alt / 8500);
+    if (rocket.q > rocket.maxQ){
+      rocket.maxQ = rocket.q;
+      if (!maxQDone && rocket.q > 9000){
+        maxQDone = true;
+        log('Max-Q · ' + Math.round(rocket.q / 1000) + ' kPa — vehicle nominal', 'hot');
+        callout('MAX-Q', 'Maximum dynamic pressure. The airframe sings one note and holds.', 'warn');
+        shake = Math.max(shake, 4);
+      }
+    }
+    /* staging */
+    if (rocket.stage === 1 && rocket.met >= 9.5){
+      rocket.stage = 2;
+      stagingFlash = 1;
+      rocket.fuel = 100;
+      shake = 5;
+      log('MECO · stage separation clean', 'good');
+      callout('STAGING', 'Stage one lets go. Stage two lights like a struck match.', 'warn');
+      setLamp(ui.lampEngine, 'go');
+      clickTone(220, 0.14);
+    }
+    /* apogee bookkeeping */
+    if (rocket.alt > rocket.apogee) rocket.apogee = rocket.alt;
+    /* flight path sample for the plot */
+    if (!flightPath.length || rocket.met - flightPath[flightPath.length - 1].met > 0.12){
+      flightPath.push({ met: rocket.met, alt: rocket.alt });
+    }
+    /* burnout */
+    if (rocket.fuel <= 0 && rocket.stage === 2){
+      phase = 'coast';
+      rocket.throttle = 0;
+      rocket.flame = 0;
+      stopRoar();
+      log('BECO · coast to apogee', 'hot');
+      callout('COAST', 'Engines quiet. The rocket coasts on the memory of thrust.', '');
+      ui.abortBtn.disabled = true;
+    }
+    /* camera follows above 80 m */
+    camY = clamp((rocket.alt - 80) / 26000, 0, 1);
+    rocket.y = 0.78 - camY * 0.92;
+    rocket.x = 0.5 + Math.sin(rocket.met * 0.8) * 0.008 * clamp(rocket.alt / 2000, 0, 1);
+    /* flame & smoke spawn */
+    rocket.flame = rocket.throttle > 0 ? 1 : Math.max(0, rocket.flame - dt * 3);
+    if (rocket.throttle > 0){
+      shake = Math.max(shake, rocket.stage === 1 ? 2.4 : 1.4);
+      setRoar(rocket.stage === 1 ? 1 : 0.6);
+    } else {
+      shake = Math.max(0, shake - dt * 6);
+      setRoar(0);
+    }
+    /* end of flight */
+    if (rocket.vel <= 0.2 && rocket.stage === 2 && rocket.fuel <= 0 && rocket.met > 4){
+      phase = 'done';
+      successes++;
+      ui.ftSuccess.textContent = String(successes);
+      const km = Math.round(rocket.apogee / 100) / 10;
+      bestApogee = Math.max(bestApogee, km);
+      ui.ftBest.textContent = km + ' KM';
+      ui.phaseTag.textContent = 'COMPLETE';
+      ui.cdLab.textContent = 'MISSION COMPLETE · APOGEE ' + km + ' KM';
+      ui.cdBig.className = 'cd-big';
+      ui.cdBig.textContent = 'T+00:00';
+      callout('APOGEE ' + km + ' KM', 'The rocket hangs at the top of its arc. The stars, briefly, are colleagues.', 'good');
+      log('Apogee reached · ' + km + ' km', 'good');
+      log('Mission success — telemetry archived', 'good');
+      ui.holdBtn.textContent = 'FLY AGAIN';
+      ui.holdBtn.classList.add('flight');
+      ui.holdBtn.disabled = false;
+      ui.replayBtn.disabled = false;
+      ui.phaseTag.textContent = 'COMPLETE';
+      ui.holdBtn.dataset.done = '1';
+      toast('Mission complete — apogee ' + km + ' km');
+      drawPlot();
+    }
+  }
+}
+
+/* ============================== drawing ============================== */
+function resize(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  const r = ui.sky.getBoundingClientRect();
+  W = r.width; H = r.height;
+  ui.sky.width = Math.round(W * dpr);
+  ui.sky.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ar = ui.apogee.getBoundingClientRect();
+  AW = ar.width; AH = ar.height;
+  ui.apogee.width = Math.round(AW * dpr);
+  ui.apogee.height = Math.round(AH * dpr);
+  actx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawPlot();
+}
+addEventListener('resize', () => { resize(); buildSky(); });
+
+function skyColors(altFrac){
+  /* night pad -> deep space */
+  const hi = mixC([10, 14, 22], [2, 3, 8], altFrac);
+  const lo = mixC([26, 30, 36], [3, 4, 9], altFrac);
+  return { hi, lo };
+}
+function mixC(a, b, t){
+  return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+}
+function cssC(c, a){
+  return 'rgba(' + (c[0]|0) + ',' + (c[1]|0) + ',' + (c[2]|0) + ',' + (a === undefined ? 1 : a) + ')';
+}
+
+function drawScene(t, dt){
+  /* camera shake applied to the whole plate */
+  const shk = shake > 0.1 && !reduceMotion ? shake : 0;
+  ctx.setTransform(dpr, 0, 0, dpr,
+    (Math.random() - .5) * shk * dpr, (Math.random() - .5) * shk * dpr);
+  const altFrac = clamp(rocket.alt / 30000, 0, 1);
+  const { hi, lo } = skyColors(altFrac);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, cssC(hi));
+  g.addColorStop(1, cssC(lo));
+  ctx.fillStyle = g;
+  ctx.fillRect(-12, -12, W + 24, H + 24);
+
+  /* stars brighten with altitude */
+  const starA = 0.35 + altFrac * 0.65;
+  for (const s of stars){
+    const a = starA * (0.5 + 0.5 * Math.sin(t * s.ts + s.tw));
+    ctx.fillStyle = 'rgba(220,235,255,' + (a * 0.9).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(s.bx * W, s.by * H * (1 - camY * 0.5), s.r, 0, TAU);
+    ctx.fill();
+  }
+
+  /* launch pad ground (scrolls away with camY) */
+  const groundY = H * 0.86 + camY * H * 1.4;
+  if (groundY < H + 40){
+    ctx.fillStyle = '#0a0c0e';
+    ctx.fillRect(0, groundY, W, H - groundY + 40);
+    ctx.fillStyle = 'rgba(88,214,141,.06)';
+    ctx.fillRect(0, groundY, W, 2);
+    /* pad deck */
+    ctx.fillStyle = '#16181b';
+    ctx.fillRect(W * 0.3, groundY - 6, W * 0.4, 6);
+    /* tower with strobing beacon */
+    const twx = W * 0.66;
+    ctx.strokeStyle = 'rgba(120,126,130,.5)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(twx, groundY);
+    ctx.lineTo(twx, groundY - H * 0.34);
+    ctx.stroke();
+    for (let i = 1; i <= 3; i++){
+      ctx.beginPath();
+      ctx.moveTo(twx - 14 - i * 4, groundY);
+      ctx.lineTo(twx, groundY - H * 0.34 * (i / 4));
+      ctx.moveTo(twx + 14 + i * 4, groundY);
+      ctx.lineTo(twx, groundY - H * 0.34 * (i / 4));
+      ctx.stroke();
+    }
+    const beaconOn = (t % 1.2) < 0.12;
+    ctx.fillStyle = beaconOn ? 'rgba(255,80,60,.95)' : 'rgba(120,60,50,.3)';
+    ctx.beginPath();
+    ctx.arc(twx, groundY - H * 0.34 - 5, beaconOn ? 4 : 3, 0, TAU);
+    ctx.fill();
+  }
+
+  /* smoke clouds */
+  for (const s of smoke){
+    ctx.globalAlpha = clamp(s.life, 0, 1) * s.a;
+    ctx.fillStyle = '#c9c4bc';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  /* rocket screen position */
+  const rx = rocket.x * W;
+  const ry = groundY - rocket.y * H * 1.15;
+  const rScreenY = rocket.y <= 0.001 ? groundY - 26 : ry;
+
+  /* flame */
+  if (rocket.flame > 0.02){
+    const fl = rocket.flame * (0.8 + Math.random() * 0.35);
+    const flen = (26 + fl * 54) * (rocket.stage === 2 ? 0.7 : 1);
+    const fg = ctx.createLinearGradient(rx, rScreenY + 18, rx, rScreenY + 18 + flen);
+    fg.addColorStop(0, 'rgba(255,240,200,.95)');
+    fg.addColorStop(0.4, 'rgba(255,160,60,.8)');
+    fg.addColorStop(1, 'rgba(255,80,30,0)');
+    ctx.fillStyle = fg;
+    ctx.beginPath();
+    ctx.moveTo(rx - 7, rScreenY + 16);
+    ctx.quadraticCurveTo(rx, rScreenY + 18 + flen * 1.4, rx + 7, rScreenY + 16);
+    ctx.closePath();
+    ctx.fill();
+    /* mach diamonds */
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    for (let i = 0; i < 3; i++){
+      const dy = rScreenY + 22 + i * flen * 0.22;
+      ctx.beginPath();
+      ctx.ellipse(rx, dy, 3 - i * 0.7, 5 - i, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  /* the rocket itself */
+  drawRocket(rx, rScreenY, t);
+
+  /* staging flash */
+  if (stagingFlash > 0){
+    ctx.globalAlpha = stagingFlash * 0.5;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    stagingFlash = Math.max(0, stagingFlash - dt * 2.4);
+  }
+}
+
+function drawRocket(x, y, t){
+  const S = clamp(W * 0.028, 14, 30);   /* scale unit */
+  ctx.save();
+  ctx.translate(x, y);
+  /* body */
+  ctx.fillStyle = '#e8e8e8';
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.42, -S * 0.9);
+  ctx.lineTo(S * 0.42, -S * 0.9);
+  ctx.lineTo(S * 0.5, S * 1.6);
+  ctx.lineTo(-S * 0.5, S * 1.6);
+  ctx.closePath();
+  ctx.fill();
+  /* shading */
+  const bg = ctx.createLinearGradient(-S * 0.5, 0, S * 0.5, 0);
+  bg.addColorStop(0, 'rgba(0,0,0,.32)');
+  bg.addColorStop(0.35, 'rgba(255,255,255,.16)');
+  bg.addColorStop(0.62, 'rgba(0,0,0,.05)');
+  bg.addColorStop(1, 'rgba(0,0,0,.38)');
+  ctx.fillStyle = bg;
+  ctx.fill();
+  /* nose cone */
+  ctx.fillStyle = '#b3402a';
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.42, -S * 0.9);
+  ctx.quadraticCurveTo(0, -S * 2.1, S * 0.42, -S * 0.9);
+  ctx.closePath();
+  ctx.fill();
+  /* markings */
+  ctx.fillStyle = '#b3402a';
+  ctx.fillRect(-S * 0.46, S * 0.1, S * 0.92, S * 0.22);
+  /* window */
+  ctx.fillStyle = '#1a2a33';
+  ctx.beginPath();
+  ctx.arc(0, -S * 0.25, S * 0.16, 0, TAU);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  /* fins */
+  ctx.fillStyle = '#b3402a';
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.48, S * 0.9);
+  ctx.lineTo(-S * 1.05, S * 1.75);
+  ctx.lineTo(-S * 0.48, S * 1.6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(S * 0.48, S * 0.9);
+  ctx.lineTo(S * 1.05, S * 1.75);
+  ctx.lineTo(S * 0.48, S * 1.6);
+  ctx.closePath();
+  ctx.fill();
+  /* engine bell */
+  ctx.fillStyle = '#3d3d40';
+  ctx.beginPath();
+  ctx.moveTo(-S * 0.3, S * 1.6);
+  ctx.lineTo(S * 0.3, S * 1.6);
+  ctx.lineTo(S * 0.42, S * 1.95);
+  ctx.lineTo(-S * 0.42, S * 1.95);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/* smoke spawning tied to throttle & altitude */
+function spawnSmoke(dt){
+  if (rocket.throttle <= 0 && smoke.length === 0) return;
+  const groundY = H * 0.86 + camY * H * 1.4;
+  const rx = rocket.x * W;
+  const rScreenY = rocket.y <= 0.001 ? groundY - 26 : groundY - rocket.y * H * 1.15;
+  const rate = rocket.throttle > 0 ? (rocket.stage === 1 ? 4.5 : 1.2) : 0;
+  if (Math.random() < rate * dt * 6 && smoke.length < 90){
+    const lowAlt = rocket.alt < 600;
+    smoke.push({
+      x: rx + rand(-14, 14),
+      y: lowAlt ? groundY - 8 : rScreenY + 24,
+      vx: rand(-30, 30) * (lowAlt ? 1.6 : 0.5),
+      vy: lowAlt ? rand(-40, -6) : rand(20, 60),
+      r: rand(8, 26),
+      a: rand(0.18, 0.4),
+      life: 1,
+      decay: rand(0.14, 0.3),
+    });
+  }
+  for (let i = smoke.length - 1; i >= 0; i--){
+    const s = smoke[i];
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    s.vx *= 0.99;
+    s.vy *= 0.985;
+    s.r += dt * 14;
+    s.life -= s.decay * dt * 1.4;
+    if (s.life <= 0) smoke.splice(i, 1);
+  }
+}
+
+/* ============================== apogee plot ========================== */
+function drawPlot(){
+  if (!AW) return;
+  actx.clearRect(0, 0, AW, AH);
+  actx.fillStyle = 'rgba(0,0,0,.25)';
+  actx.fillRect(0, 0, AW, AH);
+  /* grid */
+  actx.strokeStyle = 'rgba(88,214,141,.14)';
+  actx.lineWidth = 1;
+  for (let i = 1; i < 4; i++){
+    const y = (AH / 4) * i;
+    actx.beginPath();
+    actx.moveTo(0, y + .5);
+    actx.lineTo(AW, y + .5);
+    actx.stroke();
+  }
+  if (!flightPath.length){
+    actx.fillStyle = 'rgba(223,232,226,.3)';
+    actx.font = '600 9px ui-monospace, "Courier New", monospace';
+    actx.textAlign = 'center';
+    actx.fillText('NO FLIGHT DATA', AW / 2, AH / 2 + 3);
+    return;
+  }
+  const maxAlt = Math.max(1000, rocket.apogee);
+  const maxMet = Math.max(4, flightPath[flightPath.length - 1].met);
+  actx.beginPath();
+  flightPath.forEach((p, i) => {
+    const x = (p.met / maxMet) * (AW - 8) + 4;
+    const y = AH - 5 - (p.alt / maxAlt) * (AH - 12);
+    if (i === 0) actx.moveTo(x, y); else actx.lineTo(x, y);
+  });
+  actx.strokeStyle = '#58d68d';
+  actx.lineWidth = 1.6;
+  actx.stroke();
+  actx.lineTo(AW - 4, AH - 5);
+  actx.lineTo(4, AH - 5);
+  actx.closePath();
+  actx.fillStyle = 'rgba(88,214,141,.12)';
+  actx.fill();
+  /* apogee marker */
+  const peak = flightPath.reduce((a, b) => (b.alt > a.alt ? b : a), flightPath[0]);
+  const pkx = (peak.met / maxMet) * (AW - 8) + 4;
+  const pky = AH - 5 - (peak.alt / maxAlt) * (AH - 12);
+  actx.fillStyle = '#ffb454';
+  actx.beginPath();
+  actx.arc(pkx, pky, 2.6, 0, TAU);
+  actx.fill();
+  actx.fillStyle = 'rgba(255,180,84,.85)';
+  actx.font = '600 8px ui-monospace, "Courier New", monospace';
+  actx.textAlign = 'left';
+  actx.fillText((peak.alt / 1000).toFixed(1) + ' KM', Math.min(pkx + 5, AW - 40), Math.max(pky - 5, 10));
+}
+
+/* ============================== loop ================================= */
+let last = performance.now();
+let raf = 0, running = true;
+let plotAcc = 0;
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const dt = clamp((now - last) / 1000, 0.001, 0.05);
+  last = now;
+  const t = now / 1000;
+
+  stepFlight(dt);
+  spawnSmoke(dt);
+
+  /* telemetry DOM */
+  ui.tAlt.textContent = fmtAlt(rocket.alt);
+  ui.tVel.textContent = Math.round(rocket.vel) + ' m/s';
+  ui.tStage.textContent = String(rocket.stage);
+  ui.tThr.textContent = Math.round(rocket.throttle) + '%';
+  ui.tFuel.textContent = Math.round(rocket.fuel) + '%';
+  ui.tQ.textContent = rocket.q > 500 ? Math.round(rocket.q / 1000) + ' kPa' : '—';
+  ui.tApo.textContent = rocket.apogee > 0 ? (rocket.apogee / 1000).toFixed(1) + ' km' : '—';
+  ui.tMet.textContent = rocket.met > 0 ? 'T+' + fmtMET(rocket.met) : 'T—00:00';
+  ui.altTag.querySelector('b').textContent = fmtAlt(rocket.alt);
+  ui.velTag.textContent = Math.round(rocket.vel) + ' M/S';
+  ui.apoTag.textContent = rocket.apogee > 0 ? (rocket.apogee / 1000).toFixed(1) + ' KM' : '—';
+  ui.qTag.textContent = rocket.q > 500 ? Math.round(rocket.q / 1000) + ' KPA' : '0';
+
+  /* fuel lamp */
+  setLamp(ui.lampFuelL, rocket.fuel < 25 ? 'bad' : rocket.fuel < 55 ? 'holdl' : 'go');
+
+  drawScene(t, dt);
+
+  plotAcc += dt;
+  if (plotAcc > 0.2 && (phase === 'ascent' || phase === 'coast')){
+    plotAcc = 0;
+    drawPlot();
+  }
+}
+function fmtAlt(a){
+  if (a >= 10000) return (a / 1000).toFixed(1) + ' km';
+  return Math.round(a) + ' m';
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+    stopRoar();
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+
+/* ============================== init ================================= */
+resize();
+buildSky();
+drawPlot();
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

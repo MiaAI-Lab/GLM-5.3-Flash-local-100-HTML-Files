@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WINGS OF TIME · №094 — A Virtual Gallery Wing · The Gallery of 100</title>
+<style>
+:root{
+  --plaster:  #e9e4da;
+  --plaster-2:#ded7c9;
+  --oak:      #b98a55;
+  --spot:     #fff3d6;
+  --didactic: #26221b;
+  --ink:      #2b2620;
+  --ink-soft: #6f6656;
+  --gold:     #a8823c;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:auto; }
+html{ scrollbar-color:#c4b8a2 transparent; }
+html::-webkit-scrollbar{ width:10px; }
+html::-webkit-scrollbar-thumb{ background:#c4b8a2; border-radius:6px; }
+body{
+  font-family:var(--sans);
+  background:var(--plaster);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--gold); color:#fff8ea; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+/* the scroll runway — the scene itself is fixed */
+#runway{ height:760vh; }
+
+#wall{
+  position:fixed; inset:0; display:block;
+}
+
+/* ---------- overlay chrome ---------- */
+.ui{ position:fixed; z-index:10; pointer-events:none; }
+.plate{
+  top:clamp(14px,3vh,30px); left:clamp(14px,3vw,32px);
+  background:rgba(255,253,247,.92);
+  border:1px solid rgba(43,38,32,.35);
+  box-shadow:0 14px 34px -18px rgba(43,38,32,.55);
+  padding:14px 20px 12px;
+  max-width:min(330px,80vw);
+}
+.plate h1{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(1.25rem,2.6vw,1.8rem);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--didactic);
+}
+.plate p{
+  margin-top:4px;
+  font-style:italic; font-size:.8rem; line-height:1.55; color:var(--ink-soft);
+}
+.plate .roomline{
+  margin-top:9px; padding-top:8px;
+  border-top:1px solid rgba(43,38,32,.2);
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-soft);
+  display:flex; justify-content:space-between; gap:10px;
+}
+.plate .roomline b{ color:var(--didactic); font-weight:400; }
+
+.progress{
+  left:0; right:0; bottom:0; height:4px;
+  background:rgba(43,38,32,.14);
+}
+.progress i{
+  display:block; height:100%; width:0%;
+  background:linear-gradient(90deg, var(--gold), #d9b36a);
+  transition:width .1s linear;
+}
+
+.hint{
+  right:clamp(14px,3vw,32px); top:clamp(14px,3vh,30px);
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-soft);
+  text-align:right; line-height:2.1;
+}
+.hint em{ font-style:normal; color:var(--didactic); border-bottom:2px solid var(--gold); }
+
+/* ---------- guest book ---------- */
+.guestbook{
+  position:fixed; z-index:12;
+  left:50%; bottom:clamp(18px,5vh,54px);
+  transform:translate(-50%, 24px);
+  width:min(560px, calc(100vw - 28px));
+  background:#fbf8f0;
+  border:1px solid rgba(43,38,32,.4);
+  box-shadow:0 30px 70px -30px rgba(20,16,10,.7), 0 2px 0 rgba(255,255,255,.6) inset;
+  padding:20px 22px 16px;
+  opacity:0; visibility:hidden;
+  transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), visibility 0s linear .7s;
+}
+.guestbook.show{
+  opacity:1; visibility:visible;
+  transform:translate(-50%, 0);
+  transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.guestbook::before{
+  content:""; position:absolute; top:-11px; left:26px; right:26px; height:20px;
+  background:repeating-linear-gradient(45deg, rgba(43,38,32,.13) 0 7px, transparent 7px 14px);
+  border-top:1px solid rgba(43,38,32,.28);
+}
+.guestbook h2{
+  font-family:var(--serif); font-weight:600; letter-spacing:.2em; text-transform:uppercase;
+  font-size:.95rem; color:var(--didactic);
+}
+.guestbook .sub{
+  font-style:italic; font-size:.82rem; color:var(--ink-soft); margin-top:3px;
+}
+.gb-form{
+  display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;
+}
+.gb-form input, .gb-form .msg{
+  font-family:var(--serif);
+  font-size:.9rem;
+  background:rgba(255,255,255,.6);
+  border:1px solid rgba(43,38,32,.35);
+  padding:9px 10px;
+  color:var(--ink);
+}
+.gb-form input{ width:140px; }
+.gb-form .msg{ flex:1; min-width:150px; }
+.gb-form button{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.24em; text-transform:uppercase;
+  border:1px solid var(--didactic);
+  padding:10px 16px;
+  background:var(--didactic); color:#f4efe4;
+  transition:background .25s ease, color .25s ease;
+  touch-action:manipulation;
+}
+.gb-form button:hover{ background:var(--gold); border-color:var(--gold); }
+.gb-entries{
+  margin-top:12px; max-height:130px; overflow-y:auto;
+  border-top:1px solid rgba(43,38,32,.2);
+  scrollbar-width:thin;
+}
+.gb-entries::-webkit-scrollbar{ width:7px; }
+.gb-entries::-webkit-scrollbar-thumb{ background:#cfc6b2; }
+.gb-entry{
+  display:flex; gap:12px; align-items:baseline;
+  padding:7px 2px;
+  border-bottom:1px dashed rgba(43,38,32,.18);
+  font-size:.85rem;
+}
+.gb-entry .who{ font-family:var(--serif); font-weight:600; min-width:90px; color:var(--didactic); }
+.gb-entry .say{ font-style:italic; color:var(--ink-soft); overflow-wrap:anywhere; }
+.gb-entry .when{ margin-left:auto; font-family:var(--mono); font-size:.54rem; letter-spacing:.12em; color:#a49a86; white-space:nowrap; }
+.gb-close{
+  position:absolute; top:10px; right:12px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  color:var(--ink-soft); background:none; border:0; cursor:pointer;
+}
+.gb-close:hover{ color:var(--didactic); }
+
+@media (max-width:640px){
+  .hint{ display:none; }
+  .plate{ max-width:min(280px,76vw); }
+}
+@media (prefers-reduced-motion: reduce){
+  .guestbook{ transition:opacity .5s ease, visibility 0s linear .5s; }
+  .progress i{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="wall" role="img" aria-label="A virtual museum wing with six living generative artworks"></canvas>
+
+<div id="runway" aria-hidden="true"></div>
+
+<div class="ui plate">
+  <h1>Wings of Time</h1>
+  <p>Six machines for looking slowly. The gallery lights follow you — walk on.</p>
+  <div class="roomline">
+    <span>ROOM <b id="roomNow">I</b></span>
+    <span><b id="worksNow">01</b> / 06 NEARBY</span>
+  </div>
+</div>
+
+<div class="ui hint" aria-hidden="true">
+  <div>SCROLL TO <em>WALK</em></div>
+  <div>THE ART IS <em>ALIVE</em></div>
+  <div>SIGN THE BOOK AT THE END</div>
+</div>
+
+<div class="ui progress" aria-hidden="true"><i id="progBar"></i></div>
+
+<aside class="guestbook" id="guestbook" aria-label="Guest book" aria-hidden="true">
+  <button class="gb-close" id="gbClose" type="button">CLOSE ×</button>
+  <h2>Guest Book</h2>
+  <p class="sub">You reached the end of the wing. Leave a mark for the next visitor.</p>
+  <form class="gb-form" id="gbForm">
+    <input type="text" id="gbName" maxlength="24" placeholder="Your name" aria-label="Your name">
+    <input class="msg" type="text" id="gbMsg" maxlength="90" placeholder="A line for the archive…" aria-label="Your message">
+    <button type="submit">Sign</button>
+  </form>
+  <div class="gb-entries" id="gbEntries"></div>
+</aside>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var cv = document.getElementById("wall");
+var ctx = cv.getContext("2d");
+var els = {
+  runway: document.getElementById("runway"),
+  roomNow: document.getElementById("roomNow"),
+  worksNow: document.getElementById("worksNow"),
+  progBar: document.getElementById("progBar"),
+  guestbook: document.getElementById("guestbook"),
+  gbForm: document.getElementById("gbForm"),
+  gbName: document.getElementById("gbName"),
+  gbMsg: document.getElementById("gbMsg"),
+  gbEntries: document.getElementById("gbEntries"),
+  gbClose: document.getElementById("gbClose")
+};
+
+/* ================= world ================= */
+var WORLD = 7600;
+var W = 0, H = 0, DPR = 1;
+var camX = 0, camTarget = 0;
+var floorY = 0;          /* set in fit() */
+
+var ART = [
+  { x: 620,  w: 210, h: 270, type:"flow",  title:"Field Study №7",  artist:"R. Okafor",   medium:"particles on indigo", year:"2024",
+    note:"Ten thousand small decisions, taken sideways." },
+  { x: 1560, w: 260, h: 260, type:"moire", title:"Moiré Wedding",   artist:"H. Lindqvist", medium:"interfering rings",  year:"2023",
+    note:"Two perfect circles, one imperfect marriage." },
+  { x: 2520, w: 220, h: 280, type:"ca",    title:"Rule Thirty",     artist:"The Archive",  medium:"cellular automata",  year:"1983 –",
+    note:"Order on the edges, chaos in the middle." },
+  { x: 3560, w: 270, h: 240, type:"wave",  title:"Two Stones",      artist:"M. Tanaka",    medium:"wave interference",  year:"2025",
+    note:"Where the ripples agree, the water shines." },
+  { x: 4560, w: 220, h: 260, type:"ca90",  title:"Rule Ninety",     artist:"The Archive",  medium:"cellular automata",  year:"1983 –",
+    note:"A triangle that computes itself from nothing." },
+  { x: 5540, w: 260, h: 250, type:"wave3", title:"Three Bells",     artist:"M. Tanaka",    medium:"triple interference",year:"2025",
+    note:"Chords made of geometry; silence made of math." }
+];
+var ROOM_ROMAN = [
+  { x: 3080, label:"I" },
+  { x: 6250, label:"II" }
+];
+var BENCHES = [1100, 2050, 3060, 4060, 5060];
+var ENTRANCE_X = 60;
+var DESK_X = 6950;
+
+/* ================= artwork engines ================= */
+function makeEngine(a){
+  var c = document.createElement("canvas");
+  var s = 2; /* supersample for crispness */
+  c.width = a.w * s; c.height = a.h * s;
+  var g = c.getContext("2d");
+  g.scale(s, s);
+  var st = { cv:c, g:g, w:a.w, h:a.h, t:Math.random() * 100 };
+  if (a.type === "flow"){
+    st.parts = [];
+    for (var i = 0; i < 46; i++){
+      st.parts.push({ x:Math.random() * a.w, y:Math.random() * a.h, px:0, py:0, life:30 + Math.random() * 90 });
+    }
+    g.fillStyle = "#0e1224";
+    g.fillRect(0, 0, a.w, a.h);
+  }
+  if (a.type === "ca" || a.type === "ca90"){
+    st.rule = (a.type === "ca") ? 30 : 90;
+    st.cols = Math.floor(a.w / 6);
+    st.rows = Math.floor(a.h / 6);
+    st.grid = new Uint8Array(st.cols);
+    st.grid[st.cols >> 1] = 1;
+    st.rowPtr = st.rows;
+    st.bg = (a.type === "ca") ? "#191512" : "#101426";
+    st.fg = (a.type === "ca") ? "#efe7d2" : "#ffd166";
+    g.fillStyle = st.bg;
+    g.fillRect(0, 0, a.w, a.h);
+  }
+  if (a.type === "wave"){
+    st.src = [ { x:0.38, y:0.5 }, { x:0.62, y:0.5 } ];
+  }
+  if (a.type === "wave3"){
+    st.src = [ { x:0.32, y:0.42 }, { x:0.68, y:0.42 }, { x:0.5, y:0.68 } ];
+  }
+  return st;
+}
+var engines = ART.map(makeEngine);
+
+function drawFlow(e, a, dt){
+  var g = e.g;
+  g.fillStyle = "rgba(14,18,36,0.08)";
+  g.fillRect(0, 0, e.w, e.h);
+  var t = e.t;
+  for (var i = 0; i < e.parts.length; i++){
+    var p = e.parts[i];
+    p.px = p.x; p.py = p.y;
+    var ang = Math.sin(p.x * 0.02 + t * 0.7) + Math.cos(p.y * 0.024 - t * 0.5);
+    p.x += Math.cos(ang) * 1.7;
+    p.y += Math.sin(ang) * 1.7;
+    p.life -= 1;
+    if (p.life < 0 || p.x < 0 || p.x > e.w || p.y < 0 || p.y > e.h){
+      p.x = Math.random() * e.w; p.y = Math.random() * e.h; p.px = p.x; p.py = p.y;
+      p.life = 30 + Math.random() * 90;
+      continue;
+    }
+    g.strokeStyle = (i % 5 === 0) ? "rgba(255,209,102,0.5)" : "rgba(126,201,214,0.42)";
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(p.px, p.py);
+    g.lineTo(p.x, p.y);
+    g.stroke();
+  }
+}
+function drawMoire(e, a, dt){
+  var g = e.g;
+  g.fillStyle = "#f2ead6";
+  g.fillRect(0, 0, e.w, e.h);
+  var t = e.t;
+  var cx = e.w / 2 + Math.sin(t * 0.32) * e.w * 0.06;
+  var cy = e.h / 2 + Math.cos(t * 0.24) * e.h * 0.06;
+  var cx2 = e.w / 2 - Math.sin(t * 0.32) * e.w * 0.06;
+  var cy2 = e.h / 2 - Math.cos(t * 0.24) * e.h * 0.06;
+  g.strokeStyle = "rgba(30,26,20,0.85)";
+  g.lineWidth = 1;
+  var r, maxR = Math.max(e.w, e.h) * 0.75;
+  for (r = 5; r < maxR; r += 7){
+    g.beginPath();
+    g.arc(cx, cy, r, 0, 6.283);
+    g.stroke();
+  }
+  g.strokeStyle = "rgba(151,54,52,0.75)";
+  for (r = 5; r < maxR; r += 7){
+    g.beginPath();
+    g.arc(cx2, cy2, r, 0, 6.283);
+    g.stroke();
+  }
+}
+function drawCA(e, a, dt){
+  var g = e.g;
+  var stepEvery = 5;
+  if (Math.floor(e.t) % stepEvery === 0 && e.lastStep !== Math.floor(e.t)){
+    e.lastStep = Math.floor(e.t);
+    var ng = new Uint8Array(e.cols);
+    for (var i = 0; i < e.cols; i++){
+      var l = e.grid[(i - 1 + e.cols) % e.cols];
+      var c = e.grid[i];
+      var r = e.grid[(i + 1) % e.cols];
+      var bits = (l << 2) | (c << 1) | r;
+      ng[i] = (e.rule >> bits) & 1;
+    }
+    e.grid = ng;
+    /* scroll canvas up one row */
+    g.drawImage(e.cv, 0, -6, e.w * 2, e.h * 2);
+    g.fillStyle = e.bg;
+    g.fillRect(0, e.h - 6, e.w, 6);
+    g.fillStyle = e.fg;
+    for (var c2 = 0; c2 < e.cols; c2++){
+      if (e.grid[c2]) g.fillRect(c2 * 6 + 1, e.h - 5, 4, 4);
+    }
+  }
+}
+function drawWave(e, a, dt){
+  var g = e.g;
+  g.fillStyle = "#07211f";
+  g.fillRect(0, 0, e.w, e.h);
+  var cell = 5;
+  var t = e.t * 2.4;
+  var k = 0.55;
+  var cols = Math.ceil(e.w / cell), rows = Math.ceil(e.h / cell);
+  var srcs = e.src;
+  var n = srcs.length;
+  for (var yy = 0; yy < rows; yy++){
+    for (var xx = 0; xx < cols; xx++){
+      var px2 = xx * cell + cell / 2, py2 = yy * cell + cell / 2;
+      var sum = 0;
+      for (var s = 0; s < n; s++){
+        var dx = px2 - srcs[s].x * e.w, dy = py2 - srcs[s].y * e.h;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        sum += Math.sin(d * k - t) / (1 + d * 0.02);
+      }
+      var v = (sum / n + 1) / 2;
+      var band = Math.floor(v * 5) / 5;
+      var bright = Math.pow(band, 2.2);
+      if (n === 2){
+        g.fillStyle = "rgba(" + Math.round(60 + bright * 120) + "," + Math.round(150 + bright * 90) + "," + Math.round(140 + bright * 100) + "," + (0.25 + bright * 0.75).toFixed(2) + ")";
+      } else {
+        g.fillStyle = "rgba(" + Math.round(90 + bright * 140) + "," + Math.round(70 + bright * 110) + "," + Math.round(160 + bright * 80) + "," + (0.25 + bright * 0.75).toFixed(2) + ")";
+      }
+      g.fillRect(xx * cell, yy * cell, cell, cell);
+    }
+  }
+  /* source nodes */
+  for (var s2 = 0; s2 < n; s2++){
+    g.fillStyle = "#fff3d6";
+    g.beginPath();
+    g.arc(srcs[s2].x * e.w, srcs[s2].y * e.h, 3, 0, 6.283);
+    g.fill();
+  }
+}
+
+/* ================= scene painting ================= */
+function artWorldRect(a){
+  var top = floorY - a.h - Math.round(H * 0.16);
+  return { x:a.x, y:top, w:a.w, h:a.h };
+}
+
+function paint(){
+  /* wall */
+  var wallGrad = ctx.createLinearGradient(0, 0, 0, floorY);
+  wallGrad.addColorStop(0, "#e6e0d4");
+  wallGrad.addColorStop(0.75, "#e9e4da");
+  wallGrad.addColorStop(1, "#d9d2c2");
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(0, 0, W, floorY);
+
+  /* faint distant wall band for depth */
+  ctx.fillStyle = "rgba(120,110,92,0.06)";
+  ctx.fillRect(0, floorY * 0.22, W, 2);
+
+  /* baseboard */
+  ctx.fillStyle = "#cfc7b4";
+  ctx.fillRect(0, floorY - 14, W, 14);
+  ctx.fillStyle = "rgba(43,38,32,.25)";
+  ctx.fillRect(0, floorY - 14, W, 2);
+
+  /* ceiling + track */
+  ctx.fillStyle = "#d3ccbc";
+  ctx.fillRect(0, 0, W, Math.max(8, floorY * 0.06));
+  var trackY = Math.max(26, floorY * 0.10);
+  ctx.fillStyle = "#4a4438";
+  ctx.fillRect(0, trackY, W, 4);
+
+  /* floor */
+  var fl = ctx.createLinearGradient(0, floorY, 0, H);
+  fl.addColorStop(0, "#c29463");
+  fl.addColorStop(0.35, "#b98a55");
+  fl.addColorStop(1, "#8a6238");
+  ctx.fillStyle = fl;
+  ctx.fillRect(0, floorY, W, H - floorY);
+  /* plank seams */
+  ctx.strokeStyle = "rgba(60,40,20,.25)";
+  ctx.lineWidth = 1;
+  for (var i = 1; i < 6; i++){
+    var yy = floorY + (H - floorY) * Math.pow(i / 6, 1.4);
+    ctx.beginPath();
+    ctx.moveTo(0, yy);
+    ctx.lineTo(W, yy);
+    ctx.stroke();
+  }
+  /* vertical seams */
+  ctx.strokeStyle = "rgba(60,40,20,.12)";
+  var seamStep = 130;
+  var start = -(camX % seamStep);
+  for (var sx = start; sx < W; sx += seamStep){
+    ctx.beginPath();
+    ctx.moveTo(sx, floorY);
+    ctx.lineTo(sx + (H - floorY) * 0.3, H);
+    ctx.stroke();
+  }
+
+  /* room numerals on the wall */
+  ctx.textAlign = "center";
+  ROOM_ROMAN.forEach(function(rm){
+    var sx = rm.x - camX;
+    if (sx < -200 || sx > W + 200) return;
+    ctx.fillStyle = "rgba(43,38,32,.10)";
+    ctx.font = "600 " + Math.round(floorY * 0.34) + "px ui-serif, Georgia, serif";
+    ctx.fillText(rm.label, sx, floorY * 0.62);
+    ctx.fillStyle = "rgba(43,38,32,.4)";
+    ctx.font = "600 13px ui-serif, Georgia, serif";
+    ctx.fillText("ROOM " + rm.label, sx, floorY * 0.62 + 24);
+  });
+
+  /* artworks */
+  var nearest = null, nd = 1e9;
+  ART.forEach(function(a){
+    var d = Math.abs((a.x + a.w / 2) - (camX + W / 2));
+    if (d < nd){ nd = d; nearest = a; }
+  });
+
+  ART.forEach(function(a, idx){
+    var r = artWorldRect(a);
+    var sx = r.x - camX;
+    if (sx + r.w < -80 || sx > W + 80) return;
+    var isNear = (a === nearest);
+    var boost = isNear ? 1 : lerp(0.55, 0.9, clamp(1 - nd / 900, 0, 1));
+
+    /* spotlight cone from track */
+    var trackY2 = Math.max(26, floorY * 0.10) + 4;
+    var cxArt = sx + r.w / 2;
+    var coneTop = trackY2 + 8;
+    var spread = r.w * 0.85;
+    var cg = ctx.createLinearGradient(0, coneTop, 0, floorY);
+    var spotA = 0.16 * boost;
+    cg.addColorStop(0, "rgba(255,243,214," + (spotA * 1.4).toFixed(3) + ")");
+    cg.addColorStop(1, "rgba(255,243,214,0)");
+    ctx.fillStyle = cg;
+    ctx.beginPath();
+    ctx.moveTo(cxArt - 5, coneTop);
+    ctx.lineTo(cxArt + 5, coneTop);
+    ctx.lineTo(cxArt + spread, floorY);
+    ctx.lineTo(cxArt - spread, floorY);
+    ctx.closePath();
+    ctx.fill();
+
+    /* frame shadow on wall */
+    ctx.fillStyle = "rgba(43,38,32,.18)";
+    ctx.fillRect(sx + 8, r.y + 10, r.w, r.h);
+
+    /* frame */
+    ctx.fillStyle = "#3a2f22";
+    ctx.fillRect(sx - 8, r.y - 8, r.w + 16, r.h + 16);
+    ctx.fillStyle = "#241d14";
+    ctx.fillRect(sx - 8, r.y - 8, r.w + 16, 4);
+    /* mat */
+    ctx.fillStyle = "#f6f1e4";
+    ctx.fillRect(sx - 3, r.y - 3, r.w + 6, r.h + 6);
+
+    /* artwork itself */
+    var e = engines[idx];
+    ctx.drawImage(e.cv, sx, r.y, r.w, r.h);
+
+    /* glass sheen */
+    var sh = ctx.createLinearGradient(sx, r.y, sx + r.w, r.y + r.h);
+    sh.addColorStop(0, "rgba(255,255,255,.14)");
+    sh.addColorStop(0.35, "rgba(255,255,255,.03)");
+    sh.addColorStop(0.6, "rgba(255,255,255,0)");
+    ctx.fillStyle = sh;
+    ctx.fillRect(sx, r.y, r.w, r.h);
+
+    /* light pool on the floor + reflection */
+    var pool = ctx.createRadialGradient(cxArt, floorY + (H - floorY) * 0.16, 4, cxArt, floorY + (H - floorY) * 0.16, spread * 1.1);
+    pool.addColorStop(0, "rgba(255,243,214," + (0.30 * boost).toFixed(3) + ")");
+    pool.addColorStop(1, "rgba(255,243,214,0)");
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, floorY, W, H - floorY);
+    ctx.clip();
+    ctx.fillStyle = pool;
+    ctx.fillRect(cxArt - spread * 1.2, floorY, spread * 2.4, H - floorY);
+
+    /* mirrored artwork */
+    ctx.globalAlpha = 0.22 * boost;
+    ctx.save();
+    ctx.translate(0, floorY * 2 + r.h);
+    ctx.scale(1, -1);
+    ctx.drawImage(e.cv, sx, r.y, r.w, r.h);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    /* fade the reflection */
+    var rf = ctx.createLinearGradient(0, floorY, 0, floorY + r.h * 0.9);
+    rf.addColorStop(0, "rgba(185,138,85,0)");
+    rf.addColorStop(1, "rgba(185,138,85,.85)");
+    ctx.fillStyle = rf;
+    ctx.fillRect(sx - 12, floorY, r.w + 24, r.h * 0.9);
+    ctx.restore();
+
+    /* didactic card */
+    var dx = sx + r.w + 26;
+    if (dx + 150 > W) dx = sx - 176;
+    var dy = r.y + 12;
+    ctx.fillStyle = "rgba(251,248,240,.95)";
+    ctx.fillRect(dx, dy, 150, 108);
+    ctx.strokeStyle = "rgba(43,38,32,.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(dx + 0.5, dy + 0.5, 150, 108);
+    ctx.fillStyle = "#a8823c";
+    ctx.fillRect(dx, dy, 3, 108);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#26221b";
+    ctx.font = "600 italic 12px ui-serif, Georgia, serif";
+    ctx.fillText(a.title, dx + 11, dy + 20);
+    ctx.fillStyle = "#6f6656";
+    ctx.font = "9px system-ui, sans-serif";
+    ctx.fillText(a.artist, dx + 11, dy + 35);
+    ctx.fillText(a.medium, dx + 11, dy + 47);
+    ctx.fillText(a.year, dx + 11, dy + 59);
+    ctx.strokeStyle = "rgba(43,38,32,.25)";
+    ctx.beginPath();
+    ctx.moveTo(dx + 11, dy + 68);
+    ctx.lineTo(dx + 139, dy + 68);
+    ctx.stroke();
+    ctx.fillStyle = "#4a4438";
+    ctx.font = "italic 9px ui-serif, Georgia, serif";
+    wrapText(a.note, dx + 11, dy + 82, 128, 11);
+
+    /* plaque number */
+    ctx.fillStyle = "rgba(43,38,32,.55)";
+    ctx.font = "600 10px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("№ 0" + (idx + 1), cxArt, r.y - 16);
+  });
+
+  /* benches */
+  BENCHES.forEach(function(bx){
+    var sx = bx - camX;
+    if (sx < -160 || sx > W + 160) return;
+    var by = floorY + (H - floorY) * 0.30;
+    var bw = 130, bh = 12;
+    ctx.fillStyle = "rgba(30,22,14,.85)";
+    ctx.fillRect(sx, by - bh, bw, bh);
+    ctx.fillRect(sx + 10, by, 8, 22);
+    ctx.fillRect(sx + bw - 18, by, 8, 22);
+    /* shadow */
+    ctx.fillStyle = "rgba(30,22,14,.25)";
+    ctx.beginPath();
+    ctx.ellipse(sx + bw / 2, by + 30, bw * 0.55, 7, 0, 0, 6.283);
+    ctx.fill();
+    /* reflection */
+    ctx.globalAlpha = 0.12;
+    ctx.save();
+    ctx.translate(0, (by - bh) * 2 + bh);
+    ctx.scale(1, -1);
+    ctx.fillStyle = "rgba(30,22,14,.85)";
+    ctx.fillRect(sx, by - bh, bw, bh);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  });
+
+  /* entrance mark */
+  var ex = ENTRANCE_X - camX;
+  if (ex > -300 && ex < W + 300){
+    ctx.fillStyle = "rgba(43,38,32,.35)";
+    ctx.font = "600 12px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("EAST WING — BEGIN", ex, floorY * 0.4);
+    ctx.strokeStyle = "rgba(43,38,32,.3)";
+    ctx.beginPath();
+    ctx.moveTo(ex, floorY * 0.4 + 8);
+    ctx.lineTo(ex + 150, floorY * 0.4 + 8);
+    ctx.stroke();
+  }
+
+  /* guest desk */
+  var gx = DESK_X - camX;
+  if (gx > -260 && gx < W + 260){
+    var dy2 = floorY + (H - floorY) * 0.18;
+    ctx.fillStyle = "#6b4a2c";
+    ctx.fillRect(gx, dy2 - 46, 170, 12);
+    ctx.fillRect(gx + 10, dy2 - 34, 10, 34);
+    ctx.fillRect(gx + 150, dy2 - 34, 10, 34);
+    /* open book */
+    ctx.fillStyle = "#f6f1e4";
+    ctx.beginPath();
+    ctx.moveTo(gx + 30, dy2 - 46);
+    ctx.quadraticCurveTo(gx + 85, dy2 - 58, gx + 140, dy2 - 46);
+    ctx.lineTo(gx + 140, dy2 - 40);
+    ctx.quadraticCurveTo(gx + 85, dy2 - 52, gx + 30, dy2 - 40);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(43,38,32,.4)";
+    ctx.stroke();
+    ctx.fillStyle = "rgba(43,38,32,.6)";
+    ctx.font = "600 11px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("SIGN THE BOOK", gx + 85, dy2 - 66);
+  }
+
+  /* dust motes in beams */
+  if (!reduced.matches){
+    ctx.fillStyle = "rgba(255,248,228,.5)";
+    for (var m = 0; m < 24; m++){
+      var seed = m * 97.13;
+      var mx = ((seed * 13.7 + tGlobal * 8) % (W + 60)) - 30;
+      var beam = Math.round(m / 4);
+      if (beam >= ART.length) beam = ART.length - 1;
+      var aR = artWorldRect(ART[beam]);
+      var bcx = aR.x + aR.w / 2 - camX;
+      if (bcx < -50 || bcx > W + 50) continue;
+      var my = trackY + 20 + ((seed * 7.7 + tGlobal * 12) % (floorY - trackY - 30));
+      var sway = Math.sin(tGlobal * 0.8 + m) * 6;
+      ctx.globalAlpha = 0.14 + 0.2 * Math.abs(Math.sin(tGlobal + m * 2));
+      ctx.fillRect(bcx + sway + ((m % 3) - 1) * 26, my, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* vignette */
+  var vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.4, W / 2, H / 2, Math.max(W, H) * 0.75);
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, "rgba(30,20,10,.22)");
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function wrapText(text, x, y, maxW, lh){
+  var words = text.split(" ");
+  var line = "", yy = y;
+  for (var i = 0; i < words.length; i++){
+    var test = line + words[i] + " ";
+    if (ctx.measureText(test).width > maxW && line){
+      ctx.fillText(line, x, yy);
+      line = words[i] + " ";
+      yy += lh;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line, x, yy);
+}
+
+/* ================= guest book ================= */
+var gbShown = false;
+function loadEntries(){
+  try {
+    var raw = localStorage.getItem("wot-guestbook");
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return [
+    { who:"The Registrar", say:"Ink is permanent. So is this page.", when:"opening day" }
+  ];
+}
+var entries = loadEntries();
+function renderEntries(){
+  els.gbEntries.innerHTML = "";
+  entries.slice(-12).forEach(function(en){
+    var d = document.createElement("div");
+    d.className = "gb-entry";
+    var who = document.createElement("span");
+    who.className = "who";
+    who.textContent = en.who;
+    var say = document.createElement("span");
+    say.className = "say";
+    say.textContent = en.say;
+    var when = document.createElement("span");
+    when.className = "when";
+    when.textContent = en.when;
+    d.appendChild(who); d.appendChild(say); d.appendChild(when);
+    els.gbEntries.appendChild(d);
+  });
+  els.gbEntries.scrollTop = els.gbEntries.scrollHeight;
+}
+els.gbForm.addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = els.gbName.value.trim() || "Anonymous Visitor";
+  var msg = els.gbMsg.value.trim() || "was here, and looked slowly.";
+  entries.push({ who:name, say:msg, when:new Date().toLocaleDateString() });
+  try { localStorage.setItem("wot-guestbook", JSON.stringify(entries.slice(-40))); } catch(err){}
+  els.gbName.value = ""; els.gbMsg.value = "";
+  renderEntries();
+});
+els.gbClose.addEventListener("click", function(){
+  gbShown = false;
+  els.guestbook.classList.remove("show");
+  els.guestbook.setAttribute("aria-hidden", "true");
+});
+
+/* ================= scroll + loop ================= */
+var tGlobal = 0, frame = 0, lastT = 0;
+var raf = 0, running = true;
+
+function readScroll(){
+  var doc = document.documentElement;
+  var max = Math.max(1, els.runway.offsetHeight - window.innerHeight);
+  var p = clamp((window.scrollY || doc.scrollTop) / max, 0, 1);
+  camTarget = p * (WORLD - W);
+  els.progBar.style.width = (p * 100).toFixed(2) + "%";
+  var room = p < 0.45 ? "I" : (p < 0.86 ? "II" : "—");
+  if (els.roomNow.textContent !== room) els.roomNow.textContent = room;
+  /* nearest artwork index */
+  var best = 0, bd = 1e9;
+  ART.forEach(function(a, i){
+    var d = Math.abs((a.x + a.w / 2) - (camTarget + W / 2));
+    if (d < bd){ bd = d; best = i; }
+  });
+  var wn = "0" + (best + 1);
+  if (els.worksNow.textContent !== wn) els.worksNow.textContent = wn;
+  /* guest book reveal near the end */
+  if (p > 0.945 && !gbShown){
+    gbShown = true;
+    els.guestbook.classList.add("show");
+    els.guestbook.setAttribute("aria-hidden", "false");
+  } else if (p < 0.9 && gbShown){
+    gbShown = false;
+    els.guestbook.classList.remove("show");
+    els.guestbook.setAttribute("aria-hidden", "true");
+  }
+}
+window.addEventListener("scroll", readScroll, { passive:true });
+
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  var dt = clamp((now - lastT) / 1000, 0, 0.06);
+  lastT = now;
+  tGlobal += dt;
+  frame++;
+  camX = lerp(camX, camTarget, reduced.matches ? 1 : 0.09);
+  /* engines tick */
+  var speedMul = reduced.matches ? 0 : 1;
+  for (var i = 0; i < engines.length; i++){
+    var e = engines[i];
+    e.t += dt * speedMul;
+    var a = ART[i];
+    if (a.type === "flow") drawFlow(e, a, dt);
+    else if (a.type === "moire") { if (frame % 2 === 0) drawMoire(e, a, dt); }
+    else if (a.type === "wave" || a.type === "wave3"){ if (frame % 2 === 0) drawWave(e, a, dt); }
+    /* ca draws itself on internal step */
+  }
+  paint();
+}
+
+/* ================= fit ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + "px";
+  cv.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  floorY = Math.round(H * 0.72);
+  readScroll();
+}
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(fit, 160);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+});
+
+/* keyboard nudge */
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
+    var dir = e.key === "ArrowRight" ? 1 : -1;
+    window.scrollBy({ top: dir * window.innerHeight * 0.4, behavior: reduced.matches ? "auto" : "smooth" });
+  }
+});
+
+/* ================= boot ================= */
+fit();
+renderEntries();
+readScroll();
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

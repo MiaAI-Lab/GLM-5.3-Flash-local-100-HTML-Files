@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Le Cinéma Rex — a 1927 single-screen picture palace. Chase the marquee bulbs, choose a velvet seat, and tear your ticket along the perforation.">
+<title>Le Cinéma Rex — Tonight at the Rex</title>
+<style>
+  :root{
+    --navy:#101823;
+    --navy-2:#0b1119;
+    --navy-3:#060b12;
+    --crimson:#7a1f2b;
+    --crimson-2:#8d2836;
+    --crimson-deep:#5d1722;
+    --gold:#d4af37;
+    --gold-soft:#e8cd7a;
+    --brass:#8a6d3b;
+    --brass-2:#6b5220;
+    --cream:#f2e8d5;
+    --cream-dim:#cfc3a8;
+    --ink:#23252b;
+    --seat-w:clamp(27px, 4vw, 40px);
+    --seat-h:calc(var(--seat-w) * 0.82);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scrollbar-color:var(--brass) var(--navy-2); }
+  ::-webkit-scrollbar{ width:11px; }
+  ::-webkit-scrollbar-track{ background:var(--navy-2); }
+  ::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--brass), var(--brass-2));
+    border-radius:6px; border:2px solid var(--navy-2);
+  }
+  ::selection{ background:var(--gold); color:var(--navy); }
+  [hidden]{ display:none !important; }
+
+  body{
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1b2736 0%, var(--navy) 46%, var(--navy-2) 100%);
+    color:var(--cream);
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* star field above the marquee */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 8%, rgba(242,232,213,.9), transparent 60%),
+      radial-gradient(1.1px 1.1px at 26% 4%, rgba(242,232,213,.7), transparent 60%),
+      radial-gradient(1.6px 1.6px at 41% 10%, rgba(232,205,122,.8), transparent 60%),
+      radial-gradient(1px 1px at 55% 3%, rgba(242,232,213,.65), transparent 60%),
+      radial-gradient(1.3px 1.3px at 68% 9%, rgba(242,232,213,.8), transparent 60%),
+      radial-gradient(1px 1px at 79% 5%, rgba(232,205,122,.7), transparent 60%),
+      radial-gradient(1.5px 1.5px at 90% 11%, rgba(242,232,213,.85), transparent 60%),
+      radial-gradient(1px 1px at 7% 22%, rgba(242,232,213,.5), transparent 60%),
+      radial-gradient(1.2px 1.2px at 94% 24%, rgba(242,232,213,.55), transparent 60%);
+  }
+  body::after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background-image:
+      radial-gradient(1.1px 1.1px at 18% 14%, rgba(242,232,213,.6), transparent 60%),
+      radial-gradient(1.2px 1.2px at 47% 17%, rgba(232,205,122,.55), transparent 60%),
+      radial-gradient(1px 1px at 62% 13%, rgba(242,232,213,.5), transparent 60%),
+      radial-gradient(1.4px 1.4px at 84% 18%, rgba(242,232,213,.6), transparent 60%);
+    animation:twinkle 7s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{ from{ opacity:.25; } to{ opacity:.75; } }
+
+  main, header.facade, footer.foot{ position:relative; z-index:1; }
+
+  /* ============ THE FACADE ============ */
+  header.facade{
+    max-width:1060px; margin:0 auto; padding:clamp(20px, 4vw, 44px) 16px 0;
+    text-align:center;
+  }
+  .marquee{
+    border:3px solid var(--brass);
+    border-radius:18px;
+    background:
+      linear-gradient(180deg, #182334 0%, #131c2b 55%, #0e1622 100%);
+    box-shadow:
+      0 0 0 1px rgba(212,175,55,.25) inset,
+      0 18px 50px rgba(0,0,0,.55),
+      0 2px 0 rgba(212,175,55,.2);
+    padding:clamp(10px, 1.6vw, 18px) clamp(12px, 2.4vw, 28px) clamp(12px, 1.8vw, 20px);
+    position:relative;
+  }
+  .marquee::before{
+    content:""; position:absolute; inset:6px;
+    border:1px solid rgba(212,175,55,.35); border-radius:12px; pointer-events:none;
+  }
+  .bulbs{
+    display:flex; justify-content:center; gap:clamp(6px, 1.2vw, 14px);
+    margin:2px 0 10px;
+  }
+  .bulbs.flip{ margin:10px 0 2px; }
+  .bulbs span{
+    width:clamp(8px, 1.4vw, 12px); aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff8e0, var(--gold) 58%, var(--brass-2));
+    box-shadow:0 0 9px 2px rgba(212,175,55,.35);
+    animation:chase 1.4s linear infinite;
+    animation-delay:calc(var(--i) * -0.175s);
+    flex:0 0 auto;
+  }
+  .bulbs.flip span{ animation-delay:calc(var(--i) * -0.175s - 0.7s); }
+  @keyframes chase{
+    0%, 42%{
+      filter:brightness(1.35) saturate(1.05);
+      box-shadow:0 0 11px 3px rgba(255, 220, 130, .6);
+    }
+    50%, 100%{
+      filter:brightness(.5);
+      box-shadow:0 0 3px 0 rgba(212,175,55,.15);
+    }
+  }
+  .marquee-title{
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    font-weight:700;
+    font-size:clamp(1.7rem, 6vw, 3.6rem);
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    text-indent:.3em; /* re-center the tracking */
+    color:var(--gold-soft);
+    text-shadow:
+      0 0 22px rgba(212,175,55,.45),
+      0 2px 0 rgba(0,0,0,.6),
+      0 0 2px rgba(255,248,224,.6);
+    font-variant:small-caps;
+    line-height:1.15;
+  }
+  .marquee-sub{
+    margin-top:10px;
+    font-size:clamp(.72rem, 1.7vw, .95rem);
+    letter-spacing:.34em;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    text-indent:.34em;
+  }
+  .est{
+    margin:14px 4px 0;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.72rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:rgba(207,195,168,.72);
+  }
+
+  /* ============ PROGRAMME ROW ============ */
+  main{
+    max-width:1060px; margin:0 auto;
+    padding:clamp(22px, 4vw, 46px) 16px clamp(30px, 5vw, 60px);
+    display:flex; flex-direction:column; gap:clamp(28px, 4.5vw, 52px);
+  }
+  .programme{
+    display:grid;
+    grid-template-columns:minmax(250px, 340px) 1fr;
+    gap:clamp(18px, 3vw, 40px);
+    align-items:stretch;
+  }
+  .poster{
+    position:relative; overflow:hidden;
+    background:linear-gradient(175deg, #f6eedb 0%, var(--cream) 62%, #e6d9bd 100%);
+    color:var(--crimson);
+    border:1px solid var(--brass);
+    box-shadow:0 14px 34px rgba(0,0,0,.5), 0 0 0 6px rgba(138,109,59,.16);
+    border-radius:4px;
+    padding:clamp(18px, 3vw, 30px) clamp(14px, 2.4vw, 24px);
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    min-height:430px;
+  }
+  .poster::before{
+    content:""; position:absolute; inset:8px;
+    border:2px solid var(--crimson);
+    outline:1px solid rgba(122,31,43,.4);
+    outline-offset:3px;
+    pointer-events:none;
+    border-radius:2px;
+  }
+  .rays{
+    position:absolute; inset:-20%;
+    background:repeating-conic-gradient(from 0deg at 50% 104%,
+      rgba(122,31,43,.14) 0deg 5deg,
+      transparent 5deg 11deg);
+    pointer-events:none;
+  }
+  .moon{
+    position:absolute; top:7%; left:50%; transform:translateX(-50%);
+    width:clamp(58px, 9vw, 84px); aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #f7ead0, var(--gold) 62%, #a8862c);
+    box-shadow:0 0 30px rgba(212,175,55,.5), 0 0 70px rgba(212,175,55,.22);
+    pointer-events:none;
+  }
+  .violin{
+    position:absolute; bottom:20%; left:50%; transform:translateX(-50%);
+    width:clamp(64px, 10vw, 92px);
+    pointer-events:none;
+    filter:drop-shadow(0 6px 10px rgba(93,23,34,.35));
+  }
+  .p-kicker{
+    margin-top:clamp(46px, 8vw, 68px);
+    font-size:.68rem; letter-spacing:.42em; text-transform:uppercase;
+    text-indent:.42em; color:rgba(122,31,43,.8);
+    position:relative;
+  }
+  .p-title{
+    position:relative; margin-top:10px; line-height:.98;
+    font-variant:small-caps; font-weight:700; color:var(--crimson);
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .p-title span{ font-size:clamp(.95rem, 2.4vw, 1.3rem); letter-spacing:.5em; text-indent:.5em; }
+  .p-title em{
+    font-style:italic; font-weight:700;
+    font-size:clamp(2rem, 5.4vw, 3rem);
+    letter-spacing:.06em;
+    text-shadow:0 1px 0 rgba(242,232,213,.8), 0 2px 6px rgba(93,23,34,.3);
+  }
+  .p-rule{
+    width:74px; height:1px; background:var(--crimson); margin:12px auto 0;
+    box-shadow:0 3px 0 -1px rgba(122,31,43,.5);
+  }
+  .p-sub{
+    position:relative; margin-top:12px;
+    font-style:italic; font-size:clamp(.82rem, 1.9vw, 1rem); color:#4d2430;
+  }
+  .p-credits{
+    position:absolute; bottom:34px; left:0; right:0; padding:0 20px;
+    font-size:.66rem; letter-spacing:.12em; line-height:1.7; color:#5a3a44;
+    text-transform:uppercase;
+  }
+  .p-mm{
+    position:absolute; bottom:12px; left:0; right:0;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.62rem; letter-spacing:.22em; color:rgba(90,58,68,.85);
+  }
+
+  .times{ display:flex; flex-direction:column; }
+  .sec-title{
+    font-size:clamp(1.1rem, 2.6vw, 1.5rem);
+    font-variant:small-caps; letter-spacing:.22em; color:var(--gold-soft);
+    border-bottom:1px solid rgba(212,175,55,.35);
+    padding-bottom:10px; margin-bottom:6px;
+  }
+  .time{
+    display:grid; grid-template-columns:auto 1fr auto; align-items:baseline;
+    gap:14px; width:100%; text-align:left;
+    background:none; border:none; cursor:pointer;
+    padding:14px 10px 14px 14px;
+    border-left:3px solid transparent;
+    color:var(--cream);
+    font-family:Georgia, ui-serif, serif;
+    transition:background .25s ease, border-color .25s ease, transform .25s ease;
+  }
+  .time + .time{ border-top:1px dashed rgba(207,195,168,.2); }
+  .time:hover{ background:rgba(212,175,55,.06); border-left-color:rgba(212,175,55,.4); transform:translateX(2px); }
+  .time:focus-visible{ outline:2px dashed var(--gold); outline-offset:-3px; }
+  .time.selected{ border-left-color:var(--gold); background:linear-gradient(90deg, rgba(212,175,55,.12), transparent 70%); }
+  .t-hour{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:clamp(1rem, 2.4vw, 1.3rem); color:var(--gold-soft); letter-spacing:.08em;
+  }
+  .t-name{ font-size:clamp(.85rem, 2vw, 1.02rem); font-style:italic; color:var(--cream); }
+  .t-price{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.8rem; color:var(--cream-dim); letter-spacing:.1em; white-space:nowrap;
+  }
+  .house-note{
+    margin-top:16px; font-size:.78rem; font-style:italic; color:rgba(207,195,168,.75);
+  }
+  .rules{
+    margin-top:12px; list-style:none;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.68rem; letter-spacing:.08em; line-height:2;
+    color:rgba(207,195,168,.6); text-transform:uppercase;
+  }
+  .rules li::before{ content:"— "; color:var(--brass); }
+
+  /* ============ SEAT CONSOLE ============ */
+  .console{
+    border:1px solid rgba(138,109,59,.7);
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(24,35,52,.6), rgba(14,22,34,.7));
+    box-shadow:0 18px 44px rgba(0,0,0,.45);
+    padding:clamp(16px, 2.6vw, 30px);
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .screenwrap{ text-align:center; }
+  .screen-arc{
+    width:min(72%, 520px); height:clamp(18px, 3vw, 30px); margin:0 auto;
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    background:linear-gradient(180deg, #f7ecd2, #cdb684 80%);
+    box-shadow:0 0 26px rgba(242,232,213,.4), 0 0 60px rgba(242,232,213,.12);
+  }
+  .screen-label{
+    margin-top:8px;
+    font-size:.66rem; letter-spacing:.5em; text-indent:.5em;
+    text-transform:uppercase; color:rgba(207,195,168,.7);
+  }
+  .velvet{
+    border-radius:12px;
+    border:1px solid rgba(212,175,55,.3);
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,.028) 0 2px, transparent 2px 4px),
+      radial-gradient(130% 120% at 50% 0%, var(--crimson-2) 0%, var(--crimson) 48%, var(--crimson-deep) 100%);
+    box-shadow:0 10px 26px rgba(0,0,0,.4) inset;
+    padding:clamp(12px, 2.2vw, 24px);
+    overflow-x:auto;
+  }
+  .seat-head{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.7rem; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(242,232,213,.85);
+    margin-bottom:14px;
+  }
+  .seatgrid{ display:flex; flex-direction:column; gap:9px; align-items:center; min-width:fit-content; }
+  .srow{ display:flex; align-items:center; gap:7px; }
+  .rlabel{
+    width:20px; text-align:center;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.66rem; color:rgba(242,232,213,.55);
+    flex:0 0 auto;
+  }
+  .seat{
+    width:var(--seat-w); height:var(--seat-h);
+    border-radius:7px 7px 10px 10px;
+    border:1px solid rgba(0,0,0,.35);
+    background:linear-gradient(180deg, #972e3d 0%, var(--crimson) 55%, #641a25 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 3px 5px rgba(0,0,0,.4);
+    color:rgba(242,232,213,.85);
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:clamp(.55rem, 1.4vw, .68rem);
+    cursor:pointer;
+    padding:0;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:transform .18s ease, filter .18s ease, background .18s ease;
+    flex:0 0 auto;
+    touch-action:manipulation;
+  }
+  .seat:hover:not(:disabled):not(.chosen){ filter:brightness(1.22); transform:translateY(-2px); }
+  .seat:focus-visible{ outline:2px dashed var(--gold-soft); outline-offset:2px; }
+  .seat.chosen{
+    background:linear-gradient(180deg, #f0dc9a 0%, var(--gold) 55%, #a8862c 100%);
+    color:var(--navy); font-weight:700;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 0 14px rgba(212,175,55,.45);
+  }
+  .seat.taken{
+    background:
+      linear-gradient(45deg, transparent 44%, rgba(0,0,0,.5) 44% 56%, transparent 56%),
+      linear-gradient(-45deg, transparent 44%, rgba(0,0,0,.5) 44% 56%, transparent 56%),
+      linear-gradient(180deg, #33141a, #240d12);
+    color:rgba(242,232,213,.35);
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .seat.aisle{ margin-left:clamp(12px, 2.4vw, 24px); }
+  .seat.deny{ animation:deny .32s ease; }
+  @keyframes deny{
+    0%, 100%{ transform:translateX(0); }
+    25%{ transform:translateX(-4px); }
+    55%{ transform:translateX(4px); }
+    80%{ transform:translateX(-2px); }
+  }
+  .legend{
+    display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
+    margin-top:16px;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.64rem; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(242,232,213,.7);
+  }
+  .legend i{
+    display:inline-block; width:12px; height:10px; border-radius:3px;
+    margin-right:6px; vertical-align:-1px;
+  }
+  .legend .l-free{ background:linear-gradient(180deg, #972e3d, #641a25); }
+  .legend .l-chosen{ background:linear-gradient(180deg, #f0dc9a, #a8862c); }
+  .legend .l-taken{ background:#2c1116; box-shadow:inset 0 0 0 1px rgba(0,0,0,.4); }
+
+  .checkout{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:14px;
+  }
+  .price{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.78rem; letter-spacing:.12em; color:var(--cream-dim);
+  }
+  .print{
+    font-family:Georgia, ui-serif, serif;
+    font-variant:small-caps; letter-spacing:.3em; text-indent:.3em;
+    font-size:clamp(.85rem, 2vw, 1rem);
+    color:var(--navy);
+    background:linear-gradient(180deg, #f0dc9a 0%, var(--gold) 55%, #b3902e 100%);
+    border:1px solid #8a6d1e;
+    border-radius:8px;
+    padding:13px 26px;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(212,175,55,.3), inset 0 1px 0 rgba(255,255,255,.55);
+    transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    touch-action:manipulation;
+  }
+  .print:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 10px 24px rgba(212,175,55,.4), inset 0 1px 0 rgba(255,255,255,.55); filter:brightness(1.06); }
+  .print:focus-visible{ outline:2px dashed var(--gold-soft); outline-offset:3px; }
+  .print:disabled{
+    background:linear-gradient(180deg, #3a4354, #2a3140);
+    color:rgba(207,195,168,.5); border-color:#232b38; cursor:not-allowed; box-shadow:none;
+  }
+  .toast{
+    min-height:1.3em; text-align:center;
+    font-style:italic; font-size:.85rem; color:var(--gold-soft);
+    opacity:0; transition:opacity .35s ease;
+  }
+  .toast.show{ opacity:1; }
+
+  /* ============ TICKET TRAY ============ */
+  .tray{ display:flex; flex-direction:column; align-items:center; gap:0; }
+  .slot{
+    width:min(480px, 92vw); height:14px; border-radius:7px;
+    background:linear-gradient(180deg, #3c3424 0%, #8a6d3b 30%, #4c3c1e 75%, #241c0e 100%);
+    box-shadow:0 2px 8px rgba(0,0,0,.7), inset 0 1px 0 rgba(232,205,122,.5);
+    position:relative; z-index:2;
+  }
+  .stage{
+    width:min(480px, 92vw); min-height:150px;
+    display:flex; justify-content:center; align-items:flex-start;
+    padding-top:0; position:relative;
+  }
+  .stage-hint{
+    margin-top:26px; text-align:center;
+    font-style:italic; font-size:.85rem; color:rgba(207,195,168,.65);
+    transition:opacity .4s ease;
+  }
+  .ticket{
+    display:flex; width:100%;
+    margin-top:-3px; position:relative; z-index:1;
+    filter:drop-shadow(0 12px 18px rgba(0,0,0,.55));
+    cursor:pointer;
+  }
+  .stage.dealt .ticket{ animation:deal .7s cubic-bezier(.2,.75,.3,1.05); }
+  @keyframes deal{
+    from{ transform:translateY(-46px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+  }
+  .half{
+    background:linear-gradient(180deg, #f7efdc 0%, var(--cream) 70%, #e4d7ba 100%);
+    color:var(--ink);
+    padding:16px 18px;
+    transition:transform .55s cubic-bezier(.25,.8,.3,1.15);
+  }
+  .main{ flex:1 1 auto; border-radius:5px 0 0 5px; }
+  .t-brand{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.62rem; letter-spacing:.22em; text-transform:uppercase;
+    color:#6a5a3a; margin-bottom:8px;
+  }
+  .t-film{
+    font-family:Georgia, ui-serif, serif; font-variant:small-caps;
+    font-size:clamp(1.05rem, 3vw, 1.4rem); letter-spacing:.08em;
+    color:var(--crimson); border-bottom:2px solid var(--crimson);
+    display:inline-block; padding-bottom:4px; margin-bottom:10px;
+  }
+  .t-row{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.92rem; letter-spacing:.14em; margin-bottom:8px; color:var(--ink);
+  }
+  .t-meta{
+    display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.7rem; letter-spacing:.12em; color:#4c4436;
+    text-transform:uppercase; margin-bottom:12px;
+  }
+  .t-serial{ display:flex; align-items:center; gap:12px; }
+  .t-serial span{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.68rem; letter-spacing:.18em; color:#6a5a3a; white-space:nowrap;
+  }
+  .t-bar{
+    flex:1; height:16px;
+    background:
+      repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px),
+      repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 13px);
+    opacity:.85; border-radius:1px;
+  }
+  .perf{
+    flex:0 0 11px;
+    background:
+      radial-gradient(circle at 5.5px 5px, var(--navy-2) 3.4px, transparent 3.8px);
+    background-size:11px 13px;
+    background-repeat:repeat-y;
+    border-left:1px dashed rgba(35,37,43,.45);
+    border-right:1px dashed rgba(35,37,43,.45);
+    transition:opacity .3s ease;
+  }
+  .stub{
+    flex:0 0 64px;
+    border-radius:0 5px 5px 0;
+    background:linear-gradient(180deg, #efe4c8 0%, #e2d3ae 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:14px 8px;
+  }
+  .stub-word{
+    writing-mode:vertical-rl; text-orientation:mixed;
+    font-family:Georgia, ui-serif, serif; font-variant:small-caps;
+    letter-spacing:.34em; font-size:.85rem; color:var(--crimson);
+  }
+  .stub-no{
+    writing-mode:vertical-rl; text-orientation:mixed;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.6rem; letter-spacing:.2em; color:#6a5a3a;
+  }
+  .ticket:focus-visible{ outline:2px dashed var(--gold); outline-offset:6px; border-radius:6px; }
+  .ticket.torn .perf{ opacity:0; }
+  .ticket.torn .stub{
+    transform:translate(46px, 18px) rotate(9deg);
+    clip-path:polygon(6.8% 0, 0 3.5%, 3.6% 8%, 0.4% 12.5%, 4% 17%, 0 22%, 3.4% 27%, 0.2% 33%, 3.8% 38%, 0 44%, 3.5% 50%, 0.3% 56%, 3.7% 62%, 0 68%, 3.4% 74%, 0.1% 80%, 3.8% 86%, 0 92%, 3.6% 96.5%, 7% 100%, 100% 100%, 100% 0);
+  }
+  .ticket.torn .main{
+    transform:translate(-5px, 3px) rotate(-1.6deg);
+    clip-path:polygon(0 0, 96.2% 0, 100% 3.5%, 96.4% 8%, 99.6% 12.5%, 96% 17%, 100% 22%, 96.6% 27%, 99.8% 33%, 96.2% 38%, 100% 44%, 96.5% 50%, 99.7% 56%, 96.3% 62%, 100% 68%, 96.6% 74%, 99.9% 80%, 96.2% 86%, 100% 92%, 96.4% 96.5%, 93% 100%, 0 100%);
+  }
+  .afternote{
+    margin-top:14px; text-align:center;
+    font-style:italic; font-size:.85rem; color:var(--gold-soft);
+  }
+
+  /* ============ FOOTER ============ */
+  footer.foot{
+    max-width:1060px; margin:0 auto;
+    padding:0 16px clamp(34px, 6vw, 64px);
+    text-align:center;
+  }
+  .hum{
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.7rem; letter-spacing:.2em; text-transform:uppercase;
+    background:none; color:var(--cream-dim);
+    border:1px solid rgba(138,109,59,.7); border-radius:20px;
+    padding:9px 18px; cursor:pointer;
+    transition:color .25s ease, border-color .25s ease, box-shadow .25s ease;
+    touch-action:manipulation;
+  }
+  .hum:hover{ color:var(--gold-soft); border-color:var(--gold); }
+  .hum[aria-pressed="true"]{
+    color:var(--navy);
+    background:linear-gradient(180deg, #f0dc9a, var(--gold));
+    border-color:#8a6d1e;
+    box-shadow:0 0 16px rgba(212,175,55,.35);
+  }
+  .hum:focus-visible{ outline:2px dashed var(--gold); outline-offset:3px; }
+  footer.foot p{
+    margin-top:18px;
+    font-family:"Courier New", ui-monospace, monospace;
+    font-size:.64rem; letter-spacing:.18em; text-transform:uppercase;
+    color:rgba(207,195,168,.5);
+  }
+
+  @media (max-width:760px){
+    .programme{ grid-template-columns:1fr; }
+    .poster{ min-height:400px; max-width:380px; margin:0 auto; width:100%; }
+    .ticket{ flex-direction:column; }
+    .perf{
+      flex:0 0 11px; height:11px; width:auto;
+      background:radial-gradient(circle at 5px 5.5px, var(--navy-2) 3.4px, transparent 3.8px);
+      background-size:13px 11px; background-repeat:repeat-x;
+      border-left:none; border-right:none;
+      border-top:1px dashed rgba(35,37,43,.45);
+      border-bottom:1px dashed rgba(35,37,43,.45);
+    }
+    .stub{ flex:0 0 auto; border-radius:0 0 5px 5px; flex-direction:row; justify-content:center; gap:12px; padding:10px 14px; }
+    .stub-word, .stub-no{ writing-mode:horizontal-tb; }
+    .ticket.torn .stub{ transform:translate(10px, 46px) rotate(6deg); }
+    .ticket.torn .main{ transform:translate(0, -4px) rotate(-1deg); }
+    .stage{ min-height:210px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bulbs span{ animation:none; filter:brightness(1.1); }
+    body::after{ animation:none; opacity:.5; }
+    .stage.dealt .ticket{ animation:none; }
+    .half, .time, .print, .seat, .hum{ transition:none; }
+    .seat.deny{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="facade">
+  <div class="marquee">
+    <div class="bulbs" aria-hidden="true">
+      <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span>
+      <span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span>
+      <span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span>
+      <span style="--i:12"></span>
+    </div>
+    <h1 class="marquee-title">Le Cinéma Rex</h1>
+    <p class="marquee-sub" id="marqueeSub">Tonight — The Violin of Dusk — Gala 20:30</p>
+    <div class="bulbs flip" aria-hidden="true">
+      <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span>
+      <span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span>
+      <span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span>
+      <span style="--i:12"></span>
+    </div>
+  </div>
+  <p class="est">Place des Lilas · Est. 1927 · Projected by carbon arc · Sound on the Rex Wurlitzer</p>
+</header>
+
+<main>
+  <section class="programme" aria-label="Tonight's programme">
+    <article class="poster" aria-label="Poster for The Violin of Dusk">
+      <div class="rays" aria-hidden="true"></div>
+      <div class="moon" aria-hidden="true"></div>
+      <svg class="violin" viewBox="0 0 100 132" aria-hidden="true" focusable="false">
+        <circle cx="50" cy="9" r="6.5" fill="none" stroke="#7a1f2b" stroke-width="3"></circle>
+        <rect x="47" y="12" width="6" height="14" fill="#7a1f2b"></rect>
+        <path fill="#7a1f2b" d="M50 24 C60 24 68 34 68 46 C68 54 62 58 62 64 C62 72 70 76 70 88 C70 104 60 112 50 112 C40 112 30 104 30 88 C30 76 38 72 38 64 C38 58 32 54 32 46 C32 34 40 24 50 24 Z"></path>
+        <path d="M42 70 C40 76 40 82 43 88" fill="none" stroke="#f2e8d5" stroke-width="1.6" stroke-linecap="round"></path>
+        <path d="M58 70 C60 76 60 82 57 88" fill="none" stroke="#f2e8d5" stroke-width="1.6" stroke-linecap="round"></path>
+        <rect x="42" y="88" width="16" height="3" fill="#f2e8d5"></rect>
+        <path d="M44 91 L50 104 L56 91 Z" fill="#5d1722"></path>
+        <path d="M38 30 C42 26 58 26 62 30" fill="none" stroke="#f2e8d5" stroke-width="1" opacity=".6"></path>
+      </svg>
+      <p class="p-kicker">The Rex Presents</p>
+      <h2 class="p-title"><span>The</span><em>Violin</em><span>of Dusk</span></h2>
+      <div class="p-rule" aria-hidden="true"></div>
+      <p class="p-sub">A Romance in Six Reels</p>
+      <p class="p-credits">Photographed by Aurel Bask · With Henri Belleval and Odette Marchand · Directed by Marguerite Solane</p>
+      <p class="p-mm">1927 · Certificate U · 104 Minutes</p>
+    </article>
+
+    <div class="times">
+      <h3 class="sec-title">Tonight's Programme</h3>
+      <button class="time" data-time="17:00" data-tag="Matinée" type="button">
+        <span class="t-hour">17:00</span>
+        <span class="t-name">Matinée — Short subjects and a newsreel of the Riviera</span>
+        <span class="t-price">9d</span>
+      </button>
+      <button class="time selected" data-time="20:30" data-tag="Gala" type="button">
+        <span class="t-hour">20:30</span>
+        <span class="t-name">Gala — The Violin of Dusk, full orchestral accompaniment</span>
+        <span class="t-price">1s 6d</span>
+      </button>
+      <button class="time" data-time="23:00" data-tag="Late" type="button">
+        <span class="t-hour">23:00</span>
+        <span class="t-name">Late — The Reel of Shadows, for the strong of heart</span>
+        <span class="t-price">1s</span>
+      </button>
+      <p class="house-note">Row I is omitted from the house plan, as is tradition. The gala hour is accompanied by the Rex Wurlitzer and Mrs. Ashworth on the celesta.</p>
+      <ul class="rules">
+        <li>No smoking in the dress circle</li>
+        <li>Patrons are asked not to sing with the orchestra</li>
+        <li>Hats off during the second reel</li>
+        <li>Lemonade, one penny, at the interval</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="console" aria-label="Choose your seats">
+    <div class="screenwrap">
+      <div class="screen-arc" aria-hidden="true"></div>
+      <p class="screen-label">The Screen</p>
+    </div>
+    <div class="velvet">
+      <div class="seat-head">
+        <span>Stalls — choose up to four seats</span>
+        <span id="seatRead">No seats chosen</span>
+      </div>
+      <div id="seatGrid" class="seatgrid" role="group" aria-label="Seat map of the stalls"></div>
+      <div class="legend">
+        <span><i class="l-free"></i>Free</span>
+        <span><i class="l-chosen"></i>Chosen</span>
+        <span><i class="l-taken"></i>Taken</span>
+      </div>
+    </div>
+    <div class="checkout">
+      <p class="price" id="priceLine">Admission 1s 6d each · Total —</p>
+      <button id="printBtn" class="print" type="button" disabled>Print Ticket</button>
+    </div>
+    <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="tray" aria-label="Your ticket">
+    <div class="slot" aria-hidden="true"></div>
+    <div class="stage" id="stage">
+      <p class="stage-hint" id="stageHint">Your ticket will rise from the brass slot once seats are chosen.</p>
+      <div class="ticket" id="ticket" hidden role="button" tabindex="0" aria-label="Your ticket. Press Enter to tear it along the perforation.">
+        <div class="half main">
+          <p class="t-brand">Rex Theatre — Place des Lilas</p>
+          <p class="t-film">The Violin of Dusk</p>
+          <p class="t-row" id="tSeats">Row F · Seat 7</p>
+          <div class="t-meta"><span id="tTime">20:30 · Gala</span><span id="tPrice">1s 6d</span></div>
+          <div class="t-serial"><span id="tSerial">Nº 041-2087</span><div class="t-bar" aria-hidden="true"></div></div>
+        </div>
+        <div class="perf" aria-hidden="true"></div>
+        <div class="half stub">
+          <p class="stub-word">Admit One</p>
+          <p class="stub-no" id="tStubNo">041-2087</p>
+        </div>
+      </div>
+    </div>
+    <p class="afternote" id="afterNote" hidden>Keep the stub — ushers will guide you to your seats by lamplight. Print another when ready.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <button id="humBtn" class="hum" type="button" aria-pressed="false">Projector Hum: Off</button>
+  <p>Doors 19:45 · Interval 21:15 · No refunds after the first reel · Missing us for something?</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- tiny synthesized sound kit ---------- */
+  var AC = null;
+  function actx() {
+    if (!AC) {
+      var Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) { return null; }
+      AC = new Ctor();
+    }
+    if (AC.state === "suspended") { AC.resume(); }
+    return AC;
+  }
+  function tone(freq, dur, type, peak, delay) {
+    var a = actx(); if (!a) { return; }
+    var t0 = a.currentTime + (delay || 0);
+    var o = a.createOscillator();
+    var g = a.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak || 0.05, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  function noiseBurst(dur, f0, f1, peak, kind) {
+    var a = actx(); if (!a) { return; }
+    var n = Math.max(1, Math.floor(a.sampleRate * dur));
+    var buf = a.createBuffer(1, n, a.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) { d[i] = Math.random() * 2 - 1; }
+    var src = a.createBufferSource();
+    src.buffer = buf;
+    var flt = a.createBiquadFilter();
+    flt.type = kind || "bandpass";
+    flt.Q.value = 0.8;
+    var t0 = a.currentTime;
+    flt.frequency.setValueAtTime(f0, t0);
+    flt.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t0 + dur);
+    var g = a.createGain();
+    g.gain.setValueAtTime(peak, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(flt); flt.connect(g); g.connect(a.destination);
+    src.start(t0);
+  }
+  function clack() { tone(190, 0.06, "square", 0.035); tone(140, 0.05, "square", 0.02, 0.035); }
+  function chime() { tone(660, 0.55, "sine", 0.04); tone(990, 0.7, "sine", 0.03, 0.09); }
+  function roll() { noiseBurst(0.35, 640, 260, 0.05, "lowpass"); }
+  function rip() { noiseBurst(0.3, 2200, 240, 0.12, "bandpass"); }
+
+  /* ---------- projector hum ---------- */
+  var humBtn = document.getElementById("humBtn");
+  var hum = null;
+  function startHum() {
+    var a = actx(); if (!a) { return; }
+    var master = a.createGain();
+    master.gain.setValueAtTime(0.0001, a.currentTime);
+    master.gain.linearRampToValueAtTime(0.02, a.currentTime + 0.8);
+    var o1 = a.createOscillator(); o1.type = "triangle"; o1.frequency.value = 50;
+    var o2 = a.createOscillator(); o2.type = "sine"; o2.frequency.value = 100;
+    var g2 = a.createGain(); g2.gain.value = 0.35;
+    var n = Math.floor(a.sampleRate * 2);
+    var buf = a.createBuffer(1, n, a.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) { d[i] = Math.random() * 2 - 1; }
+    var src = a.createBufferSource(); src.buffer = buf; src.loop = true;
+    var lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 260;
+    var ng = a.createGain(); ng.gain.value = 0.4;
+    var lfo = a.createOscillator(); lfo.frequency.value = 0.35;
+    var lg = a.createGain(); lg.gain.value = 0.006;
+    lfo.connect(lg); lg.connect(master.gain);
+    o1.connect(master); o2.connect(g2); g2.connect(master);
+    src.connect(lp); lp.connect(ng); ng.connect(master);
+    master.connect(a.destination);
+    o1.start(); o2.start(); src.start(); lfo.start();
+    hum = { master: master, nodes: [o1, o2, src, lfo] };
+  }
+  function stopHum() {
+    if (!hum) { return; }
+    var a = actx();
+    var t = a.currentTime;
+    hum.master.gain.cancelScheduledValues(t);
+    hum.master.gain.setValueAtTime(hum.master.gain.value, t);
+    hum.master.gain.linearRampToValueAtTime(0.0001, t + 0.25);
+    var dead = hum.nodes;
+    window.setTimeout(function () { dead.forEach(function (nd) { try { nd.stop(); } catch (e) {} }); }, 320);
+    hum = null;
+  }
+  humBtn.addEventListener("click", function () {
+    var on = humBtn.getAttribute("aria-pressed") === "true";
+    if (on) { stopHum(); humBtn.setAttribute("aria-pressed", "false"); humBtn.textContent = "Projector Hum: Off"; }
+    else { startHum(); humBtn.setAttribute("aria-pressed", "true"); humBtn.textContent = "Projector Hum: On"; }
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (!AC) { return; }
+    if (document.hidden) { AC.suspend(); }
+    else if (hum) { AC.resume(); }
+  });
+
+  /* ---------- seat map ---------- */
+  var rowsSpec = [["A", 10], ["B", 12], ["C", 12], ["D", 14], ["E", 14], ["F", 14], ["G", 12], ["H", 12], ["J", 10], ["K", 8]];
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var rnd = mulberry32(19271101);
+  var grid = document.getElementById("seatGrid");
+  var taken = {};
+  var sel = [];
+
+  rowsSpec.forEach(function (spec, ri) {
+    var letter = spec[0], count = spec[1];
+    var rowEl = document.createElement("div");
+    rowEl.className = "srow";
+    var lab = document.createElement("span");
+    lab.className = "rlabel";
+    lab.textContent = letter;
+    lab.setAttribute("aria-hidden", "true");
+    rowEl.appendChild(lab);
+    var center = count / 2 + 0.5;
+    for (var n = 1; n <= count; n++) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "seat";
+      b.dataset.id = letter + n;
+      b.textContent = String(n);
+      var dist = Math.abs(n - center);
+      var p = 0.10 + 0.22 * Math.max(0, 1 - dist / 3.2) * (ri < 4 ? 1 : 0.55);
+      if (rnd() < p) {
+        taken[letter + n] = true;
+        b.classList.add("taken");
+        b.disabled = true;
+        b.setAttribute("aria-label", "Row " + letter + ", seat " + n + ", taken");
+      } else {
+        b.setAttribute("aria-label", "Row " + letter + ", seat " + n + ", free");
+        b.setAttribute("aria-pressed", "false");
+      }
+      if (count >= 12 && n === count / 2 + 1) { b.classList.add("aisle"); }
+      rowEl.appendChild(b);
+    }
+    grid.appendChild(rowEl);
+  });
+
+  var seatRead = document.getElementById("seatRead");
+  var priceLine = document.getElementById("priceLine");
+  var printBtn = document.getElementById("printBtn");
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    if (toastTimer) { window.clearTimeout(toastTimer); }
+    toastTimer = window.setTimeout(function () { toastEl.classList.remove("show"); }, 2600);
+  }
+  function deny(b) {
+    if (RM) { return; }
+    b.classList.remove("deny");
+    void b.offsetWidth;
+    b.classList.add("deny");
+  }
+  function money() {
+    var pence = sel.length * 18;
+    var sh = Math.floor(pence / 12);
+    var pd = pence % 12;
+    if (sh === 0) { return pd + "d"; }
+    return pd === 0 ? sh + "s" : sh + "s " + pd + "d";
+  }
+  function refresh() {
+    if (sel.length) {
+      seatRead.textContent = "Chosen — " + sel.join(" · ");
+      priceLine.textContent = "Admission 1s 6d each · " + sel.length + (sel.length === 1 ? " seat" : " seats") + " · Total " + money();
+      printBtn.disabled = false;
+      printBtn.textContent = "Print Ticket — " + sel.length + (sel.length === 1 ? " Seat" : " Seats");
+    } else {
+      seatRead.textContent = "No seats chosen";
+      priceLine.textContent = "Admission 1s 6d each · Total —";
+      printBtn.disabled = true;
+      printBtn.textContent = "Print Ticket";
+    }
+  }
+
+  grid.addEventListener("click", function (e) {
+    var b = e.target.closest("button.seat");
+    if (!b) { return; }
+    var id = b.dataset.id;
+    if (taken[id]) { deny(b); toast("That seat is taken — the house is half full tonight."); return; }
+    var i = sel.indexOf(id);
+    if (i >= 0) {
+      sel.splice(i, 1);
+      b.classList.remove("chosen");
+      b.setAttribute("aria-pressed", "false");
+    } else {
+      if (sel.length >= 4) { deny(b); toast("The management limits parties to four seats."); return; }
+      sel.push(id);
+      b.classList.add("chosen");
+      b.setAttribute("aria-pressed", "true");
+    }
+    clack();
+    refresh();
+  });
+
+  /* ---------- showtimes ---------- */
+  var currentTime = "20:30";
+  var currentTag = "Gala";
+  var marqueeSub = document.getElementById("marqueeSub");
+  var timeBtns = Array.prototype.slice.call(document.querySelectorAll(".time"));
+  timeBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      timeBtns.forEach(function (x) { x.classList.remove("selected"); });
+      btn.classList.add("selected");
+      currentTime = btn.dataset.time;
+      currentTag = btn.dataset.tag;
+      marqueeSub.textContent = "Tonight — The Violin of Dusk — " + currentTag + " " + currentTime;
+      clack();
+    });
+  });
+
+  /* ---------- ticket printing and tearing ---------- */
+  var ticket = document.getElementById("ticket");
+  var stage = document.getElementById("stage");
+  var stageHint = document.getElementById("stageHint");
+  var afterNote = document.getElementById("afterNote");
+  var tSeats = document.getElementById("tSeats");
+  var tTime = document.getElementById("tTime");
+  var tPrice = document.getElementById("tPrice");
+  var tSerial = document.getElementById("tSerial");
+  var tStubNo = document.getElementById("tStubNo");
+
+  printBtn.addEventListener("click", function () {
+    if (!sel.length) { return; }
+    var serial = "041-" + String(1000 + Math.floor(Math.random() * 9000));
+    tSeats.textContent = "Row " + sel[0][0] + " · Seats " + sel.map(function (s) { return s.slice(1); }).join(", ");
+    tTime.textContent = currentTime + " · " + currentTag;
+    tPrice.textContent = money();
+    tSerial.textContent = "Nº " + serial;
+    tStubNo.textContent = serial;
+    afterNote.hidden = true;
+    stageHint.hidden = true;
+    ticket.hidden = false;
+    ticket.classList.remove("torn");
+    stage.classList.remove("dealt");
+    void stage.offsetWidth;
+    stage.classList.add("dealt");
+    roll();
+    window.setTimeout(chime, 380);
+    printBtn.textContent = "Print Another Ticket";
+  });
+
+  function tearTicket() {
+    if (ticket.hidden || ticket.classList.contains("torn")) { return; }
+    ticket.classList.add("torn");
+    rip();
+    window.setTimeout(function () { afterNote.hidden = false; }, 550);
+  }
+  ticket.addEventListener("click", tearTicket);
+  ticket.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tearTicket(); }
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

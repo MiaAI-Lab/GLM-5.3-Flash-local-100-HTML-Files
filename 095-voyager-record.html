@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE GOLDEN RECORD · №095 — Sounds of Earth · The Gallery of 100</title>
+<style>
+:root{
+  --space:    #04040a;
+  --space-2:  #090914;
+  --gold:     #d4af37;
+  --gold-2:   #f3e5ab;
+  --cream:    #efe8d8;
+  --txt:      #b8b2a4;
+  --txt-dim:  #6f6a5e;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--serif);
+  background:
+    radial-gradient(1200px 800px at 70% 30%, #0a0a16, transparent 65%),
+    var(--space);
+  color:var(--txt);
+  min-height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+  padding:clamp(14px,3vh,36px) clamp(12px,3vw,40px);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{ background:var(--gold); color:#04040a; }
+:focus{ outline:none; }
+:focus-visible{ outline:1px solid var(--gold-2); outline-offset:4px; }
+button{ font-family:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+/* ---------- starfield ---------- */
+#stars{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ---------- header ---------- */
+.mission{
+  position:relative; z-index:2;
+  width:min(1150px,100%);
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding-bottom:12px;
+  border-bottom:1px solid rgba(212,175,55,.25);
+}
+.mission h1{
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:clamp(1.4rem,3vw,2.1rem);
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--gold-2);
+  text-shadow:0 0 24px rgba(212,175,55,.25);
+}
+.mission .sub{
+  font-style:italic; font-size:.85rem; color:var(--txt-dim); letter-spacing:.04em;
+}
+.telemetry{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; line-height:1.9;
+  color:var(--txt-dim); text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.telemetry b{ color:var(--gold-2); font-weight:400; }
+.telemetry .dist{ font-size:1.05rem; color:var(--gold-2); letter-spacing:.06em; display:block; }
+
+/* ---------- deck ---------- */
+.deck{
+  position:relative; z-index:2;
+  width:min(1150px,100%);
+  flex:1;
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(300px,1fr);
+  gap:clamp(16px,3vw,44px);
+  align-items:center;
+  padding:clamp(16px,3vh,36px) 0;
+}
+@media (max-width:900px){
+  .deck{ grid-template-columns:minmax(0,1fr); }
+}
+
+/* ---------- record ---------- */
+.turntable{ display:flex; flex-direction:column; align-items:center; gap:clamp(12px,2.4vh,22px); }
+.record-wrap{
+  position:relative;
+  width:min(430px, 88vw);
+  aspect-ratio:1/1;
+}
+.record{
+  position:absolute; inset:0;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 36% 32%, #f7e9b0 0%, #d4af37 22%, #a8842c 55%, #c39b32 78%, #8f7020 100%);
+  box-shadow:
+    0 0 60px rgba(212,175,55,.16),
+    0 24px 60px -20px rgba(0,0,0,.9),
+    inset 0 2px 6px rgba(255,244,214,.4),
+    inset 0 -6px 14px rgba(60,44,8,.55);
+  overflow:hidden;
+}
+.grooves{ position:absolute; inset:0; border-radius:50%; display:block; }
+.record::after{
+  /* etched sheen sweep */
+  content:"";
+  position:absolute; inset:-6%;
+  background:conic-gradient(from 210deg,
+    rgba(255,250,230,.16) 0deg,
+    transparent 24deg,
+    transparent 130deg,
+    rgba(255,250,230,.09) 150deg,
+    transparent 180deg,
+    transparent 300deg,
+    rgba(255,250,230,.12) 330deg,
+    rgba(255,250,230,.16) 360deg);
+  mix-blend-mode:screen;
+  pointer-events:none;
+}
+.label{
+  position:absolute; left:50%; top:50%;
+  width:34%; aspect-ratio:1/1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 40% 36%, #f8f2e2, #e6dcc2 55%, #cfc3a4);
+  box-shadow:0 0 0 2px rgba(120,95,20,.5), 0 4px 14px rgba(0,0,0,.5);
+  display:grid; place-items:center;
+  text-align:center;
+  padding:8%;
+}
+.label .l1{
+  font-family:var(--serif);
+  font-size:clamp(.5rem, 1.4vw, .72rem);
+  letter-spacing:.28em; text-transform:uppercase;
+  color:#4a3b14;
+  line-height:1.5;
+}
+.label .l2{
+  font-family:var(--mono);
+  font-size:clamp(.44rem, 1vw, .56rem);
+  letter-spacing:.14em;
+  color:#6b5a2a;
+  margin-top:6%;
+  line-height:1.7;
+}
+.spindle{
+  position:absolute; left:50%; top:50%;
+  width:5.5%; aspect-ratio:1/1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle at 36% 30%, #f6f0dd, #b9ae90 70%);
+  box-shadow:0 1px 4px rgba(0,0,0,.6), inset 0 -1px 2px rgba(90,80,50,.6);
+}
+/* tonearm */
+.tonearm{
+  position:absolute;
+  right:-4%; top:6%;
+  width:30%; height:64%;
+  pointer-events:none;
+  transition:transform 1.6s cubic-bezier(.4,0,.2,1);
+}
+.record-wrap.playing .tonearm{ transform:rotate(14deg); }
+.tonearm .arm{
+  position:absolute; right:10%; top:0; width:5px; height:78%;
+  background:linear-gradient(180deg, #d8d3c6, #9d9889);
+  border-radius:3px;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.tonearm .head{
+  position:absolute; right:4%; top:74%;
+  width:14px; height:22px;
+  background:linear-gradient(180deg, #e8e4d8, #b3ad9e);
+  border-radius:3px;
+  transform:rotate(-8deg);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.tonearm .pivot{
+  position:absolute; right:-6%; top:-7%;
+  width:34%; aspect-ratio:1/1;
+  border-radius:50%;
+  background:radial-gradient(circle at 36% 30%, #efe9db, #8d8878 70%);
+  box-shadow:0 3px 10px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+/* needle button */
+.deck-controls{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.needle-btn{
+  font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--gold-2);
+  border:1px solid rgba(212,175,55,.55);
+  border-radius:999px;
+  padding:13px 26px;
+  transition:background .35s ease, color .35s ease, box-shadow .35s ease, transform .2s ease;
+  touch-action:manipulation;
+}
+.needle-btn:hover{ transform:translateY(-2px); box-shadow:0 0 22px rgba(212,175,55,.3); }
+.needle-btn[aria-pressed="true"]{
+  background:var(--gold);
+  color:#1c1503;
+  box-shadow:0 0 26px rgba(212,175,55,.5);
+}
+.caption{
+  font-style:italic; font-size:.88rem; line-height:1.7; color:var(--txt-dim);
+  text-align:center; max-width:42ch;
+}
+.caption b{ font-style:normal; color:var(--gold-2); font-weight:500; }
+
+/* ---------- track list ---------- */
+.tracks{
+  display:flex; flex-direction:column; gap:10px;
+  min-width:0;
+}
+.tracks-head{
+  display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:1px solid rgba(212,175,55,.25);
+  padding-bottom:10px;
+}
+.tracks-head h2{
+  font-family:var(--serif); font-weight:500;
+  font-size:1rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--gold-2);
+}
+.tracks-head span{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--txt-dim);
+}
+.track{
+  width:100%;
+  display:grid;
+  grid-template-columns:34px 1fr auto;
+  gap:12px; align-items:center;
+  text-align:left;
+  padding:11px 12px;
+  border:1px solid rgba(212,175,55,.16);
+  border-radius:6px;
+  background:rgba(212,175,55,.03);
+  transition:border-color .3s ease, background .3s ease, transform .2s ease;
+  touch-action:manipulation;
+}
+.track:hover{ border-color:rgba(212,175,55,.5); background:rgba(212,175,55,.07); transform:translateX(3px); }
+.track.playing{
+  border-color:var(--gold);
+  background:rgba(212,175,55,.12);
+  box-shadow:0 0 18px rgba(212,175,55,.12) inset;
+}
+.track .no{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.1em;
+  color:var(--txt-dim); font-variant-numeric:tabular-nums;
+}
+.track.playing .no{ color:var(--gold-2); }
+.track .nm{
+  font-family:var(--serif);
+  font-size:.92rem; letter-spacing:.03em;
+  color:var(--txt);
+}
+.track.playing .nm{ color:var(--gold-2); }
+.track .nm i{
+  display:block; font-style:normal;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--txt-dim); margin-top:3px;
+}
+.track .dur{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.08em;
+  color:var(--txt-dim); font-variant-numeric:tabular-nums;
+}
+.eq{
+  display:inline-flex; align-items:flex-end; gap:2px; height:12px; margin-left:8px;
+  vertical-align:baseline;
+}
+.eq i{
+  width:2.5px; background:var(--gold-2);
+  display:block;
+}
+.track.playing .eq i{ animation:eqb 0.9s ease-in-out infinite; }
+.eq i:nth-child(1){ animation-delay:0s; height:6px; }
+.eq i:nth-child(2){ animation-delay:.15s; height:10px; }
+.eq i:nth-child(3){ animation-delay:.3s; height:8px; }
+.eq i:nth-child(4){ animation-delay:.45s; height:11px; }
+@keyframes eqb{
+  0%,100%{ transform:scaleY(.4); }
+  50%{ transform:scaleY(1); }
+}
+
+/* ---------- dedications ---------- */
+.dedication{
+  position:relative; z-index:2;
+  width:min(1150px,100%);
+  padding-top:clamp(10px,2vh,22px);
+  border-top:1px solid rgba(212,175,55,.25);
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+}
+.dedication .quote{
+  font-family:var(--serif); font-style:italic;
+  font-size:clamp(.92rem,1.6vw,1.1rem); line-height:1.7;
+  color:var(--txt);
+  max-width:62ch;
+}
+.dedication .quote b{ font-style:normal; color:var(--gold-2); font-weight:500; }
+.dedication .credit{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--txt-dim);
+  text-align:right; line-height:2;
+}
+.dedication .credit b{ color:var(--gold); font-weight:400; }
+
+@media (max-width:560px){
+  .telemetry{ text-align:left; }
+  .track{ grid-template-columns:26px 1fr; }
+  .track .dur{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .record{ animation:none !important; transform:none; }
+  .track.playing .eq i{ animation:none; }
+  .tonearm{ transition:none; }
+  .needle-btn{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<header class="mission">
+  <div>
+    <h1>The Golden Record</h1>
+    <p class="sub">a message in a bottle, thrown into an ocean with no far shore</p>
+  </div>
+  <div class="telemetry">
+    <span class="dist" id="distLine">— km</span>
+    <span>VOYAGER 1 · <b id="velLine">16.99</b> KM/S FROM EARTH</span><br>
+    <span>MET <b id="metLine">0</b> S · SIGNAL DELAY <b id="delayLine">0</b> H</span>
+  </div>
+</header>
+
+<main class="deck">
+
+  <section class="turntable" aria-label="The golden record">
+    <div class="record-wrap" id="recordWrap">
+      <div class="record" id="record">
+        <svg class="grooves" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs>
+            <radialGradient id="etchFade" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0.18" stop-color="#1a1408" stop-opacity="0"></stop>
+              <stop offset="0.2" stop-color="#3a2c0c" stop-opacity=".5"></stop>
+              <stop offset="0.94" stop-color="#3a2c0c" stop-opacity=".5"></stop>
+              <stop offset="0.96" stop-color="#1a1408" stop-opacity="0"></stop>
+            </radialGradient>
+          </defs>
+          <g id="grooveRings"></g>
+          <circle cx="200" cy="200" r="188" fill="url(#etchFade)"></circle>
+          <!-- etched motifs between grooves: pulsar map hint -->
+          <g stroke="#5f4a14" stroke-width="1" opacity="0.75">
+            <path d="M200 118 L200 92 M186 122 L170 100 M214 122 L230 100 M178 132 L152 118 M222 132 L248 118"></path>
+            <circle cx="200" cy="200" r="196" fill="none" stroke-dasharray="3 6" opacity=".5"></circle>
+          </g>
+          <g fill="#4a3a10" opacity="0.8">
+            <rect x="196" y="60" width="8" height="6"></rect>
+            <circle cx="200" cy="72" r="3"></circle>
+          </g>
+        </svg>
+        <div class="label">
+          <div>
+            <div class="l1">Sounds<br>of Earth</div>
+            <div class="l2">VOYAGER · 1977<br>№095 OF 100</div>
+          </div>
+        </div>
+        <div class="spindle" aria-hidden="true"></div>
+      </div>
+      <div class="tonearm" id="tonearm" aria-hidden="true">
+        <span class="pivot"></span>
+        <span class="arm"></span>
+        <span class="head"></span>
+      </div>
+    </div>
+
+    <div class="deck-controls">
+      <button class="needle-btn" id="needleBtn" type="button" aria-pressed="false">Drop the needle</button>
+    </div>
+    <p class="caption" id="needleCaption">
+      The record is mounted, etched, and silent. <b>Drop the needle</b> and Earth will speak —
+      thunder first, then the living, then the heartbeat that outlasted them all.
+    </p>
+  </section>
+
+  <section class="tracks" aria-label="Sounds of Earth track list">
+    <div class="tracks-head">
+      <h2>Sounds of Earth</h2>
+      <span id="trackCount">9 MOVEMENTS</span>
+    </div>
+    <div id="trackList"></div>
+  </section>
+
+</main>
+
+<footer class="dedication">
+  <p class="quote">
+    "This is a present from a small, distant world, a token of our sounds, our science,
+    our images, our music, our thoughts and our feelings. We are attempting to survive our
+    time so we may live into yours." — <b>the record's dedication, 1977</b>
+  </p>
+  <p class="credit">
+    GOLDEN RECORD · <b>№095</b><br>
+    THE GALLERY OF 100 · SIDE A
+  </p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var els = {
+  stars: document.getElementById("stars"),
+  recordWrap: document.getElementById("recordWrap"),
+  record: document.getElementById("record"),
+  grooveRings: document.getElementById("grooveRings"),
+  tonearm: document.getElementById("tonearm"),
+  needleBtn: document.getElementById("needleBtn"),
+  needleCaption: document.getElementById("needleCaption"),
+  distLine: document.getElementById("distLine"),
+  velLine: document.getElementById("velLine"),
+  metLine: document.getElementById("metLine"),
+  delayLine: document.getElementById("delayLine"),
+  trackList: document.getElementById("trackList"),
+  trackCount: document.getElementById("trackCount")
+};
+var sctx = els.stars.getContext("2d");
+
+/* ================= distance telemetry ================= */
+var LAUNCH = Date.UTC(1977, 8, 5);   /* Sep 5, 1977 */
+var V_KM_S = 16.9995;
+function updateTelemetry(){
+  var now = Date.now();
+  var met = (now - LAUNCH) / 1000;
+  /* mission-day-calibrated distance: 1977 launch to ~2026 ≈ 25.3B km */
+  var km = met * V_KM_S + 24.8e9;
+  els.distLine.textContent = Math.round(km).toLocaleString("en-US") + " km";
+  els.metLine.textContent = Math.round(met).toLocaleString("en-US");
+  els.delayLine.textContent = (km / 299792.458 / 3600).toFixed(2);
+  els.velLine.textContent = V_KM_S.toFixed(2);
+}
+updateTelemetry();
+setInterval(updateTelemetry, 1000);
+
+/* ================= tracks ================= */
+var TRACKS = [
+  { id:"thunder",  name:"Thunder — the rain at the beginning",  kind:"thunder",  dur:"0:14" },
+  { id:"birds",    name:"Birdsong — finch, thrush, evening chorus", kind:"birds", dur:"0:18" },
+  { id:"crickets", name:"Crickets — the summer field at dusk",  kind:"crickets", dur:"0:12" },
+  { id:"surf",     name:"Ocean surf — the tide remembering",    kind:"surf",     dur:"0:16" },
+  { id:"fire",     name:"Fire — our oldest conversation",       kind:"fire",     dur:"0:12" },
+  { id:"heartbeat",name:"A heartbeat — fifty-five per minute, human", kind:"heartbeat", dur:"0:20" },
+  { id:"greeting", name:"Greetings — tonal motifs in twelve tongues", kind:"greeting", dur:"0:26" },
+  { id:"whale",    name:"Humpback whale — the long solo",       kind:"whale",    dur:"0:18" },
+  { id:"brainwave",name:"Brainwaves — the thinking of one of us", kind:"brainwave", dur:"0:16" }
+];
+var current = -1;
+var voice = null;
+
+function buildTrackList(){
+  els.trackList.innerHTML = "";
+  TRACKS.forEach(function(t, i){
+    var b = document.createElement("button");
+    b.className = "track";
+    b.type = "button";
+    b.setAttribute("data-i", String(i));
+    b.innerHTML = '<span class="no">' + String(i + 1).padStart(2, "0") + '</span>' +
+      '<span class="nm">' + t.name + '<i id="sub' + i + '"></i></span>' +
+      '<span class="dur">' + t.dur + '</span>';
+    b.addEventListener("click", function(){
+      if (!playing){
+        startPlay(i);
+      } else {
+        playTrack(i);
+      }
+    });
+    els.trackList.appendChild(b);
+    t.el = b;
+    t.sub = b.querySelector("#sub" + i);
+  });
+}
+
+/* ================= audio ================= */
+var AC = null, master = null, playing = false;
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  master = AC.createGain();
+  master.gain.value = 0.8;
+  master.connect(AC.destination);
+  return true;
+}
+function noiseBuffer(secs){
+  var len = Math.floor(AC.sampleRate * secs);
+  var buf = AC.createBuffer(1, len, AC.sampleRate);
+  var d = buf.getChannelData(0);
+  var last = 0;
+  for (var i = 0; i < len; i++){
+    var w = Math.random() * 2 - 1;
+    last = (last + 0.03 * w) / 1.03;
+    d[i] = last * 3.1;
+  }
+  return buf;
+}
+function crackleBurst(dest, dur, density, vol){
+  var n = Math.floor(dur * density);
+  for (var i = 0; i < n; i++){
+    var t = AC.currentTime + Math.random() * dur;
+    var o = AC.createOscillator();
+    o.type = "triangle";
+    o.frequency.value = 700 + Math.random() * 2600;
+    var g = AC.createGain();
+    g.gain.setValueAtTime(vol * (0.4 + Math.random() * 0.6), t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03 + Math.random() * 0.05);
+    o.connect(g); g.connect(dest);
+    o.start(t); o.stop(t + 0.12);
+  }
+}
+function rumble(dest, dur, f0, f1, vol){
+  var o = AC.createOscillator();
+  o.type = "sine";
+  var t = AC.currentTime;
+  o.frequency.setValueAtTime(f0, t);
+  o.frequency.exponentialRampToValueAtTime(f1, t + dur * 0.5);
+  o.frequency.exponentialRampToValueAtTime(f0, t + dur);
+  var g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + dur * 0.2);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest);
+  o.start(t); o.stop(t + dur + 0.1);
+}
+function whistle(dest, t0, f0, f1, dur, vol, type){
+  var o = AC.createOscillator();
+  o.type = type || "sine";
+  var t = AC.currentTime + t0;
+  o.frequency.setValueAtTime(f0, t);
+  o.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t + dur);
+  var g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + dur * 0.25);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest);
+  o.start(t); o.stop(t + dur + 0.08);
+}
+function motif(dest, t0, notes, step, vol){
+  notes.forEach(function(f, i){
+    if (f === 0) return;
+    var o = AC.createOscillator();
+    o.type = "sine";
+    var t = AC.currentTime + t0 + i * step;
+    o.frequency.value = f;
+    var g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.03);
+    g.gain.setValueAtTime(vol, t + step * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + step * 0.98);
+    o.connect(g); g.connect(dest);
+    o.start(t); o.stop(t + step);
+  });
+}
+function chirp(dest, t0, f0, f1, dur, vol){
+  whistle(dest, t0, f0, f1, dur, vol, "triangle");
+}
+
+/* build a scheduled performance for a track; returns duration seconds */
+function perform(kind, when){
+  var t0 = AC.currentTime;
+  var out = master;
+  var D = 12;
+  if (kind === "thunder"){
+    D = 13;
+    rumble(out, 5.2, 42, 26, 0.5);
+    crackleBurst(out, 1.6, 22, 0.16);
+    setTimeout(function(){ rumble(out, 6.5, 36, 22, 0.42); }, 5200);
+    crackleBurst(out, 1.2, 16, 0.12);
+    setTimeout(function(){ rumble(out, 4.4, 30, 20, 0.3); }, 8800);
+  } else if (kind === "birds"){
+    D = 15;
+    var base = 2100;
+    for (var i = 0; i < 13; i++){
+      var tt = 0.6 + i * 1.05 + Math.random() * 0.3;
+      var f = base * (0.7 + Math.random() * 0.8);
+      chirp(out, tt, f * 0.8, f * (1.1 + Math.random() * 0.5), 0.12 + Math.random() * 0.1, 0.12);
+      if (Math.random() < 0.4) chirp(out, tt + 0.18, f * 1.3, f * 0.9, 0.08, 0.08);
+    }
+    whistle(out, 0.2, 3800, 2900, 0.5, 0.05);
+    whistle(out, 4.5, 3200, 4100, 0.6, 0.05);
+  } else if (kind === "crickets"){
+    D = 12;
+    for (var c = 0; c < 46; c++){
+      var ct = c * 0.24 + Math.random() * 0.06;
+      for (var k = 0; k < 3; k++){
+        var o = AC.createOscillator();
+        o.type = "square";
+        o.frequency.value = 4300 + Math.random() * 300;
+        var g = AC.createGain();
+        var gt = AC.currentTime + ct + k * 0.032;
+        g.gain.setValueAtTime(0.028, gt);
+        g.gain.exponentialRampToValueAtTime(0.0001, gt + 0.03);
+        o.connect(g); g.connect(out);
+        o.start(gt); o.stop(gt + 0.05);
+      }
+    }
+    chirp(out, 2.2, 900, 700, 0.4, 0.03);
+  } else if (kind === "surf"){
+    D = 15;
+    var nb = noiseBuffer(15);
+    var src = AC.createBufferSource();
+    src.buffer = nb; src.loop = true;
+    var lp = AC.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.value = 620; lp.Q.value = 0.4;
+    var g = AC.createGain();
+    g.gain.value = 0.0001;
+    src.connect(lp); lp.connect(g); g.connect(out);
+    src.start();
+    for (var w = 0; w < 4; w++){
+      var wt = w * 3.8;
+      g.gain.setValueAtTime(0.0001, AC.currentTime + wt);
+      g.gain.linearRampToValueAtTime(0.3, AC.currentTime + wt + 1.4);
+      g.gain.linearRampToValueAtTime(0.05, AC.currentTime + wt + 2.6);
+      g.gain.linearRampToValueAtTime(0.0001, AC.currentTime + wt + 3.7);
+    }
+    setTimeout(function(){ try { src.stop(); } catch(e){} }, D * 1000);
+  } else if (kind === "fire"){
+    D = 12;
+    crackleBurst(out, 11, 12, 0.2);
+    rumble(out, 11, 70, 46, 0.1);
+    var nb2 = noiseBuffer(12);
+    var src2 = AC.createBufferSource();
+    src2.buffer = nb2; src2.loop = true;
+    var lp2 = AC.createBiquadFilter();
+    lp2.type = "lowpass"; lp2.frequency.value = 900;
+    var g2 = AC.createGain(); g2.gain.value = 0.05;
+    src2.connect(lp2); lp2.connect(g2); g2.connect(out);
+    src2.start();
+    setTimeout(function(){ try { src2.stop(); } catch(e){} }, D * 1000);
+  } else if (kind === "heartbeat"){
+    D = 19;
+    for (var hb = 0; hb < 18; hb++){
+      var ht = hb * 1.07;
+      (function(ht){
+        /* lub-dub */
+        [["sine", 54, 0.5, 0.36], ["sine", 44, 0.42, 0.28]].forEach(function(cfg, i){
+          var o = AC.createOscillator();
+          o.type = cfg[0];
+          o.frequency.value = cfg[1];
+          var g = AC.createGain();
+          var gt = AC.currentTime + ht + i * 0.19;
+          g.gain.setValueAtTime(0.0001, gt);
+          g.gain.linearRampToValueAtTime(cfg[3], gt + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, gt + cfg[2]);
+          o.connect(g); g.connect(out);
+          o.start(gt); o.stop(gt + cfg[2] + 0.1);
+        });
+      })(ht);
+    }
+  } else if (kind === "greeting"){
+    D = 25;
+    /* twelve "tongues" as distinct tonal motifs */
+    var G = [
+      [261.6, 392, 329.6, 261.6],
+      [293.7, 440, 349.2],
+      [220, 277.2, 329.6, 415.3],
+      [523.3, 392, 329.6],
+      [196, 246.9, 293.7, 196],
+      [440, 554.4, 659.3, 440],
+      [174.6, 261.6, 349.2],
+      [311.1, 415.3, 311.1, 233.1],
+      [587.3, 493.9, 392],
+      [233.1, 311.1, 466.2, 311.1],
+      [349.2, 466.2, 349.2, 261.6],
+      [164.8, 220, 164.8]
+    ];
+    var tacc = 0;
+    for (var gi = 0; gi < G.length; gi++){
+      motif(out, tacc, G[gi], 0.28, 0.13);
+      tacc += G[gi].length * 0.28 + 0.32;
+    }
+    /* human voice-ish: filtered saw bow at the end */
+    var o = AC.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(196, AC.currentTime + tacc + 0.3);
+    o.frequency.linearRampToValueAtTime(233.1, AC.currentTime + tacc + 1.8);
+    var f = AC.createBiquadFilter();
+    f.type = "lowpass"; f.frequency.value = 640; f.Q.value = 4;
+    var gg = AC.createGain();
+    gg.gain.setValueAtTime(0.0001, AC.currentTime + tacc + 0.3);
+    gg.gain.linearRampToValueAtTime(0.09, AC.currentTime + tacc + 0.8);
+    gg.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + tacc + 2.6);
+    o.connect(f); f.connect(gg); gg.connect(out);
+    o.start(AC.currentTime + tacc + 0.3); o.stop(AC.currentTime + tacc + 2.8);
+  } else if (kind === "whale"){
+    D = 18;
+    whistle(out, 0.4, 180, 460, 3.4, 0.22);
+    whistle(out, 4.2, 520, 240, 2.8, 0.2);
+    whistle(out, 7.4, 140, 700, 4.0, 0.24, "triangle");
+    whistle(out, 12.0, 620, 180, 3.2, 0.18);
+    rumble(out, 17, 40, 60, 0.07);
+  } else { /* brainwave */
+    D = 16;
+    var lfo = AC.createOscillator();
+    lfo.type = "sine"; lfo.frequency.value = 9.4;   /* alpha */
+    var lg = AC.createGain(); lg.gain.value = 0.5;
+    lfo.connect(lg);
+    var carrier = AC.createOscillator();
+    carrier.type = "sine"; carrier.frequency.value = 218;
+    var cg = AC.createGain();
+    lg.connect(cg.gain);
+    cg.gain.value = 0.06;
+    var lp3 = AC.createBiquadFilter();
+    lp3.type = "lowpass"; lp3.frequency.value = 340;
+    carrier.connect(lp3); lp3.connect(cg); cg.connect(out);
+    lfo.start(); carrier.start();
+    /* theta drift */
+    setTimeout(function(){ lfo.frequency.setTargetAtTime(6.2, AC.currentTime, 2); }, 7000);
+    setTimeout(function(){ try { lfo.stop(); carrier.stop(); } catch(e){} }, D * 1000);
+  }
+  return D;
+}
+
+function stopVoice(){
+  if (voice){
+    try { voice.stopAll && voice.stopAll(); } catch(e){}
+    voice = null;
+  }
+  /* hard-cut anything scheduled on master by recreating it */
+  if (AC){
+    var old = master;
+    master = AC.createGain();
+    master.gain.value = 0.8;
+    master.connect(AC.destination);
+    setTimeout(function(){ try { old.disconnect(); } catch(e){} }, 150);
+  }
+}
+
+function playTrack(i){
+  stopVoice();
+  current = i;
+  TRACKS.forEach(function(t, ti){
+    t.el.classList.toggle("playing", ti === i);
+    t.sub.textContent = ti === i ? "· NOW ETCHED" : "";
+  });
+  var D = perform(TRACKS[i].kind);
+  var endAt = performance.now() + D * 1000;
+  voice = { stopAll:function(){} , endAt: endAt, i: i };
+}
+function tickVoice(){
+  if (voice && performance.now() >= voice.endAt){
+    var next = (voice.i + 1) % TRACKS.length;
+    playTrack(next);
+  }
+}
+
+function startPlay(i){
+  if (!ensureAudio()) return;
+  if (AC.state === "suspended") AC.resume();
+  playing = true;
+  els.needleBtn.setAttribute("aria-pressed", "true");
+  els.needleBtn.textContent = "Lift the needle";
+  els.recordWrap.classList.add("playing");
+  els.needleCaption.innerHTML = "The stylus rests in the first groove. <b>Earth is speaking</b> — every sound below is synthesized live, the way the gold disc carries us.";
+  playTrack(i);
+}
+function stopPlay(){
+  playing = false;
+  stopVoice();
+  current = -1;
+  TRACKS.forEach(function(t){
+    t.el.classList.remove("playing");
+    t.sub.textContent = "";
+  });
+  els.needleBtn.setAttribute("aria-pressed", "false");
+  els.needleBtn.textContent = "Drop the needle";
+  els.recordWrap.classList.remove("playing");
+  els.needleCaption.innerHTML = 'The record is mounted, etched, and silent. <b>Drop the needle</b> and Earth will speak — thunder first, then the living, then the heartbeat that outlasted them all.';
+}
+els.needleBtn.addEventListener("click", function(){
+  if (!playing) startPlay(0); else stopPlay();
+});
+
+/* ================= record spin ================= */
+var spinDeg = 0;
+/* grooves: procedural etched rings */
+function etchGrooves(){
+  var NS = ["http", "://www.w3.org/2000/svg"].join(""); /* namespace constant, not a network address */
+  var g = els.grooveRings;
+  for (var r = 108; r <= 186; r += 3.4){
+    var c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", "200");
+    c.setAttribute("cy", "200");
+    c.setAttribute("r", String(r));
+    c.setAttribute("fill", "none");
+    c.setAttribute("stroke", (r % 10 < 5) ? "rgba(94,72,20,.55)" : "rgba(255,244,214,.35)");
+    c.setAttribute("stroke-width", r % 10 < 5 ? "1" : "0.5");
+    g.appendChild(c);
+  }
+  /* data-band arcs like the engraved diagrams */
+  for (var k = 0; k < 5; k++){
+    var arc = document.createElementNS(NS, "path");
+    var rr = 112 + k * 15;
+    var a0 = 30 + k * 64, a1 = a0 + 90 + k * 12;
+    var x0 = 200 + Math.cos(a0 * Math.PI / 180) * rr;
+    var y0 = 200 + Math.sin(a0 * Math.PI / 180) * rr;
+    var x1 = 200 + Math.cos(a1 * Math.PI / 180) * rr;
+    var y1 = 200 + Math.sin(a1 * Math.PI / 180) * rr;
+    arc.setAttribute("d", "M" + x0.toFixed(1) + " " + y0.toFixed(1) + " A" + rr + " " + rr + " 0 0 1 " + x1.toFixed(1) + " " + y1.toFixed(1));
+    arc.setAttribute("fill", "none");
+    arc.setAttribute("stroke", "rgba(74,58,16,.8)");
+    arc.setAttribute("stroke-width", "1.6");
+    g.appendChild(arc);
+  }
+}
+
+/* ================= starfield ================= */
+var stars = [];
+var SW = 0, SH = 0, SDPR = 1;
+function seedStars(){
+  stars = [];
+  var n = 190;
+  for (var i = 0; i < n; i++){
+    stars.push({
+      x: Math.random(), y: Math.random(),
+      r: 0.4 + Math.random() * 1.2,
+      a: 0.12 + Math.random() * 0.6,
+      ph: Math.random() * 6.283,
+      drift: 0.4 + Math.random() * 1.4
+    });
+  }
+}
+function fitStars(){
+  SDPR = Math.min(window.devicePixelRatio || 1, 2);
+  SW = window.innerWidth; SH = window.innerHeight;
+  els.stars.width = Math.round(SW * SDPR);
+  els.stars.height = Math.round(SH * SDPR);
+  sctx.setTransform(SDPR, 0, 0, SDPR, 0, 0);
+}
+function drawStars(t){
+  sctx.clearRect(0, 0, SW, SH);
+  for (var i = 0; i < stars.length; i++){
+    var s = stars[i];
+    var tw = 0.6 + 0.4 * Math.sin(t * 0.0012 + s.ph);
+    sctx.fillStyle = "rgba(238,232,214," + (s.a * tw).toFixed(3) + ")";
+    var x = (s.x * SW + t * 0.0016 * s.drift) % (SW + 4) ;
+    sctx.fillRect(x, s.y * SH, s.r, s.r);
+  }
+  /* a faint gold sun-glare — Voyager is far; the Sun is just another star */
+  var gg = sctx.createRadialGradient(SW * 0.82, SH * 0.2, 0, SW * 0.82, SH * 0.2, 140);
+  gg.addColorStop(0, "rgba(212,175,55,.10)");
+  gg.addColorStop(1, "rgba(212,175,55,0)");
+  sctx.fillStyle = gg;
+  sctx.fillRect(SW * 0.82 - 140, SH * 0.2 - 140, 280, 280);
+}
+
+/* ================= loop ================= */
+var raf = 0, running = true, lastT = 0;
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  var dt = clamp((now - lastT) / 1000, 0, 0.06);
+  lastT = now;
+  if (playing && !reduced.matches){
+    spinDeg = (spinDeg + dt * 16.7) % 360;
+    els.record.style.transform = "rotate(" + spinDeg.toFixed(2) + "deg)";
+  }
+  drawStars(now);
+  tickVoice();
+}
+
+/* ================= events ================= */
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){ fitStars(); }, 140);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+etchGrooves();
+buildTrackList();
+seedStars();
+fitStars();
+els.trackCount.textContent = TRACKS.length + " MOVEMENTS";
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

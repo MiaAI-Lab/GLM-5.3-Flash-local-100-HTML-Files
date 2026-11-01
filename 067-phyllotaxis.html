@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fibonacci&rsquo;s Garden — A Phyllotaxis Study</title>
+<style>
+  :root{
+    --card:#1e3a2a;
+    --card-lo:#152b1f;
+    --card-edge:#2c4a36;
+    --cream:#f2ecd7;
+    --cream-dim:#cdc6ab;
+    --seed-a:#f6c445;
+    --seed-b:#b7791f;
+    --accent:#e8734a;
+    --serif:Georgia,"Times New Roman",ui-serif,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    --caps:system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(100% 90% at 50% 0%,#2a4c37,#1e3a2a 55%,#12241a);
+    color:var(--cream);
+    font-family:var(--mono);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--seed-a);color:#1e3a2a}
+
+  /* ============ plate header ============ */
+  .header{
+    flex:0 0 auto;display:flex;align-items:baseline;gap:clamp(10px,2.4vw,30px);flex-wrap:wrap;
+    padding:clamp(12px,2.4vh,22px) clamp(16px,3.4vw,44px) 0;
+  }
+  .header .kick{
+    font-size:9px;letter-spacing:.34em;text-transform:uppercase;color:rgba(242,236,215,.55);
+  }
+  .header h1{
+    font-family:var(--serif);font-weight:400;
+    font-size:clamp(1.5rem,3.6vw,2.6rem);letter-spacing:.02em;
+  }
+  .header h1 em{font-style:italic;color:var(--seed-a)}
+  .header .fig{
+    margin-left:auto;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+    color:rgba(242,236,215,.55);text-align:right;
+  }
+  .header .fig b{
+    display:block;font-family:var(--serif);font-weight:400;font-size:14px;
+    letter-spacing:.04em;color:var(--cream);text-transform:none;
+  }
+
+  /* ============ plate body ============ */
+  .plate{
+    flex:1;display:grid;min-height:0;
+    grid-template-columns:minmax(0,1fr) clamp(250px,30vw,360px);
+    gap:clamp(10px,2vw,26px);
+    padding:clamp(8px,1.6vh,16px) clamp(16px,3.4vw,44px) clamp(12px,2.2vh,22px);
+  }
+  .figure{
+    position:relative;min-height:0;display:flex;align-items:center;justify-content:center;
+  }
+  .figframe{
+    position:relative;height:100%;aspect-ratio:1/1;max-width:100%;
+    background:
+      radial-gradient(85% 85% at 50% 42%,#24462f,#1a3526 62%,#152b1f);
+    border:1px solid var(--card-edge);
+    border-radius:6px;
+    box-shadow:0 20px 50px rgba(8,16,10,.6),inset 0 1px 0 rgba(242,236,215,.08);
+    overflow:hidden;
+  }
+  .figframe::before{
+    content:"";position:absolute;inset:8px;border:1px solid rgba(242,236,215,.12);
+    border-radius:3px;pointer-events:none;
+  }
+  canvas#head{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+  .ghostnum{
+    position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+    font-family:var(--serif);font-weight:700;
+    font-size:clamp(8rem,38vh,26rem);
+    color:rgba(242,236,215,.06);
+    pointer-events:none;user-select:none;line-height:1;
+  }
+  .figcap{
+    position:absolute;left:18px;bottom:14px;right:18px;
+    display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(242,236,215,.5);
+    pointer-events:none;
+  }
+  .figcap b{color:var(--seed-a);font-weight:400;letter-spacing:.14em}
+
+  /* ============ annotation column ============ */
+  .notes{
+    display:flex;flex-direction:column;gap:clamp(8px,1.6vh,14px);min-height:0;
+    overflow-y:auto;padding-right:6px;
+    scrollbar-width:thin;scrollbar-color:#3f6a4f #1a3526;
+  }
+  .notes::-webkit-scrollbar{width:8px}
+  .notes::-webkit-scrollbar-track{background:#1a3526;border-radius:4px}
+  .notes::-webkit-scrollbar-thumb{background:#3f6a4f;border-radius:4px}
+
+  .notecard{
+    background:rgba(242,236,215,.045);
+    border:1px solid rgba(242,236,215,.14);
+    border-radius:6px;
+    padding:clamp(10px,1.6vh,15px) clamp(12px,1.4vw,16px);
+  }
+  .notecard h2{
+    font-family:var(--serif);font-weight:400;font-size:14px;letter-spacing:.06em;
+    margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  }
+  .notecard h2 small{
+    font-family:var(--mono);font-size:8px;letter-spacing:.24em;text-transform:uppercase;
+    color:rgba(242,236,215,.45);
+  }
+  .notecard p{
+    font-size:10.5px;line-height:1.65;letter-spacing:.04em;color:rgba(242,236,215,.72);
+  }
+  .notecard p b{color:var(--seed-a);font-weight:400}
+
+  .anglebox{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    margin-top:4px;
+  }
+  .anglebox .val{
+    font-family:var(--serif);font-size:clamp(1.6rem,3.4vw,2.3rem);letter-spacing:.02em;
+    color:var(--cream);font-variant-numeric:tabular-nums;
+  }
+  .anglebox .val small{font-size:.55em;color:var(--seed-a)}
+  .anglebox .tags{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .anglebox .tags span{
+    font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:rgba(242,236,215,.5);
+  }
+  .anglebox .tags .fibs{color:var(--seed-a);letter-spacing:.12em}
+  input#angle{
+    -webkit-appearance:none;appearance:none;width:100%;height:30px;margin-top:8px;
+    background:#0000;cursor:ew-resize;
+  }
+  input#angle::-webkit-slider-runnable-track{
+    height:4px;border-radius:2px;
+    background:linear-gradient(90deg,#3f6a4f,#f6c445);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+  }
+  input#angle::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    margin-top:-8px;background:radial-gradient(circle at 35% 30%,#f6c445,#b7791f 70%);
+    border:2px solid #f2ecd7;box-shadow:0 2px 8px rgba(0,0,0,.5);
+  }
+  input#angle::-moz-range-track{
+    height:4px;border-radius:2px;background:linear-gradient(90deg,#3f6a4f,#f6c445);
+  }
+  input#angle::-moz-range-thumb{
+    width:20px;height:20px;border-radius:50%;border:2px solid #f2ecd7;
+    background:radial-gradient(circle at 35% 30%,#f6c445,#b7791f 70%);
+  }
+  input#angle:focus-visible{outline:2px dashed var(--seed-a);outline-offset:4px}
+  .steprow{display:flex;gap:6px;margin-top:8px}
+  .sbtn{
+    flex:1;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+    color:var(--cream);background:rgba(242,236,215,.07);cursor:pointer;
+    border:1px solid rgba(242,236,215,.25);border-radius:5px;
+    padding:9px 6px;min-height:38px;transition:background .2s;
+  }
+  .sbtn:hover{background:rgba(242,236,215,.16)}
+  .sbtn:focus-visible{outline:2px dashed var(--seed-a);outline-offset:2px}
+  .sbtn.gold{color:#1e3a2a;background:var(--seed-a);border-color:var(--seed-a);font-weight:700}
+  .sbtn.gold:hover{background:#ffd66b}
+
+  .fibrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+  .fibchip{
+    font-size:9px;letter-spacing:.1em;padding:4px 8px;border-radius:999px;
+    border:1px solid rgba(246,196,69,.4);color:var(--seed-a);
+    transition:background .25s,color .25s,border-color .25s;
+  }
+  .fibchip.on{background:var(--seed-a);color:#1e3a2a;border-color:var(--seed-a);font-weight:700}
+  .spiralrow{display:flex;gap:6px;margin-top:8px}
+  .fbtn{
+    font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+    color:var(--cream);background:transparent;cursor:pointer;
+    border:1px solid rgba(242,236,215,.25);border-radius:999px;
+    padding:7px 11px;min-height:34px;transition:background .2s;
+  }
+  .fbtn:hover{background:rgba(242,236,215,.1)}
+  .fbtn:focus-visible{outline:2px dashed var(--seed-a);outline-offset:2px}
+  .fbtn[aria-pressed="true"]{background:rgba(246,196,69,.16);border-color:var(--seed-a);color:var(--seed-a)}
+
+  /* ============ plate drawer ============ */
+  .drawer{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:linear-gradient(180deg,rgba(21,43,31,.6),#152b1f);
+    border-top:1px solid rgba(242,236,215,.16);
+    padding:10px clamp(16px,3.4vw,44px) 12px;
+    transform:translateY(102%);transition:transform .45s cubic-bezier(.3,1,.3,1);
+    box-shadow:0 -14px 34px rgba(8,16,10,.55);
+    max-height:38vh;display:flex;flex-direction:column;gap:8px;
+  }
+  .drawer.open{transform:translateY(0)}
+  .drawerhead{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:rgba(242,236,215,.55);
+  }
+  .drawerhead b{font-family:var(--serif);font-weight:400;font-size:14px;letter-spacing:.04em;color:var(--cream);text-transform:none}
+  .drawerhead .close{
+    margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    color:var(--cream);background:transparent;cursor:pointer;
+    border:1px solid rgba(242,236,215,.3);border-radius:5px;
+    padding:7px 12px;min-height:34px;
+  }
+  .drawerhead .close:hover{background:rgba(242,236,215,.12)}
+  .shelf{
+    flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;
+    display:flex;gap:10px;align-items:stretch;
+    padding-bottom:4px;
+    scrollbar-width:thin;scrollbar-color:#3f6a4f #1a3526;
+  }
+  .shelf::-webkit-scrollbar{height:8px}
+  .shelf::-webkit-scrollbar-track{background:#1a3526;border-radius:4px}
+  .shelf::-webkit-scrollbar-thumb{background:#3f6a4f;border-radius:4px}
+  .miniplate{
+    flex:0 0 auto;width:132px;background:#f2ecd7;border-radius:3px;
+    padding:6px 6px 5px;box-shadow:0 6px 16px rgba(8,16,10,.5);
+    animation:stampin .45s cubic-bezier(.2,1.5,.4,1);
+  }
+  @keyframes stampin{from{transform:translateY(14px) rotate(-2deg);opacity:0}}
+  .miniplate canvas{display:block;width:100%;aspect-ratio:1/1;border-radius:2px}
+  .miniplate .cap{
+    margin-top:4px;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;
+    color:#4c4535;text-align:center;line-height:1.5;text-transform:uppercase;
+  }
+  .miniplate .cap b{display:block;font-family:var(--serif);font-size:9px;color:#2e2317;letter-spacing:.04em;text-transform:none}
+
+  @media (max-width:820px){
+    body{overflow:auto}
+    .plate{grid-template-columns:1fr}
+    .figframe{width:min(92vw,70vh);height:auto;margin:0 auto}
+    .notes{overflow:visible}
+    .ghostnum{font-size:clamp(7rem,30vw,16rem)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .drawer{transition:none}
+    .miniplate{animation:none}
+    .fibchip,.sbtn,.fbtn{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="kick">Gallery of 100 &middot; Hall IV &middot; Botanical Plate XI</span>
+  <h1>Fibonacci&rsquo;s <em>Garden</em></h1>
+  <div class="fig">
+    Studying
+    <b><em>Helianthus annuus</em> &middot; seed head</b>
+  </div>
+</header>
+
+<main class="plate">
+  <section class="figure">
+    <div class="figframe">
+      <canvas id="head" aria-label="Interactive sunflower seed head; drag the angle slider to reshape the spiral"></canvas>
+      <div class="ghostnum" id="ghost" aria-hidden="true">137.5</div>
+      <div class="figcap">
+        <span>Drawn to scale &middot; r = c&radic;n</span>
+        <span>spirals: <b id="capSpiral">21 &amp; 34</b></span>
+        <span>drag <b>on the head</b> to fine-tune</span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="notes" aria-label="Plate annotations and controls">
+    <div class="notecard">
+      <h2>Golden angle <small>divergence</small></h2>
+      <div class="anglebox">
+        <div class="val"><span id="angleVal">137.50</span><small>&deg;</small></div>
+        <div class="tags">
+          <span class="fibs" id="fibName">21 &times; 34 spirals</span>
+          <span>nearest fib pair</span>
+        </div>
+      </div>
+      <input type="range" id="angle" min="100" max="175" step="0.1" value="137.5"
+             aria-label="Divergence angle in degrees">
+      <div class="steprow">
+        <button class="sbtn" id="minusBtn" type="button">&minus;0.1&deg;</button>
+        <button class="sbtn gold" id="stampBtn" type="button">Stamp plate</button>
+        <button class="sbtn" id="plusBtn" type="button">+0.1&deg;</button>
+      </div>
+    </div>
+
+    <div class="notecard">
+      <h2>Fibonacci band <small>spiral counts</small></h2>
+      <div class="fibrow" id="fibrow">
+        <span class="fibchip" data-n="5">5</span>
+        <span class="fibchip" data-n="8">8</span>
+        <span class="fibchip" data-n="13">13</span>
+        <span class="fibchip on" data-n="21">21</span>
+        <span class="fibchip" data-n="34">34</span>
+        <span class="fibchip" data-n="55">55</span>
+        <span class="fibchip" data-n="89">89</span>
+      </div>
+      <p style="margin-top:8px">Drag a tenth of a degree and the whole head reshuffles &mdash;
+      <b>chaos and order are one slider apart</b>. At 137.5&deg; every seed gets
+      almost exactly the same sunlight.</p>
+    </div>
+
+    <div class="notecard">
+      <h2>Overlays <small>engraving layers</small></h2>
+      <div class="spiralrow">
+        <button class="fbtn" id="ovSpiral" type="button" aria-pressed="true">Spiral lattice</button>
+        <button class="fbtn" id="ovRing" type="button" aria-pressed="true">Fibonacci rings</button>
+        <button class="fbtn" id="ovNum" type="button" aria-pressed="true">Ghost numerals</button>
+      </div>
+      <p style="margin-top:8px">Seeds are tinted by age: pale primrose at the rim,
+      burnt sienna toward the heart. The rings count families of
+      <b>n&phi;&sup2;</b> cells.</p>
+    </div>
+
+    <div class="notecard">
+      <h2>Method <small>field note</small></h2>
+      <p>Each seed sits one golden-angle turn from the last, then is pushed
+      radially by <b>r = c&middot;&radic;n</b> &mdash; the square root packs them
+      evenly from centre to rim. Change the angle and the packing songs
+      change with it.</p>
+    </div>
+  </aside>
+</main>
+
+<div class="drawer" id="drawer" aria-label="Stamped plates">
+  <div class="drawerhead">
+    <b>Plate shelf</b>
+    <span>stamped impressions of your favourite angles</span>
+    <button class="close" id="closeDrawer" type="button">Shelve</button>
+  </div>
+  <div class="shelf" id="shelf"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var TAU=Math.PI*2;
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var canvas=document.getElementById("head");
+var ctx=canvas.getContext("2d");
+var angleVal=document.getElementById("angleVal");
+var angleInput=document.getElementById("angle");
+var ghost=document.getElementById("ghost");
+var fibName=document.getElementById("fibName");
+var capSpiral=document.getElementById("capSpiral");
+var fibrow=document.getElementById("fibrow");
+var drawer=document.getElementById("drawer");
+var shelf=document.getElementById("shelf");
+
+var GOLDEN=137.50776405003785;
+var angle=GOLDEN;
+var seeds=520;
+var showSpiral=true,showRing=true,showNum=true;
+var t=0,last=0;
+var W=0,H=0,C=0,R=0,dpr=1;
+var chips=[5,8,13,21,34,55,89];
+var activeChip=21;
+var spiralDrawn=false;
+var spiralAngleCache=-1;
+var rot=0;              /* slow idle rotation of the head */
+var liveSpin=!RM;
+
+/* ---------- geometry ---------- */
+function fibPair(a){
+  var FIB=[3,5,8,13,21,34,55,89,144,233];
+  var best=FIB[0],best2=FIB[1],err=1e9;
+  for(var i=0;i<FIB.length;i++){
+    for(var j=0;j<FIB.length;j++){
+      if(i===j)continue;
+      var ratio=FIB[j]/FIB[i];
+      if(ratio<1)continue;
+      var e=Math.abs(ratio-360/a);
+      if(e<err){err=e;best=FIB[i];best2=FIB[j];}
+    }
+  }
+  return[best,best2];
+}
+
+/* ---------- layout ---------- */
+function resize(){
+  var frame=canvas.parentElement.getBoundingClientRect();
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  W=Math.max(120,frame.width);H=Math.max(120,frame.height);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  C=W/2;
+  R=Math.min(W,H)*0.44;
+  spiralDrawn=false;
+}
+
+/* ---------- painting ---------- */
+function seedColor(k){
+  /* k: 0 rim .. 1 centre */
+  var a=[246,196,69];   /* #f6c445 primrose */
+  var b=[183,121,31];   /* #b7791f sienna   */
+  var c=[122,74,26];    /* deep heart       */
+  var r,g,bl;
+  if(k<0.55){
+    var f=k/0.55;
+    r=a[0]+(b[0]-a[0])*f;g=a[1]+(b[1]-a[1])*f;bl=a[2]+(b[2]-a[2])*f;
+  }else{
+    var f2=(k-0.55)/0.45;
+    r=b[0]+(c[0]-b[0])*f2;g=b[1]+(c[1]-b[1])*f2;bl=b[2]+(c[2]-b[2])*f2;
+  }
+  return"rgb("+(r|0)+","+(g|0)+","+(bl|0)+")";
+}
+function drawHead(){
+  ctx.clearRect(0,0,W,H);
+  var rad=angle*Math.PI/180;
+  var maxN=seeds;
+  var i,x,y,k,s;
+  /* draw rim-first so young pale seeds sit on top */
+  for(i=maxN-1;i>=0;i--){
+    var th=i*rad;
+    var rr=R*Math.sqrt(i/maxN);
+    x=C+Math.cos(th)*rr;
+    y=C+Math.sin(th)*rr;
+    k=rr/R;
+    s=R*0.031*(0.72+0.5*(1-k));
+    var col=seedColor(k);
+    /* body */
+    ctx.fillStyle=col;
+    ctx.beginPath();
+    ctx.ellipse(x,y,s*1.18,s*0.86,th,0,TAU);
+    ctx.fill();
+    /* rim light */
+    ctx.fillStyle="rgba(255,244,200,0.5)";
+    ctx.beginPath();
+    ctx.ellipse(x-s*0.22,y-s*0.24,s*0.5,s*0.34,th,0,TAU);
+    ctx.fill();
+    /* dark striation */
+    ctx.strokeStyle="rgba(60,34,10,0.35)";
+    ctx.lineWidth=Math.max(0.35,s*0.09);
+    ctx.beginPath();
+    ctx.moveTo(x-s*0.7,y+s*0.2);
+    ctx.quadraticCurveTo(x,y+s*0.5,x+s*0.7,y+s*0.2);
+    ctx.stroke();
+  }
+  /* faint vacuum glow at centre */
+  var g=ctx.createRadialGradient(C,C,0,C,C,R*0.22);
+  g.addColorStop(0,"rgba(60,34,10,0.5)");
+  g.addColorStop(1,"rgba(60,34,10,0)");
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.arc(C,C,R*0.22,0,TAU);ctx.fill();
+}
+function drawSpiralLattice(){
+  if(!showSpiral)return;
+  if(spiralDrawn&&spiralAngleCache===angle)return;
+  var rad=angle*Math.PI/180;
+  ctx.strokeStyle="rgba(242,236,215,0.13)";
+  ctx.lineWidth=1;
+  var step=Math.max(1,Math.round(activeChip/6));
+  var maxN=seeds;
+  for(var off=0;off<activeChip;off++){
+    ctx.beginPath();
+    var started=false;
+    for(var n=off;n<maxN;n+=activeChip){
+      var th=n*rad;
+      var rr=R*Math.sqrt(n/maxN);
+      var x=C+Math.cos(th)*rr,y=C+Math.sin(th)*rr;
+      if(!started){ctx.moveTo(x,y);started=true;}
+      else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  spiralDrawn=true;
+  spiralAngleCache=angle;
+}
+function drawRings(){
+  if(!showRing)return;
+  var FIB=[8,13,21,34,55];
+  ctx.setLineDash([2,5]);
+  for(var i=0;i<FIB.length;i++){
+    var f=FIB[i];
+    if(f>seeds)continue;
+    var rr=R*Math.sqrt(f/seeds);
+    ctx.strokeStyle="rgba(242,236,215,0.2)";
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(C,C,rr,0,TAU);ctx.stroke();
+    ctx.fillStyle="rgba(242,236,215,0.42)";
+    ctx.font="9px ui-monospace,'Courier New',monospace";
+    ctx.fillText(String(f),C+rr*0.7071+3,C-rr*0.7071-3);
+  }
+  ctx.setLineDash([]);
+}
+function drawGhost(){
+  if(!showNum)return;
+  ctx.fillStyle="rgba(242,236,215,0.9)";
+  ctx.font="11px ui-monospace,'Courier New',monospace";
+  ctx.fillText(angle.toFixed(1)+"\u00b0",10,18);
+  ctx.fillStyle="rgba(242,236,215,0.5)";
+  ctx.font="9px ui-monospace,'Courier New',monospace";
+  ctx.fillText("divergence",10,31);
+}
+
+/* ---------- spiral overlay recolors via re-composite ---------- */
+function paint(){
+  drawHead();
+  ctx.save();
+  ctx.translate(C,C);
+  ctx.rotate(rot);
+  ctx.translate(-C,-C);
+  drawSpiralLattice();
+  ctx.restore();
+  drawRings();
+  drawGhost();
+}
+
+/* ---------- angle machinery ---------- */
+function nearestChip(){
+  var best=chips[0],err=1e9;
+  for(var i=0;i<chips.length;i++){
+    var e=Math.abs(360/angle-chips[i]);
+    if(e<err){err=e;best=chips[i];}
+  }
+  return best;
+}
+function applyAngle(v,fromInput){
+  angle=Math.max(100,Math.min(175,v));
+  if(!fromInput)angleInput.value=angle;
+  angleVal.textContent=angle.toFixed(2);
+  var pair=fibPair(angle);
+  fibName.textContent=pair[0]+" \u00d7 "+pair[1]+" spirals";
+  capSpiral.textContent=pair[0]+" & "+pair[1];
+  ghost.textContent=angle.toFixed(2);
+  activeChip=nearestChip();
+  fibrow.querySelectorAll(".fibchip").forEach(function(ch){
+    ch.classList.toggle("on",parseInt(ch.dataset.n,10)===activeChip);
+  });
+  spiralAngleCache=-1;
+  paint();
+}
+angleInput.addEventListener("input",function(){
+  applyAngle(parseFloat(angleInput.value),true);
+});
+document.getElementById("minusBtn").addEventListener("click",function(){
+  applyAngle(Math.round((angle-0.1)*10)/10);
+});
+document.getElementById("plusBtn").addEventListener("click",function(){
+  applyAngle(Math.round((angle+0.1)*10)/10);
+});
+window.addEventListener("keydown",function(e){
+  if(e.target===angleInput)return;
+  if(e.key==="ArrowLeft"){applyAngle(Math.round((angle-0.1)*10)/10);e.preventDefault();}
+  if(e.key==="ArrowRight"){applyAngle(Math.round((angle+0.1)*10)/10);e.preventDefault();}
+});
+/* drag directly on the head */
+var dragging=false,dragX=0,dragA=0;
+canvas.addEventListener("pointerdown",function(e){
+  dragging=true;dragX=e.clientX;dragA=angle;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove",function(e){
+  if(!dragging)return;
+  var v=dragA+(e.clientX-dragX)*0.12;
+  applyAngle(Math.round(v*10)/10);
+});
+function endDrag(){dragging=false;}
+canvas.addEventListener("pointerup",endDrag);
+canvas.addEventListener("pointercancel",endDrag);
+
+/* ---------- overlays ---------- */
+document.getElementById("ovSpiral").addEventListener("click",function(){
+  showSpiral=!showSpiral;
+  this.setAttribute("aria-pressed",showSpiral?"true":"false");
+  paint();
+});
+document.getElementById("ovRing").addEventListener("click",function(){
+  showRing=!showRing;
+  this.setAttribute("aria-pressed",showRing?"true":"false");
+  paint();
+});
+document.getElementById("ovNum").addEventListener("click",function(){
+  showNum=!showNum;
+  this.setAttribute("aria-pressed",showNum?"true":"false");
+  paint();
+});
+fibrow.addEventListener("click",function(e){
+  var ch=e.target.closest(".fibchip");if(!ch)return;
+  var n=parseInt(ch.dataset.n,10);
+  /* solving 360/angle = n => angle = 360/n */
+  applyAngle(Math.round(3600/n)/10);
+});
+
+/* ---------- stamping ---------- */
+function stamp(){
+  var mini=document.createElement("canvas");
+  mini.width=240;mini.height=240;
+  var mctx=mini.getContext("2d");
+  mctx.fillStyle="#24462f";
+  mctx.fillRect(0,0,240,240);
+  var mC=120,mR=104;
+  var rad=angle*Math.PI/180;
+  for(var i=seeds-1;i>=0;i--){
+    var th=i*rad,rr=mR*Math.sqrt(i/seeds);
+    var x=mC+Math.cos(th)*rr,y=mC+Math.sin(th)*rr;
+    var k=rr/mR,s=mR*0.033*(0.72+0.5*(1-k));
+    mctx.fillStyle=seedColor(k);
+    mctx.beginPath();
+    mctx.ellipse(x,y,s*1.18,s*0.86,th,0,TAU);
+    mctx.fill();
+  }
+  var card=document.createElement("div");
+  card.className="miniplate";
+  var no=shelf.children.length+1;
+  var label;
+  if(Math.abs(angle-GOLDEN)<0.05)label="the golden angle";
+  else label=angle.toFixed(1)+"\u00b0 divergence";
+  card.innerHTML="<canvas></canvas><div class='cap'><b>Plate "+String(no).padStart(2,"0")+"</b>"+label+"</div>";
+  card.querySelector("canvas").replaceWith(mini);
+  shelf.appendChild(card);
+  drawer.classList.add("open");
+  shelf.scrollLeft=shelf.scrollWidth;
+  if(shelf.children.length>12)shelf.removeChild(shelf.firstChild);
+}
+document.getElementById("stampBtn").addEventListener("click",stamp);
+document.getElementById("closeDrawer").addEventListener("click",function(){
+  drawer.classList.remove("open");
+});
+
+/* ---------- gentle idle rotation ---------- */
+function frame(ts){
+  var dt=Math.min((ts-last)/1000,0.05);last=ts;
+  t+=dt;
+  if(liveSpin&&!dragging){
+    rot+=dt*0.05;
+    if(rot>TAU)rot-=TAU;
+    /* spin only rotates the figure; cached spiral lattice stays valid */
+    drawHead();
+    ctx.save();
+    ctx.translate(C,C);ctx.rotate(rot);ctx.translate(-C,-C);
+    drawSpiralLattice();
+    ctx.restore();
+    drawRings();
+    drawGhost();
+  }
+  requestAnimationFrame(frame);
+}
+
+resize();
+applyAngle(GOLDEN);
+window.addEventListener("resize",function(){
+  resize();
+  paint();
+});
+last=performance.now();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CELESTIAL ATLAS — Plate IX: the Winter Circle</title>
+<style>
+/* ============================================================
+   CELESTIAL ATLAS — an antique sky plate
+   parchment · engraved constellations · gold stars · loupe
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --parchment: #efe6cf;
+  --parchment-hi: #f6efdc;
+  --parchment-lo: #e2d6b8;
+  --ink: #3d3427;
+  --ink-soft: #6b5f4b;
+  --ink-faint: #94886e;
+  --gold: #c9a227;
+  --gold-hi: #e8c85c;
+  --wash: #a8c0d0;
+  --red-wax: #9c3a2c;
+  --serif: Georgia, "Times New Roman", "Times", serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--serif);
+  color: var(--ink);
+  background:
+    radial-gradient(120% 90% at 50% -10%, #4a4132 0%, rgba(74, 65, 50, 0) 60%),
+    linear-gradient(180deg, #35301f 0%, #241f12 100%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  padding: clamp(10px, 2.4vw, 30px) clamp(8px, 1.8vw, 30px) clamp(20px, 3.4vw, 44px);
+}
+
+::selection { background: var(--gold); color: #2c2308; }
+::-moz-selection { background: var(--gold); color: #2c2308; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #241f12; }
+::-webkit-scrollbar-thumb { background: #6b5f4b; border: 2px solid #241f12; }
+
+/* ---------- plate sheet ---------- */
+.plate {
+  position: relative;
+  width: min(1040px, 96vw);
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(255, 250, 230, 0.6), rgba(255, 250, 230, 0) 55%),
+    linear-gradient(170deg, var(--parchment-hi) 0%, var(--parchment) 30%, var(--parchment-lo) 100%);
+  padding: clamp(16px, 3vw, 44px) clamp(16px, 3.4vw, 52px) clamp(14px, 2.6vw, 36px);
+  box-shadow:
+    0 34px 80px -24px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(148, 136, 110, 0.4) inset;
+  /* deckled edge */
+  clip-path: polygon(
+    0.4% 0.6%, 4% 0.1%, 12% 0.7%, 25% 0.15%, 40% 0.7%, 58% 0.1%, 74% 0.65%, 88% 0.15%, 99.6% 0.5%,
+    99.9% 3%, 99.3% 9%, 99.85% 22%, 99.2% 38%, 99.8% 55%, 99.25% 71%, 99.8% 86%, 99.5% 99.4%,
+    96% 99.9%, 84% 99.3%, 66% 99.85%, 47% 99.25%, 30% 99.8%, 14% 99.3%, 3% 99.75%, 0.15% 99.2%,
+    0.7% 94%, 0.1% 78%, 0.65% 60%, 0.12% 42%, 0.7% 26%, 0.15% 12%);
+}
+
+/* plate foxing / age stains */
+.plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(9% 7% at 12% 18%, rgba(150, 116, 60, 0.16), transparent 70%),
+    radial-gradient(6% 5% at 84% 12%, rgba(150, 116, 60, 0.13), transparent 70%),
+    radial-gradient(11% 8% at 88% 82%, rgba(140, 106, 54, 0.14), transparent 70%),
+    radial-gradient(5% 4% at 30% 88%, rgba(150, 116, 60, 0.12), transparent 70%);
+}
+
+/* ---------- text furniture ---------- */
+.plate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(61, 52, 39, 0.5);
+  padding-bottom: 0.7em;
+}
+.plate-head .series {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.plate-head h1 {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(1.25rem, 3.2vw, 2.1rem);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink);
+}
+.plate-head .no {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+/* ---------- atlas area ---------- */
+.atlas-wrap {
+  position: relative;
+  margin-top: clamp(12px, 2vw, 22px);
+}
+
+.atlas-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* sky wash behind constellation area */
+.wash-rect {
+  fill: rgba(168, 192, 208, 0.16);
+}
+
+.grid-line {
+  stroke: rgba(61, 52, 39, 0.16);
+  stroke-width: 0.7;
+}
+.grid-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  fill: rgba(107, 95, 75, 0.55);
+}
+
+.const-group { cursor: pointer; }
+.const-group:focus { outline: none; }
+.const-group:focus-visible .const-figure {
+  stroke: var(--gold);
+  stroke-width: 1.6;
+}
+.const-figure {
+  fill: none;
+  stroke: rgba(61, 52, 39, 0.62);
+  stroke-width: 1.05;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.4s ease, stroke-width 0.4s ease, filter 0.4s ease;
+}
+.const-halo {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 0 4px rgba(201, 162, 39, 0.7));
+}
+.const-name {
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 4px;
+  fill: var(--ink);
+  text-transform: uppercase;
+  transition: fill 0.4s ease;
+}
+.const-latin {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  fill: var(--ink-soft);
+  transition: fill 0.4s ease;
+}
+.const-group:hover .const-figure,
+.const-group.inked .const-figure {
+  stroke: var(--gold);
+  stroke-width: 1.7;
+  filter: drop-shadow(0 0 3px rgba(201, 162, 39, 0.45));
+}
+.const-group:hover .const-halo,
+.const-group.inked .const-halo { opacity: 0.85; }
+.const-group:hover .const-name,
+.const-group.inked .const-name { fill: #7a5c10; }
+.const-group:hover .const-latin,
+.const-group.inked .const-latin { fill: #8a6a20; }
+
+/* stars */
+.star-gold {
+  fill: var(--gold-hi);
+  stroke: #8a6a20;
+  stroke-width: 0.6;
+}
+.star-plain {
+  fill: var(--ink-soft);
+}
+.star-ray {
+  stroke: rgba(201, 162, 39, 0.85);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+}
+.mag-label {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  fill: rgba(107, 95, 75, 0.7);
+  letter-spacing: 1px;
+}
+
+/* compass rose */
+.rose text {
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 3px;
+  fill: var(--ink);
+}
+.rose .rose-sub {
+  font-size: 8px;
+  letter-spacing: 2px;
+  fill: var(--ink-soft);
+  font-style: italic;
+}
+
+/* corner cartouche */
+.cartouche {
+  font-family: var(--serif);
+}
+.cartouche .c-title {
+  font-size: 14px;
+  letter-spacing: 3px;
+  fill: var(--ink);
+  text-transform: uppercase;
+}
+.cartouche .c-sub {
+  font-style: italic;
+  font-size: 10px;
+  fill: var(--ink-soft);
+  letter-spacing: 1px;
+}
+.cartouche .c-fine {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 2px;
+  fill: var(--ink-faint);
+}
+
+/* ---------- myth card ---------- */
+.myth-card {
+  position: absolute;
+  z-index: 5;
+  width: min(320px, 78vw);
+  background:
+    linear-gradient(160deg, #f6efdc 0%, var(--parchment) 60%, #e8dcbf 100%);
+  border: 1px solid rgba(61, 52, 39, 0.45);
+  box-shadow:
+    0 18px 44px -14px rgba(20, 14, 4, 0.65),
+    0 0 0 4px rgba(246, 239, 220, 0.55);
+  padding: clamp(14px, 2vw, 20px) clamp(16px, 2.2vw, 22px);
+  opacity: 0;
+  transform: translateX(-14px);
+  pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.myth-card.show {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.myth-card::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 5px;
+  width: 2px;
+  background: var(--gold);
+  opacity: 0.65;
+}
+.myth-card .mc-kicker {
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.myth-card h2 {
+  margin: 0.35em 0 0.1em;
+  font-weight: 400;
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.myth-card .mc-latin {
+  font-style: italic;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.myth-card p {
+  margin: 0.8em 0 0;
+  font-size: clamp(0.84rem, 1.6vw, 0.95rem);
+  line-height: 1.65;
+  color: var(--ink);
+  text-align: justify;
+}
+.myth-card .mc-stars {
+  margin-top: 0.9em;
+  padding-top: 0.7em;
+  border-top: 1px dashed rgba(107, 95, 75, 0.4);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  line-height: 2;
+}
+.myth-card .mc-stars b { color: #7a5c10; font-weight: 400; }
+
+/* ---------- loupe ---------- */
+.loupe {
+  position: fixed;
+  z-index: 30;
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  box-shadow:
+    0 18px 40px -10px rgba(0, 0, 0, 0.6),
+    0 0 0 5px #9a7a2c,
+    0 0 0 7px #6e5518,
+    inset 0 0 0 3px rgba(255, 244, 208, 0.5),
+    inset 0 8px 24px rgba(60, 40, 10, 0.35);
+  background: var(--parchment);
+}
+.loupe.on { opacity: 1; }
+.loupe .loupe-inner {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.loupe .loupe-inner .plate-mini {
+  width: 100%;
+  height: 100%;
+}
+.loupe .glint {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(circle at 72% 84%, rgba(255, 255, 255, 0.14), transparent 30%);
+}
+.loupe .handle {
+  position: absolute;
+  right: -74px;
+  bottom: -6px;
+  width: 96px;
+  height: 20px;
+  border-radius: 12px;
+  transform: rotate(38deg);
+  background: linear-gradient(180deg, #e8c85c, #a3822f 60%, #6e5518);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 246, 218, 0.6),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- foot ---------- */
+.plate-foot {
+  margin-top: clamp(12px, 2vw, 20px);
+  border-top: 1px solid rgba(61, 52, 39, 0.5);
+  padding-top: 0.8em;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.legend-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.legend-inline .dot-gold {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gold-hi);
+  border: 1px solid #8a6a20;
+  display: inline-block;
+}
+
+/* wax seal on the plate */
+.seal {
+  position: absolute;
+  right: clamp(8px, 2vw, 26px);
+  bottom: clamp(46px, 7vw, 74px);
+  width: clamp(52px, 7vw, 74px);
+  height: clamp(52px, 7vw, 74px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #c05a48 0%, var(--red-wax) 46%, #6e241a 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(255, 190, 170, 0.4),
+    inset 0 -4px 8px rgba(40, 8, 4, 0.6),
+    0 6px 14px rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+.seal span {
+  font-family: var(--serif);
+  font-size: clamp(0.5rem, 1.2vw, 0.66rem);
+  letter-spacing: 0.18em;
+  color: #f6d9c9;
+  text-align: center;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 640px) {
+  .loupe { display: none; }
+  .myth-card {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translate(-50%, 20px);
+    width: min(420px, 92vw);
+    max-height: 44dvh;
+    overflow: auto;
+  }
+  .myth-card.show { transform: translate(-50%, 0); }
+  .seal { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .myth-card, .const-figure, .const-halo { transition: none; }
+  .loupe { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="plate" id="plate">
+  <header class="plate-head">
+    <span class="series">Atlas Cœlestis · Series Secunda</span>
+    <h1>Plate IX — The Winter Circle</h1>
+    <span class="no">Nº 029 / 100<br>MDCCCXCVII</span>
+  </header>
+
+  <div class="atlas-wrap" id="atlasWrap">
+    <svg class="atlas-svg" id="atlasSvg" viewBox="0 0 960 620"
+         aria-label="Antique star chart of the winter constellations" role="img">
+      <defs>
+        <radialGradient id="starSheen" cx="0.35" cy="0.3" r="0.9">
+          <stop offset="0" stop-color="#fff3c4"></stop>
+          <stop offset="0.55" stop-color="#e8c85c"></stop>
+          <stop offset="1" stop-color="#a3822f"></stop>
+        </radialGradient>
+      </defs>
+
+      <!-- faint blue sky wash -->
+      <rect class="wash-rect" x="20" y="46" width="920" height="470" rx="6"></rect>
+
+      <!-- coordinate grid -->
+      <g id="coordGrid"></g>
+
+      <!-- plate border -->
+      <rect x="14" y="14" width="932" height="592" fill="none"
+            stroke="#3d3427" stroke-width="2"></rect>
+      <rect x="20" y="20" width="920" height="580" fill="none"
+            stroke="#3d3427" stroke-width="0.8"></rect>
+
+      <!-- constellations (injected) -->
+      <g id="constellations"></g>
+
+      <!-- compass rose -->
+      <g class="rose" transform="translate(858,116)">
+        <circle r="40" fill="none" stroke="#3d3427" stroke-width="1"></circle>
+        <circle r="33" fill="none" stroke="#3d3427" stroke-width="0.6"></circle>
+        <path d="M0,-40 L6,-6 L0,0 L-6,-6 Z" fill="#c9a227" stroke="#8a6a20" stroke-width="0.8"></path>
+        <path d="M0,40 L6,6 L0,0 L-6,6 Z" fill="none" stroke="#3d3427" stroke-width="0.9"></path>
+        <path d="M-40,0 L-6,-6 L0,0 L-6,6 Z" fill="none" stroke="#3d3427" stroke-width="0.9"></path>
+        <path d="M40,0 L6,-6 L0,0 L6,6 Z" fill="none" stroke="#3d3427" stroke-width="0.9"></path>
+        <text x="0" y="-48" text-anchor="middle">N</text>
+        <text class="rose-sub" x="0" y="58" text-anchor="middle">SEPTENTRIO</text>
+      </g>
+
+      <!-- title cartouche -->
+      <g class="cartouche" transform="translate(64,540)">
+        <text class="c-title" x="0" y="0">The Winter Circle</text>
+        <text class="c-sub" x="0" y="18">Orionis familia — six constellations of the cold months, as seen from London, midnight of the solstice.</text>
+        <text class="c-fine" x="0" y="36">ENGRAVED &amp; HAND-COLOURED · LONGITUDE 1800–0 H · EPOCH 1897.0</text>
+      </g>
+    </svg>
+
+    <aside class="myth-card" id="mythCard" aria-live="polite">
+      <div class="mc-kicker" id="mcKicker">Constellation</div>
+      <h2 id="mcName">—</h2>
+      <div class="mc-latin" id="mcLatin">—</div>
+      <p id="mcStory">—</p>
+      <div class="mc-stars" id="mcStars"></div>
+    </aside>
+  </div>
+
+  <div class="seal" aria-hidden="true"><span>Observed<br>· 1897 ·</span></div>
+
+  <footer class="plate-foot">
+    <span class="legend-inline"><i class="dot-gold"></i> Stars of the first magnitude, gilt</span>
+    <span>Hover a figure to ink it · the loupe follows your hand</span>
+    <span>Nº 029 · The Gallery of 100</span>
+  </footer>
+</div>
+
+<!-- brass loupe -->
+<div class="loupe" id="loupe" aria-hidden="true">
+  <div class="loupe-inner" id="loupeInner"></div>
+  <div class="glint"></div>
+  <div class="handle"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $('atlasSvg');
+  var constLayer = $('constellations');
+  var gridLayer = $('coordGrid');
+  var mythCard = $('mythCard');
+  var mcKicker = $('mcKicker');
+  var mcName = $('mcName');
+  var mcLatin = $('mcLatin');
+  var mcStory = $('mcStory');
+  var mcStars = $('mcStars');
+  var loupe = $('loupe');
+  var loupeInner = $('loupeInner');
+  var atlasWrap = $('atlasWrap');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- coordinate grid ---------------- */
+  (function buildGrid() {
+    var html = '';
+    var x;
+    for (x = 60; x <= 900; x += 60) {
+      html += '<line class="grid-line" x1="' + x + '" y1="46" x2="' + x + '" y2="516"></line>';
+      html += '<text class="grid-label" x="' + (x + 3) + '" y="528">' + (x / 2) + '°</text>';
+    }
+    var decls = [
+      { y: 106, label: '+40°' },
+      { y: 196, label: '+20°' },
+      { y: 286, label: '0°' },
+      { y: 376, label: '−20°' },
+      { y: 466, label: '−40°' }
+    ];
+    decls.forEach(function (d) {
+      html += '<line class="grid-line" x1="20" y1="' + d.y + '" x2="940" y2="' + d.y + '"></line>';
+      html += '<text class="grid-label" x="24" y="' + (d.y - 4) + '">' + d.label + '</text>';
+    });
+    gridLayer.innerHTML = html;
+  })();
+
+  /* ---------------- constellation data ---------------- */
+  /* star coords in plate space; figures drawn through named stars */
+  var CONSTS = [
+    {
+      id: 'orion',
+      name: 'Orion',
+      latin: 'The Hunter · α Orionis: Betelgeuse',
+      stars: [
+        { x: 536, y: 132, mag: 1, name: 'Betelgeuse' },
+        { x: 596, y: 122, mag: 1, name: 'Bellatrix' },
+        { x: 560, y: 252, mag: 2, name: 'Alnitak' },
+        { x: 574, y: 262, mag: 2, name: 'Alnilam' },
+        { x: 588, y: 272, mag: 2, name: 'Mintaka' },
+        { x: 548, y: 388, mag: 1, name: 'Saiph' },
+        { x: 606, y: 396, mag: 1, name: 'Rigel' },
+        { x: 574, y: 300, mag: 3, name: 'M42' }
+      ],
+      figure: [[0, 1], [0, 4], [1, 4], [1, 6], [4, 6], [4, 5], [3, 7]],
+      nameAt: { x: 486, y: 96 },
+      latinAt: { x: 486, y: 114 },
+      myth: 'The hunter of the winter sky, striding the meridian with his belt of three. The Greeks set him there as a giant whom the gods fixed to the firmament — scorpion at his heel, dogs at his skirts — so that even the seasons must walk around him.',
+      facts: '7 principal stars · belt stars lie 1,300 light-years out · the Great Nebula hangs below the belt like a sword-blade of mist'
+    },
+    {
+      id: 'taurus',
+      name: 'Taurus',
+      latin: 'The Bull · α Tauri: Aldebaran',
+      stars: [
+        { x: 380, y: 176, mag: 1, name: 'Aldebaran' },
+        { x: 348, y: 150, mag: 3, name: 'Hyadum' },
+        { x: 342, y: 186, mag: 3, name: 'Hyadum II' },
+        { x: 318, y: 208, mag: 4, name: 'Southern Hyad' },
+        { x: 296, y: 142, mag: 2, name: 'Elnath' },
+        { x: 262, y: 236, mag: 4, name: 'Zeta Tauri' },
+        { x: 352, y: 246, mag: 3, name: 'Pleiades gate' }
+      ],
+      figure: [[4, 1], [1, 2], [2, 3], [2, 0], [0, 5]],
+      nameAt: { x: 236, y: 120 },
+      latinAt: { x: 236, y: 138 },
+      myth: 'Only the head and forequarters of the bull break the horizon, as if he were still swimming — for this is the beast that carried Europa across the sea, and the sea has never quite let go of him. The Hyades, his weeping sisters, form his V-shaped face.',
+      facts: 'Aldebaran glares red at the end of the Hyades V · the Pleiades glitter just off his shoulder · crossing the ecliptic near the Pleiades'
+    },
+    {
+      id: 'canismajor',
+      name: 'Canis Major',
+      latin: 'The Great Dog · α Canis Majoris: Sirius',
+      stars: [
+        { x: 560, y: 470, mag: 1, name: 'Sirius' },
+        { x: 610, y: 470, mag: 3, name: 'Mirzam' },
+        { x: 652, y: 430, mag: 2, name: 'Wezen' },
+        { x: 672, y: 486, mag: 2, name: 'Adhara' },
+        { x: 700, y: 452, mag: 3, name: 'Aludra' }
+      ],
+      figure: [[1, 0], [0, 3], [3, 2], [2, 4]],
+      nameAt: { x: 596, y: 528 },
+      latinAt: { x: 596, y: 546 },
+      myth: 'The loyal hound at Orion\u2019s heel, and on his collar the brightest star in all the sky. Egyptian priests watched his rising to know the Nile would follow; sailors trusted that the Dog, at least, never lied about dawn.',
+      facts: 'Sirius burns 25× brighter than the Sun at 8.6 light-years · its little white companion is a Earth-sized diamond of collapsed matter'
+    },
+    {
+      id: 'canisminor',
+      name: 'Canis Minor',
+      latin: 'The Lesser Dog · α Canis Minoris: Procyon',
+      stars: [
+        { x: 500, y: 372, mag: 1, name: 'Procyon' },
+        { x: 548, y: 352, mag: 3, name: 'Gomeisa' }
+      ],
+      figure: [[0, 1]],
+      nameAt: { x: 442, y: 356 },
+      latinAt: { x: 442, y: 374 },
+      myth: 'A constellation of two stars that refuses to be embarrassed about it. The Little Dog rises before his greater brother — "Procyon," the before-dog — and seems pleased to have the sky to himself for an evening.',
+      facts: 'Procyon: 11.5 light-years · the eighth-brightest star in the sky · a textbook binary with a white dwarf mate'
+    },
+    {
+      id: 'auriga',
+      name: 'Auriga',
+      latin: 'The Charioteer · α Aurigae: Capella',
+      stars: [
+        { x: 330, y: 84, mag: 1, name: 'Capella' },
+        { x: 296, y: 142, mag: 2, name: 'Elnath (shared)' },
+        { x: 258, y: 108, mag: 3, name: 'Menkalinan' },
+        { x: 292, y: 60, mag: 3, name: 'Theta Aurigae' },
+        { x: 374, y: 122, mag: 3, name: 'Iota Aurigae' }
+      ],
+      figure: [[0, 2], [2, 1], [1, 4], [4, 3], [3, 0]],
+      nameAt: { x: 206, y: 74 },
+      latinAt: { x: 206, y: 92 },
+      myth: 'A goatherd carried to the sky on his chariot, the she-goat Capella tucked under his arm — her star the sixth-brightest in the heavens, a golden whisper of two giants dancing so close they blur into one lamp.',
+      facts: 'Capella is four stars in a coat · the pentagon of Auriga holds three of the year\u2019s finest star clusters'
+    },
+    {
+      id: 'gemini',
+      name: 'Gemini',
+      latin: 'The Twins · α Geminorum: Castor',
+      stars: [
+        { x: 736, y: 150, mag: 2, name: 'Castor' },
+        { x: 748, y: 176, mag: 1, name: 'Pollux' },
+        { x: 778, y: 250, mag: 3, name: 'Alhena' },
+        { x: 716, y: 244, mag: 3, name: 'Wasat' },
+        { x: 700, y: 320, mag: 4, name: 'Alhena line' }
+      ],
+      figure: [[0, 3], [1, 3], [3, 2], [2, 4]],
+      nameAt: { x: 768, y: 108 },
+      latinAt: { x: 768, y: 126 },
+      myth: 'Castor mortal, Pollux divine, and neither willing to be immortal alone. When Castor fell, Pollux begged to share his days; Zeus, out-sentimented, set them side by side forever — the patron saints of every oath sworn between brothers.',
+      facts: 'Castor is a six-star system · Pollux wears a known planet · they stand 4.5° apart, which no two bright stars manage so gracefully'
+    }
+  ];
+
+  /* ---------------- build constellations ---------------- */
+  function starMarkup(star, idx, constId) {
+    var r = [3.4, 2.7, 2.0, 1.5][Math.min(3, star.mag - 1)];
+    var cls = star.mag <= 1 ? 'star-gold' : 'star-plain';
+    var html = '';
+    if (star.mag === 1) {
+      html += '<line class="star-ray" x1="' + (star.x - 7) + '" y1="' + star.y + '" x2="' + (star.x + 7) + '" y2="' + star.y + '"></line>';
+      html += '<line class="star-ray" x1="' + star.x + '" y1="' + (star.y - 7) + '" x2="' + star.x + '" y2="' + (star.y + 7) + '"></line>';
+    }
+    html += '<circle class="' + cls + '" cx="' + star.x + '" cy="' + star.y + '" r="' + r + '"' +
+      (star.mag === 1 ? ' fill="url(#starSheen)"' : '') + '></circle>';
+    html += '<title>' + star.name + ' — magnitude ' + star.mag + '</title>';
+    return html;
+  }
+
+  (function buildConsts() {
+    var html = '';
+    CONSTS.forEach(function (c, ci) {
+      html += '<g class="const-group" id="cg-' + c.id + '" data-idx="' + ci +
+        '" role="button" tabindex="0" aria-label="' + c.name + ' — show its story">';
+      /* halo figure (gold ghost) */
+      html += '<path class="const-halo" d="';
+      c.figure.forEach(function (seg, i) {
+        var a = c.stars[seg[0]];
+        var b = c.stars[seg[1]];
+        html += (i === 0 ? 'M ' : 'L ') + a.x + ' ' + a.y + ' L ' + b.x + ' ' + b.y + ' ';
+      });
+      html += '" fill="none"></path>';
+      /* ink figure */
+      html += '<path class="const-figure" d="';
+      c.figure.forEach(function (seg, i) {
+        var a = c.stars[seg[0]];
+        var b = c.stars[seg[1]];
+        html += (i === 0 ? 'M ' : 'L ') + a.x + ' ' + a.y + ' L ' + b.x + ' ' + b.y + ' ';
+      });
+      html += '" fill="none"></path>';
+      /* stars */
+      c.stars.forEach(function (s) {
+        html += starMarkup(s);
+      });
+      /* labels */
+      html += '<text class="const-name" x="' + c.nameAt.x + '" y="' + c.nameAt.y + '">' + c.name + '</text>';
+      html += '<text class="const-latin" x="' + c.latinAt.x + '" y="' + c.latinAt.y + '">' + c.latin + '</text>';
+      html += '</g>';
+    });
+    constLayer.innerHTML = html;
+  })();
+
+  /* ---------------- myth card logic ---------------- */
+  var currentIdx = -1;
+  var cardPinIdx = -1;
+
+  function fillCard(idx) {
+    var c = CONSTS[idx];
+    mcKicker.textContent = 'Constellation · ' + (idx + 1) + ' of ' + CONSTS.length;
+    mcName.textContent = c.name;
+    mcLatin.textContent = c.latin;
+    mcStory.textContent = c.myth;
+    mcStars.innerHTML = '<b>Principal stars</b> — ' +
+      c.stars.slice(0, 3).map(function (s) { return s.name; }).join(' · ');
+  }
+
+  function inkGroup(idx, on) {
+    var g = document.getElementById('cg-' + CONSTS[idx].id);
+    if (g) { g.classList.toggle('inked', !!on); }
+  }
+
+  function showCard(idx) {
+    if (idx === currentIdx) { return; }
+    if (currentIdx > -1 && currentIdx !== cardPinIdx) { inkGroup(currentIdx, false); }
+    currentIdx = idx;
+    inkGroup(idx, true);
+    fillCard(idx);
+    positionCard(idx);
+    mythCard.classList.add('show');
+  }
+
+  function hideCard(idx) {
+    if (idx === cardPinIdx) { return; }
+    mythCard.classList.remove('show');
+    if (currentIdx > -1 && currentIdx !== cardPinIdx) { inkGroup(currentIdx, false); }
+    if (currentIdx === idx) { currentIdx = -1; }
+  }
+
+  function positionCard(idx) {
+    var wrapRect = atlasWrap.getBoundingClientRect();
+    var g = document.getElementById('cg-' + CONSTS[idx].id);
+    if (!g) { return; }
+    var bb = g.getBBox();
+    var svgW = 960;
+    var scale = wrapRect.width / svgW;
+    var cardW = mythCard.offsetWidth || 300;
+    var preferLeft = bb.x * scale > cardW + 40;
+    var x = preferLeft
+      ? bb.x * scale - cardW - 26
+      : bb.x * scale + bb.width * scale + 26;
+    x = Math.max(4, Math.min(wrapRect.width - cardW - 4, x));
+    var y = Math.max(4, Math.min(wrapRect.height - (mythCard.offsetHeight || 260) - 4, bb.y * scale));
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      mythCard.style.left = '';
+      mythCard.style.top = '';
+      return;
+    }
+    mythCard.style.left = x + 'px';
+    mythCard.style.top = y + 'px';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.const-group'), function (g) {
+    var idx = Number(g.dataset.idx);
+    g.addEventListener('pointerenter', function () { showCard(idx); });
+    g.addEventListener('pointerleave', function () { hideCard(idx); });
+    g.addEventListener('focus', function () { showCard(idx); });
+    g.addEventListener('blur', function () { hideCard(idx); });
+    g.addEventListener('click', function () {
+      if (cardPinIdx === idx) {
+        cardPinIdx = -1;
+        inkGroup(idx, false);
+        mythCard.classList.remove('show');
+        currentIdx = -1;
+      } else {
+        if (cardPinIdx > -1) { inkGroup(cardPinIdx, false); }
+        cardPinIdx = idx;
+        showCard(idx);
+        cardPinIdx = idx; /* pin keeps it */
+        inkGroup(idx, true);
+      }
+    });
+    g.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        g.click();
+      }
+    });
+  });
+
+  /* ---------------- brass loupe ---------------- */
+  var ZOOM = 2;
+  var loupeOn = false;
+  var loupeCloned = false;
+
+  function buildLoupeContent() {
+    /* clone the plate SVG into the loupe at 200% size */
+    if (!loupeCloned) {
+      var mini = svg.cloneNode(true);
+      mini.removeAttribute('id');
+      mini.removeAttribute('class');
+      mini.setAttribute('width', '100%');
+      mini.setAttribute('height', '100%');
+      mini.classList.add('plate-mini');
+      loupeInner.innerHTML = '';
+      loupeInner.appendChild(mini);
+      loupeCloned = true;
+    }
+  }
+
+  var loupeRaf = 0;
+  function moveLoupe(e) {
+    var vx = e.clientX;
+    var vy = e.clientY;
+    cancelAnimationFrame(loupeRaf);
+    loupeRaf = requestAnimationFrame(function () {
+      var half = loupe.offsetWidth / 2;
+      loupe.style.left = (vx - half) + 'px';
+      loupe.style.top = (vy - half) + 'px';
+      var pr = document.getElementById('plate').getBoundingClientRect();
+      var lx = vx - pr.left;
+      var ly = vy - pr.top;
+      var innerW = loupeInner.offsetWidth || 336;
+      var innerH = loupeInner.offsetHeight || 336;
+      var px = lx / pr.width;
+      var py = ly / pr.height;
+      var tx = half - ZOOM * px * innerW;
+      var ty = half - ZOOM * py * innerH;
+      loupeInner.style.transform =
+        'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + ZOOM + ')';
+    });
+  }
+
+  var plateEl = $('plate');
+  var finePointer = window.matchMedia('(pointer: fine)').matches;
+  if (finePointer && !reduced) {
+    plateEl.addEventListener('pointerenter', function () {
+      buildLoupeContent();
+      loupeOn = true;
+      loupe.classList.add('on');
+    });
+    plateEl.addEventListener('pointermove', moveLoupe);
+    plateEl.addEventListener('pointerleave', function () {
+      loupeOn = false;
+      loupe.classList.remove('on');
+    });
+  }
+
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(loupeRaf);
+  });
+})();
+</script>
+</body>
+</html>

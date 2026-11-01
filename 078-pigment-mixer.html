@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="THE PIGMENTIST — a historical paint-mixing bench: grind real pigments, sweep the knife across the glass slab, and paint the result onto a swatch fan.">
+<meta name="theme-color" content="#211710">
+<title>The Pigmentist — A Historical Paint-Mixing Bench</title>
+<style>
+  :root{
+    --bench:#6b4a2f;
+    --bench-deep:#4a3018;
+    --bench-dark:#33200e;
+    --paper:#efe6cf;
+    --paper-deep:#e4d8b8;
+    --ink:#322818;
+    --ink-soft:rgba(50,40,24,.62);
+    --ink-faint:rgba(50,40,24,.34);
+    --glass:#dfe6e8;
+    --glass-hi:rgba(255,255,255,.75);
+    --brass:#c9a24a;
+    --brass-deep:#8a6a24;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Courier New",Courier,monospace;
+    --apoth:"Palatino Linotype","Iowan Old Style",Palatino,ui-serif,Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{
+    min-height:100vh;
+    color:var(--paper);
+    font-family:var(--serif);
+    background:
+      radial-gradient(1200px 800px at 50% -12%, #4a3417 0%, var(--bench-deep) 46%, #241608 100%);
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--brass);color:#2a1c06}
+  body::-webkit-scrollbar{width:10px}
+  body::-webkit-scrollbar-track{background:#2c1c0c}
+  body::-webkit-scrollbar-thumb{background:#6a4d24;border:2px solid #2c1c0c;border-radius:6px}
+
+  .shop{
+    max-width:1220px;
+    margin:0 auto;
+    padding:clamp(16px,3vh,34px) clamp(14px,3vw,40px) 46px;
+  }
+
+  /* ————— masthead ————— */
+  .mast{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    border-bottom:1px solid rgba(239,230,207,.22);
+    padding-bottom:clamp(10px,1.8vh,16px);
+  }
+  .mast h1{
+    font-family:var(--apoth);
+    font-weight:500;
+    font-size:clamp(26px,4.4vw,46px);
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    line-height:1;
+    color:var(--paper);
+    text-shadow:0 2px 0 rgba(0,0,0,.4);
+  }
+  .mast h1 i{color:var(--brass);font-style:normal}
+  .mast .sub{
+    font-style:italic;
+    font-size:clamp(12px,1.7vw,15.5px);
+    color:rgba(239,230,207,.66);
+    margin-top:.5em;
+  }
+  .mast .regime{
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1.05vw,10.5px);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:rgba(239,230,207,.5);
+    text-align:right;
+    line-height:1.9;
+  }
+  .mast .regime b{font-weight:400;color:var(--brass)}
+
+  /* ————— jars row ————— */
+  .shelflabel{
+    margin-top:clamp(14px,2.4vh,20px);
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1vw,10px);
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:rgba(239,230,207,.42);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .shelflabel::after{content:"";flex:1;height:1px;background:rgba(239,230,207,.16)}
+
+  .jars{
+    margin-top:12px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(132px, 1fr));
+    gap:clamp(10px,1.6vw,16px);
+  }
+  .jar{
+    position:relative;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18));
+    border:1px solid rgba(239,230,207,.14);
+    border-radius:8px;
+    padding:10px 10px 12px;
+    cursor:pointer;
+    text-align:left;
+    color:var(--paper);
+    font-family:inherit;
+    transition:transform .2s ease, border-color .2s ease, box-shadow .25s ease, background .2s ease;
+    -webkit-appearance:none;appearance:none;
+  }
+  .jar:hover,.jar:focus-visible{
+    transform:translateY(-4px);
+    border-color:rgba(201,162,74,.55);
+    box-shadow:0 10px 20px rgba(0,0,0,.4), 0 0 0 1px rgba(201,162,74,.25);
+    background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(0,0,0,.16));
+  }
+  .jar:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+  .jar.selected{
+    border-color:var(--brass);
+    box-shadow:0 0 0 2px var(--brass), 0 10px 22px rgba(0,0,0,.45);
+  }
+  .jar.selected::after{
+    content:"ON THE SLAB";
+    position:absolute;top:-9px;right:8px;
+    font-family:var(--mono);
+    font-size:6.5px;
+    letter-spacing:.22em;
+    background:var(--brass);
+    color:#2a1c06;
+    padding:2px 6px 1px;
+    border-radius:2px;
+  }
+  .jar .swatch{
+    width:100%;
+    height:clamp(52px,6.4vw,68px);
+    border-radius:5px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:inset 0 -6px 12px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.28);
+  }
+  .jar .swatch::after{
+    content:"";
+    position:absolute;inset:0;
+    background:
+      radial-gradient(26px 12px at 24% 16%, rgba(255,255,255,.4), transparent 60%),
+      radial-gradient(40px 16px at 78% 82%, rgba(0,0,0,.22), transparent 60%);
+  }
+  .jar .nm{
+    display:block;
+    font-family:var(--apoth);
+    font-size:clamp(12px,1.5vw,14.5px);
+    letter-spacing:.05em;
+    margin-top:8px;
+    color:var(--paper);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .jar .origin{
+    display:block;
+    font-style:italic;
+    font-size:10px;
+    color:rgba(239,230,207,.52);
+    margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .jar .code{
+    display:block;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.2em;
+    color:var(--brass);
+    margin-top:5px;
+  }
+
+  /* ————— bench: slab + knife ————— */
+  .bench{
+    margin-top:clamp(18px,3vh,30px);
+    display:grid;
+    grid-template-columns:minmax(0,1.5fr) minmax(250px,1fr);
+    gap:clamp(14px,2.4vw,26px);
+    align-items:stretch;
+  }
+  .slabside{
+    position:relative;
+  }
+  .slabframe{
+    position:relative;
+    border-radius:14px;
+    padding:clamp(12px,2vw,20px);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.24)),
+      linear-gradient(180deg, #7a5636, var(--bench-deep));
+    box-shadow:0 18px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .slab{
+    position:relative;
+    display:block;
+    width:100%;
+    border-radius:10px;
+    overflow:hidden;
+    background:linear-gradient(160deg, #eef3f4 0%, var(--glass) 42%, #ccd6d9 100%);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.65), inset 0 -14px 26px rgba(120,140,148,.4), 0 6px 18px rgba(0,0,0,.35);
+    cursor:crosshair;
+    touch-action:none;
+  }
+  .slab canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .slab .edge{
+    position:absolute;inset:0;pointer-events:none;
+    border-radius:10px;
+    box-shadow:inset 0 0 0 1px rgba(70,90,98,.35);
+  }
+  .slabhint{
+    position:absolute;
+    left:12px;bottom:10px;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:rgba(50,40,24,.5);
+    pointer-events:none;
+  }
+
+  .knifewrap{
+    position:absolute;
+    right:clamp(6px,1.4vw,14px);
+    bottom:clamp(6px,1.4vw,12px);
+    width:clamp(150px,22%,210px);
+    pointer-events:none;
+    z-index:5;
+    transform-origin:78% 20%;
+    transition:transform .1s linear;
+  }
+  .knifewrap canvas{width:100%;height:auto;display:block}
+  .knifewrap.blend{animation:knifesweep 1.15s cubic-bezier(.5,.05,.3,1)}
+  @keyframes knifesweep{
+    0%{transform:translate(0,0) rotate(0)}
+    18%{transform:translate(-56%,-38%) rotate(-14deg)}
+    55%{transform:translate(6%,-30%) rotate(5deg)}
+    100%{transform:translate(0,0) rotate(0)}
+  }
+
+  .recipes{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(12px,2vh,18px);
+    min-width:0;
+  }
+  .ledger{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 30%),
+      var(--paper);
+    color:var(--ink);
+    border-radius:6px;
+    box-shadow:0 12px 30px rgba(0,0,0,.4);
+    padding:clamp(14px,2vw,20px);
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .ledger h2{
+    font-family:var(--apoth);
+    font-weight:500;
+    font-size:clamp(14px,1.8vw,17px);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    border-bottom:1px solid var(--ink-faint);
+    padding-bottom:8px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .ledger h2 small{
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.22em;
+    color:var(--ink-soft);
+  }
+  .mixline{
+    font-family:var(--apoth);
+    font-size:clamp(13px,1.7vw,16px);
+    font-style:italic;
+    line-height:1.55;
+    min-height:3.2em;
+  }
+  .mixline b{font-style:normal;font-weight:600}
+  .provenance{
+    margin-top:10px;
+    font-style:italic;
+    font-size:clamp(11px,1.4vw,12.5px);
+    line-height:1.6;
+    color:var(--ink-soft);
+    background:repeating-linear-gradient(180deg, transparent 0 20px, rgba(50,40,24,.12) 20px 21px);
+  }
+  .formula{
+    margin-top:12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+  }
+  .formula .dot{
+    width:15px;height:15px;border-radius:50%;
+    box-shadow:inset 0 -2px 4px rgba(0,0,0,.3), inset 0 1px 2px rgba(255,255,255,.5);
+    flex:0 0 auto;
+  }
+  .formula .plus{color:var(--ink-faint)}
+  .hexrow{
+    margin-top:10px;
+    display:flex;
+    gap:14px;
+    align-items:baseline;
+    flex-wrap:wrap;
+  }
+  .hexrow .hex{
+    font-family:var(--mono);
+    font-size:clamp(15px,2vw,19px);
+    letter-spacing:.12em;
+    color:var(--ink);
+  }
+  .hexrow .name{
+    font-style:italic;
+    font-size:clamp(12px,1.5vw,14px);
+    color:var(--ink-soft);
+  }
+
+  .fanbox{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.22));
+    border:1px solid rgba(239,230,207,.14);
+    border-radius:6px;
+    padding:clamp(12px,1.8vw,18px);
+  }
+  .fanbox h2{
+    font-family:var(--apoth);
+    font-weight:500;
+    font-size:clamp(13px,1.6vw,16px);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .fanbox h2 small{
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.2em;
+    color:rgba(239,230,207,.45);
+  }
+  .fan{
+    position:relative;
+    height:clamp(170px,24vh,230px);
+  }
+  .fan .leaf{
+    position:absolute;
+    left:50%;bottom:8px;
+    width:clamp(58px,7vw,74px);
+    height:clamp(150px,20vh,200px);
+    border-radius:6px 6px 46% 46% / 6px 6px 14% 14%;
+    transform-origin:50% 96%;
+    box-shadow:0 3px 8px rgba(0,0,0,.45), inset 0 -8px 16px rgba(0,0,0,.24), inset 0 2px 2px rgba(255,255,255,.3);
+    transition:transform .3s ease, box-shadow .3s ease;
+    cursor:pointer;
+    border:1px solid rgba(0,0,0,.28);
+    overflow:hidden;
+  }
+  .fan .leaf:hover,.fan .leaf:focus-visible{
+    box-shadow:0 8px 18px rgba(0,0,0,.5), inset 0 -8px 16px rgba(0,0,0,.2), inset 0 2px 2px rgba(255,255,255,.35);
+    z-index:9;
+  }
+  .fan .leaf .tag{
+    position:absolute;left:0;right:0;bottom:7px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:6.8px;
+    letter-spacing:.1em;
+    color:rgba(255,255,255,.92);
+    text-shadow:0 1px 2px rgba(0,0,0,.6);
+    line-height:1.5;
+    padding:0 3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .fan .leaf .glz{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(30px 12px at 26% 12%, rgba(255,255,255,.45), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.14), transparent 40%);
+  }
+  .fanempty{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    font-style:italic;
+    font-size:clamp(11px,1.4vw,13px);
+    color:rgba(239,230,207,.4);
+    text-align:center;
+    padding:0 20px;
+  }
+  .fanroll{
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+  }
+  .fanroll .hint{
+    font-family:var(--mono);
+    font-size:8px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:rgba(239,230,207,.4);
+  }
+  .fanroll button{
+    -webkit-appearance:none;appearance:none;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:rgba(239,230,207,.75);
+    background:none;
+    border:1px solid rgba(239,230,207,.25);
+    border-radius:4px;
+    padding:6px 10px 5px;
+    cursor:pointer;
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .fanroll button:hover,.fanroll button:focus-visible{
+    border-color:var(--brass);color:var(--brass);background:rgba(201,162,74,.08);
+  }
+  .fanroll button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  /* ————— origin notes strip ————— */
+  .notes-strip{
+    margin-top:clamp(18px,3vh,28px);
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+    gap:clamp(12px,2vw,20px);
+  }
+  .note-card{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 28%),
+      var(--paper);
+    color:var(--ink);
+    border-radius:5px;
+    box-shadow:0 10px 26px rgba(0,0,0,.38);
+    padding:clamp(12px,1.8vw,18px);
+    transform:rotate(-.4deg);
+  }
+  .note-card:nth-child(2){transform:rotate(.5deg)}
+  .note-card:nth-child(3){transform:rotate(-.25deg)}
+  .note-card:nth-child(4){transform:rotate(.3deg)}
+  .note-card h3{
+    font-family:var(--apoth);
+    font-style:italic;
+    font-size:clamp(13px,1.6vw,15.5px);
+    margin-bottom:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .note-card h3 .chip{
+    width:13px;height:13px;border-radius:50%;flex:0 0 auto;
+    box-shadow:inset 0 -2px 4px rgba(0,0,0,.3), inset 0 1px 2px rgba(255,255,255,.5);
+  }
+  .note-card p{
+    font-style:italic;
+    font-size:clamp(10.5px,1.35vw,12px);
+    line-height:1.65;
+    color:var(--ink-soft);
+  }
+  .note-card .mono{
+    font-family:var(--mono);
+    font-style:normal;
+    font-size:8.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-top:8px;
+  }
+
+  .colophon{
+    margin-top:clamp(20px,3.4vh,32px);
+    text-align:center;
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1vw,10px);
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:rgba(239,230,207,.35);
+  }
+
+  .noscript{
+    margin:60px auto;max-width:460px;text-align:center;
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:rgba(239,230,207,.6);
+    border:1px solid rgba(239,230,207,.25);padding:18px;
+  }
+
+  @media (max-width:860px){
+    .bench{grid-template-columns:1fr}
+    .knifewrap{width:clamp(120px,30%,170px)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .jar,.fan .leaf{transition:none}
+    .knifewrap.blend{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<main class="shop">
+
+  <header class="mast">
+    <div>
+      <h1>The <i>Pigmentist</i></h1>
+      <p class="sub">A bench for the old colours &mdash; choose two, sweep the knife, and let the glass decide</p>
+    </div>
+    <p class="regime">Bench N&ordm; <b>3</b> &#183; Glass slab &amp; ox-glass muller<br>Light: <b>north window</b> &#183; Binder: <b>linseed, bleached</b></p>
+  </header>
+
+  <p class="shelflabel">The shelf of genuine pigments &#8212; click two for the slab</p>
+
+  <section class="jars" id="jars" aria-label="Pigment jars"></section>
+
+  <section class="bench">
+
+    <div class="slabside">
+      <div class="slabframe">
+        <div class="slab" id="slab">
+          <canvas id="slabCanvas"></canvas>
+          <span class="edge" aria-hidden="true"></span>
+          <p class="slabhint" id="slabHint">two pigments, then click the slab to sweep</p>
+        </div>
+        <div class="knifewrap" id="knifewrap" aria-hidden="true">
+          <canvas id="knifeCanvas" width="220" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <aside class="recipes">
+
+      <div class="ledger">
+        <h2>The ledger <small id="ledgerState">awaiting</small></h2>
+        <p class="mixline" id="mixline">Choose two pigments from the shelf. The knife does the rest.</p>
+        <div class="formula" id="formula"></div>
+        <div class="hexrow">
+          <span class="hex" id="hexOut">&#8212;</span>
+          <span class="name" id="nameOut">&nbsp;</span>
+        </div>
+        <p class="provenance" id="provenance">Every colour on this bench was once a mountain, a mine, a beetle, or a ash-heap of some empire. Ask before you mix.</p>
+      </div>
+
+      <div class="fanbox">
+        <h2>Swatch fan <small id="fanCount">0 leaves</small></h2>
+        <div class="fan" id="fan">
+          <p class="fanempty" id="fanEmpty">Mixes you paint onto the fan will be kept here as leaves &#8212; press a leaf to read its provenance again.</p>
+        </div>
+        <div class="fanroll">
+          <span class="hint">leaves are painted, not printed</span>
+          <button type="button" id="btnClear">Clear the fan</button>
+        </div>
+      </div>
+
+    </aside>
+
+  </section>
+
+  <section class="notes-strip" id="notesStrip" aria-label="Origin notes"></section>
+
+  <p class="colophon">Ground by muller &#183; mixed on glass &#183; painted while wet &#183; MMXXVI</p>
+
+</main>
+
+<div class="noscript" id="noscript" hidden>
+  The slab mixes on canvas &#8212; JavaScript required to grind.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   THE PIGMENTIST — historical pigments, subtractive-ish mixing.
+   Colors are kept in linear-ish space; the blend multiplies
+   reflectances (Kubelka-Munk flavored) rather than averaging
+   RGB, so mixing yellow + blue yields green like real paint.
+   ============================================================ */
+
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+
+/* ————— the shelf ————— */
+
+var PIGMENTS = [
+  { code:"PY-UL", name:"Ultramarine", origin:"Lapis lazuli, Afghanistan mines",
+    rgb:[24,58,150], note:"Ground from lapis carried over the Hindu Kush; once cost more than gold, and was reserved for the Virgin's robe." },
+  { code:"PR-VM", name:"Vermilion", origin:"Cinnabar, Almad\u00E9n",
+    rgb:[226,60,38], note:"Mercury and sulfur, roasted and sublimed; the Romans hung it on the faces of triumphators \u2014 and on their walls." },
+  { code:"PY-OC", name:"Yellow Ochre", origin:"Earth of Limoges",
+    rgb:[196,142,44], note:"The oldest colour in the cave; a warm earth that survives every light that has ever been shone at it." },
+  { code:"PG-MA", name:"Malachite", origin:"Copper country, Urals",
+    rgb:[38,142,92], note:"A green stone soft enough to grind on marble; the medieval green of gardens, snakes and jealous sleeves." },
+  { code:"PR-MA", name:"Madder Lake", origin:"Roots of Rubia tinctorum",
+    rgb:[168,44,72], note:"A dye married to alum; the rose in every old master's cheek, fugitive in sunlight and beloved regardless." },
+  { code:"PB-SM", name:"Smalt", origin:"Cobalt glass, Saxony",
+    rgb:[64,88,168], note:"Ground blue glass, coarse and gritty; paints like regret \u2014 beautiful, and slowly fades grey." },
+  { code:"PY-IN", name:"Indian Yellow", origin:"Mango-fed cattle, Bengal",
+    rgb:[228,164,32], note:"Urine of cows fed only mango leaves; banned when the method was found out, mourned ever since." },
+  { code:"PB-BB", name:"Prussian Blue", origin:"Berlin, by accident",
+    rgb:[22,54,108], note:"Discovered in a dye-maker's pots circa 1706; the first modern pigment, and still the deepest blue on the shelf." },
+  { code:"PY-RS", name:"Raw Sienna", origin:"Earth of Tuscany",
+    rgb:[158,110,54], note:"A quiet dirt that turns to gold under heat; every underpainting of every Renaissance sky." },
+  { code:"PW-CH", name:"Lead White", origin:"Vinegar and lead, Venice",
+    rgb:[238,234,220], note:"The great poison and the great illuminator; every highlight in this room was bought with it." },
+  { code:"PR-CA", name:"Carmine", origin:"Cochineal insects, Oaxaca",
+    rgb:[178,32,52], note:"Crushed beetles from the New World; a red so red that empires were taxed by the gram." },
+  { code:"PG-VE", name:"Verdigris", origin:"Copper plates, wine lees",
+    rgb:[90,158,96], note:"Scraped from corroded copper; brilliant, unstable, and the reason so many old skies turned brown." }
+];
+
+/* ————— subtractive-ish mixing —————
+   Treat each pigment as a reflectance curve approximated by its
+   RGB. Blend in absorbance space (like thin layers stacking),
+   which makes yellow + blue lean green, blue + red lean muddy
+   violet \u2014 the behavior painters expect from glazes. */
+
+function srgbToLinear(v){
+  v /= 255;
+  return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+}
+function linearToSrgb(v){
+  v = Math.max(0, Math.min(1, v));
+  var s = v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+  return Math.round(Math.max(0, Math.min(1, s)) * 255);
+}
+
+function mixPigments(a, b, ta){
+  /* ta = fraction of a (0..1) */
+  var tb = 1 - ta;
+  var out = [0, 0, 0];
+  for (var i = 0; i < 3; i++){
+    var la = Math.max(0.02, srgbToLinear(a.rgb[i]));
+    var lb = Math.max(0.02, srgbToLinear(b.rgb[i]));
+    /* absorbance-weighted: pigment absorbs (1 - reflectance) */
+    var A = ta * (1 - la) + tb * (1 - lb);      /* total absorbance */
+    var refl = Math.max(0.015, 1 - A);
+    /* a pinch of granulation: darker where both are strong */
+    refl *= 1 - 0.22 * (1 - la) * (1 - lb) * (1 - Math.abs(ta - tb) * 2);
+    out[i] = linearToSrgb(refl);
+  }
+  /* hue lean: nudge toward b when strong ratio */
+  return out;
+}
+
+function nameForMix(a, b, rgb){
+  var r = rgb[0], g = rgb[1], bl = rgb[2];
+  var mx = Math.max(r, g, bl), mn = Math.min(r, g, bl);
+  var sat = (mx - mn) / Math.max(1, mx);
+  var greenish = g > r && g > bl;
+  var orangey = r > g && g > bl;
+  var violety = bl > g && r > g;
+  var teal = g > r && bl > g * 0.92;
+  var dark = mx < 90;
+  var pale = mn > 170;
+  if (pale) return "a pale wash";
+  if (dark) return greenish ? "a deep bottle-green" : violety ? "a funereal violet" : "a shadow umber";
+  if (greenish && teal) return "a cold viridian";
+  if (greenish) return sat > 0.55 ? "a sap green" : "a terre verte";
+  if (orangey) return sat > 0.6 ? "a burnt orange" : "a raw sienna";
+  if (violety) return sat > 0.5 ? "a royal violet" : "a slate mauve";
+  if (bl > r && bl > g) return "a marine blue";
+  if (r > bl && r > g) return "a venetian red";
+  return "a curious ochre";
+}
+
+function rgbCss(rgb, a){
+  return "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
+}
+function rgbHex(rgb){
+  var h = "#";
+  for (var i = 0; i < 3; i++){
+    h += ("0" + rgb[i].toString(16)).slice(-2).toUpperCase();
+  }
+  return h;
+}
+
+/* ————— shelf build ————— */
+
+var jarsEl = document.getElementById("jars");
+var picks = [];   /* codes in pick order, max 2 */
+
+function buildShelf(){
+  for (var i = 0; i < PIGMENTS.length; i++){
+    var p = PIGMENTS[i];
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "jar";
+    b.setAttribute("aria-label", p.name + ", " + p.origin + ". Add to the slab.");
+    b.dataset.code = p.code;
+    b.innerHTML =
+      '<span class="swatch" style="background:' + rgbCss(p.rgb) + '"></span>' +
+      '<span class="nm">' + p.name + "</span>" +
+      '<span class="origin">' + p.origin + "</span>" +
+      '<span class="code">' + p.code + "</span>";
+    b.addEventListener("click", function(){
+      pick(this.dataset.code);
+    });
+    jarsEl.appendChild(b);
+  }
+}
+
+function findPig(code){
+  for (var i = 0; i < PIGMENTS.length; i++){
+    if (PIGMENTS[i].code === code) return PIGMENTS[i];
+  }
+  return null;
+}
+
+function pick(code){
+  if (picks.length === 2 && picks.indexOf(code) === -1){
+    /* replace both */
+    picks = [code];
+  } else {
+    var at = picks.indexOf(code);
+    if (at !== -1) picks.splice(at, 1);
+    else picks.push(code);
+    if (picks.length > 2) picks = [picks[1], picks[2]];
+  }
+  refreshJars();
+  renderSlab();
+  updateLedger();
+}
+
+function refreshJars(){
+  var jars = jarsEl.children;
+  for (var i = 0; i < jars.length; i++){
+    var on = picks.indexOf(jars[i].dataset.code) !== -1;
+    jars[i].classList.toggle("selected", on);
+  }
+}
+
+/* ————— slab ————— */
+
+var slab = document.getElementById("slab");
+var canvas = document.getElementById("slabCanvas");
+var ctx = canvas.getContext("2d");
+var slabHint = document.getElementById("slabHint");
+var W = 0, H = 0;
+
+function resizeSlab(){
+  var r = slab.getBoundingClientRect();
+  W = Math.max(280, Math.round(r.width));
+  H = Math.max(170, Math.round(r.height));
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  renderSlab();
+}
+
+/* blend state on the glass */
+var mix = {
+  a: null, b: null, frac: 0,     /* current smear of b into a */
+  result: null,
+  blending: false, blendT: 0
+};
+
+function renderSlab(){
+  ctx.clearRect(0, 0, W, H);
+  /* glass base */
+  var g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, "#f0f5f6");
+  g.addColorStop(0.5, "#dfe6e8");
+  g.addColorStop(1, "#c9d4d8");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  /* glass streaks */
+  ctx.globalAlpha = 0.5;
+  for (var s = 0; s < 5; s++){
+    var y0 = H * (0.12 + s * 0.19);
+    var sg = ctx.createLinearGradient(0, y0, W, y0 + 26);
+    sg.addColorStop(0, "rgba(255,255,255,0)");
+    sg.addColorStop(0.5, "rgba(255,255,255,.35)");
+    sg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = sg;
+    ctx.fillRect(0, y0, W, 20);
+  }
+  ctx.globalAlpha = 1;
+
+  var pa = mix.a ? findPig(mix.a) : null;
+  var pb = mix.b ? findPig(mix.b) : null;
+
+  /* two daubs when two picked */
+  if (pa && pb){
+    drawDaub(ctx, W * 0.26, H * 0.52, Math.min(W, H) * 0.19, pa.rgb, 0.95);
+    drawDaub(ctx, W * 0.62, H * 0.44, Math.min(W, H) * 0.19, pb.rgb, 0.95);
+    /* smear between them grows with frac */
+    if (mix.frac > 0.02){
+      drawSmear(ctx, W * 0.24, H * 0.5, W * 0.66, H * 0.46, Math.min(W, H) * 0.16, mix.result, mix.frac);
+    }
+  } else if (pa || pb){
+    var solo = pa || pb;
+    drawDaub(ctx, W * 0.42, H * 0.5, Math.min(W, H) * 0.21, solo.rgb, 0.95);
+  }
+
+  /* vignette + top gloss */
+  var vg = ctx.createRadialGradient(W * 0.42, H * 0.3, 10, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
+  vg.addColorStop(0, "rgba(255,255,255,.18)");
+  vg.addColorStop(0.6, "rgba(255,255,255,0)");
+  vg.addColorStop(1, "rgba(40,55,60,.25)");
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawDaub(c, x, y, r, rgb, alpha){
+  c.save();
+  c.globalAlpha = alpha;
+  /* irregular pigment puddle: layered ellipses */
+  var g = c.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.15, x, y, r);
+  g.addColorStop(0, rgbCss([Math.min(255, rgb[0] + 46), Math.min(255, rgb[1] + 42), Math.min(255, rgb[2] + 38)]));
+  g.addColorStop(0.62, rgbCss(rgb));
+  g.addColorStop(1, rgbCss([Math.max(0, rgb[0] - 52), Math.max(0, rgb[1] - 48), Math.max(0, rgb[2] - 42)]));
+  c.fillStyle = g;
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.quadraticCurveTo(x + r * 0.85, y - r * 0.8, x + r * 0.1, y - r * 0.95);
+  c.quadraticCurveTo(x - r * 0.9, y - r * 0.75, x - r * 0.95, y + r * 0.15);
+  c.quadraticCurveTo(x - r * 0.7, y + r * 0.85, x + r * 0.15, y + r * 0.9);
+  c.quadraticCurveTo(x + r * 0.9, y + r * 0.7, x + r, y);
+  c.fill();
+  /* stiff ridges: comb marks */
+  c.globalAlpha = alpha * 0.3;
+  c.strokeStyle = "rgba(255,255,255,.6)";
+  c.lineWidth = 1.6;
+  for (var k = -2; k <= 2; k++){
+    c.beginPath();
+    c.moveTo(x - r * 0.7, y + k * r * 0.22);
+    c.quadraticCurveTo(x, y + k * r * 0.26 + 3, x + r * 0.7, y + k * r * 0.22);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawSmear(c, x0, y0, x1, y1, r, rgb, amt){
+  if (!rgb) return;
+  var steps = 14;
+  c.save();
+  for (var i = 0; i <= steps; i++){
+    var t = i / steps;
+    var t2 = Math.sin(t * Math.PI) * amt;
+    var x = x0 + (x1 - x0) * t;
+    var y = y0 + (y1 - y0) * t + Math.sin(t * 9) * 6 * amt;
+    var rr = r * (0.4 + 0.6 * t2);
+    if (rr < 1) continue;
+    c.globalAlpha = 0.28 * t2 + 0.05;
+    var g = c.createRadialGradient(x - rr * 0.25, y - rr * 0.3, rr * 0.1, x, y, rr);
+    g.addColorStop(0, rgbCss([Math.min(255, rgb[0] + 40), Math.min(255, rgb[1] + 36), Math.min(255, rgb[2] + 32)]));
+    g.addColorStop(1, rgbCss([Math.max(0, rgb[0] - 44), Math.max(0, rgb[1] - 40), Math.max(0, rgb[2] - 36)]));
+    c.fillStyle = g;
+    c.beginPath();
+    c.ellipse(x, y, rr, rr * 0.62, Math.atan2(y1 - y0, x1 - x0), 0, Math.PI * 2);
+    c.fill();
+  }
+  c.restore();
+}
+
+/* ————— knife drawing ————— */
+
+var knifewrap = document.getElementById("knifewrap");
+var knifeCanvas = document.getElementById("knifeCanvas");
+(function drawKnife(){
+  var k = knifeCanvas.getContext("2d");
+  k.clearRect(0, 0, 220, 120);
+  /* handle: stained boxwood */
+  var hg = k.createLinearGradient(150, 18, 210, 46);
+  hg.addColorStop(0, "#d8b878");
+  hg.addColorStop(0.5, "#a8843c");
+  hg.addColorStop(1, "#6d5322");
+  k.fillStyle = hg;
+  k.beginPath();
+  k.roundRect ? k.roundRect(148, 16, 66, 26, 12) : k.rect(148, 16, 66, 26);
+  k.fill();
+  k.strokeStyle = "rgba(60,40,10,.5)";
+  k.lineWidth = 2;
+  k.stroke();
+  /* brass ferrule */
+  var fg = k.createLinearGradient(0, 20, 0, 42);
+  fg.addColorStop(0, "#e8cc84");
+  fg.addColorStop(0.5, "#b08a34");
+  fg.addColorStop(1, "#7a5a18");
+  k.fillStyle = fg;
+  k.fillRect(138, 20, 14, 20);
+  /* blade: curved palette knife */
+  var bg = k.createLinearGradient(0, 26, 0, 52);
+  bg.addColorStop(0, "rgba(255,255,255,.95)");
+  bg.addColorStop(0.45, "#c8d2d6");
+  bg.addColorStop(1, "#8899a0");
+  k.fillStyle = bg;
+  k.beginPath();
+  k.moveTo(138, 24);
+  k.quadraticCurveTo(60, 14, 18, 52);
+  k.quadraticCurveTo(10, 60, 22, 64);
+  k.quadraticCurveTo(70, 52, 138, 44);
+  k.closePath();
+  k.fill();
+  k.strokeStyle = "rgba(40,55,60,.55)";
+  k.lineWidth = 1.4;
+  k.stroke();
+})();
+
+/* ————— ledger ————— */
+
+var mixline = document.getElementById("mixline");
+var formulaEl = document.getElementById("formula");
+var hexOut = document.getElementById("hexOut");
+var nameOut = document.getElementById("nameOut");
+var provenance = document.getElementById("provenance");
+var ledgerState = document.getElementById("ledgerState");
+
+function updateLedger(){
+  var pa = mix.a ? findPig(mix.a) : null;
+  var pb = mix.b ? findPig(mix.b) : null;
+  formulaEl.innerHTML = "";
+  if (pa && pb){
+    mixline.innerHTML =
+      "<b>" + pa.name + "</b> against <b>" + pb.name + "</b> \u2014 " +
+      (mix.result ? nameForMix(pa, pb, mix.result) : "waiting on the knife.");
+    var d1 = document.createElement("span");
+    d1.className = "dot";
+    d1.style.background = rgbCss(pa.rgb);
+    var plus = document.createElement("span");
+    plus.className = "plus";
+    plus.textContent = "+";
+    var d2 = document.createElement("span");
+    d2.className = "dot";
+    d2.style.background = rgbCss(pb.rgb);
+    var eq = document.createElement("span");
+    eq.className = "plus";
+    eq.textContent = "\u2192";
+    var d3 = document.createElement("span");
+    d3.className = "dot";
+    d3.style.background = mix.result ? rgbCss(mix.result) : "rgba(50,40,24,.2)";
+    formulaEl.appendChild(d1); formulaEl.appendChild(plus);
+    formulaEl.appendChild(d2); formulaEl.appendChild(eq);
+    formulaEl.appendChild(d3);
+    hexOut.textContent = mix.result ? rgbHex(mix.result) : "\u2014";
+    nameOut.textContent = mix.result ? nameForMix(pa, pb, mix.result) : "";
+    provenance.textContent = pa.name + ": " + pa.note + "  \u2014  " + pb.name + ": " + pb.note;
+    ledgerState.textContent = "on the glass";
+  } else if (pa || pb){
+    var solo = pa || pb;
+    mixline.innerHTML = "<b>" + solo.name + "</b> alone on the glass \u2014 choose a partner to grind against it.";
+    hexOut.textContent = rgbHex(solo.rgb);
+    nameOut.textContent = solo.name;
+    provenance.textContent = solo.note;
+    ledgerState.textContent = "one pigment";
+    var d = document.createElement("span");
+    d.className = "dot";
+    d.style.background = rgbCss(solo.rgb);
+    formulaEl.appendChild(d);
+  } else {
+    mixline.textContent = "Choose two pigments from the shelf. The knife does the rest.";
+    hexOut.textContent = "\u2014";
+    nameOut.textContent = "\u00A0";
+    provenance.textContent = "Every colour on this bench was once a mountain, a mine, a beetle, or a ash-heap of some empire. Ask before you mix.";
+    ledgerState.textContent = "awaiting";
+  }
+}
+
+/* ————— blend interaction ————— */
+
+var knifeBlending = false;
+
+slab.addEventListener("click", function(){
+  if (picks.length !== 2){
+    slabHint.textContent = picks.length === 1 ? "choose a second pigment" : "choose two pigments from the shelf";
+    return;
+  }
+  if (knifeBlending) return;
+  startBlend();
+});
+
+function startBlend(){
+  var pa = findPig(picks[0]);
+  var pb = findPig(picks[1]);
+  mix.a = pa.code;
+  mix.b = pb.code;
+  mix.blending = true;
+  mix.blendT = 0;
+  knifeBlending = true;
+  knifewrap.classList.add("blend");
+  slabHint.textContent = "sweeping\u2026";
+  var t0 = performance.now();
+  var DUR = REDUCED ? 200 : 1150;
+  (function tick(now){
+    var p = Math.min(1, (now - t0) / DUR);
+    mix.frac = p;
+    mix.result = mixPigments(pa, pb, 0.5);
+    renderSlab();
+    updateLedger();
+    if (p < 1){
+      requestAnimationFrame(tick);
+    } else {
+      knifewrap.classList.remove("blend");
+      knifeBlending = false;
+      mix.blending = false;
+      slabHint.textContent = "paint the fan \u2192";
+    }
+  })(t0);
+}
+
+/* ————— fan ————— */
+
+var fanEl = document.getElementById("fan");
+var fanEmpty = document.getElementById("fanEmpty");
+var fanCount = document.getElementById("fanCount");
+var leaves = [];   /* {rgb,name,parts:[pigA,pigB]} */
+
+slab.addEventListener("dblclick", paintFan);
+
+function paintFan(){
+  if (!mix.result) return;
+  var pa = findPig(mix.a);
+  var pb = findPig(mix.b);
+  leaves.push({
+    rgb: mix.result.slice(),
+    name: nameForMix(pa, pb, mix.result),
+    a: pa, b: pb
+  });
+  if (leaves.length > 12) leaves.shift();
+  renderFan();
+  slabHint.textContent = "painted \u2014 mix again";
+}
+
+function renderFan(){
+  /* remove old leaves */
+  var old = fanEl.querySelectorAll(".leaf");
+  for (var i = 0; i < old.length; i++) old[i].remove();
+  fanEmpty.style.display = leaves.length ? "none" : "flex";
+  fanCount.textContent = leaves.length + (leaves.length === 1 ? " leaf" : " leaves");
+  var n = leaves.length;
+  for (var j = 0; j < n; j++){
+    (function(idx){
+      var L = leaves[idx];
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = "leaf";
+      el.style.background =
+        "radial-gradient(28px 12px at 28% 12%, rgba(255,255,255,.4), transparent 60%), " + rgbCss(L.rgb);
+      var rot = -46 + idx * (92 / Math.max(1, n - 1 || 1));
+      if (n === 1) rot = 0;
+      el.style.transform = "rotate(" + rot.toFixed(1) + "deg)";
+      el.setAttribute("aria-label", L.name + ", " + rgbHex(L.rgb) + ", mixed from " + L.a.name + " and " + L.b.name + ".");
+      el.innerHTML =
+        '<span class="glz"></span>' +
+        '<span class="tag">' + rgbHex(L.rgb) + "</span>";
+      el.addEventListener("click", function(){
+        provenance.textContent = L.name + " \u2014 " + L.a.name + " (" + L.a.origin + ") ground against " + L.b.name + " (" + L.b.origin + "). " + L.a.note;
+        mixline.innerHTML = "<b>" + L.name + "</b> \u2014 kept on the fan.";
+        hexOut.textContent = rgbHex(L.rgb);
+      });
+      fanEl.appendChild(el);
+    })(j);
+  }
+}
+
+document.getElementById("btnClear").addEventListener("click", function(){
+  leaves = [];
+  renderFan();
+});
+
+/* ————— origin notes strip ————— */
+
+var notesStrip = document.getElementById("notesStrip");
+function buildNotes(){
+  var idxs = [0, 1, 3, 10];   /* ultramarine, vermilion, malachite, carmine */
+  for (var i = 0; i < idxs.length; i++){
+    var p = PIGMENTS[idxs[i]];
+    var card = document.createElement("article");
+    card.className = "note-card";
+    card.innerHTML =
+      "<h3><span class='chip' style='background:" + rgbCss(p.rgb) + "'></span>" + p.name + "</h3>" +
+      "<p>" + p.note + "</p>" +
+      "<p class='mono'>" + p.code + " \u00B7 " + p.origin + "</p>";
+    notesStrip.appendChild(card);
+  }
+}
+
+/* ————— lifecycle ————— */
+
+var resizeTimer = null;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resizeSlab, 130);
+});
+
+if (!canvas.getContext){
+  document.getElementById("noscript").hidden = false;
+}
+
+buildShelf();
+buildNotes();
+resizeSlab();
+updateLedger();
+
+})();
+</script>
+</body>
+</html>

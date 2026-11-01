@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Signal Lost — a gallery of corrupted transmissions. Generative canvas frames degraded by RGB-split, datamosh block-shifts and scanline tearing, with a VHS OSD. Hover escalates the corruption; G triggers a glitch storm.">
+<title>SIGNAL LOST — Corrupted Transmissions, Channel 049</title>
+<style>
+  :root{
+    --black:#050505;
+    --panel:#0d0d10;
+    --panel-2:#121216;
+    --magenta:#ff2bd6;
+    --cyan:#26f7fd;
+    --osd:#f4f4f0;
+    --osd-dim:rgba(244,244,240,.55);
+    --track:#1c1c22;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--magenta); color:#000; }
+  html{ scrollbar-color:#2a2a32 #08080b; }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:#08080b; }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(#33333e, #1c1c22); border-radius:6px; border:2px solid #08080b; }
+
+  body{
+    min-height:100vh;
+    font-family:ui-monospace, "Courier New", monospace;
+    color:var(--osd);
+    background:
+      radial-gradient(120% 80% at 50% -10%, #131318 0%, var(--panel) 48%, var(--black) 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  body::before{ /* static speckle field */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.05;
+    background-image:
+      radial-gradient(1px 1px at 8% 22%, #fff, transparent 55%),
+      radial-gradient(1px 1px at 26% 68%, #fff, transparent 55%),
+      radial-gradient(1px 1px at 48% 12%, #fff, transparent 55%),
+      radial-gradient(1px 1px at 64% 84%, #fff, transparent 55%),
+      radial-gradient(1px 1px at 82% 38%, #fff, transparent 55%),
+      radial-gradient(1px 1px at 94% 74%, #fff, transparent 55%);
+  }
+  header.tuner, main.grid, footer.credits{ position:relative; z-index:1; }
+
+  header.tuner{
+    padding:clamp(20px, 3.6vw, 46px) 16px 0;
+    text-align:center;
+  }
+  .osd-line{
+    display:flex; justify-content:center; gap:clamp(10px, 3vw, 34px); flex-wrap:wrap;
+    font-size:clamp(.6rem, 1.5vw, .74rem);
+    letter-spacing:.3em; text-transform:uppercase;
+    color:var(--osd-dim);
+  }
+  .osd-line b{ color:var(--cyan); font-weight:400; }
+  .broken-title{
+    margin-top:12px;
+    font-size:clamp(2rem, 7vw, 4.6rem);
+    font-weight:700;
+    letter-spacing:.1em;
+    line-height:1;
+    color:var(--osd);
+    position:relative;
+    display:inline-block;
+    text-transform:uppercase;
+  }
+  .broken-title::before{
+    content:attr(data-t);
+    position:absolute; left:0; top:0;
+    color:var(--magenta);
+    transform:translate(-3px, 1px);
+    opacity:.8;
+    clip-path:polygon(0 0, 42% 0, 38% 38%, 0 42%);
+    pointer-events:none;
+  }
+  .broken-title::after{
+    content:attr(data-t);
+    position:absolute; left:0; top:0;
+    color:var(--cyan);
+    transform:translate(3px, -1px);
+    opacity:.8;
+    clip-path:polygon(58% 55%, 100% 60%, 100% 100%, 62% 100%);
+    pointer-events:none;
+  }
+  .broken-title .dead{
+    display:inline-block;
+    color:transparent;
+    background:
+      repeating-linear-gradient(0deg, #3a3a42 0 2px, transparent 2px 4px);
+    -webkit-background-clip:text;
+    background-clip:text;
+  }
+  .tuner-sub{
+    margin-top:12px;
+    font-size:clamp(.68rem, 1.7vw, .82rem);
+    letter-spacing:.16em;
+    color:var(--osd-dim);
+    max-width:70ch; margin-left:auto; margin-right:auto; line-height:1.8;
+  }
+
+  main.grid{
+    max-width:1320px; margin:0 auto;
+    padding:clamp(18px, 3vw, 40px) clamp(10px, 2vw, 26px) clamp(36px, 5vw, 64px);
+    display:flex; flex-direction:column; gap:clamp(14px, 2.2vw, 24px);
+  }
+  .control-rack{
+    display:grid;
+    grid-template-columns:minmax(220px, 1fr) auto auto;
+    gap:14px; align-items:center;
+    background:var(--panel-2);
+    border:1px solid #22222a;
+    border-radius:10px;
+    padding:clamp(12px, 2vw, 18px) clamp(14px, 2.4vw, 22px);
+    box-shadow:0 16px 40px rgba(0,0,0,.5);
+  }
+  .rack-label{
+    font-size:.62rem; letter-spacing:.26em; text-transform:uppercase;
+    color:var(--osd-dim);
+  }
+  .slider-wrap{ display:flex; align-items:center; gap:12px; }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:26px; background:transparent; cursor:ew-resize;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:4px; border-radius:2px;
+    background:linear-gradient(90deg, var(--cyan), var(--magenta));
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.7);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:16px; height:20px; margin-top:-8px; border-radius:2px;
+    background:linear-gradient(180deg, #f4f4f0, #b9b9c2);
+    border:1px solid #000;
+    box-shadow:0 2px 5px rgba(0,0,0,.7);
+  }
+  input[type="range"]::-moz-range-track{
+    height:4px; border-radius:2px;
+    background:linear-gradient(90deg, var(--cyan), var(--magenta));
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:15px; height:19px; border-radius:2px;
+    background:linear-gradient(180deg, #f4f4f0, #b9b9c2);
+    border:1px solid #000;
+  }
+  input[type="range"]:focus-visible{ outline:2px dashed var(--cyan); outline-offset:4px; border-radius:4px; }
+  .deg-out{
+    font-size:.72rem; letter-spacing:.14em; color:var(--cyan);
+    min-width:7ch; text-align:right;
+  }
+  .rack-btn{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.64rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--osd);
+    background:linear-gradient(180deg, #1e1e26, #14141a);
+    border:1px solid #2e2e3a;
+    border-radius:6px;
+    padding:11px 18px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(244,244,240,.14), 0 4px 10px rgba(0,0,0,.5);
+    transition:transform .16s ease, filter .16s ease, box-shadow .2s ease;
+    min-height:42px; touch-action:manipulation;
+  }
+  .rack-btn:hover{ transform:translateY(-1px); filter:brightness(1.25); }
+  .rack-btn:focus-visible{ outline:2px dashed var(--cyan); outline-offset:3px; }
+  .rack-btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  .rack-btn.storm[aria-pressed="true"]{
+    background:linear-gradient(180deg, rgba(255,43,214,.4), rgba(38,247,253,.24));
+    border-color:var(--magenta);
+    box-shadow:0 0 18px rgba(255,43,214,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .key-hint{
+    font-size:.6rem; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--osd-dim);
+  }
+  .key-hint b{ color:var(--magenta); font-weight:400; }
+
+  /* ============ FRAME GALLERY ============ */
+  .frames{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap:clamp(14px, 2.2vw, 24px);
+  }
+  .frame{
+    position:relative;
+    border:1px solid #22222a;
+    border-radius:8px;
+    background:var(--panel-2);
+    overflow:hidden;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);
+    transition:transform .2s ease, box-shadow .25s ease, border-color .25s ease;
+    cursor:crosshair;
+  }
+  .frame:hover{
+    transform:translateY(-3px);
+    border-color:#3a3a48;
+    box-shadow:0 26px 60px rgba(0,0,0,.7), 0 0 24px rgba(255,43,214,.08);
+  }
+  .frame canvas{ display:block; width:100%; height:auto; }
+  .osd{
+    position:absolute; inset:0; pointer-events:none;
+    padding:10px 12px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    text-shadow:0 0 6px rgba(244,244,240,.6), 1px 0 0 rgba(255,43,214,.55), -1px 0 0 rgba(38,247,253,.55);
+  }
+  .osd .row{ display:flex; justify-content:space-between; gap:8px; font-size:clamp(.56rem, 1.4vw, .68rem); letter-spacing:.22em; text-transform:uppercase; }
+  .osd .bottom{ align-items:flex-end; }
+  .osd .play{ color:var(--osd); }
+  .osd .counter{ color:var(--osd); }
+  .osd .ch{ color:var(--cyan); }
+  .osd .corr{ color:var(--magenta); }
+  .frame-title{
+    display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;
+    padding:10px 12px;
+    border-top:1px solid #22222a;
+    font-size:.6rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--osd-dim);
+  }
+  .frame-title b{ color:var(--osd); font-weight:400; }
+
+  .storm-note{
+    text-align:center;
+    font-size:.66rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--osd-dim);
+  }
+
+  footer.credits{
+    max-width:1320px; margin:0 auto;
+    padding:0 clamp(10px, 2vw, 26px) clamp(30px, 5vw, 56px);
+    display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    font-size:.6rem; letter-spacing:.2em; text-transform:uppercase;
+    color:rgba(244,244,240,.4);
+  }
+  footer.credits b{ color:rgba(38,247,253,.6); font-weight:400; }
+
+  @media (max-width:640px){
+    .control-rack{ grid-template-columns:1fr; }
+    .rack-btn{ width:100%; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .frame, .rack-btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="tuner">
+  <div class="osd-line" aria-hidden="true">
+    <span>SP</span>
+    <span><b>PLAY</b> ▸</span>
+    <span id="masterCounter">0:00:00</span>
+    <span>CH 049</span>
+    <span id="masterClock">--:--</span>
+  </div>
+  <h1 class="broken-title" data-t="SIGNAL LOST">SIGNAL L<span class="dead">O</span>ST</h1>
+  <p class="tuner-sub">Six transmissions recovered from a decommissioned relay. The source material is unknown; the degradation is lovingly preserved. Hover a frame to disturb the tape further, or pull the global corruption slider and press G for the storm.</p>
+</header>
+
+<main class="grid">
+  <section class="control-rack" aria-label="Global degradation controls">
+    <div>
+      <div class="rack-label">Global Degradation</div>
+      <div class="slider-wrap">
+        <input type="range" id="degrade" min="0" max="100" value="35" aria-label="Global degradation level">
+        <span class="deg-out" id="degradeOut">35%</span>
+      </div>
+    </div>
+    <button class="rack-btn storm" id="stormBtn" type="button" aria-pressed="false">Glitch Storm</button>
+    <span class="key-hint">press <b>G</b> · hold to escalate</span>
+  </section>
+
+  <section class="frames" id="frames" aria-label="Gallery of corrupted transmissions"></section>
+
+  <p class="storm-note">every frame re-seeds its corruption periodically — no two visits decode alike</p>
+</main>
+
+<footer class="credits">
+  <span>relay <b>KX-049</b> · tapes unbaked · heads demagnetized last spring</span>
+  <span>format <b>VHS SP</b> · dropouts compensated · nobody is transmitting</span>
+  <span id="footClock">tracking…</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var framesEl = document.getElementById("frames");
+  var degradeEl = document.getElementById("degrade");
+  var degradeOut = document.getElementById("degradeOut");
+  var stormBtn = document.getElementById("stormBtn");
+  var masterCounter = document.getElementById("masterCounter");
+  var masterClock = document.getElementById("masterClock");
+  var footClock = document.getElementById("footClock");
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- transmissions: generative source scenes ---------- */
+  var SHOWS = [
+    {
+      id: "testcard", ch: "CH 01", title: "Test Card — After Hours", base: "testcard",
+      draw: function (ctx, w, h, t, r) {
+        /* SMPTE-ish bars, dimmed */
+        var cols = ["#b8b8b8", "#b8b800", "#00b8b8", "#00b800", "#b800b8", "#b80000", "#0000b8"];
+        var bw = w / cols.length;
+        for (var i = 0; i < cols.length; i++) {
+          ctx.fillStyle = cols[i];
+          ctx.globalAlpha = 0.55;
+          ctx.fillRect(i * bw, 0, bw + 1, h * 0.72);
+        }
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = "#0a0a0a";
+        ctx.fillRect(0, h * 0.72, w, h * 0.28);
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = "#e8e8e8";
+        for (var s = 0; s < 10; s++) {
+          ctx.fillStyle = s % 2 ? "#101010" : "#dcdcdc";
+          ctx.fillRect(w * 0.06 + s * w * 0.088, h * 0.78, w * 0.088, h * 0.16);
+        }
+        /* circle */
+        ctx.globalAlpha = 0.8;
+        ctx.strokeStyle = "#f0f0f0";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(w / 2, h * 0.36, Math.min(w, h) * 0.22, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#e8e8e8";
+        ctx.font = "700 " + Math.round(h * 0.05) + "px 'Courier New', monospace";
+        ctx.fillText("KX-049 · IDENT", w * 0.36, h * 0.95);
+      }
+    },
+    {
+      id: "horizon", ch: "CH 02", title: "Horizon — Weather Balloon Feed", base: "horizon",
+      draw: function (ctx, w, h, t, r) {
+        var g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, "#26264a");
+        g.addColorStop(0.5, "#6a4a5e");
+        g.addColorStop(0.62, "#c97a52");
+        g.addColorStop(1, "#1c1c2a");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#ffd9a0";
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(w * 0.62, h * 0.52, h * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#12121e";
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.66);
+        for (var x = 0; x <= w; x += 14) {
+          var y = h * 0.66 - Math.sin(x * 0.008 + 1.2) * h * 0.05 - Math.sin(x * 0.021) * h * 0.02;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fill();
+        /* balloon */
+        var bx = w * (0.24 + Math.sin(t * 0.14) * 0.05);
+        var by = h * (0.3 + Math.cos(t * 0.11) * 0.04);
+        ctx.fillStyle = "#e8e4d8";
+        ctx.beginPath(); ctx.ellipse(bx, by, w * 0.022, h * 0.035, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(232,228,216,.7)";
+        ctx.beginPath(); ctx.moveTo(bx, by + h * 0.035); ctx.lineTo(bx + 3, by + h * 0.07); ctx.stroke();
+        ctx.fillStyle = "rgba(244,244,240,.8)";
+        ctx.font = Math.round(h * 0.045) + "px 'Courier New', monospace";
+        ctx.fillText("ALT 32 400 m · DRIFT 14 kn", w * 0.05, h * 0.94);
+      }
+    },
+    {
+      id: "city", ch: "CH 03", title: "City — Traffic Cam 12", base: "city",
+      draw: function (ctx, w, h, t, r) {
+        ctx.fillStyle = "#0c0e16";
+        ctx.fillRect(0, 0, w, h);
+        /* buildings */
+        for (var i = 0; i < 9; i++) {
+          var bw2 = w / 9;
+          var bh = h * (0.24 + ((i * 37) % 5) * 0.09);
+          ctx.fillStyle = ["#161a26", "#1a1f2e", "#131622"][i % 3];
+          ctx.fillRect(i * bw2, h - bh, bw2 - 2, bh);
+          for (var wy = 0; wy < bh - 10; wy += 12) {
+            for (var wx = 0; wx < bw2 - 8; wx += 10) {
+              if (((i * 13 + wy * 7 + wx * 3 + Math.floor(t * 0.6)) % 11) < 3) {
+                ctx.fillStyle = "rgba(255,214,140,.75)";
+                ctx.fillRect(i * bw2 + wx + 3, h - bh + wy + 4, 4, 5);
+              }
+            }
+          }
+        }
+        /* road */
+        ctx.fillStyle = "#080a10";
+        ctx.fillRect(0, h * 0.86, w, h * 0.14);
+        var car = (t * 90) % (w + 60) - 30;
+        ctx.fillStyle = "#e85a4a";
+        ctx.fillRect(car, h * 0.885, 26, 8);
+        ctx.fillStyle = "#e8e8e8";
+        ctx.fillRect(car + 5, h * 0.878, 10, 4);
+        ctx.fillStyle = "rgba(244,244,240,.85)";
+        ctx.font = Math.round(h * 0.045) + "px 'Courier New', monospace";
+        ctx.fillText("CAM 12 · JCT 9 · " + (Math.floor(t) % 2 ? "GREEN" : "AMBER"), w * 0.05, h * 0.08);
+      }
+    },
+    {
+      id: "face", ch: "CH 04", title: "Interview — Subject Declines", base: "face",
+      draw: function (ctx, w, h, t, r) {
+        ctx.fillStyle = "#1a1c22";
+        ctx.fillRect(0, 0, w, h);
+        var spot = ctx.createRadialGradient(w * 0.5, h * 0.4, 8, w * 0.5, h * 0.4, w * 0.42);
+        spot.addColorStop(0, "rgba(226,220,205,.32)");
+        spot.addColorStop(1, "rgba(226,220,205,0)");
+        ctx.fillStyle = spot;
+        ctx.fillRect(0, 0, w, h);
+        /* silhouette head */
+        var hx = w * 0.5, hy = h * 0.44;
+        ctx.fillStyle = "#101116";
+        ctx.beginPath();
+        ctx.ellipse(hx, hy, w * 0.11, h * 0.16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(hx, hy + h * 0.24, w * 0.16, h * 0.18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        /* rim light */
+        ctx.strokeStyle = "rgba(210,200,180,.5)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(hx, hy, w * 0.11, h * 0.16, 0, Math.PI * 1.15, Math.PI * 1.85);
+        ctx.stroke();
+        /* lower third */
+        ctx.fillStyle = "rgba(10,12,16,.85)";
+        ctx.fillRect(w * 0.06, h * 0.78, w * 0.6, h * 0.13);
+        ctx.fillStyle = "#e8e8e0";
+        ctx.font = "700 " + Math.round(h * 0.05) + "px 'Courier New', monospace";
+        ctx.fillText("SUBJECT: [WITHHELD]", w * 0.08, h * 0.845);
+        ctx.fillStyle = "rgba(38,247,253,.8)";
+        ctx.font = Math.round(h * 0.04) + "px 'Courier New', monospace";
+        ctx.fillText("REC " + (Math.floor(t * 2) % 2 ? "●" : " "));
+      }
+    },
+    {
+      id: "waves", ch: "CH 05", title: "Open Water — Buoy 7", base: "waves",
+      draw: function (ctx, w, h, t, r) {
+        var g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, "#2a3244");
+        g.addColorStop(0.45, "#3f4e5e");
+        g.addColorStop(1, "#141a24");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        for (var row = 0; row < 7; row++) {
+          ctx.beginPath();
+          var y0 = h * (0.42 + row * 0.09);
+          for (var x = 0; x <= w; x += 10) {
+            var y = y0 + Math.sin(x * 0.02 + t * (1 + row * 0.24) + row * 2) * (3 + row);
+            if (x === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+          }
+          ctx.strokeStyle = "rgba(200,220,228," + (0.1 + row * 0.05) + ")";
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+        /* buoy */
+        var bxx = w * 0.68 + Math.sin(t * 0.7) * 6;
+        var byy = h * 0.5 + Math.sin(t * 1.1) * 4;
+        ctx.fillStyle = "#c24a2e";
+        ctx.fillRect(bxx - 8, byy - 18, 16, 26);
+        ctx.fillStyle = "#e8e4d8";
+        ctx.fillRect(bxx - 8, byy - 10, 16, 6);
+        ctx.fillStyle = (Math.floor(t * 1.4) % 2) ? "#ffd980" : "#4a2c1a";
+        ctx.beginPath(); ctx.arc(bxx, byy - 24, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(244,244,240,.8)";
+        ctx.font = Math.round(h * 0.045) + "px 'Courier New', monospace";
+        ctx.fillText("BUOY 7 · SWELL 1.4 m · 04:12", w * 0.05, h * 0.94);
+      }
+    },
+    {
+      id: "grid", ch: "CH 06", title: "Unknown — Oscillator Pattern", base: "grid",
+      draw: function (ctx, w, h, t, r) {
+        ctx.fillStyle = "#0a0c0a";
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = "rgba(38,247,253,.5)";
+        ctx.lineWidth = 1.4;
+        var cx = w / 2, cy = h / 2;
+        for (var k = 0; k < 5; k++) {
+          ctx.beginPath();
+          for (var i = 0; i <= 140; i++) {
+            var a = i / 140 * Math.PI * 2;
+            var rr = Math.min(w, h) * (0.12 + k * 0.055);
+            var x = cx + Math.sin(a * (3 + k) + t * (0.7 + k * 0.2)) * rr;
+            var y = cy + Math.sin(a * (4 + k) - t * (0.9 + k * 0.16)) * rr * 0.8;
+            if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+          }
+          ctx.strokeStyle = k % 2 ? "rgba(255,43,214,.4)" : "rgba(38,247,253,.45)";
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "rgba(244,244,240,.14)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(w * 0.04, h * 0.06, w * 0.92, h * 0.88);
+        ctx.fillStyle = "rgba(244,244,240,.75)";
+        ctx.font = Math.round(h * 0.045) + "px 'Courier New', monospace";
+        ctx.fillText("PATTERN 12 · ORIGIN UNKNOWN", w * 0.07, h * 0.94);
+      }
+    }
+  ];
+
+  /* ---------- degradation pipeline ---------- */
+  function degradeFrame(ctx, w, h, t, level, seedBase) {
+    var r = mulberry32(seedBase + Math.floor(t * 2.3) * 977);
+    if (level <= 0.001) { return; }
+
+    /* 1. RGB split — draw channel-shifted copies of the frame onto itself */
+    if (level > 0.04) {
+      var shift = 1 + level * 9 * (0.7 + r() * 0.6);
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.28 + level * 0.2;
+      /* sample strips of the frame and offset them in channel colors */
+      var bands = 3;
+      for (var b = 0; b < bands; b++) {
+        var by = r() * h;
+        var bh2 = 4 + r() * h * 0.16 * level * 2;
+        var off = shift * (r() < 0.5 ? -1 : 1) * (b === 0 ? 1 : b === 1 ? -1 : 1.6);
+        /* tint strip */
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, by, w, bh2);
+        ctx.clip();
+        if (b === 0) { ctx.fillStyle = "rgba(255,43,214," + (0.1 + level * 0.14) + ")"; }
+        else if (b === 1) { ctx.fillStyle = "rgba(38,247,253," + (0.1 + level * 0.14) + ")"; }
+        else { ctx.fillStyle = "rgba(244,244,240," + (0.05 + level * 0.08) + ")"; }
+        ctx.fillRect(off, 0, w, h);
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    /* 2. block-shift datamosh */
+    if (level > 0.12) {
+      var blocks = Math.round(2 + level * 10);
+      for (var k = 0; k < blocks; k++) {
+        var bw3 = 30 + r() * 90;
+        var bh3 = 10 + r() * 34;
+        var sx = r() * (w - bw3);
+        var sy = r() * (h - bh3);
+        var dx = sx + (r() - 0.5) * level * 130;
+        var dy = sy + (r() - 0.5) * level * 46;
+        try {
+          ctx.drawImage(ctx.canvas, sx, sy, bw3, bh3, dx, dy, bw3, bh3);
+        } catch (e) {}
+      }
+    }
+
+    /* 3. scanline tearing */
+    if (level > 0.06) {
+      var tears = Math.round(level * 7);
+      for (var ti = 0; ti < tears; ti++) {
+        var ty = r() * h;
+        var th = 1 + r() * 3;
+        var tox = (r() - 0.5) * level * 160;
+        try {
+          ctx.drawImage(ctx.canvas, 0, ty, w, th, tox, ty, w, th);
+        } catch (e) {}
+      }
+    }
+
+    /* 4. dropout sparkles */
+    if (level > 0.2) {
+      var dots = Math.round(level * level * 46);
+      ctx.fillStyle = "rgba(244,244,240,.85)";
+      for (var dd = 0; dd < dots; dd++) {
+        if (r() < 0.6) {
+          ctx.fillRect(r() * w, r() * h, 1 + r() * 2, 1);
+        }
+      }
+      /* horizontal dropout dashes */
+      var dashes = Math.round(level * 5);
+      for (var dh = 0; dh < dashes; dh++) {
+        if (r() < 0.5) { continue; }
+        var dy2 = r() * h;
+        var dx2 = r() * w * 0.7;
+        var dw = 10 + r() * 70;
+        ctx.fillStyle = r() < 0.5 ? "rgba(244,244,240,.5)" : "rgba(5,5,5,.7)";
+        ctx.fillRect(dx2, dy2, dw, 1 + r() * 2);
+      }
+    }
+
+    /* 5. chroma wash at high corruption */
+    if (level > 0.55) {
+      ctx.globalCompositeOperation = "overlay";
+      ctx.fillStyle = "rgba(255,43,214," + ((level - 0.55) * 0.3) + ")";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(38,247,253," + ((level - 0.55) * 0.22) + ")";
+      ctx.fillRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "source-over";
+    }
+  }
+
+  /* ---------- frame objects ---------- */
+  var frames = [];
+  var globalLevel = 0.35;
+  var storm = 0;
+
+  function buildFrames() {
+    SHOWS.forEach(function (show, i) {
+      var wrap = document.createElement("article");
+      wrap.className = "frame";
+      wrap.setAttribute("tabindex", "0");
+      wrap.setAttribute("aria-label", show.ch + " — " + show.title + ". Hover or focus to escalate corruption.");
+      var cv = document.createElement("canvas");
+      cv.width = 640; cv.height = 400;
+      cv.style.aspectRatio = "8/5";
+      wrap.appendChild(cv);
+      var osd = document.createElement("div");
+      osd.className = "osd";
+      osd.innerHTML =
+        "<div class='row'><span class='play'>&#9654; PLAY</span><span class='ch'>" + show.ch + "</span></div>" +
+        "<div class='row bottom'><span class='counter' id='cnt" + i + "'>0:00:0" + i + "</span><span class='corr' id='cor" + i + "'>CORR 35%</span></div>";
+      wrap.appendChild(osd);
+      var title = document.createElement("div");
+      title.className = "frame-title";
+      title.innerHTML = "<b>" + show.title + "</b><span id='seed" + i + "'>seed 049" + i + "</span>";
+      wrap.appendChild(title);
+      framesEl.appendChild(wrap);
+
+      var frame = {
+        show: show, cv: cv, ctx: cv.getContext("2d"),
+        el: wrap, i: i,
+        hover: 0, seed: 490 + i * 17,
+        reseedAt: performance.now() + 5200 + i * 900,
+        cor: wrap.querySelector("#cor" + i),
+        cnt: wrap.querySelector("#cnt" + i),
+        seedEl: wrap.querySelector("#seed" + i)
+      };
+      frames.push(frame);
+
+      wrap.addEventListener("pointerenter", function () { frame.hover = 1; });
+      wrap.addEventListener("pointerleave", function () { frame.hover = 0; });
+      wrap.addEventListener("focus", function () { frame.hover = 1; });
+      wrap.addEventListener("blur", function () { frame.hover = 0; });
+    });
+  }
+  buildFrames();
+
+  /* ---------- render loop ---------- */
+  var last = performance.now();
+  var secAcc = 0;
+  var masterSec = 0;
+  function loop(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    secAcc += dt;
+    var t = now / 1000;
+
+    frames.forEach(function (f) {
+      var w = f.cv.width, h = f.cv.height;
+      var ctx = f.ctx;
+      var r = mulberry32(f.seed + Math.floor(t * 1.7));
+      /* re-seed periodically */
+      if (now > f.reseedAt) {
+        f.seed = (f.seed * 1103515245 + 12345) & 0x7fffffff;
+        f.reseedAt = now + 4200 + r() * 5200;
+        f.seedEl.textContent = "seed 049-" + (f.seed % 9000 + 1000);
+      }
+      /* effective corruption */
+      var target = Math.min(1, globalLevel + f.hover * 0.38 + storm * (0.5 + r() * 0.5));
+      f.level = f.level === undefined ? target : f.level + (target - f.level) * (RM ? 1 : 0.12);
+
+      /* draw source scene to an offscreen buffer for clean sampling */
+      if (!f.buf) {
+        f.buf = document.createElement("canvas");
+        f.buf.width = w; f.buf.height = h;
+        f.bctx = f.buf.getContext("2d");
+      }
+      f.bctx.setTransform(1, 0, 0, 1, 0, 0);
+      f.show.draw(f.bctx, w, h, t, r);
+      /* VHS-ish base: soft contrast lift + faint noise */
+      f.bctx.fillStyle = "rgba(20,20,26," + (0.05 + f.level * 0.09) + ")";
+      f.bctx.fillRect(0, 0, w, h);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(f.buf, 0, 0);
+      degradeFrame(ctx, w, h, t, f.level, f.seed);
+
+      /* readout throttled */
+      if (secAcc > 0.25) {
+        f.cor.textContent = "CORR " + Math.round(f.level * 100) + "%";
+      }
+    });
+
+    if (secAcc > 0.25) {
+      secAcc = 0;
+      masterSec += 0.25;
+      var hh = Math.floor(masterSec / 3600);
+      var mm = Math.floor((masterSec % 3600) / 60);
+      var ss = Math.floor(masterSec % 60);
+      masterCounter.textContent = hh + ":" + (mm < 10 ? "0" : "") + mm + ":" + (ss < 10 ? "0" : "") + ss;
+      var d = new Date();
+      masterClock.textContent = (d.getHours() < 10 ? "0" : "") + d.getHours() + ":" + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes();
+      footClock.textContent = storm > 0 ? "STORM IN PROGRESS — HOLD ON" : "tracking… " + Math.round(globalLevel * 100) + "%";
+    }
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  /* ---------- controls ---------- */
+  degradeEl.addEventListener("input", function () {
+    globalLevel = degradeEl.value / 100;
+    degradeOut.textContent = degradeEl.value + "%";
+  });
+
+  function stormStep() {
+    storm += 0.06;
+    if (storm >= 1) {
+      storm = 1;
+      stormBtn.setAttribute("aria-pressed", "true");
+      stormBtn.textContent = "Storming…";
+      window.setTimeout(function () {
+        storm = 0;
+        stormBtn.setAttribute("aria-pressed", "false");
+        stormBtn.textContent = "Glitch Storm";
+        stormBtn.disabled = false;
+      }, 2600);
+      return;
+    }
+    window.setTimeout(stormStep, 60);
+  }
+  function triggerStorm() {
+    if (storm > 0) { return; }
+    stormBtn.disabled = true;
+    stormStep();
+  }
+  stormBtn.addEventListener("click", triggerStorm);
+  document.addEventListener("keydown", function (e) {
+    if (e.target && /INPUT/.test(e.target.tagName)) { return; }
+    if (e.key === "g" || e.key === "G") {
+      triggerStorm();
+      frames.forEach(function (f) { f.hover = 1; });
+    }
+  });
+  document.addEventListener("keyup", function (e) {
+    if (e.key === "g" || e.key === "G") {
+      frames.forEach(function (f) { f.hover = 0; });
+    }
+  });
+
+  degradeOut.textContent = degradeEl.value + "%";
+})();
+</script>
+</body>
+</html>

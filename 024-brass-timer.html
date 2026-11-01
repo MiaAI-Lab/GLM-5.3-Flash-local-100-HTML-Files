@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THE CONDUCTOR'S TIMER — brass, enamel &amp; walnut, c. 1926</title>
+<style>
+/* ============================================================
+   THE CONDUCTOR'S TIMER
+   gallery lighting · brass bezel · enamel dial · walnut plinth
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --backdrop-hi: #2e271e;
+  --backdrop-lo: #1c1610;
+  --brass-hi: #e0c176;
+  --brass: #b08d3f;
+  --brass-lo: #8a6a2c;
+  --brass-deep: #5f481b;
+  --enamel: #f6f1e3;
+  --enamel-lo: #e6dcc4;
+  --walnut-hi: #5d4430;
+  --walnut: #4a3524;
+  --walnut-lo: #2c1f14;
+  --cream: #e8ddc6;
+  --cream-dim: #a8977c;
+  --cream-faint: #7d6e57;
+  --engraved: #5c4718;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--cream);
+  background:
+    radial-gradient(120% 90% at 50% -12%, rgba(255, 232, 190, 0.14), rgba(255, 232, 190, 0) 55%),
+    linear-gradient(180deg, var(--backdrop-hi) 0%, var(--backdrop-lo) 78%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* film grain over the gallery wall */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0 1px, transparent 1px 4px);
+  z-index: 30;
+}
+
+::selection { background: var(--brass); color: #21190e; }
+::-moz-selection { background: var(--brass); color: #21190e; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--backdrop-lo); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--brass), var(--brass-lo));
+  border-radius: 6px;
+  border: 2px solid var(--backdrop-lo);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- wall text ---------- */
+.wall {
+  width: min(1060px, 94vw);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: clamp(18px, 3.4vw, 42px) 0 clamp(6px, 1.4vw, 14px);
+}
+.wall h1 {
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+.wall .case-no {
+  margin: 0.7em 0 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--cream-faint);
+}
+.wall .accession {
+  text-align: right;
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream-faint);
+  line-height: 2;
+}
+.wall .accession b {
+  font-weight: 400;
+  color: var(--cream-dim);
+}
+
+/* ---------- the object ---------- */
+.vitrine {
+  width: min(92vw, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(4px, 1vw, 14px);
+}
+
+.timer-svg {
+  width: min(78vmin, 470px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 34px 40px rgba(0, 0, 0, 0.55));
+  touch-action: none;
+}
+
+#windKey {
+  transform-box: view-box;
+  transform-origin: 300px 52px;
+}
+.winding #windKey { animation: keySpin 1.5s cubic-bezier(0.35, 0.6, 0.25, 1) both; }
+@keyframes keySpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(1080deg); }
+}
+
+#knurlRing { transition: stroke 0.3s ease; }
+.dragging #knurlRing { stroke: #caa85c; }
+.dragging .timer-svg { cursor: grabbing; }
+
+.locked #caseAll { animation: lockedWiggle 0.34s ease-in-out; }
+@keyframes lockedWiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px) rotate(-0.4deg); }
+  60% { transform: translateX(3px) rotate(0.3deg); }
+}
+
+#caseAll { transform-box: view-box; transform-origin: 300px 340px; }
+.ringing #caseAll { animation: caseBuzz 0.11s linear infinite alternate; }
+@keyframes caseBuzz {
+  from { transform: translate(0.8px, -0.5px) rotate(0.08deg); }
+  to   { transform: translate(-0.8px, 0.5px) rotate(-0.08deg); }
+}
+
+#hammerArm {
+  transform-box: view-box;
+  transform-origin: 194px 234px;
+}
+.ringing #hammerArm { animation: hammerHit 0.15s ease-in-out infinite alternate; }
+@keyframes hammerHit {
+  from { transform: rotate(-16deg); }
+  to   { transform: rotate(2deg); }
+}
+
+#setArc { transition: opacity 0.3s ease; }
+
+/* ---------- plinth ---------- */
+.plinth-wrap {
+  width: min(80vmin, 540px);
+  margin-top: clamp(-30px, -4vmin, -16px);
+  position: relative;
+  z-index: 2;
+}
+.plinth-top {
+  height: 16px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--walnut-hi), var(--walnut));
+  box-shadow: inset 0 2px 0 rgba(255, 226, 170, 0.18);
+}
+.plinth-body {
+  position: relative;
+  clip-path: polygon(4% 0, 96% 0, 100% 100%, 0% 100%);
+  background:
+    linear-gradient(90deg,
+      var(--walnut-lo) 0%,
+      var(--walnut) 18%,
+      var(--walnut-hi) 42%,
+      var(--walnut) 66%,
+      var(--walnut-lo) 100%);
+  padding: clamp(16px, 3vw, 26px) clamp(20px, 5vw, 46px) clamp(18px, 3vw, 28px);
+  text-align: center;
+}
+.plinth-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(92deg,
+      rgba(0, 0, 0, 0.16) 0 2px,
+      transparent 2px 7px,
+      rgba(255, 226, 170, 0.05) 7px 8px,
+      transparent 8px 13px);
+  pointer-events: none;
+}
+.plaque {
+  position: relative;
+  display: inline-block;
+  padding: 0.75em 1.6em 0.85em;
+  background: linear-gradient(160deg, var(--brass-hi) 0%, var(--brass) 38%, var(--brass-lo) 78%, var(--brass-deep) 100%);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 210, 0.65),
+    inset 0 -1px 0 rgba(40, 28, 8, 0.6),
+    0 3px 8px rgba(0, 0, 0, 0.45);
+}
+.plaque .p-title {
+  font-size: clamp(0.78rem, 1.9vw, 0.95rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #2e2208;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
+}
+.plaque .p-sub {
+  margin-top: 0.4em;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #4a3812;
+}
+.floor-shadow {
+  width: 72%;
+  height: 26px;
+  margin: 10px auto 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+
+/* ---------- controls ---------- */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 20px);
+  flex-wrap: wrap;
+  padding: clamp(16px, 2.6vw, 26px) 0 0;
+}
+.ctl {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: linear-gradient(180deg, rgba(255, 232, 190, 0.09), rgba(0, 0, 0, 0.18));
+  border: 1px solid rgba(176, 141, 63, 0.55);
+  border-radius: 3px;
+  padding: 0.95em 1.6em;
+  cursor: pointer;
+  min-height: 46px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+.ctl:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--brass-hi);
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 240, 200, 0.2);
+}
+.ctl:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.ctl:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+.ctl:disabled { opacity: 0.38; cursor: not-allowed; }
+.ctl.primary {
+  color: #241a06;
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+  border-color: var(--brass-deep);
+  text-shadow: 0 1px 0 rgba(255, 244, 210, 0.4);
+}
+
+.hint {
+  margin: clamp(14px, 2.2vw, 22px) 0 0;
+  font-style: italic;
+  font-size: clamp(0.82rem, 1.8vw, 0.98rem);
+  color: var(--cream-dim);
+  text-align: center;
+  max-width: 34em;
+  transition: color 0.4s ease;
+}
+.hint.caution { color: #d9a05a; }
+
+/* ---------- footer whisper ---------- */
+.whisper-foot {
+  margin: clamp(18px, 3vw, 34px) 0 clamp(24px, 4vw, 44px);
+  font-style: italic;
+  font-size: clamp(0.78rem, 1.6vw, 0.92rem);
+  color: var(--cream-faint);
+  text-align: center;
+  max-width: 44em;
+  padding: 0 6vw;
+}
+
+@media (max-width: 420px) {
+  .wall .accession { text-align: left; }
+  .ctl { letter-spacing: 0.22em; padding-inline: 1.1em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winding #windKey { animation: none; }
+  .ringing #caseAll,
+  .ringing #hammerArm { animation: none; }
+  .ringing #hammerArm { transform: rotate(-14deg); }
+  .locked #caseAll { animation: none; }
+  .ctl { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wall">
+  <div>
+    <h1>The Gallery of Timepieces</h1>
+    <p class="case-no">Case 24 · Domestic Mechanics · The Waiting Machines</p>
+  </div>
+  <p class="accession">
+    Accession <b>No. 024 / 100</b><br>
+    On loan from a <b>private collection</b><br>
+    Please — <b>do touch</b>
+  </p>
+</div>
+
+<main class="vitrine">
+  <svg id="timerSvg" class="timer-svg" viewBox="0 0 600 660"
+       role="application" aria-roledescription="analog timer"
+       aria-label="A brass wind-up timer. Drag the outer bezel to set minutes, then wind and start.">
+    <defs>
+      <linearGradient id="brassFace" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#e2c47c"></stop>
+        <stop offset="0.35" stop-color="#b08d3f"></stop>
+        <stop offset="0.72" stop-color="#8a6a2c"></stop>
+        <stop offset="1" stop-color="#6d5220"></stop>
+      </linearGradient>
+      <linearGradient id="brassSide" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8a6a2c"></stop>
+        <stop offset="0.5" stop-color="#6d5220"></stop>
+        <stop offset="1" stop-color="#4c3a14"></stop>
+      </linearGradient>
+      <radialGradient id="enamelFace" cx="0.42" cy="0.36" r="0.85">
+        <stop offset="0" stop-color="#fdfaf1"></stop>
+        <stop offset="0.55" stop-color="#f6f1e3"></stop>
+        <stop offset="0.88" stop-color="#ece3cc"></stop>
+        <stop offset="1" stop-color="#ddd2b5"></stop>
+      </radialGradient>
+      <linearGradient id="brassFlag" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#d9b96a"></stop>
+        <stop offset="1" stop-color="#7a5c22"></stop>
+      </linearGradient>
+      <radialGradient id="caseSheen" cx="0.34" cy="0.24" r="0.75">
+        <stop offset="0" stop-color="#fff3d0" stop-opacity="0.4"></stop>
+        <stop offset="0.4" stop-color="#fff3d0" stop-opacity="0.08"></stop>
+        <stop offset="1" stop-color="#fff3d0" stop-opacity="0"></stop>
+      </radialGradient>
+      <filter id="innerShade" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="6"></feGaussianBlur>
+      </filter>
+      <path id="makerArc" d="M 182 340 A 118 118 0 0 1 418 340" fill="none"></path>
+    </defs>
+
+    <g id="caseAll">
+      <!-- winding key -->
+      <g id="windKey">
+        <rect x="296" y="66" width="8" height="26" rx="3" fill="url(#brassSide)"></rect>
+        <ellipse cx="283" cy="52" rx="17" ry="9" fill="url(#brassFace)" stroke="#5f481b" stroke-width="1.5"></ellipse>
+        <ellipse cx="317" cy="52" rx="17" ry="9" fill="url(#brassFace)" stroke="#5f481b" stroke-width="1.5"></ellipse>
+        <circle cx="300" cy="52" r="6.5" fill="url(#brassSide)" stroke="#4c3a14" stroke-width="1"></circle>
+      </g>
+
+      <!-- case body -->
+      <circle cx="300" cy="340" r="262" fill="url(#brassSide)"></circle>
+      <circle id="knurlRing" cx="300" cy="340" r="256" fill="none" stroke="#5f481b"
+              stroke-width="9" stroke-dasharray="3.4 2.6"></circle>
+      <circle cx="300" cy="340" r="246" fill="url(#brassFace)"></circle>
+      <circle cx="300" cy="340" r="246" fill="url(#caseSheen)"></circle>
+      <circle cx="300" cy="340" r="205" fill="none" stroke="#4c3a14" stroke-width="2" opacity="0.6"></circle>
+
+      <!-- enamel dial -->
+      <circle cx="300" cy="340" r="198" fill="url(#enamelFace)" stroke="#8a6a2c" stroke-width="3"></circle>
+      <circle cx="300" cy="340" r="190" fill="none" stroke="#c9bd9d" stroke-width="1" opacity="0.8"></circle>
+
+      <!-- engraved dial furniture (ticks + numerals injected by script) -->
+      <g id="dialTicks"></g>
+      <g id="dialNums"></g>
+
+      <!-- set-duration arc -->
+      <path id="setArc" d="" fill="rgba(138, 106, 44, 0.26)"
+            stroke="rgba(95, 72, 27, 0.55)" stroke-width="1"></path>
+
+      <!-- maker arc text -->
+      <text font-family="Georgia, 'Times New Roman', serif" font-size="14"
+            letter-spacing="4" fill="#8a7648">
+        <textPath href="#makerArc" startOffset="50%" text-anchor="middle">B. HUTTEN &amp; SÖHNE · WIEN</textPath>
+      </text>
+
+      <!-- center readout -->
+      <text id="timeText" x="300" y="446" text-anchor="middle"
+            font-family="Georgia, 'Times New Roman', serif" font-size="46"
+            fill="#3f3010" style="font-variant-numeric: tabular-nums;">00:00</text>
+      <text id="timeLabel" x="300" y="474" text-anchor="middle"
+            font-family="Georgia, 'Times New Roman', serif" font-size="12.5"
+            letter-spacing="4" fill="#8a7648">MINUTES</text>
+
+      <!-- pointer flag -->
+      <path id="pointerFlag" d="" fill="url(#brassFlag)" stroke="#5f481b" stroke-width="1.4"></path>
+      <circle id="pointerPin" cx="300" cy="340" r="5" fill="#5f481b"></circle>
+
+      <!-- bell hammer -->
+      <g id="hammerArm">
+        <rect x="190" y="228" width="10" height="34" rx="4" fill="url(#brassFace)" stroke="#5f481b" stroke-width="1"></rect>
+        <circle cx="195" cy="228" r="8" fill="url(#brassSide)" stroke="#4c3a14" stroke-width="1"></circle>
+        <circle cx="195" cy="264" r="7.5" fill="#6d5220" stroke="#4c3a14" stroke-width="1.2"></circle>
+      </g>
+      <circle cx="194" cy="234" r="2.4" fill="#3a2c0e"></circle>
+
+      <!-- glass -->
+      <path d="M 150 250 A 190 190 0 0 1 450 250 A 240 150 0 0 0 150 250 Z"
+            fill="#ffffff" opacity="0.10"></path>
+
+      <!-- invisible drag ring -->
+      <circle id="dragRing" cx="300" cy="340" r="248" fill="none"
+              stroke="rgba(0,0,0,0)" stroke-width="58" role="slider" tabindex="0"
+              aria-label="Timer minutes — drag or use arrow keys"
+              aria-valuemin="0" aria-valuemax="60" aria-valuenow="0" aria-valuetext="0 minutes"></circle>
+    </g>
+  </svg>
+
+  <div class="plinth-wrap">
+    <div class="plinth-top"></div>
+    <div class="plinth-body">
+      <div class="plaque">
+        <div class="p-title">The Conductor's Timer</div>
+        <div class="p-sub">Brass, enamel &amp; walnut · Vienna, c. 1926</div>
+      </div>
+    </div>
+    <div class="floor-shadow"></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctl primary" id="startBtn" type="button" disabled>Wind &amp; Start</button>
+    <button class="ctl" id="resetBtn" type="button">Reset</button>
+    <button class="ctl" id="soundBtn" type="button" aria-pressed="true">Sound · On</button>
+  </div>
+
+  <p class="hint" id="hint">Drag the knurled bezel — one notch per minute, a ratchet click each. Then wind it and let it run.</p>
+</main>
+
+<p class="whisper-foot">Every second it counts is a second you promised to something.
+Conductors know: the silence before the downbeat is part of the music.</p>
+
+<p class="visually-hidden" id="status" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var svg = $('timerSvg');
+  var dragRing = $('dragRing');
+  var setArc = $('setArc');
+  var pointerFlag = $('pointerFlag');
+  var timeText = $('timeText');
+  var timeLabel = $('timeLabel');
+  var startBtn = $('startBtn');
+  var resetBtn = $('resetBtn');
+  var soundBtn = $('soundBtn');
+  var hint = $('hint');
+  var statusEl = $('status');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var CX = 300, CY = 340;
+  var ARC_OUT = 172, ARC_IN = 146;
+  var HINT_DEFAULT = 'Drag the knurled bezel — one notch per minute, a ratchet click each. Then wind it and let it run.';
+  var HINT_LOCKED = 'The mechanism is turning. Press Reset before re-setting the dial.';
+
+  /* ---------------- dial furniture ---------------- */
+  function polar(r, aDeg) {
+    var a = (aDeg - 90) * Math.PI / 180;
+    return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+  }
+  (function buildDial() {
+    var tickHtml = '';
+    var numHtml = '';
+    var m, p1, p2, tp, num;
+    for (m = 0; m < 60; m++) {
+      var major = m % 5 === 0;
+      p1 = polar(major ? 176 : 181, m * 6);
+      p2 = polar(190, m * 6);
+      tickHtml += '<line x1="' + p1.x.toFixed(1) + '" y1="' + p1.y.toFixed(1) +
+        '" x2="' + p2.x.toFixed(1) + '" y2="' + p2.y.toFixed(1) +
+        '" stroke="' + (major ? '#5c4718' : '#8a7648') +
+        '" stroke-width="' + (major ? '3' : '1.4') + '"></line>';
+      if (m % 10 === 0) {
+        tp = polar(152, m * 6);
+        num = String(m);
+        numHtml += '<text x="' + tp.x.toFixed(1) + '" y="' + (tp.y + 10).toFixed(1) +
+          '" text-anchor="middle" font-family="Georgia, &apos;Times New Roman&apos;, serif"' +
+          ' font-size="30" fill="#5c4718">' + num + '</text>';
+      }
+    }
+    numHtml += '<text x="300" y="248" text-anchor="middle"' +
+      ' font-family="Georgia, &apos;Times New Roman&apos;, serif" font-size="11.5"' +
+      ' letter-spacing="3.5" fill="#9a8a5e">SIXTY MINUTES</text>';
+    $('dialTicks').innerHTML = tickHtml;
+    $('dialNums').innerHTML = numHtml;
+  })();
+
+  /* ---------------- state ---------------- */
+  var setMinutes = 0;
+  var running = false;
+  var winding = false;
+  var done = false;
+  var endAt = 0;
+  var totalMs = 0;
+  var lastShownSec = -1;
+  var rafId = 0;
+  var cleanupTimers = [];
+  var soundOn = true;
+
+  function angleToXY(a) { return polar(1, a); }
+
+  function annulusPath(aDeg) {
+    if (aDeg <= 0.4) { return ''; }
+    if (aDeg >= 359.6) {
+      return 'M ' + (CX) + ' ' + (CY - ARC_OUT) +
+        ' A ' + ARC_OUT + ' ' + ARC_OUT + ' 0 1 1 ' + (CX - 0.01) + ' ' + (CY - ARC_OUT) + ' Z ' +
+        'M ' + (CX) + ' ' + (CY - ARC_IN) +
+        ' A ' + ARC_IN + ' ' + ARC_IN + ' 0 1 0 ' + (CX - 0.01) + ' ' + (CY - ARC_IN) + ' Z';
+    }
+    var o1 = polar(ARC_OUT, 0), o2 = polar(ARC_OUT, aDeg);
+    var i1 = polar(ARC_IN, aDeg), i2 = polar(ARC_IN, 0);
+    var large = aDeg > 180 ? 1 : 0;
+    return 'M ' + o1.x.toFixed(2) + ' ' + o1.y.toFixed(2) +
+      ' A ' + ARC_OUT + ' ' + ARC_OUT + ' 0 ' + large + ' 1 ' + o2.x.toFixed(2) + ' ' + o2.y.toFixed(2) +
+      ' L ' + i1.x.toFixed(2) + ' ' + i1.y.toFixed(2) +
+      ' A ' + ARC_IN + ' ' + ARC_IN + ' 0 ' + large + ' 0 ' + i2.x.toFixed(2) + ' ' + i2.y.toFixed(2) +
+      ' Z';
+  }
+
+  function flagPath(aDeg) {
+    if (aDeg <= 0.2 && setMinutes === 0) { return ''; }
+    var tip = polar(194, aDeg);
+    var b1 = polar(150, aDeg - 3.6);
+    var b2 = polar(150, aDeg + 3.6);
+    return 'M ' + tip.x.toFixed(2) + ' ' + tip.y.toFixed(2) +
+      ' L ' + b1.x.toFixed(2) + ' ' + b1.y.toFixed(2) +
+      ' L ' + b2.x.toFixed(2) + ' ' + b2.y.toFixed(2) + ' Z';
+  }
+
+  function renderDial(angleDeg, mmss) {
+    setArc.setAttribute('d', annulusPath(angleDeg));
+    pointerFlag.setAttribute('d', flagPath(angleDeg));
+    var pin = polar(150, angleDeg);
+    if (angleDeg > 0.2 || setMinutes > 0) {
+      $('pointerPin').setAttribute('cx', pin.x.toFixed(1));
+      $('pointerPin').setAttribute('cy', pin.y.toFixed(1));
+    }
+    timeText.textContent = mmss;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function setIdleDial() {
+    var a = setMinutes * 6;
+    renderDial(a, pad2(setMinutes) + ':00');
+    dragRing.setAttribute('aria-valuenow', String(setMinutes));
+    dragRing.setAttribute('aria-valuetext', setMinutes + ' minute' + (setMinutes === 1 ? '' : 's'));
+  }
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  /* ---------------- audio ---------------- */
+  var ac = null, master = null;
+  function ensureAudio() {
+    if (!ac) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) { return false; }
+      ac = new Ctx();
+      master = ac.createGain();
+      master.gain.value = 0.9;
+      master.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') { ac.resume(); }
+    return true;
+  }
+
+  function click(vol, freq) {
+    if (!ac || !soundOn) { return; }
+    vol = vol || 0.05;
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    o.type = 'square';
+    o.frequency.value = freq || (1750 + Math.random() * 260);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.032);
+    var hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 900;
+    o.connect(hp);
+    hp.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + 0.05);
+    /* soft wooden body thock */
+    var o2 = ac.createOscillator();
+    o2.type = 'triangle';
+    o2.frequency.value = 290 + Math.random() * 40;
+    var g2 = ac.createGain();
+    g2.gain.setValueAtTime(vol * 0.7, t);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+    o2.connect(g2);
+    g2.connect(master);
+    o2.start(t);
+    o2.stop(t + 0.06);
+  }
+
+  function clunk() {
+    if (!ac || !soundOn) { return; }
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(210, t);
+    o.frequency.exponentialRampToValueAtTime(120, t + 0.07);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.11, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    o.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + 0.14);
+  }
+
+  function whirr() {
+    if (!ac || !soundOn) { return; }
+    if (reduced) { clunk(); return; }
+    var t0 = ac.currentTime;
+    var i, dt = 0;
+    for (i = 0; i < 26; i++) {
+      dt += 0.085 - i * 0.002;
+      (function (idx, at) {
+        var o = ac.createOscillator();
+        o.type = 'square';
+        o.frequency.value = 1350 + idx * 34;
+        var g = ac.createGain();
+        g.gain.setValueAtTime(0.018, at);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.024);
+        var hp = ac.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.value = 800;
+        o.connect(hp);
+        hp.connect(g);
+        g.connect(master);
+        o.start(at);
+        o.stop(at + 0.04);
+      })(i, t0 + dt);
+    }
+    var cl = ac.createOscillator();
+    cl.type = 'square';
+    cl.frequency.setValueAtTime(200, t0 + dt + 0.04);
+    cl.frequency.exponentialRampToValueAtTime(115, t0 + dt + 0.11);
+    var clg = ac.createGain();
+    clg.gain.setValueAtTime(0.1, t0 + dt + 0.04);
+    clg.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.16);
+    cl.connect(clg);
+    clg.connect(master);
+    cl.start(t0 + dt + 0.04);
+    cl.stop(t0 + dt + 0.2);
+  }
+
+  function bellStrike(at, vol) {
+    var f = 1568;
+    var parts = [
+      { m: 1, g: 0.42 },
+      { m: 2.756, g: 0.2 },
+      { m: 4.07, g: 0.09 }
+    ];
+    parts.forEach(function (p) {
+      var o = ac.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f * p.m;
+      var g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.linearRampToValueAtTime(vol * p.g, at + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 1.9);
+      var lp = ac.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 5200;
+      o.connect(lp);
+      lp.connect(g);
+      g.connect(master);
+      o.start(at);
+      o.stop(at + 2.1);
+    });
+  }
+
+  function ringBell() {
+    if (!ac || !soundOn) { return; }
+    var t = ac.currentTime;
+    var i;
+    for (i = 0; i < 4; i++) {
+      bellStrike(t + i * 0.62, i === 0 ? 0.6 : 0.45);
+    }
+  }
+
+  /* ---------------- countdown ---------------- */
+  function tickFrame(now) {
+    if (!running) { return; }
+    var remaining = endAt - now;
+    if (remaining <= 0) { finish(); return; }
+    var frac = totalMs > 0 ? remaining / totalMs : 0;
+    var a = setAngleSnapshot * frac;
+    var secLeft = Math.ceil(remaining / 1000);
+    if (secLeft !== lastShownSec) {
+      lastShownSec = secLeft;
+      var mm = Math.floor(secLeft / 60);
+      var ss = secLeft % 60;
+      timeText.textContent = pad2(mm) + ':' + pad2(ss);
+    }
+    renderDial(a, timeText.textContent);
+    rafId = requestAnimationFrame(tickFrame);
+  }
+
+  var setAngleSnapshot = 0;
+
+  function startRunning() {
+    winding = false;
+    running = true;
+    done = false;
+    totalMs = setMinutes * 60000;
+    endAt = performance.now() + totalMs;
+    setAngleSnapshot = setMinutes * 6;
+    lastShownSec = -1;
+    startBtn.disabled = true;
+    resetBtn.disabled = false;
+    dragRing.setAttribute('aria-disabled', 'true');
+    setStatus('Running. ' + setMinutes + ' minutes on the dial.');
+    setHint('It is counting. The bell will speak when the silence is over.');
+    rafId = requestAnimationFrame(tickFrame);
+  }
+
+  function finish() {
+    running = false;
+    done = true;
+    var spent = setMinutes;
+    setMinutes = 0;
+    cancelAnimationFrame(rafId);
+    renderDial(0, '00:00');
+    timeLabel.textContent = 'TIME IS UP';
+    dragRing.setAttribute('aria-valuenow', '0');
+    dragRing.setAttribute('aria-valuetext', '0 minutes');
+    document.body.classList.add('ringing');
+    ringBell();
+    setStatus('Time is up. The bell has rung four times.');
+    setHint('The bell has spoken. Reset or drag the bezel to begin again.');
+    cleanupTimers.push(window.setTimeout(function () {
+      document.body.classList.remove('ringing');
+      timeLabel.textContent = 'MINUTES';
+      startBtn.disabled = true;
+    }, 3700));
+    if (spent === 0) { startBtn.disabled = true; }
+  }
+
+  /* ---------------- drag to set ---------------- */
+  var dragging = false;
+  var dragAngle = 0;
+
+  function pointerAngle(e) {
+    var rect = svg.getBoundingClientRect();
+    var sx = (e.clientX - rect.left) / rect.width * 600;
+    var sy = (e.clientY - rect.top) / rect.height * 660;
+    var dx = sx - CX;
+    var dy = sy - CY;
+    var ang = Math.atan2(dx, -dy) * 180 / Math.PI;
+    if (ang < 0) { ang += 360; }
+    return ang;
+  }
+
+  function applyDrag(e) {
+    var a = pointerAngle(e);
+    var m = Math.round(a / 6) % 60;
+    if (m !== setMinutes) {
+      setMinutes = m;
+      click(0.05);
+      setIdleDial();
+      done = false;
+      timeLabel.textContent = 'MINUTES';
+      startBtn.disabled = setMinutes === 0 || running;
+    }
+  }
+
+  dragRing.addEventListener('pointerdown', function (e) {
+    ensureAudio();
+    if (running || winding) {
+      lockWiggle();
+      return;
+    }
+    e.preventDefault();
+    dragging = true;
+    document.body.classList.add('dragging');
+    if (dragRing.setPointerCapture) {
+      try { dragRing.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    applyDrag(e);
+  });
+  dragRing.addEventListener('pointermove', function (e) {
+    if (!dragging) { return; }
+    applyDrag(e);
+  });
+  function endDrag() {
+    if (!dragging) { return; }
+    dragging = false;
+    document.body.classList.remove('dragging');
+    setStatus('Dial set to ' + setMinutes + ' minute' + (setMinutes === 1 ? '' : 's') + '.');
+  }
+  dragRing.addEventListener('pointerup', endDrag);
+  dragRing.addEventListener('pointercancel', endDrag);
+  dragRing.addEventListener('lostpointercapture', endDrag);
+
+  dragRing.addEventListener('wheel', function (e) {
+    if (running || winding) { return; }
+    e.preventDefault();
+    ensureAudio();
+    var step = e.deltaY < 0 ? 1 : -1;
+    nudge(step);
+  }, { passive: false });
+
+  dragRing.addEventListener('keydown', function (e) {
+    var step = 0;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { step = 1; }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { step = -1; }
+    else if (e.key === 'PageUp') { step = 5; }
+    else if (e.key === 'PageDown') { step = -5; }
+    else if (e.key === 'Home') { step = -setMinutes; }
+    else if (e.key === 'End') { step = 60 - setMinutes; }
+    if (step !== 0) {
+      e.preventDefault();
+      if (running || winding) { lockWiggle(); return; }
+      ensureAudio();
+      nudge(step);
+    }
+  });
+
+  function nudge(step) {
+    var next = Math.max(0, Math.min(60, setMinutes + step));
+    if (next !== setMinutes) {
+      setMinutes = next;
+      done = false;
+      timeLabel.textContent = 'MINUTES';
+      click(0.05);
+      setIdleDial();
+      startBtn.disabled = setMinutes === 0;
+      setStatus('Dial set to ' + setMinutes + ' minute' + (setMinutes === 1 ? '' : 's') + '.');
+    }
+  }
+
+  function lockWiggle() {
+    document.body.classList.add('locked');
+    setHint(HINT_LOCKED, true);
+    setStatus('The dial is locked while the timer runs.');
+    cleanupTimers.push(window.setTimeout(function () {
+      document.body.classList.remove('locked');
+    }, 400));
+  }
+
+  function setHint(text, caution) {
+    hint.textContent = text;
+    hint.classList.toggle('caution', !!caution);
+  }
+
+  /* ---------------- buttons ---------------- */
+  startBtn.addEventListener('click', function () {
+    if (setMinutes === 0 || running || winding) { return; }
+    ensureAudio();
+    winding = true;
+    startBtn.disabled = true;
+    dragRing.setAttribute('aria-disabled', 'true');
+    document.body.classList.add('winding');
+    whirr();
+    setStatus('Winding the spring…');
+    setHint('The spring takes up its tension. Hold on…');
+    cleanupTimers.push(window.setTimeout(function () {
+      document.body.classList.remove('winding');
+      startRunning();
+    }, reduced ? 350 : 1500));
+  });
+
+  resetBtn.addEventListener('click', function () {
+    ensureAudio();
+    cancelAnimationFrame(rafId);
+    running = false;
+    winding = false;
+    done = false;
+    document.body.classList.remove('winding', 'ringing');
+    timeLabel.textContent = 'MINUTES';
+    setIdleDial();
+    click(0.06, 900);
+    startBtn.disabled = setMinutes === 0;
+    dragRing.setAttribute('aria-disabled', 'false');
+    setStatus('Reset. The dial holds ' + setMinutes + ' minute' + (setMinutes === 1 ? '' : 's') + '.');
+    setHint(HINT_DEFAULT, false);
+  });
+
+  soundBtn.addEventListener('click', function () {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    soundBtn.textContent = soundOn ? 'Sound · On' : 'Sound · Off';
+    if (soundOn) { ensureAudio(); }
+  });
+
+  svg.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(rafId);
+    cleanupTimers.forEach(function (t) { window.clearTimeout(t); });
+    if (ac) { try { ac.close(); } catch (err) {} }
+  });
+
+  /* boot */
+  setIdleDial();
+  startBtn.disabled = true;
+})();
+</script>
+</body>
+</html>

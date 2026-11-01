@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HEURE PRÉCIEUSE · №016 — Haute Horlogerie Maison · The Gallery of 100</title>
+<style>
+:root{
+  --stage:   #0a0a0a;
+  --stage-2: #121110;
+  --gold:    #c9a227;
+  --gold-2:  #e8d9a0;
+  --gray:    #b9b3a8;
+  --hairline:rgba(201,162,39,.28);
+  --serif: Georgia, "Times New Roman", ui-serif, serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scrollbar-color:#3a3428 transparent; }
+html::-webkit-scrollbar{ width:9px; }
+html::-webkit-scrollbar-thumb{ background:#3a3428; border-radius:5px; }
+body{
+  font-family:var(--serif);
+  background:
+    radial-gradient(1400px 800px at 78% 30%, #171410, transparent 60%),
+    var(--stage);
+  color:var(--gray);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--gold); color:#0a0a0a; }
+:focus{ outline:none; }
+:focus-visible{ outline:1px solid var(--gold-2); outline-offset:4px; }
+
+/* ---------- split layout ---------- */
+.split{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  min-height:100vh;
+}
+@media (max-width:980px){
+  .split{ grid-template-columns:minmax(0,1fr); }
+}
+
+/* ---------- stage (right, fixed on desktop) ---------- */
+.stage-col{ position:relative; }
+.stage{
+  position:sticky; top:0;
+  height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(14px,2.5vh,26px);
+  overflow:hidden;
+}
+@media (max-width:980px){
+  .stage{ position:relative; height:auto; min-height:78vh; padding:clamp(28px,6vh,60px) 0; }
+}
+.spot{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(46% 42% at 50% 40%, rgba(232,217,160,.14), rgba(201,162,39,.05) 45%, transparent 70%);
+}
+#motes{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+
+.watch-tilt{
+  position:relative;
+  width:clamp(240px, 34vw, 430px);
+  aspect-ratio:1/1;
+  transform-style:preserve-3d;
+  will-change:transform;
+  z-index:3;
+}
+.watch-tilt svg{ display:block; width:100%; height:100%; }
+.sheen{
+  position:absolute; inset:0; border-radius:50%;
+  background:linear-gradient(115deg,
+    transparent 30%,
+    rgba(255,255,255,.13) 46%,
+    rgba(232,217,160,.20) 50%,
+    rgba(255,255,255,.10) 54%,
+    transparent 70%);
+  mix-blend-mode:screen;
+  opacity:0;
+  transform:translateX(calc(var(--sx, 0) * 1%)) translateY(calc(var(--sy, 0) * 1%));
+  transition:opacity .5s ease;
+  pointer-events:none;
+}
+.stage:hover .sheen, .stage.tilting .sheen{ opacity:1; }
+.stage-caption{
+  position:relative; z-index:3;
+  text-align:center;
+  font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.34em; text-transform:uppercase;
+  color:rgba(185,179,168,.75);
+}
+.stage-caption b{ color:var(--gold-2); font-weight:400; }
+
+/* crown controls */
+.crown-row{
+  position:relative; z-index:3;
+  display:flex; gap:14px; align-items:center;
+}
+.crown{
+  width:52px; height:52px; border-radius:50%;
+  border:1px solid var(--hairline);
+  background:
+    radial-gradient(circle at 34% 30%, #2a251c, #12100c 70%);
+  box-shadow:0 6px 18px rgba(0,0,0,.6), inset 0 1px 0 rgba(232,217,160,.15);
+  cursor:pointer;
+  display:grid; place-items:center;
+  transition:box-shadow .3s ease, border-color .3s ease, transform .2s ease;
+  touch-action:manipulation;
+}
+.crown:hover{ transform:translateY(-2px); border-color:var(--gold); }
+.crown:active{ transform:translateY(0) scale(.97); }
+.crown svg{ width:24px; height:24px; }
+.crown[aria-pressed="true"]{
+  border-color:var(--gold-2);
+  box-shadow:0 6px 22px rgba(201,162,39,.35), 0 0 14px rgba(201,162,39,.35), inset 0 1px 0 rgba(232,217,160,.3);
+}
+.crown-label{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(185,179,168,.65); max-width:11em; line-height:1.8;
+}
+body.gmt .crown-label b{ color:var(--gold-2); }
+
+/* ---------- chapters (left) ---------- */
+.chapters{
+  padding:clamp(28px,6vh,80px) clamp(22px,5vw,72px) clamp(30px,5vh,60px);
+  display:flex; flex-direction:column;
+}
+.masthead{
+  padding-bottom:clamp(22px,4vh,44px);
+  border-bottom:1px solid var(--hairline);
+}
+.maison-name{
+  font-size:clamp(1.7rem, 3.6vw, 2.9rem);
+  font-weight:400;
+  letter-spacing:.44em;
+  text-transform:uppercase;
+  color:var(--gold-2);
+  line-height:1.25;
+  text-indent:.1em;
+}
+.masthead .est{
+  margin-top:12px;
+  font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.4em; text-transform:uppercase;
+  color:rgba(185,179,168,.55);
+}
+.masthead .est b{ color:var(--gold); font-weight:400; }
+
+.chapter{
+  padding:clamp(30px,6vh,64px) 0;
+  border-bottom:1px solid rgba(201,162,39,.14);
+  opacity:0; transform:translateY(26px);
+  transition:opacity 1s cubic-bezier(.2,.6,.2,1), transform 1s cubic-bezier(.2,.6,.2,1);
+}
+.chapter.in{ opacity:1; transform:none; }
+.chap-head{
+  display:flex; align-items:baseline; gap:16px;
+  margin-bottom:clamp(14px,2.5vh,24px);
+}
+.chap-no{
+  font-family:var(--mono);
+  font-size:.66rem; letter-spacing:.3em; color:var(--gold);
+  border:1px solid var(--hairline);
+  padding:5px 9px;
+  white-space:nowrap;
+}
+.chap-head h2{
+  font-style:italic;
+  font-weight:400;
+  font-size:clamp(1.5rem, 3vw, 2.3rem);
+  color:#e9e4d8;
+  letter-spacing:.02em;
+}
+.chapter p{
+  font-size:clamp(.98rem, 1.35vw, 1.12rem);
+  line-height:1.85;
+  max-width:56ch;
+  color:var(--gray);
+}
+.chapter p + p{ margin-top:1em; }
+.chapter p b{ color:var(--gold-2); font-weight:400; }
+.chapter .specs{
+  margin-top:clamp(16px,3vh,28px);
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  gap:1px;
+  background:var(--hairline);
+  border:1px solid var(--hairline);
+}
+.chapter .specs div{
+  background:var(--stage);
+  padding:12px 14px;
+}
+.chapter .specs dt{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+  color:rgba(185,179,168,.55);
+  margin-bottom:6px;
+}
+.chapter .specs dd{
+  font-size:.92rem; color:var(--gold-2);
+}
+
+/* pull line */
+.pull{
+  margin:clamp(28px,5vh,52px) 0;
+  padding-left:20px;
+  border-left:1px solid var(--gold);
+  font-style:italic;
+  font-size:clamp(1.15rem, 2vw, 1.5rem);
+  line-height:1.6;
+  color:#e9e4d8;
+}
+.pull span{ color:var(--gold); }
+
+/* live clock strip */
+.clock-strip{
+  margin-top:clamp(24px,4vh,40px);
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.26em; text-transform:uppercase;
+  color:rgba(185,179,168,.6);
+}
+.clock-strip .local b{ color:var(--gold-2); font-weight:400; font-variant-numeric:tabular-nums; }
+
+/* colophon */
+.colophon{
+  margin-top:auto;
+  padding-top:clamp(20px,4vh,36px);
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(185,179,168,.45);
+}
+.colophon .g{ color:var(--gold); }
+
+/* ---------- watch svg text ---------- */
+.dial-txt{
+  font-family:var(--serif);
+  font-size:9.5px;
+  letter-spacing:2.6px;
+  fill:#cfc7b4;
+}
+.dial-txt.small{ font-size:6.4px; letter-spacing:1.6px; fill:#8f887a; }
+.gmt-txt{ font-family:var(--mono); font-size:5.4px; fill:#8f887a; letter-spacing:1px; }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .chapter{ opacity:1; transform:none; transition:none; }
+  .sheen{ transition:none; }
+  .crown{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="split">
+
+  <!-- ============ left: chapters ============ -->
+  <div class="chapters">
+
+    <header class="masthead">
+      <h1 class="maison-name">Heure Précieuse</h1>
+      <p class="est">MAISON D'HORLOGERIE · <b>EST. 1887</b> · VALLEE DE JOUX</p>
+    </header>
+
+    <section class="chapter" data-ch>
+      <div class="chap-head">
+        <span class="chap-no">CH. 01</span>
+        <h2>The Silence Before the Tick</h2>
+      </div>
+      <p>Every watch we finish begins in a room with no clock in it. The watchmaker arrives before dawn, warms the oil between thumb and forefinger, and listens to the <b>nothing</b> — because a movement is only ever as honest as the silence it interrupts.</p>
+      <p>Our founder carved her first escape wheel from a broken loom part. She called the finished watch <b>Pièce Zéro</b>, and swore it would never be sold. It hasn't been. It keeps time to this day, badly, beautifully.</p>
+      <div class="pull">"We do not sell time. <span>We sell the small ceremony of consulting it.</span>"</div>
+    </section>
+
+    <section class="chapter" data-ch>
+      <div class="chap-head">
+        <span class="chap-no">CH. 02</span>
+        <h2>Calibre 016 — The Patient Heart</h2>
+      </div>
+      <p>Two hundred and sixteen components, each finished by hand under 40× magnification: bevels drawn to mirror, screws blued over open flame to the exact second the color turns <b>cornflower</b>, then pulled back.</p>
+      <p>The balance breathes 28,800 times an hour. You will never hear it. That is the point — luxury is a machine so refined it becomes <b>geology</b>: silent, certain, older than its owner by design.</p>
+      <dl class="specs">
+        <div><dt>Frequency</dt><dd>4 Hz · 28,800 vph</dd></div>
+        <div><dt>Reserve</dt><dd>96 hours</dd></div>
+        <div><dt>Components</dt><dd>216, hand-finished</dd></div>
+        <div><dt>Jewels</dt><dd>31, chamfered</dd></div>
+      </dl>
+    </section>
+
+    <section class="chapter" data-ch>
+      <div class="chap-head">
+        <span class="chap-no">CH. 03</span>
+        <h2>The Guilloché Dial</h2>
+      </div>
+      <p>Our dial is cut on a hand-cranked rose engine from 1904, a machine so temperamental that only two people alive are permitted to touch it. The pattern — <b>grain d'orge</b> — catches the light in waves, so the face of the watch is never the same face twice.</p>
+      <p>Applied indices are gold, drawn wire, polished flat. The hands — dauphine, faceted, mirror-lapped — are set by feel, under breath.</p>
+      <dl class="specs">
+        <div><dt>Pattern</dt><dd>Grain d'orge barleycorn</dd></div>
+        <div><dt>Indices</dt><dd>Drawn gold wire</dd></div>
+        <div><dt>Hands</dt><dd>Dauphine, lapped</dd></div>
+        <div><dt>Complication</dt><dd>GMT, crown-set</dd></div>
+      </dl>
+    </section>
+
+    <section class="chapter" data-ch>
+      <div class="chap-head">
+        <span class="chap-no">CH. 04</span>
+        <h2>The Oath of the Maison</h2>
+      </div>
+      <p>We make fewer watches in a year than others make before lunch. Each leaves with a certificate signed twice — once in ink, once in <b>person</b>, across the workbench where it was born.</p>
+      <p>Set the hands above to your own hour. The watch is already running; it has been running since you arrived. When you leave, it will forget you politely, as all good instruments do.</p>
+      <div class="clock-strip">
+        <span class="local">LOCAL TIME — <b id="localTime">--:--:--</b></span>
+        <span>PIECE № 016 OF 100</span>
+        <span>SWISS LEVER ESCAPEMENT</span>
+      </div>
+    </section>
+
+    <footer class="colophon">
+      <span>HEURE PRÉCIEUSE</span>
+      <span class="g">THE GALLERY OF 100</span>
+      <span>NO NETWORK · NO BATTERY · NO MERCY</span>
+    </footer>
+  </div>
+
+  <!-- ============ right: stage ============ -->
+  <div class="stage-col">
+    <div class="stage" id="stage">
+
+      <div class="spot" aria-hidden="true"></div>
+      <canvas id="motes" aria-hidden="true"></canvas>
+
+      <div class="watch-tilt" id="tilt">
+        <svg viewBox="0 0 400 400" role="img" aria-label="Heure Précieuse wristwatch showing live local time">
+          <defs>
+            <linearGradient id="caseGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f4e7b0"></stop>
+              <stop offset="0.3" stop-color="#c9a227"></stop>
+              <stop offset="0.55" stop-color="#8a6d1a"></stop>
+              <stop offset="0.75" stop-color="#e8d9a0"></stop>
+              <stop offset="1" stop-color="#a07f1e"></stop>
+            </linearGradient>
+            <linearGradient id="handGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f4e7b0"></stop>
+              <stop offset="1" stop-color="#b08c20"></stop>
+            </linearGradient>
+            <radialGradient id="dialBase" cx="0.5" cy="0.42" r="0.75">
+              <stop offset="0" stop-color="#26221a"></stop>
+              <stop offset="0.7" stop-color="#141210"></stop>
+              <stop offset="1" stop-color="#0b0a08"></stop>
+            </radialGradient>
+            <pattern id="guilloche" width="14" height="14" patternUnits="userSpaceOnUse">
+              <circle cx="0" cy="0" r="7" fill="none" stroke="rgba(201,162,39,0.16)" stroke-width="1"></circle>
+              <circle cx="14" cy="0" r="7" fill="none" stroke="rgba(201,162,39,0.16)" stroke-width="1"></circle>
+              <circle cx="0" cy="14" r="7" fill="none" stroke="rgba(201,162,39,0.16)" stroke-width="1"></circle>
+              <circle cx="14" cy="14" r="7" fill="none" stroke="rgba(201,162,39,0.16)" stroke-width="1"></circle>
+              <circle cx="7" cy="7" r="7" fill="none" stroke="rgba(232,217,160,0.10)" stroke-width="1"></circle>
+            </pattern>
+            <filter id="dialShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="6"></feGaussianBlur>
+            </filter>
+          </defs>
+
+          <!-- strap hints -->
+          <path d="M148 6 L182 6 L188 46 L146 50 Z" fill="#161310"></path>
+          <path d="M218 6 L252 6 L254 50 L212 46 Z" fill="#161310"></path>
+          <path d="M146 354 L188 350 L182 394 L148 394 Z" fill="#161310"></path>
+          <path d="M212 350 L254 354 L252 394 L218 394 Z" fill="#161310"></path>
+          <path d="M148 6 L182 6 L188 46 L146 50 Z" fill="none" stroke="rgba(201,162,39,.35)" stroke-width="1"></path>
+          <path d="M218 6 L252 6 L254 50 L212 46 Z" fill="none" stroke="rgba(201,162,39,.35)" stroke-width="1"></path>
+
+          <!-- case -->
+          <circle cx="200" cy="200" r="172" fill="#050505" filter="url(#dialShadow)" opacity="0.7"></circle>
+          <circle cx="200" cy="200" r="168" fill="none" stroke="url(#caseGold)" stroke-width="10"></circle>
+          <circle cx="200" cy="200" r="176" fill="none" stroke="rgba(201,162,39,.5)" stroke-width="1.4"></circle>
+          <circle cx="200" cy="200" r="159" fill="none" stroke="rgba(201,162,39,.65)" stroke-width="1"></circle>
+
+          <!-- crown -->
+          <g>
+            <rect x="368" y="188" width="18" height="24" rx="5" fill="url(#caseGold)"></rect>
+            <path d="M371 190 v20 M375 189 v22 M379 189 v22 M383 190 v20" stroke="rgba(20,16,8,.55)" stroke-width="1.6"></path>
+          </g>
+
+          <!-- dial -->
+          <circle cx="200" cy="200" r="156" fill="url(#dialBase)"></circle>
+          <circle cx="200" cy="200" r="156" fill="url(#guilloche)"></circle>
+          <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(201,162,39,.22)" stroke-width="0.8"></circle>
+
+          <!-- minute track -->
+          <g stroke="rgba(201,162,39,.5)" stroke-width="1">
+            <path d="M200 52 v8"></path>
+            <path d="M200 340 v8"></path>
+            <path d="M52 200 h8"></path>
+            <path d="M340 200 h8"></path>
+            <path d="M122.9 75.4 l4 6.9"></path>
+            <path d="M277.1 75.4 l-4 6.9"></path>
+            <path d="M122.9 324.6 l4 -6.9"></path>
+            <path d="M277.1 324.6 l-4 -6.9"></path>
+            <path d="M75.4 122.9 l6.9 4"></path>
+            <path d="M324.6 122.9 l-6.9 4"></path>
+            <path d="M75.4 277.1 l6.9 -4"></path>
+            <path d="M324.6 277.1 l-6.9 -4"></path>
+          </g>
+          <!-- fine minute dots -->
+          <g fill="rgba(201,162,39,.35)">
+            <circle cx="246" cy="57.5" r="1.1"></circle><circle cx="288" cy="74.5" r="1.1"></circle>
+            <circle cx="325.5" cy="112" r="1.1"></circle><circle cx="342.5" cy="154" r="1.1"></circle>
+            <circle cx="342.5" cy="246" r="1.1"></circle><circle cx="325.5" cy="288" r="1.1"></circle>
+            <circle cx="288" cy="325.5" r="1.1"></circle><circle cx="246" cy="342.5" r="1.1"></circle>
+            <circle cx="154" cy="342.5" r="1.1"></circle><circle cx="112" cy="325.5" r="1.1"></circle>
+            <circle cx="74.5" cy="288" r="1.1"></circle><circle cx="57.5" cy="246" r="1.1"></circle>
+            <circle cx="57.5" cy="154" r="1.1"></circle><circle cx="74.5" cy="112" r="1.1"></circle>
+            <circle cx="112" cy="74.5" r="1.1"></circle><circle cx="154" cy="57.5" r="1.1"></circle>
+          </g>
+
+          <!-- GMT 24h track (revealed by crown) -->
+          <g id="gmtTrack" opacity="0" style="transition:opacity .8s ease">
+            <circle cx="200" cy="200" r="132" fill="none" stroke="rgba(201,162,39,.35)" stroke-width="0.8" stroke-dasharray="2 4"></circle>
+            <g class="gmt-txt" text-anchor="middle">
+              <text x="200" y="76">24</text>
+              <text x="264" y="93">2</text>
+              <text x="307" y="136">4</text>
+              <text x="324" y="200">6</text>
+              <text x="307" y="266">8</text>
+              <text x="264" y="310">10</text>
+              <text x="200" y="330">12</text>
+              <text x="136" y="310">14</text>
+              <text x="93" y="266">16</text>
+              <text x="76" y="200">18</text>
+              <text x="93" y="136">20</text>
+              <text x="136" y="93">22</text>
+            </g>
+          </g>
+
+          <!-- applied indices: double baton at 12, singles elsewhere -->
+          <g fill="url(#handGold)" stroke="rgba(60,45,10,.6)" stroke-width="0.6">
+            <g transform="rotate(0 200 200)">
+              <rect x="195.5" y="66" width="4.5" height="26" rx="1.5"></rect>
+              <rect x="202" y="66" width="4.5" height="26" rx="1.5"></rect>
+            </g>
+            <g transform="rotate(30 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(60 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(90 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(120 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(150 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(180 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(210 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(240 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(270 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(300 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+            <g transform="rotate(330 200 200)"><rect x="197.8" y="66" width="4.4" height="26" rx="1.5"></rect></g>
+          </g>
+
+          <!-- dial text -->
+          <text class="dial-txt" x="200" y="128" text-anchor="middle">HEURE PRÉCIEUSE</text>
+          <text class="dial-txt small" x="200" y="144" text-anchor="middle">CALIBRE 016 · MANUFACTURE</text>
+          <text class="dial-txt small" x="200" y="276" text-anchor="middle">SWISS LEVER</text>
+          <text class="dial-txt small" x="200" y="290" text-anchor="middle" style="letter-spacing:1px">96 H RESERVE</text>
+
+          <!-- GMT hand -->
+          <g id="gmtHand" opacity="0" style="transition:opacity .8s ease">
+            <g id="gmtRot">
+              <path d="M200 200 L200 92" stroke="#e8d9a0" stroke-width="2.4" stroke-dasharray="1 3" opacity="0.9"></path>
+              <path d="M200 96 l-5 12 l10 0 Z" fill="#e8d9a0"></path>
+            </g>
+          </g>
+
+          <!-- hour hand -->
+          <g id="hourRot">
+            <path d="M200 208 L193 196 L196 132 L200 118 L204 132 L207 196 Z" fill="url(#handGold)" stroke="rgba(50,38,8,.7)" stroke-width="0.8"></path>
+            <path d="M200 208 L200 122" stroke="rgba(255,244,214,.5)" stroke-width="0.8"></path>
+          </g>
+          <!-- minute hand -->
+          <g id="minRot">
+            <path d="M200 212 L195 200 L197 84 L200 70 L203 84 L205 200 Z" fill="url(#handGold)" stroke="rgba(50,38,8,.7)" stroke-width="0.7"></path>
+            <path d="M200 212 L200 74" stroke="rgba(255,244,214,.5)" stroke-width="0.7"></path>
+          </g>
+          <!-- second hand -->
+          <g id="secRot">
+            <path d="M200 226 L199.2 200 L200 74 L200.8 200 Z" fill="#c9a227"></path>
+            <circle cx="200" cy="200" r="4.6" fill="#c9a227" stroke="rgba(20,14,4,.8)" stroke-width="1"></circle>
+            <circle cx="200" cy="200" r="1.6" fill="#f6ecd2"></circle>
+            <circle cx="200" cy="108" r="3" fill="#c9a227"></circle>
+          </g>
+          <!-- center cap -->
+          <circle cx="200" cy="200" r="2.2" fill="#f6ecd2"></circle>
+        </svg>
+        <div class="sheen" aria-hidden="true"></div>
+      </div>
+
+      <p class="stage-caption">CAL. 016 · <b id="beatCount">28,800</b> VPH · RUNNING</p>
+
+      <div class="crown-row">
+        <button class="crown" id="crownBtn" type="button" aria-pressed="false" aria-label="Toggle GMT hand">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="#c9a227" stroke-width="1.4"></circle>
+            <path d="M12 6.5 v5.5 l4 2.6" fill="none" stroke="#e8d9a0" stroke-width="1.6" stroke-linecap="round"></path>
+            <circle cx="12" cy="12" r="1.4" fill="#e8d9a0"></circle>
+          </svg>
+        </button>
+        <p class="crown-label" id="crownLabel">CROWN · PULL TO SET <b>GMT</b></p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= live time ================= */
+var hourRot = document.getElementById("hourRot");
+var minRot = document.getElementById("minRot");
+var secRot = document.getElementById("secRot");
+var gmtRot = document.getElementById("gmtRot");
+var localTime = document.getElementById("localTime");
+var beatCount = document.getElementById("beatCount");
+
+function updateHands(){
+  var now = new Date();
+  var ms = now.getMilliseconds();
+  var s = now.getSeconds() + ms / 1000;
+  var m = now.getMinutes() + s / 60;
+  var h = (now.getHours() % 12) + m / 60;
+  var h24 = now.getHours() + m / 60;
+  hourRot.setAttribute("transform", "rotate(" + (h * 30).toFixed(3) + " 200 200)");
+  minRot.setAttribute("transform", "rotate(" + (m * 6).toFixed(3) + " 200 200)");
+  secRot.setAttribute("transform", "rotate(" + (s * 6).toFixed(3) + " 200 200)");
+  gmtRot.setAttribute("transform", "rotate(" + (h24 * 15).toFixed(3) + " 200 200)");
+  if (!localTime.dataset.locked || s < 1){
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    localTime.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+  }
+  delete localTime.dataset.locked;
+}
+
+/* ================= GMT crown ================= */
+var crownBtn = document.getElementById("crownBtn");
+crownBtn.addEventListener("click", function(){
+  var on = !document.body.classList.contains("gmt");
+  document.body.classList.toggle("gmt", on);
+  crownBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  document.getElementById("gmtTrack").setAttribute("opacity", on ? "1" : "0");
+  document.getElementById("gmtHand").setAttribute("opacity", on ? "1" : "0");
+  document.getElementById("crownLabel").innerHTML = on
+    ? "CROWN · <b>GMT SET</b> — 24H TIME"
+    : "CROWN · PULL TO SET <b>GMT</b>";
+});
+
+/* ================= tilt + sheen ================= */
+var stage = document.getElementById("stage");
+var tilt = document.getElementById("tilt");
+var sheen = tilt.querySelector(".sheen");
+var rx = 0, ry = 0, trx = 0, try_ = 0, tilting = false;
+
+stage.addEventListener("pointermove", function(e){
+  var r = stage.getBoundingClientRect();
+  var nx = clamp((e.clientX - r.left) / r.width, 0, 1);
+  var ny = clamp((e.clientY - r.top) / r.height, 0, 1);
+  try_ = (nx - 0.5) * 14;
+  trx = (0.5 - ny) * 12;
+  sheen.style.setProperty("--sx", ((nx - 0.5) * 30).toFixed(2));
+  sheen.style.setProperty("--sy", ((ny - 0.5) * 30).toFixed(2));
+  if (!tilting){ tilting = true; stage.classList.add("tilting"); }
+});
+stage.addEventListener("pointerleave", function(){
+  trx = 0; try_ = 0; tilting = false;
+  stage.classList.remove("tilting");
+});
+
+/* ================= dust motes ================= */
+var motesCv = document.getElementById("motes");
+var mctx = motesCv.getContext("2d");
+var MW = 0, MH = 0, MDPR = 1;
+var motes = [];
+function fitMotes(){
+  var r = stage.getBoundingClientRect();
+  MDPR = Math.min(window.devicePixelRatio || 1, 2);
+  MW = Math.max(80, Math.round(r.width));
+  MH = Math.max(80, Math.round(r.height));
+  motesCv.width = Math.round(MW * MDPR);
+  motesCv.height = Math.round(MH * MDPR);
+  mctx.setTransform(MDPR, 0, 0, MDPR, 0, 0);
+  seedMotes();
+}
+function seedMotes(){
+  motes = [];
+  var n = Math.round(Math.min(70, MW * MH / 16000));
+  for (var i = 0; i < n; i++){
+    motes.push({
+      x: Math.random() * MW,
+      y: Math.random() * MH,
+      r: 0.6 + Math.random() * 1.7,
+      vx: (Math.random() - 0.5) * 0.16,
+      vy: -0.05 - Math.random() * 0.22,
+      ph: Math.random() * 6.283,
+      a: 0.10 + Math.random() * 0.30
+    });
+  }
+}
+function drawMotes(t){
+  mctx.clearRect(0, 0, MW, MH);
+  for (var i = 0; i < motes.length; i++){
+    var m = motes[i];
+    m.x += m.vx + Math.sin(t * 0.0004 + m.ph) * 0.10;
+    m.y += m.vy;
+    if (m.y < -6){ m.y = MH + 6; m.x = Math.random() * MW; }
+    if (m.x < -6) m.x = MW + 6;
+    if (m.x > MW + 6) m.x = -6;
+    var tw = 0.55 + 0.45 * Math.sin(t * 0.0011 + m.ph * 2);
+    mctx.beginPath();
+    mctx.arc(m.x, m.y, m.r, 0, 6.283);
+    mctx.fillStyle = "rgba(232,217,160," + (m.a * tw).toFixed(3) + ")";
+    mctx.fill();
+  }
+}
+
+/* ================= unified loop ================= */
+var raf = 0, running = true;
+function loop(t){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  updateHands();
+  drawMotes(t);
+  if (!reduced.matches){
+    rx = lerp(rx, trx, 0.08);
+    ry = lerp(ry, try_, 0.08);
+    tilt.style.transform = "perspective(900px) rotateX(" + rx.toFixed(3) + "deg) rotateY(" + ry.toFixed(3) + "deg)";
+  }
+}
+
+/* ================= chapter reveals ================= */
+var chapters = document.querySelectorAll("[data-ch]");
+if ("IntersectionObserver" in window && !reduced.matches){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting){
+        en.target.classList.add("in");
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.18 });
+  chapters.forEach(function(c){ io.observe(c); });
+} else {
+  chapters.forEach(function(c){ c.classList.add("in"); });
+}
+
+/* ================= events ================= */
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(fitMotes, 140);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+});
+
+/* ================= boot ================= */
+fitMotes();
+updateHands();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

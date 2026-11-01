@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Poems for Strangers — an intimate typewriter station. Strike the keys, hear the clatter, ring the margin bell, and slide finished poems into the side pocket.">
+<title>Poems for Strangers · Work Nº 032 — a typewriter station</title>
+<style>
+/* ============================================================
+   POEMS FOR STRANGERS — Work Nº 032
+   An intimate typewriter station, warm lamp, patient keys.
+   ============================================================ */
+:root{
+  --machine:   #3f4147;
+  --machine-d: #33353a;
+  --machine-l: #4c4f56;
+  --key:       #1a1a1d;
+  --key-lit:   #34343a;
+  --paper:     #f7f3e8;
+  --paper-warm:#efe9d8;
+  --desk:      #7a5c44;
+  --desk-d:    #5d452f;
+  --ink:       #2f2b26;
+  --ribbon:    #b3402a;
+  --wall-hi:   #3a2f24;
+  --wall-lo:   #221a13;
+  --cream:     #f3ecdd;
+  --cream-dim: rgba(243,236,221,.66);
+  --cream-fnt: rgba(243,236,221,.4);
+  --serif:     Georgia, 'Iowan Old Style', 'Palatino Linotype', ui-serif, serif;
+  --mono:      'Courier New', ui-monospace, 'Cascadia Mono', monospace;
+  --sans:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --type-size: clamp(13px, 1.7vw, 17px);
+  --ink-writer: var(--ink);
+}
+body.red-ink{ --ink-writer: var(--ribbon); }
+*{ box-sizing:border-box; }
+html{ height:100%; }
+body{
+  margin:0;
+  min-height:100%;
+  font-family:var(--sans);
+  color:var(--cream);
+  background:
+    radial-gradient(90% 60% at 42% 0%, rgba(255,214,150,.10), transparent 60%),
+    linear-gradient(180deg, var(--wall-hi), var(--wall-lo) 58%, #17110c 100%);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+body.typing-page{ overflow:hidden; }
+@media (max-width:980px), (max-height:720px){
+  body{ overflow-y:auto; }
+}
+::selection{ background:var(--ribbon); color:var(--paper); }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid rgba(243,236,221,.8); outline-offset:2px; border-radius:8px; }
+
+/* dust motes in the lamp light */
+#dust{
+  position:fixed; inset:0; z-index:1;
+  width:100%; height:100%;
+  pointer-events:none;
+}
+
+/* ------------------------------- header ------------------------------ */
+header.top{
+  position:relative; z-index:5;
+  display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+  padding:clamp(14px,2.6vh,30px) clamp(16px,3vw,44px) 0;
+  flex-wrap:wrap;
+}
+.mark-no{
+  margin:0 0 9px;
+  font:500 10px/1 var(--mono);
+  letter-spacing:.32em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:clamp(26px,3.6vw,44px);
+  line-height:1.02;
+  color:var(--cream);
+  text-shadow:0 2px 22px rgba(0,0,0,.5);
+}
+.mark-word em{ font-style:italic; }
+.mark-sub{
+  margin:9px 0 0;
+  font:italic 400 13px/1.6 var(--serif);
+  color:var(--cream-dim);
+  max-width:46ch;
+}
+.controls{ display:flex; gap:8px; flex-wrap:wrap; padding-top:4px; }
+.ctl{
+  appearance:none;
+  display:inline-flex; align-items:center; gap:7px;
+  min-height:36px;
+  padding:8px 13px;
+  border-radius:999px;
+  border:1px solid rgba(243,236,221,.22);
+  background:rgba(20,15,10,.45);
+  color:var(--cream);
+  font:600 10px/1 var(--sans);
+  letter-spacing:.18em; text-transform:uppercase;
+  cursor:pointer;
+  transition:background .18s ease, transform .18s ease, border-color .18s ease;
+}
+.ctl svg{ width:12px; height:12px; flex:none; }
+@media (hover:hover){
+  .ctl:hover{ background:rgba(243,236,221,.12); border-color:rgba(243,236,221,.38); transform:translateY(-1px); }
+}
+.ctl:active{ transform:scale(.96); }
+.ctl[aria-pressed="true"]{ border-color:var(--ribbon); background:rgba(179,64,42,.22); }
+.ctl.primary{ background:var(--ribbon); border-color:transparent; color:#fff4ee; font-weight:700; }
+@media (hover:hover){ .ctl.primary:hover{ filter:brightness(1.1); } }
+
+/* ------------------------------ stage -------------------------------- */
+.stage{
+  position:relative; z-index:4;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 300px;
+  gap:clamp(18px,3vw,44px);
+  align-items:start;
+  padding:clamp(14px,2.4vh,26px) clamp(16px,3vw,44px) clamp(18px,3vh,34px);
+  max-width:1500px;
+  margin:0 auto;
+}
+@media (max-width:980px){
+  .stage{ grid-template-columns:1fr; }
+}
+
+/* --------------------------- the machine ----------------------------- */
+.machine-wrap{
+  display:flex; flex-direction:column; align-items:center;
+  min-width:0;
+}
+.machine{
+  position:relative;
+  width:min(760px,100%);
+  user-select:none;
+  filter:drop-shadow(0 34px 40px rgba(10,6,3,.55));
+}
+
+/* paper carriage window */
+.carriage{
+  position:relative;
+  margin:0 auto;
+  width:clamp(280px, 62%, 430px);
+  background:linear-gradient(180deg,#22242a,#191b20);
+  border-radius:10px 10px 4px 4px;
+  padding:9px 9px 6px;
+  border:1px solid #101216;
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.75), 0 3px 12px rgba(0,0,0,.4);
+}
+.ruler{
+  display:flex; align-items:center;
+  height:14px; margin:0 2px 5px;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(243,236,221,.28) 0 1px, transparent 1px calc(100% / 26));
+  border-radius:3px;
+  position:relative;
+}
+.ruler i{
+  position:absolute; top:1px;
+  width:0; height:0; transform:translateX(-4px);
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:6px solid var(--ribbon);
+  transition:left .09s linear;
+}
+.paper-window{
+  height:clamp(150px, 24vh, 218px);
+  overflow:hidden;
+  background:#101113;
+  border-radius:4px;
+  box-shadow:inset 0 4px 14px rgba(0,0,0,.8);
+}
+.paper{
+  background:
+    repeating-linear-gradient(0deg, rgba(122,92,68,.03) 0 2px, transparent 2px 4px),
+    var(--paper);
+  color:var(--ink-writer);
+  width:100%;
+  min-height:100%;
+  padding:14px 16px 18px;
+  font-family:var(--mono);
+  font-size:var(--type-size);
+  line-height:1.62;
+  letter-spacing:.02em;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35);
+  position:relative;
+  transition:transform .3s ease, opacity .3s ease;
+}
+.paper.filing{ transform:translateY(26px) rotate(1.4deg); opacity:0; }
+.paper.loading{ transform:translateY(-26px); opacity:0; }
+.line{ min-height:1.62em; white-space:pre-wrap; word-break:break-word; }
+.glyph{ display:inline-block; animation:strike .1s ease-out; }
+@keyframes strike{
+  0%{ transform:translateY(-2px) scale(1.25); opacity:.2; }
+  100%{ transform:none; opacity:1; }
+}
+.glyph.gone{ animation:erase .12s ease-in forwards; }
+@keyframes erase{
+  100%{ transform:translateY(2px); opacity:0; }
+}
+.blank-hint{
+  position:absolute; inset:0;
+  display:grid; place-items:center;
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:clamp(12px,1.5vw,15px);
+  color:rgba(47,43,38,.34);
+  pointer-events:none;
+  text-align:center;
+  padding:0 26px;
+  transition:opacity .3s ease;
+}
+.paper.touched .blank-hint{ opacity:0; }
+
+/* platen roller */
+.platen{
+  display:flex; align-items:center; justify-content:center; gap:0;
+  margin:6px auto 0;
+  width:clamp(300px, 66%, 460px);
+  height:22px;
+  background:linear-gradient(180deg,#3c3c40,#0c0c0e 55%,#26262a);
+  border-radius:999px;
+  box-shadow:0 4px 10px rgba(0,0,0,.6), inset 0 1px 1px rgba(255,255,255,.22);
+  position:relative;
+}
+.platen::before,.platen::after{
+  content:"";
+  position:absolute; top:50%;
+  width:26px; height:26px; margin-top:-13px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 34% 30%, #6d6f76, #2a2b2f 62%, #141518);
+  box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 1px 2px rgba(255,255,255,.35);
+}
+.platen::before{ left:-17px; }
+.platen::after{ right:-17px; }
+.ribbon-band{
+  position:absolute; left:8%; right:8%; top:8px; height:6px;
+  background:linear-gradient(90deg, var(--ink) 0 50%, var(--ribbon) 50% 100%);
+  border-radius:2px;
+  opacity:.85;
+  box-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+body.red-ink .ribbon-band{ filter:hue-rotate(-8deg) saturate(1.2); }
+
+/* machine body */
+.body-pan{
+  position:relative;
+  margin:-6px auto 0;
+  width:min(720px, 96%);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--machine-l), var(--machine) 30%, var(--machine-d));
+  border-radius:14px 14px 20px 20px;
+  border:1px solid #23252a;
+  padding:clamp(12px,2vw,20px) clamp(12px,2.4vw,26px) clamp(14px,2.2vw,22px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -14px 22px rgba(0,0,0,.28);
+}
+.brand{
+  text-align:center;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.42em;
+  text-transform:uppercase;
+  color:rgba(243,236,221,.5);
+  padding:2px 0 10px;
+}
+.brand b{ color:rgba(243,236,221,.78); font-weight:700; }
+/* muse note clipped to the body */
+.muse{
+  position:absolute;
+  top:-14px; left:clamp(6px,4%,30px);
+  width:min(190px, 44%);
+  background:var(--paper-warm);
+  color:var(--ink);
+  font:italic 400 clamp(11px,1.4vw,12.5px)/1.45 var(--serif);
+  padding:12px 12px 10px;
+  box-shadow:0 8px 16px rgba(10,6,3,.4);
+  transform:rotate(-2.4deg);
+  transition:transform .25s ease;
+}
+.muse::before{
+  content:"";
+  position:absolute; top:-7px; left:50%; margin-left:-8px;
+  width:16px; height:12px;
+  background:linear-gradient(180deg,#b9bcc4,#7c7f87);
+  clip-path:polygon(0 100%, 12% 20%, 34% 78%, 52% 8%, 72% 70%, 88% 18%, 100% 100%);
+  opacity:.9;
+}
+.muse b{
+  display:block;
+  font:700 8.5px/1 var(--mono);
+  letter-spacing:.3em;
+  text-transform:uppercase;
+  font-style:normal;
+  color:rgba(47,43,38,.55);
+  margin-bottom:5px;
+}
+.muse .mtext{ transition:opacity .2s ease; }
+.muse.swap .mtext{ opacity:0; }
+
+/* keys */
+.keys{
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+  padding-top:12px;
+}
+.krow{ display:flex; justify-content:center; gap:clamp(4px,.8vw,8px); }
+.key{
+  appearance:none;
+  width:clamp(27px, 4.6vw, 44px);
+  height:clamp(34px, 5.6vw, 52px);
+  border:0; border-radius:8px 8px 11px 11px;
+  padding:0;
+  cursor:pointer;
+  color:#e8e4da;
+  font:700 clamp(11px,1.6vw,14px)/1 var(--mono);
+  background:
+    radial-gradient(120% 90% at 50% 8%, var(--key-lit) 0%, var(--key) 58%, #0b0b0d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -4px 8px rgba(0,0,0,.55),
+    0 4px 0 #08080a,
+    0 7px 12px rgba(0,0,0,.5);
+  transition:transform .06s ease, box-shadow .06s ease, filter .15s ease;
+  touch-action:manipulation;
+}
+.key small{
+  display:block;
+  font:500 8px/1 var(--mono);
+  letter-spacing:.14em;
+  color:rgba(232,228,218,.42);
+  margin-top:3px;
+}
+@media (hover:hover){
+  .key:hover{ filter:brightness(1.22); }
+}
+.key.down,.key:active{
+  transform:translateY(4px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -3px 6px rgba(0,0,0,.6),
+    0 0 0 #08080a,
+    0 2px 5px rgba(0,0,0,.5);
+}
+.key.wide{ width:clamp(46px, 8vw, 84px); }
+.key.space{ width:clamp(90px, 20vw, 220px); }
+.key.accent{ background:radial-gradient(120% 90% at 50% 8%, #c05a41 0%, #8f3520 58%, #571d10 100%); }
+.key.tool{ background:radial-gradient(120% 90% at 50% 8%, #55575e 0%, #34363c 58%, #1d1e22 100%); }
+
+/* under the machine: desk shadow */
+.desk-fall{
+  height:26px;
+  margin:-8px auto 0;
+  width:min(700px,92%);
+  background:radial-gradient(60% 100% at 50% 0%, rgba(0,0,0,.4), transparent 75%);
+}
+
+/* --------------------------- the study ------------------------------- */
+.study{ display:flex; flex-direction:column; gap:16px; min-width:0; }
+.panel{
+  background:linear-gradient(170deg, rgba(26,20,14,.72), rgba(16,12,8,.66));
+  border:1px solid rgba(243,236,221,.14);
+  border-radius:14px;
+  padding:16px 16px 15px;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  box-shadow:0 18px 40px rgba(8,5,2,.45);
+}
+.panel-k{
+  display:flex; align-items:center; justify-content:space-between;
+  font:700 9.5px/1 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  margin:0 0 12px;
+}
+/* prompt card */
+.prompt-card{
+  position:relative;
+  background:linear-gradient(168deg, #fbf7ec, #efe7d3);
+  color:var(--ink);
+  border-radius:10px;
+  padding:18px 16px 14px;
+  min-height:118px;
+  display:flex; flex-direction:column; justify-content:space-between; gap:10px;
+  box-shadow:0 10px 22px rgba(8,5,2,.5), inset 0 0 0 1px rgba(122,92,68,.25);
+  transform-style:preserve-3d;
+  transition:transform .3s ease;
+  transform:rotate(-.6deg);
+}
+.prompt-card.flip{ transform:rotate(-.6deg) rotateY(90deg); }
+.prompt-no{
+  font:700 9px/1 var(--mono);
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:rgba(47,43,38,.5);
+}
+.prompt-text{
+  margin:0;
+  font-family:var(--serif);
+  font-size:clamp(15px,1.9vw,18px);
+  line-height:1.42;
+}
+.prompt-foot{
+  display:flex; justify-content:space-between; align-items:center;
+  font:600 9px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(47,43,38,.44);
+}
+.prompt-foot u{
+  text-decoration:none;
+  border-bottom:1px solid rgba(47,43,38,.4);
+  cursor:pointer;
+}
+@media (hover:hover){ .prompt-foot u:hover{ color:var(--ribbon); border-color:var(--ribbon); } }
+.row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; gap:7px;
+  min-height:34px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(243,236,221,.22);
+  background:rgba(243,236,221,.06);
+  color:var(--cream);
+  font:600 10px/1 var(--sans);
+  letter-spacing:.16em; text-transform:uppercase;
+  cursor:pointer;
+  transition:background .16s ease, transform .16s ease;
+}
+.btn svg{ width:11px; height:11px; }
+@media (hover:hover){ .btn:hover{ background:rgba(243,236,221,.16); transform:translateY(-1px); } }
+.btn:active{ transform:scale(.96); }
+.btn.primary{ background:var(--ribbon); border-color:transparent; color:#fff4ee; }
+@media (hover:hover){ .btn.primary:hover{ filter:brightness(1.1); } }
+
+/* pocket of finished poems */
+.pocket-stack{
+  position:relative;
+  min-height:128px;
+  display:grid; place-items:center;
+  padding:8px 0 4px;
+}
+.sheet{
+  position:absolute;
+  width:150px; height:96px;
+  background:var(--paper);
+  color:var(--ink);
+  font:400 8.5px/1.55 var(--mono);
+  padding:10px 10px 8px;
+  box-shadow:0 6px 14px rgba(8,5,2,.5);
+  overflow:hidden;
+  cursor:pointer;
+  border:0; text-align:left;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.sheet .sh-t{
+  font:700 7.5px/1 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:rgba(47,43,38,.5);
+  margin-bottom:5px;
+}
+.sheet .sh-x{ overflow:hidden; max-height:64px; }
+.sheet:hover{ z-index:9; }
+.pocket-empty{
+  font:italic 400 12.5px/1.5 var(--serif);
+  color:var(--cream-fnt);
+  text-align:center;
+  padding:0 12px;
+}
+.pocket-count{
+  position:absolute; right:2px; top:-6px;
+  font:700 9px/1 var(--mono);
+  letter-spacing:.24em;
+  color:var(--cream-dim);
+  background:rgba(179,64,42,.28);
+  border:1px solid rgba(179,64,42,.5);
+  border-radius:999px;
+  padding:5px 9px;
+}
+.sheet-fly{
+  position:fixed; z-index:60;
+  width:150px; height:96px;
+  background:var(--paper);
+  color:var(--ink);
+  font:400 8.5px/1.55 var(--mono);
+  padding:10px;
+  overflow:hidden;
+  box-shadow:0 20px 34px rgba(8,5,2,.55);
+  pointer-events:none;
+}
+.sheet-fly.go{ transition:transform .55s cubic-bezier(.5,-.1,.25,1), opacity .55s ease; }
+
+/* instructions */
+.howto{ font:400 12px/1.75 var(--sans); color:var(--cream-dim); margin:0; }
+.howto b{ color:var(--cream); font-weight:600; }
+kbd{
+  font:600 9.5px/1 var(--mono);
+  color:var(--cream);
+  background:rgba(243,236,221,.09);
+  border:1px solid rgba(243,236,221,.26);
+  border-bottom-width:2px;
+  border-radius:4px;
+  padding:2px 5px;
+}
+
+/* stats strip */
+.stats{
+  grid-column:1 / -1;
+  display:flex; gap:8px 18px; flex-wrap:wrap; justify-content:center;
+  font:600 10px/1 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  padding-top:4px;
+}
+.stats b{ color:var(--cream-dim); font-weight:700; }
+
+/* toast */
+.toast{
+  position:fixed; z-index:70;
+  left:50%; bottom:26px;
+  transform:translate(-50%,10px);
+  background:rgba(18,13,9,.9);
+  border:1px solid rgba(243,236,221,.2);
+  color:var(--cream);
+  font:500 11px/1 var(--mono);
+  letter-spacing:.14em;
+  padding:11px 16px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* margin bell flash */
+.bell-flash{
+  position:fixed; inset:0; z-index:65;
+  pointer-events:none; opacity:0;
+  background:radial-gradient(70% 55% at 50% 42%, rgba(179,64,42,.16), transparent 70%);
+}
+.bell-flash.ring{ animation:bellR .5s ease; }
+@keyframes bellR{ 30%{ opacity:1; } }
+
+.no-js{
+  position:fixed; inset:0; z-index:90;
+  display:grid; place-items:center;
+  background:#241b13; color:var(--cream-dim);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+  .glyph{ animation:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="dust" aria-hidden="true"></canvas>
+<div class="bell-flash" id="bellFlash" aria-hidden="true"></div>
+
+<header class="top">
+  <div>
+    <p class="mark-no">The Gallery of 100 · Work Nº 032 · a typewriter station</p>
+    <h1 class="mark-word">Poems for <em>Strangers</em></h1>
+    <p class="mark-sub">Sit down. The machine is warm. Write the poem only you would write to someone you will never meet.</p>
+  </div>
+  <div class="controls">
+    <button class="ctl" id="ribbonBtn" aria-pressed="false" title="Switch ribbon: black or red ink">
+      <svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="4" width="6" height="4" rx="1" fill="currentColor" opacity=".85"></rect><rect x="6" y="4" width="5" height="4" rx="1" fill="#b3402a"></rect></svg>
+      Ribbon
+    </button>
+    <button class="ctl" id="soundBtn" aria-pressed="true" title="Toggle the machine's voice">
+      <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M1 4.2h2.4L7 1v10L3.4 7.8H1z" fill="currentColor"></path><path d="M9.4 3.4c1.5 1.4 1.5 3.8 0 5.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+      Sound
+    </button>
+    <button class="ctl primary" id="fileBtn" title="Slide the finished poem into the pocket (Ctrl+Enter)">
+      File the poem
+    </button>
+  </div>
+</header>
+
+<main class="stage">
+  <section class="machine-wrap" aria-label="The typewriter">
+    <div class="machine">
+      <div class="carriage">
+        <div class="ruler" aria-hidden="true"><i id="guide"></i></div>
+        <div class="paper-window" id="paperWindow">
+          <div class="paper" id="paper" role="log" aria-label="The page in the carriage">
+            <div class="blank-hint" id="blankHint">the page is listening</div>
+          </div>
+        </div>
+      </div>
+      <div class="platen" aria-hidden="true"><span class="ribbon-band"></span></div>
+      <div class="body-pan">
+        <div class="muse" id="muse">
+          <b>Muse</b>
+          <span class="mtext" id="museText">An open page. Begin anywhere.</span>
+        </div>
+        <p class="brand">ORPHEUS <b>№ 7</b> · portable, patient, yours</p>
+        <div class="keys" id="keys"></div>
+      </div>
+      <div class="desk-fall" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <aside class="study">
+    <section class="panel" aria-label="Shelf of prompt cards">
+      <p class="panel-k"><span>Shelf of prompts</span><span id="deckNo">Card 01 / 12</span></p>
+      <div class="prompt-card" id="promptCard">
+        <p class="prompt-no">Ask the shelf</p>
+        <p class="prompt-text" id="promptText">Write about the last door you opened.</p>
+        <p class="prompt-foot"><span>Strangers Press</span><u id="pinPrompt">pin as muse</u></p>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="drawBtn">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v7M3 5.4 6 8.4l3-3M2 11h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          Draw a card
+        </button>
+        <button class="btn" id="pinBtn">Pin as muse</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Pocket of finished poems">
+      <p class="panel-k"><span>Side pocket</span><span id="pocketMeta">empty</span></p>
+      <div class="pocket-stack" id="pocketStack">
+        <p class="pocket-empty" id="pocketEmpty">Finished poems rest here, folded, waiting to be mailed to no one.</p>
+      </div>
+      <p class="howto">Type on your <b>real keyboard</b> or tap the keys. <kbd>Enter</kbd> rings the bell and resets the carriage. <kbd>Backspace</kbd> lifts a letter. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> files the page.</p>
+    </section>
+  </aside>
+
+  <footer class="stats" aria-label="Session statistics">
+    <span>LINES <b id="stLines">00</b></span>
+    <span>WORDS <b id="stWords">00</b></span>
+    <span>KEYS STRUCK <b id="stKeys">0000</b></span>
+    <span>IN POCKET <b id="stPocket">0</b></span>
+  </footer>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The machine plugs in with JavaScript — please switch it on at the wall.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+
+const ui = {
+  paper: $('paper'), window: $('paperWindow'), hint: $('blankHint'),
+  guide: $('guide'), keys: $('keys'), muse: $('muse'), museText: $('museText'),
+  promptCard: $('promptCard'), promptText: $('promptText'), deckNo: $('deckNo'),
+  pinPrompt: $('pinPrompt'), pinBtn: $('pinBtn'), drawBtn: $('drawBtn'),
+  pocketStack: $('pocketStack'), pocketEmpty: $('pocketEmpty'), pocketMeta: $('pocketMeta'),
+  stLines: $('stLines'), stWords: $('stWords'), stKeys: $('stKeys'), stPocket: $('stPocket'),
+  toast: $('toast'), bellFlash: $('bellFlash'),
+  fileBtn: $('fileBtn'), soundBtn: $('soundBtn'), ribbonBtn: $('ribbonBtn'),
+};
+
+/* ============================== prompts ============================== */
+const PROMPTS = [
+  'Write about the last door you opened.',
+  'Describe rain without using the word water.',
+  'A letter you never sent — one line only.',
+  'The color of the room where you grew up.',
+  'What the kettle knows at six in the morning.',
+  'Confess something small.',
+  'Your grandmother\u2019s hands, doing one ordinary thing.',
+  'Something you lost that weighed nothing.',
+  'The pause before yes.',
+  'A city you invented while falling asleep.',
+  'What the mirror is tired of hearing.',
+  'The street you grew up on, at night, in August.',
+];
+
+/* ============================== audio ================================ */
+let AC = null, master = null, noiseBuf = null;
+let soundOn = true;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.5;
+    master.connect(AC.destination);
+    const len = AC.sampleRate * 0.12;
+    noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function clack(vol, freq, dur){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  const bp = AC.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = freq || 2100;
+  bp.Q.value = 0.9;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.5 * vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur || 0.05));
+  src.connect(bp); bp.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + 0.12);
+  const o = AC.createOscillator();
+  const og = AC.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(150, t0);
+  o.frequency.exponentialRampToValueAtTime(70, t0 + 0.05);
+  og.gain.setValueAtTime(0.28 * vol, t0);
+  og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+  o.connect(og); og.connect(master);
+  o.start(t0); o.stop(t0 + 0.08);
+}
+function bell(){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  [[1661, .30], [2493, .13], [3322, .06]].forEach(pr => {
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.type = 'sine';
+    o.frequency.value = pr[0];
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(pr[1], t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + 1.2);
+  });
+}
+function ratchet(){
+  if (!soundOn) return;
+  for (let i = 0; i < 4; i++) setTimeout(() => clack(0.5, 1500, 0.04), i * 42);
+}
+function swoosh(){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  src.loop = true;
+  const lp = AC.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(2400, t0);
+  lp.frequency.exponentialRampToValueAtTime(240, t0 + 0.5);
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.16, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+  src.connect(lp); lp.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + 0.55);
+}
+
+/* ============================== keys ================================= */
+const ROWS = [
+  'qwertyuiop',
+  'asdfghjkl',
+  'zxcvbnm,.',
+];
+const TOOLS = ['?', '!', '\'', '-'];
+function keyLabel(ch){
+  if (ch === ' ') return ['space', ''];
+  if (ch === '\n') return ['return', ''];
+  if (ch === '\b') return ['back', '\u2190'];
+  return [ch, ''];
+}
+function buildKeys(){
+  ROWS.forEach(row => {
+    const r = document.createElement('div');
+    r.className = 'krow';
+    for (const ch of row){
+      r.appendChild(makeKey(ch, ch.toUpperCase()));
+    }
+    ui.keys.appendChild(r);
+  });
+  const last = document.createElement('div');
+  last.className = 'krow';
+  for (const ch of TOOLS) last.appendChild(makeKey(ch, ch));
+  last.appendChild(makeKey('\b', 'BACK'));
+  last.appendChild(makeKey(' ', 'SPACE'));
+  last.appendChild(makeKey('\n', 'RETURN'));
+  ui.keys.appendChild(last);
+}
+function makeKey(ch, label){
+  const b = document.createElement('button');
+  b.className = 'key' + (ch === ' ' ? ' wide space' : '') +
+    (ch === '\n' ? ' wide accent' : '') +
+    (ch === '\b' ? ' tool' : '');
+  b.type = 'button';
+  b.dataset.key = ch;
+  b.setAttribute('aria-label',
+    ch === ' ' ? 'Space' : ch === '\n' ? 'Carriage return' :
+    ch === '\b' ? 'Backspace' : 'Key ' + ch);
+  b.textContent = label;
+  b.addEventListener('click', () => {
+    pressVisual(b);
+    if (ch === '\n') doReturn();
+    else if (ch === '\b') doBackspace();
+    else typeChar(shiftLock ? ch.toUpperCase() : ch);
+  });
+  return b;
+}
+function pressVisual(elBtn){
+  elBtn.classList.add('down');
+  setTimeout(() => elBtn.classList.remove('down'), 95);
+}
+function keyEl(ch){
+  const v = ch === '"' ? '\u0022' : ch;
+  return ui.keys.querySelector('[data-key="' + v + '"]');
+}
+function visualFor(k){
+  const e = keyEl(k);
+  return e || null;
+}
+
+/* ============================== page state =========================== */
+let lines = [''];       // strings
+let lineEls = [];
+let cur = 0;
+let struck = 0;
+let shiftLock = false;
+let bellRung = false;
+let filing = false;
+let charW = 10;
+let maxCols = 34;
+const MAX_LINES = 16;
+const pocket = [];
+
+function measure(){
+  const probe = document.createElement('span');
+  probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;' +
+    'font-family:var(--mono);font-size:var(--type-size);letter-spacing:.02em;';
+  probe.textContent = 'MMMMMMMMMM';
+  ui.paper.appendChild(probe);
+  charW = probe.getBoundingClientRect().width / 10 || 10;
+  ui.paper.removeChild(probe);
+  const inner = ui.paper.clientWidth - 32;
+  maxCols = Math.max(14, Math.floor(inner / charW) - 1);
+  ui.guide.parentElement.style.backgroundSize = '';
+}
+function newLineEl(){
+  const d = document.createElement('div');
+  d.className = 'line';
+  ui.paper.appendChild(d);
+  lineEls.push(d);
+  return d;
+}
+function makeGlyph(ch){
+  const s = document.createElement('span');
+  s.className = 'glyph';
+  s.textContent = ch === ' ' ? '\u00A0' : ch;
+  return s;
+}
+function appendToLine(txt, animate){
+  const elLine = lineEls[cur];
+  for (const ch of txt){
+    const g = makeGlyph(ch);
+    if (!animate || reduceMotion) g.style.animation = 'none';
+    elLine.appendChild(g);
+    lines[cur] += ch;
+  }
+}
+function popFromLine(animate){
+  const elLine = lineEls[cur];
+  const lastSpan = elLine.lastElementChild;
+  if (!lastSpan) return false;
+  if (animate && !reduceMotion){
+    lastSpan.classList.add('gone');
+    setTimeout(() => lastSpan.remove(), 120);
+  } else lastSpan.remove();
+  lines[cur] = lines[cur].slice(0, -1);
+  return true;
+}
+function updateGuide(){
+  const col = lines[cur].length;
+  const pct = clamp(col / maxCols, 0, 1);
+  ui.guide.style.left = (pct * 100) + '%';
+}
+function updateStats(){
+  const text = lines.join('\n').trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  ui.stLines.textContent = String(lines.length).padStart(2, '0');
+  ui.stWords.textContent = String(words).padStart(2, '0');
+  ui.stKeys.textContent = String(struck).padStart(4, '0');
+  ui.stPocket.textContent = String(pocket.length);
+  ui.paper.classList.toggle('touched', text.length > 0);
+  ui.pocketMeta.textContent = pocket.length ? pocket.length + ' folded' : 'empty';
+}
+function scrollPage(){
+  ui.window.scrollTo({ top: ui.window.scrollHeight, behavior: reduceMotion ? 'auto' : 'smooth' });
+}
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => ui.toast.classList.remove('show'), 2100);
+}
+toast.t = 0;
+
+/* ----- typing actions ----- */
+function typeChar(ch){
+  if (filing) return;
+  ensureAudio();
+  const line = lines[cur];
+  if (line.length >= maxCols){
+    if (lines.length >= MAX_LINES && cur === MAX_LINES - 1){
+      toast('The page is full — file it, or clear the carriage');
+      updateGuide(); updateStats();
+      return;
+    }
+    /* wrap: carry the trailing word to the next line */
+    let cut = line.lastIndexOf(' ');
+    let tail, keep;
+    if (cut <= 0){ tail = ''; keep = line.length; }
+    else if (line[cut] === ' '){ tail = line.slice(cut + 1); keep = cut; }
+    else { tail = line.slice(cut); keep = cut; }
+    cur++;
+    if (cur >= lines.length){ lines.push(''); newLineEl(); }
+    bellRung = false;
+    const elPrev = lineEls[cur - 1];
+    const moving = [];
+    for (let i = 0; i < tail.length; i++){
+      const sp = elPrev.lastElementChild;
+      if (!sp) break;
+      moving.unshift(sp);
+    }
+    lines[cur - 1] = lines[cur - 1].slice(0, keep);
+    for (const sp of moving) lineEls[cur].appendChild(sp);
+    lines[cur] = tail;
+  }
+  if (lines[cur].length < maxCols){
+    appendToLine(ch, true);
+    struck++;
+    clack(ch === ' ' ? 0.35 : 0.8, 2100 + Math.random() * 500, 0.045);
+    if (!bellRung && lines[cur].length === maxCols - 6){
+      bellRung = true;
+      bell();
+      flashBell();
+      toast('DING — six spaces to the edge');
+    }
+  }
+  updateGuide(); updateStats(); scrollPage();
+}
+function advanceLine(){
+  if (cur < lines.length - 1){ cur++; bellRung = false; return true; }
+  if (lines.length >= MAX_LINES) return false;
+  cur++;
+  lines.push('');
+  newLineEl();
+  bellRung = false;
+  return true;
+}
+function doReturn(){
+  ensureAudio();
+  bell();
+  ratchet();
+  flashBell();
+  struck++;
+  if (!advanceLine()){
+    toast('The page is full — file it, or clear the carriage');
+  }
+  updateGuide(); updateStats(); scrollPage();
+}
+function doBackspace(){
+  if (filing) return;
+  if (lines[cur].length === 0 && cur > 0){
+    cur--;
+    bellRung = false;
+    updateGuide(); updateStats(); scrollPage();
+    return;
+  }
+  if (popFromLine(true)){
+    clack(0.4, 900, 0.05);
+    updateGuide(); updateStats();
+  }
+}
+function flashBell(){
+  if (reduceMotion) return;
+  ui.bellFlash.classList.remove('ring');
+  void ui.bellFlash.offsetWidth;
+  ui.bellFlash.classList.add('ring');
+}
+
+/* ----- filing & pocket ----- */
+function filePoem(){
+  if (filing) return;
+  const text = lines.join('\n').replace(/\s+$/, '');
+  if (!text.trim()){ toast('Nothing to file yet — write one true line'); return; }
+  filing = true;
+  swoosh();
+  const rect = ui.paper.getBoundingClientRect();
+  const fly = document.createElement('div');
+  fly.className = 'sheet-fly';
+  fly.innerHTML = '<div class="sh-t">STRANGER \u2116 ' +
+    String(pocket.length + 1).padStart(2, '0') + '</div>' +
+    '<div class="sh-x">' + escapeHtml(text.slice(0, 190)) + '</div>';
+  fly.style.left = rect.left + 'px';
+  fly.style.top = rect.top + 'px';
+  document.body.appendChild(fly);
+  ui.paper.classList.add('filing');
+  requestAnimationFrame(() => {
+    const stack = ui.pocketStack.getBoundingClientRect();
+    fly.classList.add('go');
+    fly.style.transform = 'translate(' + (stack.left + 20 - rect.left) + 'px,' +
+      (stack.top + 14 - rect.top) + 'px) rotate(8deg) scale(.9)';
+    fly.style.opacity = '0.35';
+  });
+  setTimeout(() => {
+    fly.remove();
+    ui.paper.classList.remove('filing');
+    pocket.push({ text, prompt: ui.museText.textContent });
+    addPocketSheet(pocket[pocket.length - 1]);
+    clearCarriage(true);
+    filing = false;
+    toast('Filed to the pocket — poem \u2116 ' + pocket.length);
+    updateStats();
+  }, reduceMotion ? 60 : 580);
+}
+function escapeHtml(s){
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function addPocketSheet(item){
+  ui.pocketEmpty.style.display = 'none';
+  const b = document.createElement('button');
+  b.className = 'sheet';
+  b.type = 'button';
+  b.setAttribute('aria-label', 'Load poem \u2116 ' + pocket.length + ' into the carriage');
+  const rot = (Math.random() * 8 - 4).toFixed(1);
+  const dx = (Math.random() * 34 - 10).toFixed(0);
+  const dy = (Math.random() * 12 - 4).toFixed(0);
+  b.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg)';
+  b.innerHTML = '<div class="sh-t">STRANGER \u2116 ' +
+    String(pocket.length).padStart(2, '0') + '</div>' +
+    '<div class="sh-x">' + escapeHtml(item.text.slice(0, 170)) + '</div>';
+  b.addEventListener('click', () => loadPoem(item, b));
+  ui.pocketStack.appendChild(b);
+  const over = ui.pocketStack.querySelectorAll('.sheet').length - 5;
+  if (over > 0){
+    const old = ui.pocketStack.querySelectorAll('.sheet')[0];
+    old.remove();
+  }
+}
+function loadPoem(item, sheetEl){
+  const curText = lines.join('\n').replace(/\s+$/, '');
+  if (curText.trim() && !filing){
+    /* keep the unfinished page first */
+    pocket.push({ text: curText, prompt: ui.museText.textContent });
+    addPocketSheet(pocket[pocket.length - 1]);
+    toast('Unfinished page tucked away first');
+  }
+  filing = true;
+  ui.paper.classList.add('loading');
+  setTimeout(() => {
+    clearCarriage(true);
+    const rows = item.text.split('\n').slice(0, MAX_LINES);
+    lines = rows;
+    lineEls = [];
+    ui.paper.querySelectorAll('.line').forEach(l => l.remove());
+    rows.forEach(r => {
+      const d = newLineEl();
+      for (const ch of r) d.appendChild(makeGlyph(ch));
+    });
+    cur = lines.length - 1;
+    if (ui.museText.textContent !== item.prompt){
+      setMuse(item.prompt);
+    }
+    ui.paper.classList.remove('loading');
+    filing = false;
+    bellRung = false;
+    updateGuide(); updateStats(); scrollPage();
+    toast('Poem \u2116 ' + pocket.indexOf(item) + ' back in the carriage');
+  }, reduceMotion ? 40 : 320);
+}
+function clearCarriage(silent){
+  lines = [''];
+  lineEls = [];
+  cur = 0;
+  bellRung = false;
+  ui.paper.querySelectorAll('.line').forEach(l => l.remove());
+  newLineEl();
+  updateGuide(); updateStats();
+  ui.window.scrollTo({ top: 0 });
+  if (!silent) toast('A fresh sheet, rolled in');
+}
+
+/* ----- prompts / muse ----- */
+let deckIdx = 0;
+function dealCard(){
+  ui.promptCard.classList.add('flip');
+  setTimeout(() => {
+    deckIdx = (deckIdx + 1 + Math.floor(Math.random() * (PROMPTS.length - 1))) % PROMPTS.length;
+    ui.promptText.textContent = PROMPTS[deckIdx];
+    ui.deckNo.textContent = 'Card ' + String(deckIdx + 1).padStart(2, '0') + ' / ' + PROMPTS.length;
+    ui.promptCard.classList.remove('flip');
+    clack(0.5, 1600, 0.05);
+  }, reduceMotion ? 20 : 160);
+}
+function setMuse(text){
+  ui.muse.classList.add('swap');
+  setTimeout(() => {
+    ui.museText.textContent = text;
+    ui.muse.classList.remove('swap');
+  }, reduceMotion ? 10 : 200);
+}
+function pinMuse(){
+  setMuse(PROMPTS[deckIdx]);
+  clack(0.6, 1300, 0.05);
+  toast('Pinned to the machine — write toward it');
+}
+
+/* ============================== keyboard ============================= */
+addEventListener('keydown', e => {
+  if (e.metaKey || e.altKey) return;
+  if (e.ctrlKey){
+    if (e.key === 'Enter'){ e.preventDefault(); filePoem(); }
+    return;
+  }
+  const k = e.key;
+  if (k === 'Enter'){ e.preventDefault(); const vb = visualFor('\n'); if (vb) pressVisual(vb); doReturn(); return; }
+  if (k === 'Backspace'){ e.preventDefault(); const vb = visualFor('\b'); if (vb) pressVisual(vb); doBackspace(); return; }
+  if (k === 'Tab') return;
+  if (k.length === 1 && /[ -~]/.test(k)){
+    e.preventDefault();
+    const elBtn = visualFor(k.toLowerCase());
+    if (elBtn) pressVisual(elBtn);
+    else clack(0.8, 2100, 0.045);
+    typeChar(k);
+  }
+});
+
+/* ============================== controls ============================= */
+ui.fileBtn.addEventListener('click', filePoem);
+ui.drawBtn.addEventListener('click', dealCard);
+ui.pinBtn.addEventListener('click', pinMuse);
+ui.pinPrompt.addEventListener('click', pinMuse);
+ui.soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  ui.soundBtn.setAttribute('aria-pressed', String(soundOn));
+  if (soundOn){ ensureAudio(); clack(0.7, 1900, 0.05); toast('The machine hums awake'); }
+  else toast('The machine falls silent');
+});
+ui.ribbonBtn.addEventListener('click', () => {
+  const red = document.body.classList.toggle('red-ink');
+  ui.ribbonBtn.setAttribute('aria-pressed', String(red));
+  toast(red ? 'Red ribbon engaged' : 'Black ribbon engaged');
+  clack(0.5, 1200, 0.05);
+});
+
+/* ============================== dust ================================= */
+const dust = $('dust');
+const dctx = dust.getContext('2d');
+let motes = [];
+let dustRaf = 0;
+function sizeDust(){
+  dust.width = innerWidth;
+  dust.height = innerHeight;
+}
+function seedMotes(){
+  motes = [];
+  const n = 42;
+  for (let i = 0; i < n; i++){
+    motes.push({
+      x: Math.random() * dust.width,
+      y: Math.random() * dust.height,
+      r: .6 + Math.random() * 1.7,
+      vx: (Math.random() - .5) * 5,
+      vy: -3 - Math.random() * 6,
+      tw: Math.random() * Math.PI * 2,
+      ts: .4 + Math.random() * 1.1,
+    });
+  }
+}
+function drawDust(now){
+  dctx.clearRect(0, 0, dust.width, dust.height);
+  const t = now / 1000;
+  for (const m of motes){
+    const a = .05 + .075 * (Math.sin(t * m.ts + m.tw) * .5 + .5);
+    dctx.beginPath();
+    dctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+    dctx.fillStyle = 'rgba(255,224,170,' + a.toFixed(3) + ')';
+    dctx.fill();
+  }
+}
+function stepDust(now, dt){
+  for (const m of motes){
+    m.x += m.vx * dt;
+    m.y += m.vy * dt;
+    if (m.y < -6){ m.y = dust.height + 6; m.x = Math.random() * dust.width; }
+    if (m.x < -6) m.x = dust.width + 6;
+    if (m.x > dust.width + 6) m.x = -6;
+  }
+}
+let dustLast = performance.now();
+function dustFrame(now){
+  dustRaf = requestAnimationFrame(dustFrame);
+  const dt = Math.min(.05, (now - dustLast) / 1000);
+  dustLast = now;
+  stepDust(now, dt);
+  drawDust(now);
+}
+addEventListener('resize', () => { sizeDust(); seedMotes(); measure(); });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) cancelAnimationFrame(dustRaf);
+  else {
+    dustLast = performance.now();
+    dustRaf = requestAnimationFrame(dustFrame);
+  }
+});
+
+/* ============================== init ================================= */
+buildKeys();
+sizeDust();
+seedMotes();
+measure();
+newLineEl();
+updateGuide();
+updateStats();
+if (reduceMotion){
+  dustRaf = requestAnimationFrame(function once(now){
+    drawDust(now);
+  });
+} else {
+  dustRaf = requestAnimationFrame(dustFrame);
+}
+})();
+</script>
+</body>
+</html>

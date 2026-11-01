@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Contraption — A Machine for Breakfast</title>
+<style>
+  :root {
+    --paper: #f0ead8;
+    --paper-deep: #e3dbc4;
+    --ink: #2a2318;
+    --ink-soft: rgba(42, 35, 24, 0.62);
+    --faint: rgba(42, 35, 24, 0.32);
+    --red: #c0392b;
+    --red-deep: #96271b;
+    --brass: #a8862f;
+    --brass-lite: #c9a54a;
+    --pencil: #6b7a8c;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "Courier New", monospace;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--red);
+    color: var(--paper);
+  }
+
+  html {
+    scrollbar-color: #a8862f var(--paper-deep);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--paper-deep);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #a8862f;
+    border: 2px solid var(--paper-deep);
+    border-radius: 5px;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      repeating-linear-gradient(0deg, rgba(42, 35, 24, 0.03) 0 1px, transparent 1px 7px),
+      radial-gradient(120% 100% at 50% 0%, #f4eedd 0%, var(--paper) 55%, var(--paper-deep) 100%);
+    color: var(--ink);
+    font-family: var(--mono);
+    padding: clamp(12px, 2.4vw, 30px);
+  }
+
+  header {
+    max-width: 1300px;
+    margin: 0 auto 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(26px, 4vw, 44px);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  header h1 span {
+    color: var(--red);
+  }
+
+  header .sub {
+    margin-top: 4px;
+    font-size: 9.5px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .go {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.34em;
+    text-indent: 0.34em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--red);
+    border: 2px solid var(--red-deep);
+    padding: 13px 26px;
+    min-height: 48px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--red-deep);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.2s ease;
+  }
+
+  .go:hover,
+  .go:focus-visible {
+    outline: none;
+    background: #d04534;
+  }
+
+  .go:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 var(--red-deep);
+  }
+
+  .go[disabled] {
+    opacity: 0.45;
+    cursor: wait;
+  }
+
+  .reroll {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    padding: 11px 14px;
+    min-height: 44px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .reroll:hover,
+  .reroll:focus-visible {
+    outline: none;
+    background: rgba(42, 35, 24, 0.08);
+  }
+
+  .statusline {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    max-width: 260px;
+    line-height: 1.8;
+  }
+
+  .statusline b {
+    color: var(--red);
+    font-weight: 400;
+  }
+
+  .bench-wrap {
+    max-width: 1300px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .bench {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 8.2;
+    min-height: 380px;
+    border: 2px solid var(--ink);
+    background:
+      radial-gradient(140% 100% at 50% 0%, rgba(255, 253, 245, 0.75), transparent 55%),
+      repeating-linear-gradient(90deg, rgba(107, 122, 140, 0.14) 0 1px, transparent 1px 56px),
+      var(--paper);
+    box-shadow: 6px 6px 0 rgba(42, 35, 24, 0.22);
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  .bench svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ---------- part labels ---------- */
+
+  .ptag {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: rgba(240, 234, 216, 0.92);
+    border: 1px solid var(--ink);
+    padding: 4px 8px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    max-width: 240px;
+  }
+
+  .ptag.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .ptag .role {
+    display: block;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    text-transform: none;
+  }
+
+  .ptag .arr {
+    position: absolute;
+    width: 34px;
+    height: 14px;
+    border-top: 1.5px solid var(--red);
+    pointer-events: none;
+  }
+
+  .ptag .arr::before {
+    content: "";
+    position: absolute;
+    left: 26px;
+    top: -6px;
+    border: 4px solid transparent;
+    border-right-color: var(--red);
+  }
+
+  .ptag.a-left .arr {
+    right: -36px;
+    top: 40%;
+  }
+
+  .ptag.a-right .arr {
+    left: -36px;
+    top: 40%;
+    transform: scaleX(-1);
+  }
+
+  /* ---------- footer notes ---------- */
+
+  .foot {
+    max-width: 1300px;
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .foot .logged {
+    max-width: 62ch;
+    line-height: 1.9;
+  }
+
+  .foot .logged b {
+    color: var(--red);
+    font-weight: 400;
+  }
+
+  /* ---------- toast ---------- */
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(18px, 4vh, 40px);
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 12px 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 20;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 720px) {
+    .bench {
+      min-height: 300px;
+    }
+    .statusline {
+      max-width: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .go,
+    .reroll,
+    .ptag,
+    .toast {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>The Contraption <span>№ 12</span></h1>
+    <p class="sub">Institute of Overcomplicated Breakfast · Bench D</p>
+  </div>
+  <div class="controls">
+    <span class="statusline" id="statusline">Machine at rest. <b>Press GO</b> and do not touch anything.</span>
+    <button class="reroll" id="rerollBtn" type="button">Re-roll a stage</button>
+    <button class="go" id="goBtn" type="button">GO</button>
+  </div>
+</header>
+
+<main class="bench-wrap">
+  <div class="bench" id="bench">
+    <svg id="machine" viewBox="0 0 1600 820" preserveAspectRatio="xMidYMax meet" role="img" aria-label="A Rube Goldberg machine: dominoes, marble ramp, fan, pulley and spring launcher ending at a breakfast toaster"></svg>
+    <div class="ptag" id="ptag" role="tooltip" aria-hidden="true"></div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span class="logged" id="logged">Field log: awaiting first run.</span>
+  <span>Safety squint presumed · Tolerances ± whatever</span>
+</footer>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const NS = svg.namespaceURI;
+  const svg = document.getElementById('machine');
+  const bench = document.getElementById('bench');
+  const goBtn = document.getElementById('goBtn');
+  const rerollBtn = document.getElementById('rerollBtn');
+  const statusline = document.getElementById('statusline');
+  const logged = document.getElementById('logged');
+  const toast = document.getElementById('toast');
+  const ptag = document.getElementById('ptag');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const PART_INFO = {
+    lever: ['Big red lever', 'PULL — starts everything. Do not ask why it is red.'],
+    domino: ['Domino cascade', 'Twelve tiles, hand-inked, to transmit exactly one nudge.'],
+    ramp: ['Marble ramp', 'Gravity with a schedule. The marble knows the way.'],
+    fan: ['Desktop fan', 'One speed: enthusiastic. Blows the sailboat along the bench.'],
+    sailboat: ['Sail cart', 'Rides the fan\u2019s breeze across the flat stretch.'],
+    pulley: ['Pulley &amp; weight', 'Converts falling down into going up, as usual.'],
+    gate: ['Spring gate', 'Holds the cue ball until the string says otherwise.'],
+    ball: ['Cue ball', 'Rolls off the shelf with places to be.'],
+    funnel: ['Sorting funnel', 'Ensures the marble arrives with conviction.'],
+    toaster: ['The toaster', 'Two slices, one destiny. Breakfast is served.'],
+    plate: ['The breakfast plate', 'Eggs not included. Imaginary, but crisp.']
+  };
+
+  let els = {};
+  let running = false;
+  let toastTimer = 0;
+  let logLines = [];
+
+  /* ---------- helpers ---------- */
+
+  function el(name, attrs, parent) {
+    const n = document.createElementNS(NS, name);
+    for (const k in attrs) {
+      if (k === 'text') {
+        n.textContent = attrs[k];
+      } else {
+        n.setAttribute(k, attrs[k]);
+      }
+    }
+    (parent || svg).appendChild(n);
+    return n;
+  }
+
+  function group(id, key) {
+    const g = el('g', { id: id, 'data-part': key });
+    return g;
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    if (toastTimer) window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  function status(html) {
+    statusline.innerHTML = html;
+  }
+
+  function log(html) {
+    logLines.push(html);
+    if (logLines.length > 3) logLines.shift();
+    logged.innerHTML = 'Field log: ' + logLines.join(' · ');
+  }
+
+  /* ---------- audio (user-initiated via GO) ---------- */
+
+  const audio = {
+    ctx: null,
+    ensure() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      return !!this.ctx;
+    },
+    knock(freq, vol, when) {
+      if (!this.ensure()) return;
+      const t = this.ctx.currentTime + (when || 0);
+      const o = this.ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(freq, t);
+      o.frequency.exponentialRampToValueAtTime(freq * 0.6, t + 0.09);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+      o.connect(g);
+      g.connect(this.ctx.destination);
+      o.start(t);
+      o.stop(t + 0.14);
+    }
+  };
+
+  /* ---------- build the machine ---------- */
+
+  const PENCIL = '#6b7a8c';
+  const INK = '#2a2318';
+
+  function build() {
+    svg.innerHTML = '';
+
+    /* bench horizon + margin scribbles */
+    el('line', { x1: 0, y1: 690, x2: 1600, y2: 690, stroke: 'rgba(42,35,24,0.5)', 'stroke-width': 2 });
+    el('text', { x: 30, y: 60, 'font-size': 15, fill: 'rgba(42,35,24,0.4)', text: 'FIG. 12 — "WHY TOAST NEEDS A GAUNTLET"', 'letter-spacing': 2 });
+    el('text', { x: 30, y: 82, 'font-size': 11, fill: 'rgba(42,35,24,0.3)', text: 'approved by nobody · drawn at 2 a.m.' });
+
+    /* --- stage 1: lever --- */
+    const gLever = group('g-lever', 'lever');
+    el('rect', { x: 70, y: 610, width: 46, height: 80, fill: 'none', stroke: INK, 'stroke-width': 2.5 }, gLever);
+    el('circle', { cx: 93, cy: 606, r: 9, fill: '#c0392b', stroke: '#96271b', 'stroke-width': 2 }, gLever);
+    const leverArm = el('path', { d: 'M 93 606 L 150 520', stroke: INK, 'stroke-width': 5, 'stroke-linecap': 'round', 'fill': 'none' }, gLever);
+    el('circle', { cx: 150, cy: 520, r: 10, fill: '#c0392b', stroke: '#96271b', 'stroke-width': 2 }, gLever);
+    els.leverArm = leverArm;
+
+    /* --- stage 2: dominoes --- */
+    const gDom = group('g-domino', 'domino');
+    const domX0 = 205;
+    for (let i = 0; i < 12; i++) {
+      const x = domX0 + i * 24;
+      const tilt = 0;
+      el('rect', {
+        x: x, y: 634 - (i % 2) * 2, width: 9, height: 54,
+        rx: 2, fill: '#f0ead8', stroke: INK, 'stroke-width': 1.6,
+        transform: 'rotate(' + tilt + ' ' + (x + 4.5) + ' 688)'
+      }, gDom);
+    }
+    els.dominoes = gDom.querySelectorAll('rect');
+
+    /* --- stage 3: marble ramp --- */
+    const gRamp = group('g-ramp', 'ramp');
+    el('path', { d: 'M 520 380 L 620 380 L 770 660 L 740 660 Z', fill: 'none', stroke: INK, 'stroke-width': 2.5 }, gRamp);
+    for (let i = 0; i < 6; i++) {
+      el('line', { x1: 545 + i * 38, y1: 388, x2: 545 + i * 38, y2: 412, stroke: 'rgba(42,35,24,0.4)', 'stroke-width': 1.4 }, gRamp);
+    }
+    const marble = el('circle', { cx: 560, cy: 366, r: 10, fill: '#a8862f', stroke: '#6f581d', 'stroke-width': 2 }, gRamp);
+    els.marble = marble;
+
+    /* --- stage 4: fan --- */
+    const gFan = group('g-fan', 'fan');
+    el('rect', { x: 880, y: 640, width: 54, height: 50, fill: 'none', stroke: INK, 'stroke-width': 2.5 }, gFan);
+    el('circle', { cx: 907, cy: 585, r: 52, fill: 'none', stroke: INK, 'stroke-width': 3 }, gFan);
+    const fanHub = el('g', { transform: 'rotate(0 907 585)' }, gFan);
+    el('circle', { cx: 907, cy: 585, r: 6, fill: INK }, fanHub);
+    for (let i = 0; i < 4; i++) {
+      el('path', {
+        d: 'M 907 585 C ' + (907 + 14) + ' ' + (585 - 34) + ', ' + (907 + 30) + ' ' + (585 - 18) + ', ' + (907 + 38) + ' ' + (585 + 2),
+        fill: 'none', stroke: '#6b7a8c', 'stroke-width': 3.4, 'stroke-linecap': 'round',
+        transform: 'rotate(' + (i * 90) + ' 907 585)'
+      }, fanHub);
+    }
+    els.fanHub = fanHub;
+    els.fan = gFan;
+
+    /* --- stage 5: sail cart --- */
+    const gSail = group('g-sail', 'sailboat');
+    const sailG = el('g', {}, gSail);
+    el('rect', { x: 0, y: 0, width: 66, height: 16, rx: 3, fill: 'none', stroke: INK, 'stroke-width': 2 }, sailG);
+    el('circle', { cx: 12, cy: 18, r: 7, fill: 'none', stroke: INK, 'stroke-width': 2 }, sailG);
+    el('circle', { cx: 52, cy: 18, r: 7, fill: 'none', stroke: INK, 'stroke-width': 2 }, sailG);
+    el('path', { d: 'M 33 -64 L 33 0 L 66 -8 Z', fill: '#f0ead8', stroke: INK, 'stroke-width': 2 }, sailG);
+    el('path', { d: 'M 33 -64 L 33 0 L 6 -8 Z', fill: '#c0392b', stroke: '#96271b', 'stroke-width': 2 }, sailG);
+    els.sail = sailG;
+    sailG.setAttribute('transform', 'translate(985 624)');
+
+    /* --- stage 6: pulley --- */
+    const gPulley = group('g-pulley', 'pulley');
+    el('line', { x1: 1180, y1: 90, x2: 1180, y2: 130, stroke: INK, 'stroke-width': 4 }, gPulley);
+    el('circle', { cx: 1180, cy: 150, r: 24, fill: 'none', stroke: INK, 'stroke-width': 3 }, gPulley);
+    el('circle', { cx: 1180, cy: 150, r: 4, fill: INK }, gPulley);
+    const rope = el('path', { d: 'M 1156 158 L 1156 560 M 1204 158 L 1204 300', stroke: '#6f581d', 'stroke-width': 2.4, fill: 'none' }, gPulley);
+    const weight = el('rect', { x: 1132, y: 560, width: 48, height: 64, fill: '#a8862f', stroke: '#6f581d', 'stroke-width': 2.4 }, gPulley);
+    el('text', { x: 1156, y: 600, 'font-size': 13, fill: '#f0ead8', text: 'WT', 'text-anchor': 'middle' }, gPulley);
+    els.rope = rope;
+    els.weight = weight;
+
+    /* --- stage 7: spring gate + ball on shelf --- */
+    const gGate = group('g-gate', 'gate');
+    el('rect', { x: 1300, y: 380, width: 240, height: 14, fill: 'none', stroke: INK, 'stroke-width': 2.5 }, gGate);
+    const spring = el('path', { d: 'M 1300 394 L 1300 430 L 1316 416 L 1316 444 L 1332 430 L 1332 458 L 1348 444 L 1348 472 L 1364 458 L 1364 486 L 1380 472 L 1380 500', stroke: INK, 'stroke-width': 2.4, fill: 'none' }, gGate);
+    const latch = el('rect', { x: 1388, y: 394, width: 10, height: 34, fill: '#c0392b', stroke: '#96271b', 'stroke-width': 2 }, gGate);
+    els.spring = spring;
+    els.latch = latch;
+
+    const gBall = group('g-ball', 'ball');
+    const ball = el('circle', { cx: 1370, cy: 362, r: 13, fill: '#f0ead8', stroke: INK, 'stroke-width': 2.4 }, gBall);
+    el('circle', { cx: 1366, cy: 358, r: 3.5, fill: 'rgba(42,35,24,0.25)' }, gBall);
+    els.ball = ball;
+
+    /* --- stage 8: funnel + toaster + plate --- */
+    const gFunnel = group('g-funnel', 'funnel');
+    el('path', { d: 'M 1500 340 L 1580 340 L 1552 420 L 1528 420 Z', fill: 'none', stroke: INK, 'stroke-width': 2.5 }, gFunnel);
+
+    const gToaster = group('g-toaster', 'toaster');
+    el('rect', { x: 1450, y: 560, width: 120, height: 84, rx: 12, fill: '#f0ead8', stroke: INK, 'stroke-width': 2.5 }, gToaster);
+    el('rect', { x: 1462, y: 548, width: 22, height: 16, fill: '#c9a54a', stroke: '#6f581d', 'stroke-width': 2 }, gToaster);
+    el('rect', { x: 1494, y: 548, width: 22, height: 16, fill: '#c9a54a', stroke: '#6f581d', 'stroke-width': 2 }, gToaster);
+    el('circle', { cx: 1546, cy: 600, r: 9, fill: '#c0392b', stroke: '#96271b', 'stroke-width': 2 }, gToaster);
+    els.toast1 = el('rect', { x: 1462, y: 512, width: 22, height: 34, rx: 3, fill: '#c9a54a', stroke: '#6f581d', 'stroke-width': 2, opacity: 0 }, gToaster);
+    els.toast2 = el('rect', { x: 1494, y: 512, width: 22, height: 34, rx: 3, fill: '#c9a54a', stroke: '#6f581d', 'stroke-width': 2, opacity: 0 }, gToaster);
+
+    const gPlate = group('g-plate', 'plate');
+    el('ellipse', { cx: 1480, cy: 700, rx: 96, ry: 14, fill: 'none', stroke: INK, 'stroke-width': 2.2 }, gPlate);
+    el('ellipse', { cx: 1480, cy: 700, rx: 64, ry: 9, fill: 'none', stroke: 'rgba(42,35,24,0.35)', 'stroke-width': 1.4 }, gPlate);
+
+    /* dashed marble path (pencil intention) */
+    el('path', {
+      d: 'M 560 356 C 640 330 700 380 760 640 M 907 520 C 907 560 960 620 1010 660',
+      stroke: 'rgba(107,122,140,0.5)', 'stroke-width': 1.6, fill: 'none', 'stroke-dasharray': '5 7'
+    });
+    el('path', {
+      d: 'M 1383 362 C 1440 360 1470 350 1516 348',
+      stroke: 'rgba(107,122,140,0.5)', 'stroke-width': 1.6, fill: 'none', 'stroke-dasharray': '5 7'
+    });
+
+    /* marker arrows with part labels (drawn, not tooltip) */
+    const notes = [
+      [93, 500, '1 · pull'],
+      [300, 560, '2 · patience'],
+      [620, 340, '3 · gravity'],
+      [907, 470, '4 · weather'],
+      [1180, 250, '5 · exchange'],
+      [1420, 340, '6 · release'],
+      [1510, 300, '7 · sort']
+    ];
+    notes.forEach((n) => {
+      el('text', { x: n[0], y: n[1], 'font-size': 11, fill: '#c0392b', text: n[2], 'text-anchor': 'middle', 'font-style': 'italic' });
+    });
+  }
+
+  /* ---------- hover tooltips (HTML overlay, real elements) ---------- */
+
+  bench.addEventListener('pointermove', (e) => {
+    const t = e.target.closest ? e.target.closest('[data-part]') : null;
+    if (!t) {
+      ptag.classList.remove('show');
+      return;
+    }
+    const key = t.getAttribute('data-part');
+    const info = PART_INFO[key];
+    if (!info) return;
+    const rect = bench.getBoundingClientRect();
+    let x = e.clientX - rect.left + 44;
+    let y = e.clientY - rect.top - 10;
+    const w = 250;
+    const left = x + w > rect.width ? e.clientX - rect.left - w - 40 : x;
+    ptag.style.left = Math.max(6, left) + 'px';
+    ptag.style.top = Math.max(6, y) + 'px';
+    ptag.classList.toggle('a-left', x + w > rect.width);
+    ptag.classList.toggle('a-right', x + w <= rect.width);
+    ptag.innerHTML = '<b>' + info[0] + '</b><span class="role">' + info[1] + '</span>';
+    ptag.classList.add('show');
+  });
+
+  bench.addEventListener('pointerleave', () => ptag.classList.remove('show'));
+
+  /* ---------- the run ---------- */
+
+  const SLEEP = (ms) => new Promise((res) => window.setTimeout(res, reduceMotion ? Math.min(ms, 120) : ms));
+
+  function resetStage() {
+    els.leverArm.setAttribute('d', 'M 93 606 L 150 520');
+    els.marble.setAttribute('cx', '560');
+    els.marble.setAttribute('cy', '366');
+    els.sail.setAttribute('transform', 'translate(985 624)');
+    els.weight.setAttribute('transform', 'translate(0 0)');
+    els.rope.setAttribute('d', 'M 1156 158 L 1156 560 M 1204 158 L 1204 300');
+    els.latch.setAttribute('transform', 'translate(0 0)');
+    els.ball.setAttribute('cx', '1370');
+    els.ball.setAttribute('cy', '362');
+    els.toast1.setAttribute('opacity', '0');
+    els.toast2.setAttribute('opacity', '0');
+    document.querySelectorAll('#g-domino rect').forEach((d) => {
+      d.setAttribute('transform', 'rotate(0 ' + (parseFloat(d.getAttribute('x')) + 4.5) + ' 688)');
+    });
+  }
+
+  function anim(el, attr, frames, dur) {
+    return new Promise((res) => {
+      const t0 = performance.now();
+      function tick(now) {
+        const k = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - k, 3);
+        const v = frames(e);
+        for (const key in v) {
+          if (key === 'transform') {
+            el.setAttribute('transform', v[key]);
+          } else if (key === 'cx') {
+            el.setAttribute('cx', v[key]);
+          } else if (key === 'cy') {
+            el.setAttribute('cy', v[key]);
+          } else if (key === 'opacity') {
+            el.setAttribute('opacity', v[key]);
+          } else if (key === 'd') {
+            el.setAttribute('d', v[key]);
+          }
+        }
+        if (k < 1) requestAnimationFrame(tick);
+        else res();
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+
+  async function run() {
+    if (running) return;
+    running = true;
+    goBtn.disabled = true;
+    resetStage();
+    audio.knock(220, 0.2);
+
+    status('Stage <b>1</b> — the lever remembers its duty.');
+    log('<b>LEVER</b> pulled with unnecessary conviction.');
+    await anim(els.leverArm, null, (e) => {
+      const a = e * 52;
+      const rad = a * Math.PI / 180;
+      const x2 = 93 + Math.cos(-1.15 + rad) * 82;
+      const y2 = 606 + Math.sin(-1.15 + rad) * 82;
+      return { d: 'M 93 606 L ' + x2.toFixed(1) + ' ' + y2.toFixed(1) };
+    }, 380);
+    audio.knock(180, 0.22);
+
+    /* dominoes */
+    status('Stage <b>2</b> — dominoes, in strict generational order.');
+    const doms = els.dominoes;
+    const fallDur = 240;
+    const proms = [];
+    doms.forEach((d, i) => {
+      proms.push(new Promise((res) => {
+        window.setTimeout(() => {
+          const cx = parseFloat(d.getAttribute('x')) + 4.5;
+          audio.knock(150 + i * 6, 0.1);
+          anim(d, null, (e) => ({ transform: 'rotate(' + (-74 * e) + ' ' + cx + ' 688)' }), fallDur).then(res);
+        }, i * 90);
+      }));
+    });
+    await Promise.all(proms);
+    log('<b>DOMINOES</b> 12/12, no survivors.');
+
+    /* marble down ramp */
+    status('Stage <b>3</b> — the marble commits to gravity.');
+    const m0 = { x: 560, y: 366 };
+    const m1 = { x: 750, y: 645 };
+    await anim(els.marble, null, (e) => {
+      const k = e;
+      return {
+        cx: m0.x + (m1.x - m0.x) * k,
+        cy: m0.y + (m1.y - m0.y) * k
+      };
+    }, 900);
+    audio.knock(400, 0.14);
+    log('<b>MARBLE</b> reached the bench, 0.9 s, no lectures.');
+
+    /* marble rolls to fan, fan spins up, sail cart crosses */
+    status('Stage <b>4</b> — the fan takes an unreasonable interest.');
+    await anim(els.marble, null, (e) => ({ cx: 750 + (890 - 750) * e, cy: 645 }), 420);
+
+    let fanSpin = 0;
+    const spinStart = performance.now();
+    (function spin(now) {
+      if (running && now - spinStart < 5200) {
+        fanSpin += reduceMotion ? 2 : 14;
+        els.fanHub.setAttribute('transform', 'rotate(' + (fanSpin % 360) + ' 907 585)');
+        requestAnimationFrame(spin);
+      }
+    })(performance.now());
+
+    await SLEEP(500);
+    status('Stage <b>5</b> — the sail cart catches weather it did not ask for.');
+    const sailStartX = 985;
+    await anim(els.sail, null, (e) => ({
+      transform: 'translate(' + (sailStartX + e * 155) + ' ' + (640 - 16) + ')'
+    }), 2100);
+    log('<b>FAN</b> ran 5 s · <b>SAIL CART</b> crossed the bench, hold time 2.1 s.');
+
+    /* cart nudges weight release: pulley lifts latch */
+    status('Stage <b>6</b> — the pulley trades height for liberty.');
+    await anim(els.weight, null, (e) => ({
+      transform: 'translate(0 ' + (-210 * e) + ')'
+    }), 1000);
+    els.rope.setAttribute('d', 'M 1156 158 L 1156 350 M 1204 158 L 1204 300');
+    await anim(els.latch, null, (e) => ({ transform: 'translate(' + (16 * e) + ' 0)' }), 300);
+    audio.knock(520, 0.16);
+    log('<b>WEIGHT</b> up 210px · <b>LATCH</b> released, string intact.');
+
+    /* ball rolls off shelf into funnel */
+    status('Stage <b>7</b> — the cue ball is dispatched.');
+    const b0 = { x: 1370, y: 362 };
+    const b1 = { x: 1430, y: 362 };
+    const b2 = { x: 1544, y: 430 };
+    await anim(els.ball, null, (e) => {
+      if (e < 0.4) {
+        const k = e / 0.4;
+        return { cx: b0.x + (b1.x - b0.x) * k, cy: b0.y };
+      }
+      const k = (e - 0.4) / 0.6;
+      const kk = k * k;
+      return { cx: b1.x + (b2.x - b1.x) * k, cy: b0.y + (b2.y - b0.y) * kk };
+    }, 950);
+    audio.knock(300, 0.18);
+    log('<b>CUE BALL</b> through the funnel, dignity mostly intact.');
+
+    /* toaster pops */
+    status('Breakfast <b>achieved</b>. Two slices, perfectly imaginary.');
+    await anim(els.toast1, null, (e) => ({ opacity: String(e), transform: 'translate(0 ' + (-18 * (1 - e)) + ')' }), 420);
+    await anim(els.toast2, null, (e) => ({ opacity: String(e), transform: 'translate(0 ' + (-18 * (1 - e)) + ')' }), 420);
+    audio.knock(660, 0.22);
+    showToast('Breakfast is served');
+    log('<b>TOASTER</b> popped. The machine works. Nobody knows why.');
+
+    status('Run complete. <b>Re-roll a stage</b> and go again.');
+    goBtn.disabled = false;
+    running = false;
+  }
+
+  goBtn.addEventListener('click', run);
+
+  /* ---------- re-roll: randomize one stage ---------- */
+
+  const REROLLS = [
+    () => {
+      const tilt = 30 + Math.random() * 40;
+      els.leverArm.setAttribute('d', 'M 93 606 L ' + (93 + Math.cos(-1.15 + tilt * Math.PI / 180) * 82).toFixed(1) + ' ' + (606 + Math.sin(-1.15 + tilt * Math.PI / 180) * 82).toFixed(1));
+      return 'Lever re-rolled — throw angle now ' + Math.round(tilt) + '°.';
+    },
+    () => {
+      const n = 8 + (Math.random() * 6 | 0);
+      const g = document.getElementById('g-domino');
+      const rects = g.querySelectorAll('rect');
+      rects.forEach((r, i) => {
+        if (i >= n) r.setAttribute('opacity', '0.25');
+        else r.setAttribute('opacity', '1');
+      });
+      return 'Cascade re-rolled — ' + n + ' dominoes on duty today.';
+    },
+    () => {
+      const rr = 7 + (Math.random() * 6 | 0);
+      els.marble.setAttribute('r', String(rr));
+      return 'Marble re-rolled — Ø ' + (rr * 2) + 'px of pure intent.';
+    },
+    () => {
+      const bladeCount = 3 + (Math.random() * 3 | 0);
+      const fan = els.fan;
+      fan.querySelectorAll('path').forEach((p, i) => {
+        p.setAttribute('opacity', i < bladeCount ? '1' : '0.25');
+      });
+      return 'Fan re-rolled — ' + bladeCount + ' blades, enthusiasm unchanged.';
+    },
+    () => {
+      const w = 36 + Math.round(Math.random() * 5) * 6;
+      els.weight.setAttribute('width', String(w));
+      els.weight.setAttribute('x', String(1156 - w / 2));
+      return 'Weight re-rolled — ' + (w * 2) + ' g, calibrated by feel.';
+    }
+  ];
+
+  rerollBtn.addEventListener('click', () => {
+    if (running) return;
+    const idx = (Math.random() * REROLLS.length) | 0;
+    const msg = REROLLS[idx]();
+    log('<b>RE-ROLL</b> ' + msg);
+    showToast(msg);
+  });
+
+  /* ---------- reset visuals between runs ---------- */
+
+  goBtn.addEventListener('dblclick', () => { /* no-op, GO is idempotent */ });
+
+  window.addEventListener('pagehide', () => {
+    if (toastTimer) window.clearTimeout(toastTimer);
+  });
+
+  build();
+  status('Machine at rest. <b>Press GO</b> and do not touch anything.');
+})();
+</script>
+</body>
+</html>

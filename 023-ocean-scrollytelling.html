@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DESCENT — a scroll from sunlight to abyss</title>
+<style>
+/* ============================================================
+   DESCENT — scroll-driven ocean descent, 0 m to 10,900 m
+   fixed canvas · depth gauge · five chapter cards
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --foam: #eaf7fa;
+  --ink-light: #d8e9ef;
+  --ink-mid: #9fc3d2;
+  --ink-dim: #6f93a6;
+  --biolum: #7df9ff;
+  --biolum-warm: #ff9ecd;
+  --gauge-line: rgba(216, 233, 239, 0.28);
+  --card-bg: rgba(6, 18, 30, 0.66);
+  --card-edge: rgba(159, 195, 210, 0.3);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: #02060d;
+  color: var(--ink-light);
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: rgba(125, 249, 255, 0.35); color: #eafcff; }
+::-moz-selection { background: rgba(125, 249, 255, 0.35); color: #eafcff; }
+
+::-webkit-scrollbar { width: 9px; }
+::-webkit-scrollbar-track { background: #04101c; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#9fc3d2, #1d4a63);
+  border-radius: 6px;
+  border: 2px solid #04101c;
+}
+
+/* ---------- fixed water ---------- */
+#water {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+}
+.surface-glint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30vh;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(234, 247, 250, 0.5), rgba(234, 247, 250, 0));
+  opacity: calc(1 - var(--depth-f, 0) * 14);
+}
+
+/* ---------- fixed chrome ---------- */
+.chrome {
+  position: fixed;
+  z-index: 6;
+  pointer-events: none;
+}
+.masthead {
+  top: clamp(14px, 2.6vw, 30px);
+  left: clamp(16px, 3.4vw, 48px);
+}
+.masthead .title {
+  margin: 0;
+  font-size: clamp(1.35rem, 3.4vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--foam);
+  text-shadow: 0 2px 18px rgba(2, 12, 22, 0.8);
+}
+.masthead .sub {
+  margin: 0.45em 0 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+
+.gauge {
+  top: 50%;
+  right: clamp(12px, 2.6vw, 40px);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.gauge .track {
+  position: relative;
+  width: 3px;
+  height: min(56vh, 480px);
+  border-radius: 3px;
+  background: linear-gradient(180deg,
+    rgba(127, 211, 230, 0.75),
+    rgba(18, 58, 92, 0.75) 42%,
+    rgba(7, 26, 46, 0.9) 72%,
+    rgba(2, 6, 13, 0.95));
+  outline: 1px solid var(--gauge-line);
+}
+.gauge .tick {
+  position: absolute;
+  left: -5px;
+  width: 13px;
+  height: 1px;
+  background: var(--gauge-line);
+}
+.gauge .tick span {
+  position: absolute;
+  left: 18px;
+  top: -0.5em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.gauge .tick.major span { color: var(--ink-mid); font-weight: 700; }
+.gauge .bubble {
+  position: absolute;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffffff, var(--biolum) 62%, rgba(125, 249, 255, 0.25));
+  box-shadow: 0 0 14px rgba(125, 249, 255, 0.9), 0 0 34px rgba(125, 249, 255, 0.4);
+  transform: translateY(0);
+}
+.gauge .depth-read {
+  position: absolute;
+  right: 26px;
+  bottom: -1.6em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  letter-spacing: 0.1em;
+  color: var(--biolum);
+  text-shadow: 0 0 16px rgba(125, 249, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gauge .depth-unit {
+  position: absolute;
+  right: 26px;
+  top: -1.8em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  color: var(--ink-dim);
+}
+.pressure {
+  position: fixed;
+  left: clamp(16px, 3.4vw, 48px);
+  bottom: clamp(14px, 2.6vw, 30px);
+  z-index: 6;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  color: var(--ink-dim);
+  line-height: 2;
+  pointer-events: none;
+}
+.pressure b { color: var(--ink-mid); font-weight: 400; }
+
+/* ---------- chapters ---------- */
+.story {
+  position: relative;
+  z-index: 2;
+}
+.chapter {
+  min-height: 108vh;
+  display: flex;
+  align-items: center;
+  padding: 12vh clamp(20px, 7vw, 110px);
+}
+.chapter.right { justify-content: flex-end; }
+.card {
+  width: min(560px, 100%);
+  padding: clamp(1.4rem, 3vw, 2.4rem);
+  background: var(--card-bg);
+  border: 1px solid var(--card-edge);
+  border-radius: 4px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
+  opacity: 0.25;
+  transform: translateY(34px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.7s ease;
+}
+.card.lit {
+  opacity: 1;
+  transform: translateY(0);
+  border-color: rgba(125, 249, 255, 0.4);
+}
+.zone-tag {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 1.2em;
+  border-bottom: 1px solid var(--card-edge);
+  padding-bottom: 0.9em;
+}
+.zone-tag .roman {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  color: var(--biolum);
+}
+.zone-tag .zone-name {
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--foam);
+}
+.zone-range {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-mid);
+}
+.card h2 {
+  margin: 0 0 0.5em;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.6vw, 2.3rem);
+  line-height: 1.15;
+  color: var(--foam);
+}
+.card h2 em { color: var(--biolum-warm); font-style: italic; }
+.card .dropcap::first-letter {
+  float: left;
+  font-size: 3.4em;
+  line-height: 0.82;
+  padding: 0.06em 0.12em 0 0;
+  color: var(--biolum);
+}
+.card p {
+  margin: 0 0 1em;
+  font-size: clamp(0.95rem, 1.7vw, 1.06rem);
+  line-height: 1.72;
+  color: var(--ink-light);
+}
+.factline {
+  margin-top: 1.3em;
+  padding-top: 1em;
+  border-top: 1px dashed var(--card-edge);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  line-height: 2;
+  color: var(--ink-mid);
+  text-transform: uppercase;
+}
+.factline b { color: var(--biolum); font-weight: 400; }
+
+.fauna-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 1.2em;
+}
+.fauna-strip span {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  border: 1px solid var(--card-edge);
+  border-radius: 999px;
+  padding: 0.5em 0.9em;
+}
+
+/* opener + closer */
+.opener,
+.closer {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  padding: 0 clamp(20px, 6vw, 90px);
+}
+.opener .big {
+  margin: 0;
+  font-size: clamp(2.6rem, 9vw, 7rem);
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: var(--foam);
+  text-shadow: 0 4px 40px rgba(2, 12, 22, 0.6);
+}
+.opener .whisper {
+  margin: 1.4em 0 0;
+  font-style: italic;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  color: var(--ink-mid);
+}
+.scroll-cue {
+  position: absolute;
+  bottom: clamp(22px, 4vh, 44px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+.scroll-cue::after {
+  content: "";
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(var(--biolum), transparent);
+  animation: cueDrop 2.2s ease-in-out infinite;
+}
+@keyframes cueDrop {
+  0%   { transform: scaleY(0); transform-origin: top; }
+  55%  { transform: scaleY(1); transform-origin: top; }
+  56%  { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+.closer .big {
+  margin: 0;
+  font-size: clamp(1.9rem, 6vw, 4.4rem);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--foam);
+}
+.closer .whisper {
+  margin: 1.2em 0 0;
+  font-style: italic;
+  color: var(--ink-mid);
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  max-width: 34em;
+}
+.closer .depth-final {
+  margin-top: 2em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  color: var(--biolum);
+}
+
+/* reduced-motion depth slider fallback */
+.rm-panel {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(14px, 3vw, 30px);
+  transform: translateX(-50%);
+  z-index: 7;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  padding: 0.8em 1.2em;
+  background: var(--card-bg);
+  border: 1px solid var(--card-edge);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.rm-panel label {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
+body.rm .rm-panel { display: flex; }
+body.rm .story { display: none; }
+body.rm .scroll-cue { display: none; }
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: min(340px, 56vw);
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, #7fd3e6, #123a5c, #02060d);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -6.5px;
+  border-radius: 50%;
+  background: var(--biolum);
+  box-shadow: 0 0 12px rgba(125, 249, 255, 0.8);
+}
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: linear-gradient(90deg, #7fd3e6, #123a5c, #02060d);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--biolum);
+  box-shadow: 0 0 12px rgba(125, 249, 255, 0.8);
+}
+
+@media (max-width: 640px) {
+  .gauge .tick span { display: none; }
+  .chapter { padding-inline: clamp(16px, 5vw, 40px); }
+  .pressure { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scroll-cue::after { animation: none; }
+  .card { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="water" aria-hidden="true"></canvas>
+<div class="surface-glint" aria-hidden="true"></div>
+
+<header class="chrome masthead">
+  <h1 class="title">Descent</h1>
+  <p class="sub">a vertical voyage · 0 m → 10,900 m</p>
+</header>
+
+<aside class="chrome gauge" aria-hidden="true">
+  <div class="track" id="gaugeTrack">
+    <div class="bubble" id="gaugeBubble"></div>
+    <div class="depth-unit">DEPTH</div>
+    <div class="depth-read" id="depthRead">0 m</div>
+  </div>
+</aside>
+
+<div class="pressure" aria-hidden="true">
+  <div>PRESSURE <b id="pressRead">1 atm</b></div>
+  <div>LIGHT <b id="lightRead">100%</b></div>
+  <div>TEMP <b id="tempRead">22°C</b></div>
+</div>
+
+<div class="rm-panel">
+  <label for="depthSlider">Depth</label>
+  <input type="range" id="depthSlider" min="0" max="10900" value="0" aria-label="Simulated depth in meters">
+</div>
+
+<main class="story" id="story">
+
+  <section class="opener">
+    <div>
+      <p class="big">Descent</p>
+      <p class="whisper">The sea does not begin at its surface. Scroll, and fall slowly through five kingdoms of dark.</p>
+      <div class="scroll-cue">Begin the dive</div>
+    </div>
+  </section>
+
+  <section class="chapter" data-zone="sunlight">
+    <article class="card">
+      <div class="zone-tag">
+        <span class="zone-name">Sunlight</span>
+        <span class="roman">ZONE I</span>
+      </div>
+      <p class="zone-range">0 m — 200 m · the epipelagic</p>
+      <h2>Where the ocean keeps its <em>garden</em></h2>
+      <p class="dropcap">Light still means something here. It pours through the upper water in shifting panes, and everything worth eating is green, quick, or both. Nine-tenths of all marine life never leaves this thin, bright lid — a layer thinner, proportionally, than the skin of an apple.</p>
+      <p>Color dies first with depth: red vanishes within ten meters, which is why blood underwater looks like ink, and why every fish worth fearing wears it without knowing.</p>
+      <div class="factline">LIGHT <b>&lt;1% lost per 10 m</b> · TEMP <b>22°C</b> · PHOTOSYNTHESIS <b>POSSIBLE</b></div>
+      <div class="fauna-strip"><span>reef fish</span><span>sea turtles</span><span>phytoplankton</span><span>dolphins</span></div>
+    </article>
+  </section>
+
+  <section class="chapter right" data-zone="twilight">
+    <article class="card">
+      <div class="zone-tag">
+        <span class="zone-name">Twilight</span>
+        <span class="roman">ZONE II</span>
+      </div>
+      <p class="zone-range">200 m — 1,000 m · the mesopelagic</p>
+      <h2>The hour of the <em>vertical migrations</em></h2>
+      <p class="dropcap">Twilight is not a place but a negotiation. Every night, the largest animal migration on Earth rises from here toward the surface — lanternfish, copepods, squid — billions of tons of biomass commuting toward food, then sinking again before dawn.</p>
+      <p>Here bodies learn transparency. What cannot hide behind distance must hide behind glass, and the water fills with creatures you can count organs through.</p>
+      <div class="factline">LIGHT <b>1% → 0.01%</b> · TEMP <b>11°C</b> · FIRST <b>BIOLUMINESCENCE</b></div>
+      <div class="fauna-strip"><span>lanternfish</span><span>glass squid</span><span>hatchetfish</span><span>siphonophores</span></div>
+    </article>
+  </section>
+
+  <section class="chapter" data-zone="midnight">
+    <article class="card">
+      <div class="zone-tag">
+        <span class="zone-name">Midnight</span>
+        <span class="roman">ZONE III</span>
+      </div>
+      <p class="zone-range">1,000 m — 4,000 m · the bathypelagic</p>
+      <h2>No sun has ever <em>reached</em> here</h2>
+      <p class="dropcap">Past one thousand meters, the idea of day is retired. The only light is manufactured: lures, alarm flares, blue sparks spat by comb jellies. Eyes grow enormous and telescopically tuned, or are abandoned entirely — in the midnight zone, both blindness and vision are strategies.</p>
+      <p>The water is near freezing and almost foodless; patience becomes a body plan. The anglerfish hangs motionless for days, spending nothing but intention.</p>
+      <div class="factline">LIGHT <b>0%</b> · TEMP <b>4°C</b> · PRESSURE <b>400 atm</b></div>
+      <div class="fauna-strip"><span>anglerfish</span><span>gulper eel</span><span>vampire squid</span><span>dragonfish</span></div>
+    </article>
+  </section>
+
+  <section class="chapter right" data-zone="abyss">
+    <article class="card">
+      <div class="zone-tag">
+        <span class="zone-name">Abyss</span>
+        <span class="roman">ZONE IV</span>
+      </div>
+      <p class="zone-range">4,000 m — 6,000 m · the abyssopelagic</p>
+      <h2>The largest habitat on Earth is <em>empty</em></h2>
+      <p class="dropcap">The abyssal plain covers more than half the planet's surface, and it is the closest thing the living world offers to another planet: cold, dark, crushed, and dusted with a slow snowfall of everything that ever sank. Life arrives in whispers — a sea cucumber every few meters, a dumbo octopus passing like a thought.</p>
+      <p>Snow falls here eternally: "marine snow," the memory of the sunlit surface, drifting down as flakes of the dead.</p>
+      <div class="factline">TEMP <b>2°C</b> · PRESSURE <b>600 atm</b> · FOOD <b>MARINE SNOW</b></div>
+      <div class="fauna-strip"><span>dumbo octopus</span><span>sea cucumbers</span><span>tripod fish</span><span>amphipods</span></div>
+    </article>
+  </section>
+
+  <section class="chapter" data-zone="trench">
+    <article class="card">
+      <div class="zone-tag">
+        <span class="zone-name">Trench</span>
+        <span class="roman">ZONE V</span>
+      </div>
+      <p class="zone-range">6,000 m — 10,900 m · the hadal zone</p>
+      <h2>The bottom of the <em>world</em></h2>
+      <p class="dropcap">The hadal zone exists only in trenches — scars where one tectonic plate slides beneath another. At the Challenger Deep, 10,900 meters down, the pressure is above a thousand atmospheres: the weight of a small car pressing on every square inch of you.</p>
+      <p>And yet: snailfish, pale and unbothered. Amphipods grazing on whatever arrives. Life drew no lower boundary here — it simply stopped needing one.</p>
+      <div class="factline">DEPTH <b>10,900 m</b> · PRESSURE <b>1,071 atm</b> · TEMP <b>1–4°C</b></div>
+      <div class="fauna-strip"><span>hadal snailfish</span><span>supergiant amphipods</span><span>xenophyophores</span></div>
+    </article>
+  </section>
+
+  <section class="closer">
+    <div>
+      <p class="big">You have reached the bottom.</p>
+      <p class="whisper">No diver ever has — not without a sphere of titanium and a great deal of courage. You did it by doing nothing at all. That is the ocean's oldest trick: it makes the impossible look like falling.</p>
+      <p class="depth-final" id="finalDepth">FINAL DEPTH — 10,900 M · CHALLENGER DEEP</p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced) { document.body.classList.add('rm'); }
+
+  var canvas = document.getElementById('water');
+  var ctx = canvas.getContext('2d');
+  var depthRead = document.getElementById('depthRead');
+  var pressRead = document.getElementById('pressRead');
+  var lightRead = document.getElementById('lightRead');
+  var tempRead = document.getElementById('tempRead');
+  var gaugeTrack = document.getElementById('gaugeTrack');
+  var gaugeBubble = document.getElementById('gaugeBubble');
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var finalDepthEl = document.getElementById('finalDepth');
+
+  var MAX_DEPTH = 10900;
+  var W = 0, H = 0, dpr = 1;
+  var rafId = 0;
+
+  /* build gauge ticks once */
+  (function buildTicks() {
+    var marks = [0, 200, 1000, 4000, 6000, 10900];
+    marks.forEach(function (m) {
+      var t = document.createElement('div');
+      t.className = 'tick' + (m % 1000 === 0 ? ' major' : '');
+      t.style.top = (m / MAX_DEPTH * 100) + '%';
+      var s = document.createElement('span');
+      s.textContent = m.toLocaleString('en-US') + ' m';
+      t.appendChild(s);
+      gaugeTrack.appendChild(t);
+    });
+  })();
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  /* ---------------- depth state ---------------- */
+  var depth = 0;        /* meters, smoothed */
+  var depthTarget = 0;
+  var fauna = [];
+  var motes = [];
+  var plankton = [];
+  var i, n;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function initParticles() {
+    fauna = [];
+    motes = [];
+    plankton = [];
+    n = reduced ? 24 : 44;
+    for (i = 0; i < n; i++) {
+      motes.push({
+        x: rand(0, W), y: rand(0, H), r: rand(0.6, 2.2),
+        spd: rand(6, 22), ph: rand(0, 6.28), a: rand(0.08, 0.3)
+      });
+    }
+    n = reduced ? 26 : 60;
+    for (i = 0; i < n; i++) {
+      plankton.push({
+        x: rand(0, W), y: rand(0, H), r: rand(0.4, 1.4),
+        vx: rand(-4, 4), vy: rand(-3, 3), a: rand(0.05, 0.22)
+      });
+    }
+    /* fauna silhouettes with true appearance depths */
+    fauna = [
+      { kind: 'fish',   depthAt: 90,    x: 0.22, y: rand(0.2, 0.7), s: 1.1, ph: rand(0, 6.28) },
+      { kind: 'fish',   depthAt: 140,   x: 0.68, y: rand(0.15, 0.6), s: 0.8, ph: rand(0, 6.28) },
+      { kind: 'turtle', depthAt: 60,    x: 0.8,  y: rand(0.15, 0.5), s: 1.0, ph: rand(0, 6.28) },
+      { kind: 'jelly',  depthAt: 450,   x: 0.24, y: rand(0.2, 0.7), s: 1.2, ph: rand(0, 6.28) },
+      { kind: 'jelly',  depthAt: 700,   x: 0.7,  y: rand(0.25, 0.75), s: 0.9, ph: rand(0, 6.28) },
+      { kind: 'squid',  depthAt: 900,   x: 0.55, y: rand(0.2, 0.6), s: 1.0, ph: rand(0, 6.28) },
+      { kind: 'lantern', depthAt: 1200, x: 0.3,  y: rand(0.2, 0.7), s: 0.9, ph: rand(0, 6.28) },
+      { kind: 'angler', depthAt: 2200,  x: 0.62, y: rand(0.25, 0.7), s: 1.15, ph: rand(0, 6.28) },
+      { kind: 'eel',    depthAt: 3000,  x: 0.35, y: rand(0.2, 0.65), s: 1.1, ph: rand(0, 6.28) },
+      { kind: 'dumbo',  depthAt: 4800,  x: 0.7,  y: rand(0.25, 0.7), s: 1.0, ph: rand(0, 6.28) },
+      { kind: 'cuke',   depthAt: 6600,  x: 0.3,  y: rand(0.3, 0.75), s: 1.0, ph: rand(0, 6.28) },
+      { kind: 'snail',  depthAt: 9200,  x: 0.6,  y: rand(0.3, 0.7), s: 0.95, ph: rand(0, 6.28) }
+    ];
+  }
+
+  /* ---------------- water column gradient ---------------- */
+  var STOPS = [
+    { d: 0,      top: [127, 211, 230], bot: [64, 164, 195] },
+    { d: 200,    top: [26, 118, 152],  bot: [12, 74, 99] },
+    { d: 1000,   top: [10, 51, 80],    bot: [6, 32, 54] },
+    { d: 4000,   top: [5, 22, 40],     bot: [3, 12, 24] },
+    { d: 6000,   top: [3, 12, 24],     bot: [2, 7, 15] },
+    { d: 10900,  top: [2, 6, 13],      bot: [1, 3, 8] }
+  ];
+  function columnColors(d) {
+    var a = STOPS[0], b = STOPS[STOPS.length - 1], i2;
+    for (i2 = 0; i2 < STOPS.length - 1; i2++) {
+      if (d >= STOPS[i2].d && d <= STOPS[i2 + 1].d) {
+        a = STOPS[i2];
+        b = STOPS[i2 + 1];
+        break;
+      }
+    }
+    var t = (b.d === a.d) ? 0 : (d - a.d) / (b.d - a.d);
+    function mix(c1, c2) {
+      return [
+        Math.round(c1[0] + (c2[0] - c1[0]) * t),
+        Math.round(c1[1] + (c2[1] - c1[1]) * t),
+        Math.round(c1[2] + (c2[2] - c1[2]) * t)
+      ];
+    }
+    return { top: mix(a.top, b.top), bot: mix(a.bot, b.bot) };
+  }
+
+  function lightAt(d) {
+    /* ~1% survives each 10 m early, long tail afterwards */
+    if (d <= 0) { return 1; }
+    return Math.max(0, Math.exp(-d / 62));
+  }
+
+  /* ---------------- fauna drawing ---------------- */
+  function drawFish(x, y, s, ph, glow) {
+    ctx.save();
+    ctx.translate(x, y);
+    var wag = Math.sin(ph) * 0.16;
+    ctx.rotate(wag * 0.4);
+    ctx.fillStyle = glow ? 'rgba(125, 249, 255, 0.16)' : 'rgba(8, 30, 46, 0.75)';
+    ctx.beginPath();
+    ctx.moveTo(-26 * s, 0);
+    ctx.quadraticCurveTo(-8 * s, -11 * s, 14 * s, -4 * s);
+    ctx.quadraticCurveTo(20 * s, -2 * s, 26 * s, 0);
+    ctx.quadraticCurveTo(20 * s, 2 * s, 14 * s, 4 * s);
+    ctx.quadraticCurveTo(-8 * s, 11 * s, -26 * s, 0);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-24 * s, 0);
+    ctx.lineTo(-36 * s, -9 * s + wag * 30 * s);
+    ctx.lineTo(-36 * s, 9 * s + wag * 30 * s);
+    ctx.closePath();
+    ctx.fill();
+    if (glow) {
+      ctx.fillStyle = 'rgba(125, 249, 255, 0.5)';
+      ctx.beginPath();
+      ctx.arc(20 * s, -1 * s, 1.4 * s, 0, 6.29);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawTurtle(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.sin(ph) * 0.08);
+    ctx.fillStyle = 'rgba(10, 38, 56, 0.72)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 24 * s, 14 * s, 0, 0, 6.29);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(20 * s, -2 * s);
+    ctx.quadraticCurveTo(30 * s, -6 * s, 34 * s, 0);
+    ctx.quadraticCurveTo(30 * s, 6 * s, 20 * s, 2 * s);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-8 * s, -14 * s, 8 * s, 4 * s, -0.5, 0, 6.29);
+    ctx.ellipse(-6 * s, 14 * s, 8 * s, 4 * s, 0.5, 0, 6.29);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawJelly(x, y, s, ph, glow) {
+    ctx.save();
+    ctx.translate(x, y);
+    var pulse = 1 + Math.sin(ph * 1.4) * 0.07;
+    var grad = ctx.createRadialGradient(0, 0, 2, 0, 0, 26 * s * pulse);
+    grad.addColorStop(0, glow ? 'rgba(255, 158, 205, 0.4)' : 'rgba(160, 210, 235, 0.3)');
+    grad.addColorStop(1, 'rgba(160, 210, 235, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 26 * s * pulse, 0, 6.29);
+    ctx.fill();
+    ctx.strokeStyle = glow ? 'rgba(255, 158, 205, 0.75)' : 'rgba(190, 226, 240, 0.6)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(0, 0, 15 * s * pulse, Math.PI, 0);
+    ctx.stroke();
+    var k;
+    ctx.lineWidth = 1;
+    for (k = 0; k < 5; k++) {
+      var tx = -12 * s + k * 6 * s;
+      ctx.beginPath();
+      ctx.moveTo(tx, 2 * s);
+      ctx.quadraticCurveTo(tx + Math.sin(ph + k) * 7 * s, 14 * s, tx + Math.sin(ph * 1.3 + k) * 9 * s, 28 * s);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawSquid(x, y, s, ph, glow) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.sin(ph * 0.7) * 0.2 + 0.5);
+    ctx.fillStyle = glow ? 'rgba(125, 249, 255, 0.13)' : 'rgba(12, 40, 60, 0.66)';
+    ctx.beginPath();
+    ctx.ellipse(0, -8 * s, 9 * s, 20 * s, 0, 0, 6.29);
+    ctx.fill();
+    var k;
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = glow ? 'rgba(125, 249, 255, 0.4)' : 'rgba(12, 40, 60, 0.6)';
+    for (k = 0; k < 6; k++) {
+      var tx = -7 * s + k * 2.8 * s;
+      ctx.beginPath();
+      ctx.moveTo(tx, 8 * s);
+      ctx.quadraticCurveTo(tx + Math.sin(ph + k) * 4 * s, 20 * s, tx + Math.sin(ph * 1.2 + k) * 6 * s, 30 * s);
+      ctx.stroke();
+    }
+    if (glow) {
+      ctx.fillStyle = 'rgba(125, 249, 255, 0.55)';
+      for (k = 0; k < 3; k++) {
+        ctx.beginPath();
+        ctx.arc(-4 * s + k * 4 * s, -14 * s, 1.2 * s, 0, 6.29);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  function drawLantern(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = 'rgba(60, 120, 150, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12 * s, 5 * s, 0, 0, 6.29);
+    ctx.fill();
+    var gl = 0.5 + 0.5 * Math.sin(ph * 2.2);
+    ctx.fillStyle = 'rgba(125, 249, 255, ' + (0.25 + gl * 0.45) + ')';
+    ctx.beginPath();
+    ctx.arc(10 * s, -2 * s, 1.6 * s, 0, 6.29);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(125, 249, 255, ' + (0.08 + gl * 0.1) + ')';
+    ctx.beginPath();
+    ctx.arc(10 * s, -2 * s, 7 * s, 0, 6.29);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawAngler(x, y, s, ph, glow) {
+    ctx.save();
+    ctx.translate(x, y);
+    var sway = Math.sin(ph * 0.9) * 0.05;
+    ctx.rotate(sway);
+    ctx.fillStyle = glow ? 'rgba(30, 50, 66, 0.85)' : 'rgba(4, 12, 20, 0.9)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 22 * s, 13 * s, 0, 0, 6.29);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-18 * s, 0);
+    ctx.lineTo(-32 * s, -8 * s);
+    ctx.lineTo(-32 * s, 8 * s);
+    ctx.closePath();
+    ctx.fill();
+    /* lure */
+    var lx = 14 * s, ly = -18 * s + Math.sin(ph * 1.8) * 3 * s;
+    ctx.strokeStyle = 'rgba(140, 190, 210, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(10 * s, -10 * s);
+    ctx.quadraticCurveTo(20 * s, -22 * s, lx, ly);
+    ctx.stroke();
+    var gl = 0.6 + 0.4 * Math.sin(ph * 3);
+    var grad = ctx.createRadialGradient(lx, ly, 0.5, lx, ly, 9 * s);
+    grad.addColorStop(0, 'rgba(125, 249, 255, ' + (0.85 * gl) + ')');
+    grad.addColorStop(1, 'rgba(125, 249, 255, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(lx, ly, 9 * s, 0, 6.29);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(220, 250, 255, ' + (0.9 * gl) + ')';
+    ctx.beginPath();
+    ctx.arc(lx, ly, 1.6 * s, 0, 6.29);
+    ctx.fill();
+    /* jaw teeth */
+    ctx.strokeStyle = 'rgba(200, 230, 240, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (var t = 0; t < 4; t++) {
+      ctx.moveTo((6 + t * 4) * s, 9 * s);
+      ctx.lineTo((7 + t * 4) * s, 13 * s);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawEel(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.strokeStyle = 'rgba(10, 34, 50, 0.8)';
+    ctx.lineWidth = 6 * s;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    var k, px, py;
+    for (k = 0; k <= 8; k++) {
+      px = (k - 4) * 9 * s;
+      py = Math.sin(ph * 1.6 + k * 0.7) * 8 * s;
+      if (k === 0) { ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawDumbo(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = 'rgba(150, 90, 120, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 15 * s, 12 * s, 0, 0, 6.29);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-11 * s, -8 * s, 6 * s, 4.5 * s, -0.6, 0, 6.29);
+    ctx.ellipse(11 * s, -8 * s, 6 * s, 4.5 * s, 0.6, 0, 6.29);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(150, 90, 120, 0.45)';
+    ctx.lineWidth = 1.6;
+    var k;
+    for (k = 0; k < 3; k++) {
+      ctx.beginPath();
+      ctx.moveTo(-5 * s + k * 5 * s, 10 * s);
+      ctx.quadraticCurveTo(-5 * s + k * 5 * s + Math.sin(ph + k) * 4 * s, 18 * s, -4 * s + k * 5 * s, 24 * s);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawCuke(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = 'rgba(120, 110, 130, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18 * s, 6 * s, Math.sin(ph) * 0.1, 0, 6.29);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawSnail(x, y, s, ph) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = 'rgba(220, 230, 235, 0.55)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 12 * s, 5 * s, 0, 0, 6.29);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(240, 248, 250, 0.7)';
+    ctx.beginPath();
+    ctx.ellipse(-9 * s, -1 * s, 4 * s, 2.6 * s, 0, 0, 6.29);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  var DRAWERS = {
+    fish: drawFish, turtle: drawTurtle, jelly: drawJelly, squid: drawSquid,
+    lantern: drawLantern, angler: drawAngler, eel: drawEel, dumbo: drawDumbo,
+    cuke: drawCuke, snail: drawSnail
+  };
+
+  /* ---------------- main loop ---------------- */
+  var scrollRatio = 0;
+  var lastT = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+    lastT = now;
+
+    depth += (depthTarget - depth) * Math.min(1, dt * 3.2);
+    if (Math.abs(depthTarget - depth) < 0.5) { depth = depthTarget; }
+    var t = depth / MAX_DEPTH;
+
+    /* gradient */
+    var col = columnColors(depth);
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgb(' + col.top[0] + ',' + col.top[1] + ',' + col.top[2] + ')');
+    g.addColorStop(1, 'rgb(' + col.bot[0] + ',' + col.bot[1] + ',' + col.bot[2] + ')');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    /* sun shafts near surface */
+    var light = lightAt(depth);
+    if (light > 0.02 && !reduced) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      var shafts = 4;
+      for (var s2 = 0; s2 < shafts; s2++) {
+        var sx = (0.16 + s2 * 0.22) * W + Math.sin(now / 2600 + s2 * 1.7) * 30;
+        var sg = ctx.createLinearGradient(sx, 0, sx + 60, H * 0.8);
+        sg.addColorStop(0, 'rgba(234, 247, 250, ' + (0.13 * light) + ')');
+        sg.addColorStop(1, 'rgba(234, 247, 250, 0)');
+        ctx.fillStyle = sg;
+        ctx.beginPath();
+        ctx.moveTo(sx - 26, 0);
+        ctx.lineTo(sx + 60, 0);
+        ctx.lineTo(sx + 150, H * 0.85);
+        ctx.lineTo(sx + 20, H * 0.85);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    /* drifting motes (marine snow near bottom) */
+    var k, p;
+    for (k = 0; k < motes.length; k++) {
+      p = motes[k];
+      p.y += p.spd * dt * (depth > 1000 ? 2.4 : 1);
+      p.x += Math.sin(now / 1700 + p.ph) * 6 * dt;
+      if (p.y > H + 4) { p.y = -4; p.x = rand(0, W); }
+      ctx.fillStyle = 'rgba(216, 233, 239, ' + p.a + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, 6.29);
+      ctx.fill();
+    }
+
+    /* plankton only near surface */
+    if (depth < 400) {
+      var pl = 1 - depth / 400;
+      for (k = 0; k < plankton.length; k++) {
+        p = plankton[k];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.x < 0) { p.x = W; }
+        if (p.x > W) { p.x = 0; }
+        if (p.y < 0) { p.y = H; }
+        if (p.y > H) { p.y = 0; }
+        ctx.fillStyle = 'rgba(234, 247, 250, ' + (p.a * pl) + ')';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, 6.29);
+        ctx.fill();
+      }
+    }
+
+    /* fauna at true depths: fade in as you approach their band */
+    var windowM = 900;
+    for (k = 0; k < fauna.length; k++) {
+      var f = fauna[k];
+      var dist = Math.abs(depth - f.depthAt);
+      if (dist > windowM) { continue; }
+      var vis = 1 - dist / windowM;
+      var px = f.x * W + Math.sin(now / 3400 * f.s + f.ph) * (W * 0.05);
+      var py = f.y * H + Math.cos(now / 4200 * f.s + f.ph) * (H * 0.04);
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, vis * 1.35);
+      var glowBand = depth > 900;
+      DRAWERS[f.kind](px, py, f.s * (0.8 + vis * 0.4), now / 1000 * (0.8 + f.s * 0.4) + f.ph, glowBand);
+      ctx.restore();
+    }
+
+    /* darkness vignette grows with depth */
+    if (t > 0.12) {
+      var vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.95);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, 'rgba(0, 2, 6, ' + (t * 0.75) + ')');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  /* ---------------- gauges + cards ---------------- */
+  function fmtDepth(d) {
+    return Math.round(d).toLocaleString('en-US') + ' m';
+  }
+  function updateReadouts(d) {
+    depthRead.textContent = fmtDepth(d);
+    var atm = 1 + d / 10.06;
+    pressRead.textContent = atm < 100
+      ? atm.toFixed(1) + ' atm'
+      : Math.round(atm).toLocaleString('en-US') + ' atm';
+    var l = lightAt(d);
+    lightRead.textContent = l > 0.001 ? (l * 100).toFixed(l < 0.02 ? 2 : 0) + '%' : '0%';
+    var temp = d < 200 ? 22 - d * 0.055 : Math.max(1.5, 11 - (d - 200) * 0.0009);
+    tempRead.textContent = Math.round(temp) + '°C';
+    var trackH = gaugeTrack.clientHeight;
+    gaugeBubble.style.transform = 'translateY(' + (t * trackH).toFixed(1) + 'px)';
+    document.documentElement.style.setProperty('--depth-f', String(Math.min(1, d / 140)));
+  }
+
+  function updateCards(d) {
+    /* light the card whose chapter is nearest viewport center */
+    var center = window.innerHeight * 0.5;
+    cards.forEach(function (card) {
+      var r = card.getBoundingClientRect();
+      var mid = r.top + r.height / 2;
+      var near = Math.abs(mid - center) < window.innerHeight * 0.42;
+      card.classList.toggle('lit', near);
+    });
+  }
+
+  function onScroll() {
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - window.innerHeight;
+    scrollRatio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+    depthTarget = scrollRatio * MAX_DEPTH;
+    if (scrollRatio > 0.985) {
+      finalDepthEl.style.opacity = '1';
+    }
+  }
+
+  /* reduced-motion slider path */
+  var slider = document.getElementById('depthSlider');
+  if (reduced) {
+    slider.addEventListener('input', function () {
+      depthTarget = Number(slider.value);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function () {
+    resize();
+    initParticles();
+    onScroll();
+  });
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(rafId);
+  });
+
+  resize();
+  initParticles();
+  onScroll();
+  updateReadouts(0);
+  lastT = performance.now();
+
+  function tick(now) {
+    frame(now);
+    updateReadouts(depth);
+    updateCards(depth);
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

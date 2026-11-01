@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The Harmonograph — a Victorian drawing machine. Two damped pendulums trace Lissajous figures in ink on ivory card; finished plots collect as numbered plates.">
+<title>The Harmonograph — Victorian Drawing Machine No. 7</title>
+<style>
+  :root{
+    --ivory:#f4efe2;
+    --ivory-2:#ece5d3;
+    --card:#f8f4ea;
+    --ink:#23252b;
+    --ink-soft:#4a4c55;
+    --sepia:#5c4326;
+    --brass:#a8894f;
+    --brass-2:#8a6f3a;
+    --brass-hi:#c9a96a;
+    --walnut:#4d3a2a;
+    --walnut-2:#38291c;
+    --room:#2a2018;
+    --room-2:#1d1510;
+    --vermilion:#9c3b2a;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--brass); color:var(--room-2); }
+  html{ scrollbar-color:var(--brass-2) var(--room-2); }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:var(--room-2); }
+  ::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--brass), var(--brass-2));
+    border-radius:6px; border:2px solid var(--room-2);
+  }
+  body{
+    min-height:100vh;
+    color:var(--ink);
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    background:
+      radial-gradient(140% 100% at 50% 0%, #33271b 0%, var(--room) 45%, var(--room-2) 100%);
+    position:relative;
+  }
+  body::before{ /* workshop vignette light */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(60% 42% at 68% -6%, rgba(255,214,150,.14), transparent 70%),
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.05) 3px 4px);
+    mix-blend-mode:overlay;
+  }
+  header.masthead, main, footer.foot{ position:relative; z-index:1; }
+
+  header.masthead{
+    text-align:center;
+    padding:clamp(24px, 4vw, 52px) 16px clamp(14px, 2.5vw, 28px);
+    color:var(--ivory);
+  }
+  .plate-mark{
+    font-family:Georgia, ui-serif, serif;
+    font-size:clamp(.6rem, 1.4vw, .72rem);
+    letter-spacing:.5em; text-indent:.5em;
+    text-transform:uppercase; color:var(--brass-hi);
+  }
+  h1{
+    margin-top:10px;
+    font-weight:700;
+    font-size:clamp(1.9rem, 6vw, 3.8rem);
+    letter-spacing:.22em; text-indent:.22em;
+    text-transform:uppercase;
+    color:var(--ivory);
+    text-shadow:0 2px 0 rgba(0,0,0,.5), 0 0 30px rgba(200,169,106,.18);
+    line-height:1.1;
+  }
+  .mast-sub{
+    margin-top:12px;
+    font-style:italic;
+    font-size:clamp(.85rem, 2vw, 1.05rem);
+    color:rgba(244,239,226,.72);
+  }
+  .mast-rule{
+    width:min(420px, 70vw); height:11px; margin:16px auto 0;
+    background:
+      radial-gradient(circle at 50% 50%, var(--brass-hi) 0 2.5px, transparent 3px),
+      linear-gradient(90deg, transparent, var(--brass) 18%, var(--brass) 82%, transparent);
+    background-size:14px 11px, 100% 1px;
+    background-repeat:repeat-x, no-repeat;
+    background-position:center;
+    opacity:.85;
+  }
+
+  main{
+    max-width:1240px; margin:0 auto;
+    padding:clamp(10px, 2vw, 26px) clamp(12px, 2.4vw, 28px) clamp(40px, 6vw, 80px);
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(280px, 380px);
+    gap:clamp(18px, 3vw, 40px);
+    align-items:start;
+  }
+
+  /* ============ THE MACHINE ============ */
+  .machine{
+    background:
+      linear-gradient(160deg, rgba(77,58,42,.55), rgba(40,29,20,.75));
+    border:1px solid rgba(168,137,79,.55);
+    border-radius:20px;
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.55),
+      inset 0 1px 0 rgba(200,169,106,.3),
+      inset 0 -18px 40px rgba(0,0,0,.35);
+    padding:clamp(16px, 2.6vw, 32px);
+  }
+  .gantry{
+    position:relative;
+    border-radius:14px;
+    background:radial-gradient(120% 120% at 50% 20%, #efe7d4 0%, var(--ivory) 55%, #ddd2ba 100%);
+    box-shadow:
+      inset 0 2px 12px rgba(60,45,25,.35),
+      inset 0 0 0 1px rgba(77,58,42,.25),
+      0 8px 24px rgba(0,0,0,.4);
+    overflow:hidden;
+  }
+  .gantry::before{ /* card grain */
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background:
+      repeating-linear-gradient(93deg, rgba(92,67,38,.035) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(3deg, rgba(92,67,38,.03) 0 1px, transparent 1px 4px);
+  }
+  .gantry::after{ /* deckled edge vignette */
+    content:""; position:absolute; inset:0; pointer-events:none;
+    box-shadow:inset 0 0 60px rgba(92,67,38,.18);
+  }
+  .stage-wrap{ position:relative; }
+  #plot{ display:block; width:100%; height:auto; touch-action:none; }
+  .stage-ghost{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; text-align:center;
+  }
+  .stage-ghost p{
+    font-style:italic; color:rgba(92,67,38,.55);
+    font-size:clamp(.85rem, 2vw, 1.05rem);
+    max-width:26ch;
+    line-height:1.6;
+    transition:opacity .6s ease;
+  }
+  .stage-ghost.gone p{ opacity:0; }
+  .plate-caption{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+    padding:12px 6px 0;
+    font-size:.8rem; color:var(--ink-soft);
+  }
+  .plate-caption .num{ font-variant:small-caps; letter-spacing:.28em; color:var(--sepia); }
+  .plate-caption .params{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.66rem; letter-spacing:.06em; color:rgba(74,76,85,.85);
+  }
+
+  .pendulums{ margin-top:18px; }
+  .pend-row{
+    display:flex; align-items:center; gap:14px;
+    padding:10px 4px;
+    border-top:1px solid rgba(168,137,79,.28);
+  }
+  .pend-row:first-child{ border-top:none; }
+  .pend-name{
+    flex:0 0 92px;
+    font-variant:small-caps; letter-spacing:.16em;
+    font-size:.82rem; color:var(--ivory);
+  }
+  .pend-vis{ flex:0 0 46px; }
+  .pend-vis canvas{
+    display:block; width:46px; height:46px; border-radius:50%;
+    background:radial-gradient(circle at 40% 32%, #26303e, #131a24);
+    box-shadow:inset 0 0 0 1px rgba(168,137,79,.5);
+  }
+  .pend-state{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.62rem; color:var(--brass-hi);
+    letter-spacing:.1em; flex:0 0 118px;
+  }
+
+  /* ============ CONTROLS ============ */
+  .console{
+    background:
+      linear-gradient(170deg, rgba(60,45,30,.7), rgba(35,25,17,.85));
+    border:1px solid rgba(168,137,79,.55);
+    border-radius:20px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(200,169,106,.28);
+    padding:clamp(16px, 2.4vw, 28px);
+    color:var(--ivory);
+    display:flex; flex-direction:column; gap:18px;
+    position:sticky; top:16px;
+  }
+  .console h2{
+    font-variant:small-caps; letter-spacing:.3em;
+    font-size:clamp(.95rem, 2vw, 1.15rem); color:var(--brass-hi);
+    text-align:center; padding-bottom:12px;
+    border-bottom:1px solid rgba(168,137,79,.35);
+  }
+  .ctrl{ display:flex; flex-direction:column; gap:7px; }
+  .ctrl-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:.74rem; letter-spacing:.2em; text-transform:uppercase;
+    color:rgba(244,239,226,.8);
+  }
+  .ctrl-head output{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.7rem; letter-spacing:.05em; color:var(--brass-hi);
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:26px; background:transparent; cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:5px; border-radius:3px;
+    background:linear-gradient(90deg, rgba(168,137,79,.35), rgba(168,137,79,.7));
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:20px; height:20px; margin-top:-7.5px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #d9bc80, var(--brass) 60%, #6e5628);
+    border:1px solid #5c4720;
+    box-shadow:0 2px 6px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,240,200,.5);
+  }
+  input[type="range"]::-moz-range-track{
+    height:5px; border-radius:3px;
+    background:linear-gradient(90deg, rgba(168,137,79,.35), rgba(168,137,79,.7));
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:19px; height:19px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #d9bc80, var(--brass) 60%, #6e5628);
+    border:1px solid #5c4720;
+  }
+  input[type="range"]:focus-visible{ outline:2px dashed var(--brass-hi); outline-offset:4px; border-radius:6px; }
+
+  .btnrow{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .btn{
+    font-family:Georgia, ui-serif, serif;
+    font-variant:small-caps; letter-spacing:.22em; text-indent:.1em;
+    font-size:clamp(.8rem, 1.8vw, .92rem);
+    color:var(--ivory);
+    background:linear-gradient(180deg, rgba(168,137,79,.4), rgba(110,86,40,.4));
+    border:1px solid var(--brass-2);
+    border-radius:10px;
+    padding:12px 10px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(200,169,106,.35), 0 4px 12px rgba(0,0,0,.35);
+    transition:transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    touch-action:manipulation;
+  }
+  .btn:hover{ transform:translateY(-2px); filter:brightness(1.18); }
+  .btn:focus-visible{ outline:2px dashed var(--brass-hi); outline-offset:3px; }
+  .btn.primary{
+    background:linear-gradient(180deg, #cdb076, var(--brass) 60%, #7d6433);
+    color:var(--room-2); font-weight:700;
+    border-color:#6e5628;
+    box-shadow:inset 0 1px 0 rgba(255,240,200,.55), 0 6px 16px rgba(0,0,0,.45);
+  }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+  .swatches{ display:flex; gap:10px; justify-content:center; }
+  .swatch{
+    width:34px; height:34px; border-radius:50%;
+    border:2px solid rgba(0,0,0,.35);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px rgba(0,0,0,.4);
+    cursor:pointer; padding:0;
+    transition:transform .18s ease, box-shadow .18s ease;
+    touch-action:manipulation;
+  }
+  .swatch:hover{ transform:scale(1.12); }
+  .swatch:focus-visible{ outline:2px dashed var(--brass-hi); outline-offset:3px; }
+  .swatch[aria-pressed="true"]{
+    box-shadow:0 0 0 3px var(--ivory), 0 0 0 5px var(--brass), 0 3px 10px rgba(0,0,0,.5);
+  }
+  .ink-ink{ background:radial-gradient(circle at 35% 30%, #4a4c55, var(--ink) 65%, #0e0f13); }
+  .ink-sepia{ background:radial-gradient(circle at 35% 30%, #7c5c36, var(--sepia) 65%, #3a2a16); }
+  .ink-vermilion{ background:radial-gradient(circle at 35% 30%, #c05a44, var(--vermilion) 65%, #571f14); }
+  .dur-note{
+    font-style:italic; font-size:.78rem; line-height:1.65;
+    color:rgba(244,239,226,.62); text-align:center;
+  }
+
+  /* ============ PLATE GALLERY ============ */
+  .gallery-sec{ margin-top:clamp(26px, 4vw, 46px); grid-column:1 / -1; }
+  .gallery-head{
+    display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px;
+    border-bottom:1px solid rgba(168,137,79,.4);
+    padding-bottom:10px; margin-bottom:16px;
+  }
+  .gallery-head h2{
+    font-variant:small-caps; letter-spacing:.3em;
+    font-size:clamp(1rem, 2.4vw, 1.35rem); color:var(--brass-hi);
+  }
+  .gallery-head p{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.68rem; letter-spacing:.14em; color:rgba(244,239,226,.55);
+    text-transform:uppercase;
+  }
+  .strip{
+    display:flex; gap:clamp(12px, 2vw, 22px);
+    overflow-x:auto; padding:6px 2px 18px;
+    scroll-snap-type:x proximity;
+    scrollbar-color:var(--brass-2) transparent;
+  }
+  .strip::-webkit-scrollbar{ height:9px; }
+  .strip::-webkit-scrollbar-track{ background:rgba(0,0,0,.25); border-radius:5px; }
+  .strip::-webkit-scrollbar-thumb{ background:var(--brass-2); border-radius:5px; }
+  .plate{
+    flex:0 0 auto; width:clamp(120px, 18vw, 168px);
+    scroll-snap-align:start;
+    background:linear-gradient(170deg, var(--card), #e8e0cc);
+    border-radius:4px;
+    padding:9px 9px 6px;
+    box-shadow:
+      0 8px 18px rgba(0,0,0,.5),
+      inset 0 0 0 1px rgba(92,67,38,.2);
+    cursor:pointer;
+    border:none; text-align:left;
+    transition:transform .2s ease, box-shadow .2s ease;
+    position:relative;
+  }
+  .plate:hover{ transform:translateY(-5px) rotate(-.6deg); box-shadow:0 14px 26px rgba(0,0,0,.6), inset 0 0 0 1px rgba(92,67,38,.25); }
+  .plate:focus-visible{ outline:2px dashed var(--brass-hi); outline-offset:4px; }
+  .plate canvas{ display:block; width:100%; height:auto; background:#fbf8f0; border-radius:2px; }
+  .plate .p-num{
+    display:block; margin-top:7px; text-align:center;
+    font-variant:small-caps; letter-spacing:.3em;
+    font-size:.78rem; color:var(--sepia);
+  }
+  .plate .p-fam{
+    display:block; text-align:center;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.56rem; letter-spacing:.08em; color:rgba(74,76,85,.8);
+    margin-top:2px;
+  }
+  .plate.current{ box-shadow:0 0 0 2px var(--brass-hi), 0 10px 22px rgba(0,0,0,.55); }
+  .empty-note{
+    font-style:italic; color:rgba(244,239,226,.5); font-size:.9rem;
+    padding:10px 4px 20px;
+  }
+
+  footer.foot{
+    max-width:1240px; margin:0 auto;
+    padding:0 clamp(12px, 2.4vw, 28px) clamp(30px, 5vw, 60px);
+    text-align:center;
+    color:rgba(244,239,226,.55);
+    font-style:italic; font-size:.85rem;
+  }
+  footer.foot .sig{
+    display:block; margin-top:8px;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-style:normal; font-size:.62rem; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(200,169,106,.5);
+  }
+
+  .sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+  @media (max-width:900px){
+    main{ grid-template-columns:1fr; }
+    .console{ position:static; }
+    .pend-name{ flex-basis:76px; }
+    .pend-state{ flex-basis:0; flex-grow:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .btn, .plate, .swatch{ transition:none; }
+    .stage-ghost p{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <p class="plate-mark">Scientific Instruments · Bench No. 7</p>
+  <h1>The Harmonograph</h1>
+  <p class="mast-sub">Two pendulums, one pen, and the patience of the age — every figure is a chord made visible.</p>
+  <div class="mast-rule" aria-hidden="true"></div>
+</header>
+
+<main>
+  <section class="machine" aria-label="The harmonograph machine">
+    <div class="stage-wrap">
+      <div class="gantry">
+        <svg id="plot" viewBox="0 0 1000 700" role="img" aria-label="Ivory card on which the harmonograph draws its figure"></svg>
+      </div>
+      <div class="stage-ghost" id="ghost">
+        <p>The card is loaded. Set the pendulums below and pull the DRAW lever — the pen will do the rest.</p>
+      </div>
+    </div>
+    <div class="plate-caption">
+      <span class="num" id="capNum">Card Unnumbered</span>
+      <span class="params" id="capParams">awaiting first figure</span>
+    </div>
+    <div class="pendulums" aria-hidden="true">
+      <div class="pend-row">
+        <span class="pend-name">X Pendulum</span>
+        <span class="pend-vis"><canvas id="pvx" width="92" height="92"></canvas></span>
+        <span class="pend-state" id="psx">at rest</span>
+      </div>
+      <div class="pend-row">
+        <span class="pend-name">Y Pendulum</span>
+        <span class="pend-vis"><canvas id="pvy" width="92" height="92"></canvas></span>
+        <span class="pend-state" id="psy">at rest</span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="console" aria-label="Machine controls">
+    <h2>Set the Apparatus</h2>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="freqX">X Frequency</label><output id="freqXOut">3.00</output></div>
+      <input type="range" id="freqX" min="1" max="6" step="0.01" value="3">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="freqY">Y Frequency</label><output id="freqYOut">2.00</output></div>
+      <input type="range" id="freqY" min="1" max="6" step="0.01" value="2">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="damp">Damping</label><output id="dampOut">0.0040</output></div>
+      <input type="range" id="damp" min="0.0005" max="0.012" step="0.0005" value="0.004">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="phase">Phase</label><output id="phaseOut">90°</output></div>
+      <input type="range" id="phase" min="0" max="180" step="1" value="90">
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-head"><label for="rot">Pendulum Drift</label><output id="rotOut">0.011</output></div>
+      <input type="range" id="rot" min="0" max="0.05" step="0.001" value="0.011">
+    </div>
+
+    <div class="ctrl">
+      <div class="ctrl-head"><span>Ink</span></div>
+      <div class="swatches" role="group" aria-label="Ink colour">
+        <button class="swatch ink-ink" type="button" data-ink="#23252b" aria-pressed="true" aria-label="Iron gall black ink"></button>
+        <button class="swatch ink-sepia" type="button" data-ink="#5c4326" aria-pressed="false" aria-label="Walnut sepia ink"></button>
+        <button class="swatch ink-vermilion" type="button" data-ink="#9c3b2a" aria-pressed="false" aria-label="Vermilion ink"></button>
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn primary" id="drawBtn" type="button">Draw</button>
+      <button class="btn" id="randBtn" type="button">Randomize</button>
+    </div>
+    <p class="dur-note">Each figure takes twelve seconds of swinging. The machine may be stopped mid-stroke; the plate is kept regardless.</p>
+  </aside>
+
+  <section class="gallery-sec" aria-label="Gallery of finished plates">
+    <div class="gallery-head">
+      <h2>Finished Plates</h2>
+      <p id="plateCount">No plates yet — the album awaits</p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <p class="empty-note">Touch a plate to enlarge it on the card above; its parameters return to the dials.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  Harmonograph No. 7, after the pattern of Hugh Blackburn. Kept clean, oiled, and slightly out of tune.
+  <span class="sig">Drawn entirely with mathematics · No ink was spilled in the making of this page</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var SVGNS = "http" + ":" + "/" + "/www.w3.org/2000/svg"; /* namespace identifier only — never fetched */
+  var plot = document.getElementById("plot");
+  var ghost = document.getElementById("ghost");
+  var capNum = document.getElementById("capNum");
+  var capParams = document.getElementById("capParams");
+  var strip = document.getElementById("strip");
+  var plateCount = document.getElementById("plateCount");
+
+  var ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX", "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII", "XXXIX", "XL", "XLI", "XLII", "XLIII", "XLIV", "XLV", "XLVI", "XLVII", "XLVIII", "XLIX", "L", "LI", "LII", "LIII", "LIV", "LV", "LVI", "LVII", "LVIII", "LIX", "LX"];
+  function roman(n) { return n <= 60 ? ROMAN[n] : String(n); }
+
+  /* ---------- state ---------- */
+  var state = {
+    freqX: 3, freqY: 2, damp: 0.004, phase: Math.PI / 2, rot: 0.011,
+    ink: "#23252b"
+  };
+  var plates = [];
+  var plateSeq = 0;
+  var drawing = false;
+  var rafId = null;
+  var drawStart = 0;
+  var DRAW_MS = 12000;
+  var path = null;
+  var pts = [];
+  var currentG = null;
+
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- baseline card decoration (static SVG) ---------- */
+  function buildCard() {
+    while (plot.firstChild) { plot.removeChild(plot.firstChild); }
+    function el(name, attrs, parent) {
+      var n = document.createElementNS(SVGNS, name);
+      for (var k in attrs) { n.setAttribute(k, attrs[k]); }
+      (parent || plot).appendChild(n);
+      return n;
+    }
+    /* double keyline */
+    el("rect", { x: 26, y: 26, width: 948, height: 648, fill: "none", stroke: "rgba(92,67,38,.5)", "stroke-width": 1.4 });
+    el("rect", { x: 40, y: 40, width: 920, height: 620, fill: "none", stroke: "rgba(92,67,38,.28)", "stroke-width": 0.8 });
+    /* corner fleurons */
+    [[26, 26], [974, 26], [26, 674], [974, 674]].forEach(function (c) {
+      el("circle", { cx: c[0], cy: c[1], r: 3.2, fill: "none", stroke: "rgba(92,67,38,.55)", "stroke-width": 1 });
+    });
+    /* engraved caption band */
+    el("line", { x1: 330, y1: 632, x2: 440, y2: 632, stroke: "rgba(92,67,38,.4)", "stroke-width": 0.8 });
+    el("line", { x1: 560, y1: 632, x2: 670, y2: 632, stroke: "rgba(92,67,38,.4)", "stroke-width": 0.8 });
+    var t = el("text", { x: 500, y: 637, "text-anchor": "middle", "font-family": "Georgia, serif", "font-size": 17, fill: "#5c4326", "letter-spacing": "3" });
+    t.textContent = "PLATE";
+    currentG = el("g", { fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" });
+  }
+  buildCard();
+
+  /* ---------- figure math ---------- */
+  function position(t, p) {
+    var decay = Math.exp(-p.damp * t);
+    var wx = p.freqX + p.rot * 0.5;
+    var wy = p.freqY - p.rot * 0.5;
+    var x = Math.sin(wx * t + p.phase) * decay;
+    var y = Math.sin(wy * t) * decay;
+    return [x, y];
+  }
+  var MAX_SWING = 340;
+  function buildPoints(p, steps) {
+    var out = [];
+    for (var i = 0; i <= steps; i++) {
+      var t = (i / steps) * 34;
+      var xy = position(t, p);
+      out.push([500 + xy[0] * MAX_SWING, 330 + xy[1] * MAX_SWING, decayAt(t, p)]);
+    }
+    return out;
+    function decayAt(tt, pp) { return Math.exp(-pp.damp * tt); }
+  }
+  function strokeFor(decay) {
+    var w = 0.55 + decay * 1.9;
+    return w.toFixed(2);
+  }
+
+  /* ---------- drawing loop ---------- */
+  var pvx = document.getElementById("pvx");
+  var pvy = document.getElementById("pvy");
+  var psx = document.getElementById("psx");
+  var psy = document.getElementById("psy");
+  var pvxC = pvx.getContext("2d");
+  var pvyC = pvy.getContext("2d");
+
+  function drawPendulum(canvas, ctx, angle, label) {
+    ctx.clearRect(0, 0, 92, 92);
+    var cx = 46, cy = 14;
+    ctx.strokeStyle = "rgba(200,169,106,.8)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(angle) * 62, cy + Math.cos(angle) * 62); ctx.stroke();
+    ctx.fillStyle = "#c9a96a";
+    ctx.beginPath(); ctx.arc(cx + Math.sin(angle) * 62, cy + Math.cos(angle) * 62, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(200,169,106,.9)";
+    ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill();
+  }
+
+  var lastFrame = 0;
+  function frame(now) {
+    if (!drawing) { return; }
+    var t = (now - drawStart) / 1000;
+    var prog = Math.min(1, (now - drawStart) / DRAW_MS);
+    var T_END = 34;
+    var tt = t * (T_END / (DRAW_MS / 1000));
+    if (tt > T_END) { tt = T_END; }
+    var decay = Math.exp(-state.damp * tt);
+    var wx = state.freqX + state.rot * 0.5;
+    var wy = state.freqY - state.rot * 0.5;
+    var x = Math.sin(wx * tt + state.phase) * decay;
+    var y = Math.sin(wy * tt) * decay;
+    var px = 500 + x * MAX_SWING;
+    var py = 330 + y * MAX_SWING;
+
+    if (pts.length) {
+      var prev = pts[pts.length - 1];
+      var seg = document.createElementNS(SVGNS, "line");
+      seg.setAttribute("x1", prev[0].toFixed(2)); seg.setAttribute("y1", prev[1].toFixed(2));
+      seg.setAttribute("x2", px.toFixed(2)); seg.setAttribute("y2", py.toFixed(2));
+      seg.setAttribute("stroke", state.ink);
+      seg.setAttribute("stroke-width", (0.5 + decay * 1.9).toFixed(2));
+      seg.setAttribute("opacity", (0.28 + decay * 0.6).toFixed(2));
+      currentG.appendChild(seg);
+    }
+    pts.push([px, py]);
+
+    if (!RM && now - lastFrame > 33) {
+      lastFrame = now;
+      drawPendulum(pvx, pvxC, Math.sin(wx * tt + state.phase) * decay, "x");
+      drawPendulum(pvy, pvyC, Math.sin(wy * tt) * decay, "y");
+      psx.textContent = "swing " + (decay * 100).toFixed(0) + "%";
+      psy.textContent = "swing " + (decay * 100).toFixed(0) + "%";
+    }
+
+    if (prog >= 1 || tt >= T_END) {
+      finishPlate();
+      return;
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function finishPlate() {
+    drawing = false;
+    rafId = null;
+    psx.textContent = psy.textContent = "at rest";
+    pvxC.clearRect(0, 0, 92, 92);
+    pvyC.clearRect(0, 0, 92, 92);
+    plateSeq += 1;
+    var num = roman(plateSeq);
+    var family = figureFamily();
+    capNum.textContent = "Plate " + num;
+    var label = document.createElementNS(SVGNS, "text");
+    label.setAttribute("x", 500); label.setAttribute("y", 664);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("font-family", "Georgia, serif");
+    label.setAttribute("font-size", 15);
+    label.setAttribute("fill", "#5c4326");
+    label.setAttribute("letter-spacing", "2");
+    label.textContent = num + " — " + family;
+    plot.appendChild(label);
+    var markup = plot.innerHTML;
+    var svgData = "<svg xmlns='" + SVGNS + "' viewBox='0 0 1000 700'>" + markup + "</svg>";
+    var blob = new Blob([svgData], { type: "image/svg+xml" });
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.onload = function () {
+      addPlate(img, num, family, markup);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  function figureFamily() {
+    var ratio = state.freqX / state.freqY;
+    var names = { 1: "Unison", 1.5: "Diapente", 2: "Diapason", 2.5: "Sesquialter", 3: "Disdiapason", 3.5: "Sesquitertian", 4: "Tetrapla", 5: "Quintupla", 6: "Sextupla" };
+    var near = 0, best = 99;
+    Object.keys(names).forEach(function (k) {
+      var d = Math.abs(parseFloat(k) - ratio);
+      if (d < best) { best = d; near = parseFloat(k); }
+    });
+    if (best < 0.03) { return names[near]; }
+    if (state.rot > 0.03) { return "Meander"; }
+    return "Crooked " + (ratio < 1 ? "Diapason" : "Spiral");
+  }
+
+  function addPlate(img, num, family, markup) {
+    plates.push({ img: img, num: num, family: family, params: snapshotParams(), markup: markup });
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "plate current";
+    btn.setAttribute("aria-label", "Plate " + num + ", " + family);
+    var cv = document.createElement("canvas");
+    cv.width = 480; cv.height = 336;
+    btn.appendChild(cv);
+    var pn = document.createElement("span");
+    pn.className = "p-num"; pn.textContent = num;
+    btn.appendChild(pn);
+    var pf = document.createElement("span");
+    pf.className = "p-fam"; pf.textContent = family;
+    btn.appendChild(pf);
+    var pc = cv.getContext("2d");
+    img.onload = function () {
+      pc.fillStyle = "#fbf8f0";
+      pc.fillRect(0, 0, 480, 336);
+      pc.drawImage(img, 0, 0, 480, 336);
+    };
+    if (img.complete) { img.onload(); }
+    btn.addEventListener("click", function () {
+      restorePlate(plates.length - 1);
+    });
+    Array.prototype.forEach.call(strip.children, function (c) { c.classList.remove("current"); });
+    strip.appendChild(btn);
+    btn.scrollIntoView({ behavior: RM ? "auto" : "smooth", inline: "nearest", block: "nearest" });
+    plateCount.textContent = plates.length + (plates.length === 1 ? " plate" : " plates") + " in the album";
+  }
+
+  function snapshotParams() {
+    return {
+      freqX: state.freqX, freqY: state.freqY, damp: state.damp,
+      phaseDeg: Math.round(state.phase * 180 / Math.PI), rot: state.rot,
+      ink: state.ink
+    };
+  }
+
+  function restorePlate(i) {
+    var p = plates[i];
+    if (!p) { return; }
+    plot.innerHTML = p.markup;
+    var gs = plot.querySelectorAll("g");
+    currentG = gs.length ? gs[gs.length - 1] : null;
+    Array.prototype.forEach.call(strip.children, function (c, j) {
+      c.classList.toggle("current", j === i);
+    });
+    capNum.textContent = "Plate " + p.num;
+    capParams.textContent = paramsLine(p.params);
+  }
+
+  function paramsLine(p) {
+    return "fx " + p.freqX.toFixed(2) + " · fy " + p.freqY.toFixed(2) + " · δ " + p.damp.toFixed(4) + " · φ " + p.phaseDeg + "° · ρ " + p.rot.toFixed(3);
+  }
+
+  /* ---------- controls ---------- */
+  function bindRange(id, outId, apply, fmt) {
+    var el = document.getElementById(id);
+    var out = document.getElementById(outId);
+    function sync() {
+      var v = parseFloat(el.value);
+      apply(v);
+      out.textContent = fmt(v);
+      if (!drawing && plates.length) { capParams.textContent = paramsLine(snapshotParams()); }
+    }
+    el.addEventListener("input", sync);
+    sync();
+    return el;
+  }
+  var rFreqX = bindRange("freqX", "freqXOut", function (v) { state.freqX = v; }, function (v) { return v.toFixed(2); });
+  var rFreqY = bindRange("freqY", "freqYOut", function (v) { state.freqY = v; }, function (v) { return v.toFixed(2); });
+  var rDamp = bindRange("damp", "dampOut", function (v) { state.damp = v; }, function (v) { return v.toFixed(4); });
+  var rPhase = bindRange("phase", "phaseOut", function (v) { state.phase = v * Math.PI / 180; }, function (v) { return Math.round(v) + "°"; });
+  var rRot = bindRange("rot", "rotOut", function (v) { state.rot = v; }, function (v) { return v.toFixed(3); });
+
+  document.querySelectorAll(".swatch").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll(".swatch").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      state.ink = b.dataset.ink;
+    });
+  });
+
+  var drawBtn = document.getElementById("drawBtn");
+  var randBtn = document.getElementById("randBtn");
+
+  function startDraw() {
+    if (drawing) { return; }
+    drawing = true;
+    pts = [];
+    buildCard();
+    ghost.classList.add("gone");
+    drawStart = performance.now();
+    lastFrame = 0;
+    drawBtn.disabled = true;
+    capNum.textContent = "Card Unnumbered";
+    capParams.textContent = paramsLine(snapshotParams());
+    if (RM) {
+      var steps = 2600;
+      var all = buildPoints(state, steps);
+      for (var i = 1; i < all.length; i++) {
+        var seg = document.createElementNS(SVGNS, "line");
+        seg.setAttribute("x1", all[i - 1][0].toFixed(2)); seg.setAttribute("y1", all[i - 1][1].toFixed(2));
+        seg.setAttribute("x2", all[i][0].toFixed(2)); seg.setAttribute("y2", all[i][1].toFixed(2));
+        seg.setAttribute("stroke", state.ink);
+        seg.setAttribute("stroke-width", (0.5 + all[i][2] * 1.9).toFixed(2));
+        seg.setAttribute("opacity", (0.28 + all[i][2] * 0.6).toFixed(2));
+        currentG.appendChild(seg);
+      }
+      finishPlate();
+      return;
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  drawBtn.addEventListener("click", startDraw);
+  randBtn.addEventListener("click", function () {
+    var r = mulberry32((Math.random() * 4294967295) | 0);
+    var ratios = [1, 1.5, 2, 2.5, 3, 3.5, 4, 5];
+    var fy = ratios[(r() * ratios.length) | 0];
+    var fx = fy * (1 + ((r() * 3) | 0)) + (r() < 0.4 ? 0.5 : 0);
+    if (fx > 6) { fx = 6; }
+    if (fx < 1) { fx = 1; }
+    rFreqX.value = fx.toFixed(2);
+    rFreqX.dispatchEvent(new Event("input"));
+    rFreqY.value = fy.toFixed(2);
+    rFreqY.dispatchEvent(new Event("input"));
+    rDamp.value = (0.001 + r() * 0.008).toFixed(4);
+    rDamp.dispatchEvent(new Event("input"));
+    rPhase.value = String((r() * 181) | 0);
+    rPhase.dispatchEvent(new Event("input"));
+    rRot.value = (r() * 0.045).toFixed(3);
+    rRot.dispatchEvent(new Event("input"));
+    startDraw();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target && /INPUT|BUTTON/.test(e.target.tagName)) { return; }
+    if (e.key === "d" || e.key === "D") { startDraw(); }
+    if (e.key === "r" || e.key === "R") { randBtn.click(); }
+  });
+
+  /* rest-state pendulum idle */
+  if (!RM) {
+    var idle = 0;
+    (function idleLoop() {
+      if (drawing) { return; }
+      idle += 0.016;
+      drawPendulum(pvx, pvxC, Math.sin(idle * 0.7) * 0.12, "x");
+      drawPendulum(pvy, pvyC, Math.cos(idle * 0.5) * 0.12, "y");
+      requestAnimationFrame(idleLoop);
+    })();
+  } else {
+    drawPendulum(pvx, pvxC, 0, "x");
+    drawPendulum(pvy, pvyC, 0, "y");
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLUEPRINT NO.7 — Aerostat Mk.VII General Arrangement</title>
+<style>
+  :root {
+    --blue-deep: #0d2b45;
+    --blue-mid: #123a5c;
+    --blue-lite: #164267;
+    --line: #eaf3ff;
+    --dim-col: #9fc2e8;
+    --faint: rgba(234, 243, 255, 0.28);
+    --ghost: rgba(234, 243, 255, 0.12);
+    --stamp: #c0392b;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "Courier New", monospace;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: rgba(159, 194, 232, 0.35);
+    color: #f6faff;
+  }
+
+  html {
+    scrollbar-color: #2a5785 var(--blue-deep);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a2136;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a5785;
+    border: 2px solid #0a2136;
+    border-radius: 5px;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      linear-gradient(rgba(159, 194, 232, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(159, 194, 232, 0.05) 1px, transparent 1px),
+      radial-gradient(120% 90% at 50% 0%, #123a5c 0%, #0d2b45 55%, #081d31 100%);
+    background-size: 34px 34px, 34px 34px, auto;
+    color: var(--line);
+    font-family: var(--mono);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(10px, 2.2vw, 26px);
+  }
+
+  .bar {
+    width: min(1520px, 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .bar .idblock {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .bar .job {
+    font-size: clamp(11px, 1.4vw, 13px);
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--line);
+  }
+
+  .bar .sub {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--dim-col);
+  }
+
+  .togs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tog {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(18, 58, 92, 0.55);
+    border: 1px solid rgba(159, 194, 232, 0.35);
+    color: var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    padding: 9px 13px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    min-height: 40px;
+  }
+
+  .tog:hover,
+  .tog:focus-visible {
+    border-color: rgba(234, 243, 255, 0.85);
+    background: rgba(22, 66, 103, 0.75);
+    outline: none;
+  }
+
+  .tog .led {
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--line);
+    background: var(--line);
+    box-shadow: 0 0 8px rgba(234, 243, 255, 0.5);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .tog[aria-pressed="false"] .led {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .wrap {
+    width: min(1520px, 100%);
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .sheet {
+    position: relative;
+    width: 100%;
+    min-width: 900px;
+    max-width: 1500px;
+    aspect-ratio: 14 / 9;
+    margin: 0 auto;
+    background:
+      radial-gradient(140% 110% at 50% 0%, var(--blue-lite) 0%, var(--blue-mid) 48%, var(--blue-deep) 100%);
+    border: 1px solid rgba(234, 243, 255, 0.4);
+    box-shadow: 0 30px 80px rgba(2, 10, 20, 0.55), 0 4px 18px rgba(2, 10, 20, 0.4);
+    cursor: crosshair;
+    animation: expose 2.1s ease-out both;
+  }
+
+  .sheet.reexpose {
+    animation: expose 1.4s ease-out both;
+  }
+
+  @keyframes expose {
+    0% {
+      filter: brightness(2.6) blur(7px) saturate(0.4);
+      opacity: 0.35;
+    }
+    38% {
+      opacity: 1;
+    }
+    100% {
+      filter: none;
+      opacity: 1;
+    }
+  }
+
+  .sheet svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  svg text {
+    font-family: var(--mono);
+    fill: var(--line);
+  }
+
+  svg .serif {
+    font-family: var(--serif);
+  }
+
+  svg .dimtxt {
+    fill: var(--dim-col);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+  }
+
+  svg .fine {
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    fill: var(--dim-col);
+  }
+
+  svg .lab {
+    font-size: 12.5px;
+    letter-spacing: 0.16em;
+  }
+
+  svg .micro {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    fill: rgba(234, 243, 255, 0.6);
+  }
+
+  .layer {
+    transition: opacity 0.35s ease;
+  }
+
+  svg.no-dims #dimLayer,
+  svg.no-hidden #hiddenLayer,
+  svg.no-grid #gridLayer {
+    opacity: 0 !important;
+  }
+
+  .part {
+    cursor: pointer;
+    transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.3, 1.15), opacity 0.3s ease;
+    transform: translate(0, 0);
+  }
+
+  .part .callout {
+    opacity: 0;
+    transition: opacity 0.3s ease 0.12s;
+  }
+
+  .part:hover,
+  .part.active {
+    transform: translate(var(--lx, 0px), var(--ly, 0px));
+  }
+
+  .part:hover .callout,
+  .part.active .callout {
+    opacity: 1;
+  }
+
+  .sheet.focus .part:not(.active) {
+    opacity: 0.34;
+  }
+
+  .sheet.focus .layer:not(#artLayer) {
+    opacity: 0.3;
+  }
+
+  .sheet.focus svg.no-grid #gridLayer,
+  .sheet.focus svg.no-dims #dimLayer,
+  .sheet.focus svg.no-hidden #hiddenLayer {
+    opacity: 0 !important;
+  }
+
+  .rowlit {
+    fill: rgba(234, 243, 255, 0.1) !important;
+  }
+
+  .xhair {
+    position: absolute;
+    background: rgba(234, 243, 255, 0.34);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .xhair.v {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+  }
+
+  .xhair.h {
+    left: 0;
+    right: 0;
+    height: 1px;
+  }
+
+  .sheet.tracking .xhair {
+    opacity: 1;
+  }
+
+  .chip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(8, 26, 43, 0.85);
+    border: 1px solid rgba(159, 194, 232, 0.5);
+    color: var(--line);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    padding: 4px 8px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 3;
+  }
+
+  .sheet.tracking .chip {
+    opacity: 1;
+  }
+
+  .flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(120% 100% at 50% 40%, rgba(244, 250, 255, 0.98), rgba(214, 233, 250, 0.9));
+    opacity: 0;
+  }
+
+  .flash.go {
+    animation: reflash 0.9s ease-out;
+  }
+
+  @keyframes reflash {
+    0% {
+      opacity: 0.95;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .foot {
+    width: min(1520px, 100%);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim-col);
+  }
+
+  .foot .key {
+    color: var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet.reexpose {
+      animation: none;
+    }
+    .flash.go {
+      animation: none;
+      opacity: 0;
+    }
+    .part,
+    .layer,
+    .callout {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="idblock">
+    <span class="job">Blueprint No.7 — General Arrangement</span>
+    <span class="sub">Aerostat Mk.VII "Petrel" · Bureau of Improbable Flight · Sheet 1 of 1</span>
+  </div>
+  <div class="togs" role="group" aria-label="Drawing layer toggles">
+    <button class="tog" id="togDims" type="button" aria-pressed="true"><span class="led" aria-hidden="true"></span>Dimensions</button>
+    <button class="tog" id="togHidden" type="button" aria-pressed="true"><span class="led" aria-hidden="true"></span>Hidden lines</button>
+    <button class="tog" id="togGrid" type="button" aria-pressed="true"><span class="led" aria-hidden="true"></span>Grid</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <figure class="sheet" id="sheet" title="Hover a component to lift it from the assembly · click empty paper to re-expose">
+    <svg id="bp" viewBox="0 0 1400 900" role="img" aria-label="Cyanotype engineering drawing of the Aerostat Mk.VII, an impossible flying machine with feathered wings, an aether coil and a pusher propeller">
+      <defs>
+        <pattern id="gridpat" width="35" height="35" patternUnits="userSpaceOnUse">
+          <path d="M 35 0 L 0 0 0 35" fill="none" stroke="rgba(159,194,232,0.16)" stroke-width="1"></path>
+        </pattern>
+        <pattern id="gridpat5" width="175" height="175" patternUnits="userSpaceOnUse">
+          <rect width="175" height="175" fill="url(#gridpat)"></rect>
+          <path d="M 175 0 L 0 0 0 175" fill="none" stroke="rgba(159,194,232,0.3)" stroke-width="1"></path>
+        </pattern>
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" stroke="rgba(234,243,255,0.5)" stroke-width="1"></line>
+        </pattern>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+          <path d="M 0 1.5 L 10 5 L 0 8.5" fill="none" stroke="#9fc2e8" stroke-width="1.4"></path>
+        </marker>
+        <marker id="dot" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="5" markerHeight="5">
+          <circle cx="3" cy="3" r="2.4" fill="#eaf3ff"></circle>
+        </marker>
+      </defs>
+
+      <g id="gridLayer" class="layer">
+        <rect x="60" y="50" width="1280" height="800" fill="url(#gridpat5)"></rect>
+        <g class="fine" text-anchor="middle">
+          <text x="137" y="865">A</text><text x="312" y="865">B</text><text x="487" y="865">C</text>
+          <text x="662" y="865">D</text><text x="837" y="865">E</text><text x="1012" y="865">F</text>
+          <text x="1187" y="865">G</text><text x="1305" y="865">H</text>
+        </g>
+        <g class="fine" text-anchor="end">
+          <text x="52" y="90">1</text><text x="52" y="265">2</text><text x="52" y="440">3</text>
+          <text x="52" y="615">4</text><text x="52" y="790">5</text>
+        </g>
+      </g>
+
+      <g id="artLayer" class="layer">
+        <g class="part" id="p01" data-part="01" style="--lx:-26px; --ly:-42px;" tabindex="0">
+          <title>Envelope, lifting — doped silk</title>
+          <path d="M 440 330 C 440 240 560 210 700 210 C 840 210 960 240 960 330 C 960 420 840 455 700 455 C 560 455 440 420 440 330 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="2"></path>
+          <path d="M 520 224 C 496 262 496 398 520 441" fill="none" stroke="rgba(234,243,255,0.75)" stroke-width="1.2"></path>
+          <path d="M 610 212 C 592 258 592 407 610 452" fill="none" stroke="rgba(234,243,255,0.75)" stroke-width="1.2"></path>
+          <path d="M 700 210 L 700 455" fill="none" stroke="rgba(234,243,255,0.55)" stroke-width="1"></path>
+          <path d="M 790 212 C 808 258 808 407 790 452" fill="none" stroke="rgba(234,243,255,0.75)" stroke-width="1.2"></path>
+          <path d="M 880 224 C 904 262 904 398 880 441" fill="none" stroke="rgba(234,243,255,0.75)" stroke-width="1.2"></path>
+          <path d="M 447 302 C 560 272 840 272 953 302" fill="none" stroke="rgba(234,243,255,0.6)" stroke-width="1"></path>
+          <path d="M 447 358 C 560 388 840 388 953 358" fill="none" stroke="rgba(234,243,255,0.6)" stroke-width="1"></path>
+          <path d="M 700 210 L 700 176" stroke="#eaf3ff" stroke-width="1.6"></path>
+          <rect x="692" y="162" width="16" height="14" fill="none" stroke="#eaf3ff" stroke-width="1.4"></rect>
+          <circle cx="440" cy="330" r="6" fill="none" stroke="#eaf3ff" stroke-width="1.4"></circle>
+          <circle cx="960" cy="330" r="6" fill="none" stroke="#eaf3ff" stroke-width="1.4"></circle>
+          <g fill="#eaf3ff">
+            <circle cx="470" cy="318" r="1.7"></circle><circle cx="500" cy="310" r="1.7"></circle>
+            <circle cx="530" cy="303" r="1.7"></circle><circle cx="560" cy="297" r="1.7"></circle>
+            <circle cx="590" cy="293" r="1.7"></circle><circle cx="620" cy="290" r="1.7"></circle>
+            <circle cx="470" cy="344" r="1.7"></circle><circle cx="500" cy="351" r="1.7"></circle>
+            <circle cx="530" cy="358" r="1.7"></circle><circle cx="560" cy="364" r="1.7"></circle>
+            <circle cx="840" cy="293" r="1.7"></circle><circle cx="870" cy="297" r="1.7"></circle>
+            <circle cx="840" cy="364" r="1.7"></circle><circle cx="870" cy="358" r="1.7"></circle>
+          </g>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="560,238 470,190 330,190" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="330" cy="190" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="322" y="176" class="lab" stroke="none">01 · ENVELOPE</text>
+            <text x="322" y="212" class="fine" stroke="none">LAMINATED SILK, DOPED 3 COATS</text>
+          </g>
+        </g>
+
+        <g class="part" id="p02" data-part="02" style="--lx:-46px; --ly:-18px;" tabindex="0">
+          <title>Wing, port feather assembly</title>
+          <g transform="rotate(-28 540 380)">
+            <path d="M 540 380 C 480 362 380 342 302 354 C 380 368 480 392 540 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 540 381 C 470 366 380 352 310 355" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(-14 540 380)">
+            <path d="M 540 380 C 478 360 374 336 292 350 C 374 366 478 392 540 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 540 381 C 468 364 372 348 300 351" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(0 540 380)">
+            <path d="M 540 380 C 476 358 368 330 284 346 C 368 364 476 392 540 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.8"></path>
+            <path d="M 540 381 C 466 362 366 342 292 347" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(14 540 380)">
+            <path d="M 540 380 C 478 360 374 336 292 350 C 374 366 478 392 540 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 540 381 C 468 364 372 348 300 351" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(28 540 380)">
+            <path d="M 540 380 C 480 362 380 342 302 354 C 380 368 480 392 540 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 540 381 C 470 366 380 352 310 355" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <circle cx="540" cy="380" r="15" fill="rgba(13,43,69,1)" stroke="#eaf3ff" stroke-width="1.8"></circle>
+          <circle cx="540" cy="380" r="6" fill="none" stroke="#eaf3ff" stroke-width="1.2"></circle>
+          <circle cx="540" cy="368" r="2" fill="#eaf3ff"></circle>
+          <circle cx="552" cy="380" r="2" fill="#eaf3ff"></circle>
+          <circle cx="540" cy="392" r="2" fill="#eaf3ff"></circle>
+          <circle cx="528" cy="380" r="2" fill="#eaf3ff"></circle>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="420,352 300,300 176,300" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="176" cy="300" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="96" y="286" class="lab" stroke="none">02 · WING, PORT</text>
+            <text x="96" y="322" class="fine" stroke="none">5 GREYLING QUILLS, TAPERED</text>
+          </g>
+        </g>
+
+        <g class="part" id="p03" data-part="03" style="--lx:46px; --ly:-18px;" tabindex="0">
+          <title>Wing, starboard feather assembly</title>
+          <g transform="rotate(28 860 380)">
+            <path d="M 860 380 C 920 362 1020 342 1098 354 C 1020 368 920 392 860 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 860 381 C 930 366 1020 352 1090 355" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(14 860 380)">
+            <path d="M 860 380 C 922 360 1026 336 1108 350 C 1026 366 922 392 860 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 860 381 C 932 364 1028 348 1100 351" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(0 860 380)">
+            <path d="M 860 380 C 924 358 1032 330 1116 346 C 1032 364 924 392 860 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.8"></path>
+            <path d="M 860 381 C 934 362 1034 342 1108 347" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(-14 860 380)">
+            <path d="M 860 380 C 922 360 1026 336 1108 350 C 1026 366 922 392 860 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 860 381 C 932 364 1028 348 1100 351" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <g transform="rotate(-28 860 380)">
+            <path d="M 860 380 C 920 362 1020 342 1098 354 C 1020 368 920 392 860 386 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.6"></path>
+            <path d="M 860 381 C 930 366 1020 352 1090 355" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          </g>
+          <circle cx="860" cy="380" r="15" fill="rgba(13,43,69,1)" stroke="#eaf3ff" stroke-width="1.8"></circle>
+          <circle cx="860" cy="380" r="6" fill="none" stroke="#eaf3ff" stroke-width="1.2"></circle>
+          <circle cx="860" cy="368" r="2" fill="#eaf3ff"></circle>
+          <circle cx="872" cy="380" r="2" fill="#eaf3ff"></circle>
+          <circle cx="860" cy="392" r="2" fill="#eaf3ff"></circle>
+          <circle cx="848" cy="380" r="2" fill="#eaf3ff"></circle>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="980,352 1110,300 1236,300" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="1236" cy="300" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="1156" y="286" class="lab" stroke="none">03 · WING, STBD</text>
+            <text x="1156" y="322" class="fine" stroke="none">MIRROR OF PORT, LH 0.4 DEG</text>
+          </g>
+        </g>
+
+        <g class="part" id="p04" data-part="04" style="--lx:42px; --ly:-26px;" tabindex="0">
+          <title>Empennage, cruciform tail</title>
+          <path d="M 958 318 C 1000 268 1052 250 1088 258 L 1080 322 C 1040 320 996 322 958 318 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.8"></path>
+          <path d="M 958 342 C 1000 392 1052 410 1088 402 L 1080 338 C 1040 340 996 338 958 342 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.8"></path>
+          <path d="M 958 330 C 1010 318 1070 316 1114 322 C 1070 331 1010 342 958 330 Z" fill="rgba(18,58,92,0.35)" stroke="#eaf3ff" stroke-width="1.8"></path>
+          <path d="M 966 322 C 1006 284 1048 266 1080 270" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          <path d="M 966 338 C 1006 376 1048 394 1080 390" fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="0.9"></path>
+          <circle cx="1006" cy="330" r="5.5" fill="none" stroke="#eaf3ff" stroke-width="1.4"></circle>
+          <path d="M 1006 300 L 1006 360" stroke="rgba(234,243,255,0.45)" stroke-width="0.9" stroke-dasharray="6 4"></path>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="1052,290 1140,220 1258,220" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="1258" cy="220" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="1130" y="206" class="lab" stroke="none">04 · EMPENNAGE</text>
+            <text x="1130" y="242" class="fine" stroke="none">CRUCIFORM, SPRUCE + BRASS HINGES</text>
+          </g>
+        </g>
+
+        <g class="part" id="p05" data-part="05" style="--lx:0px; --ly:46px;" tabindex="0">
+          <title>Gondola, crew of two</title>
+          <path d="M 662 452 L 646 470 M 738 452 L 762 470 M 654 461 L 754 461 M 646 470 L 762 452" stroke="#eaf3ff" stroke-width="1.1" fill="none"></path>
+          <rect x="610" y="470" width="190" height="76" rx="16" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.8"></rect>
+          <path d="M 610 500 L 800 500" stroke="rgba(234,243,255,0.45)" stroke-width="0.9"></path>
+          <rect x="626" y="484" width="22" height="16" fill="none" stroke="#eaf3ff" stroke-width="1.1"></rect>
+          <rect x="658" y="484" width="22" height="16" fill="none" stroke="#eaf3ff" stroke-width="1.1"></rect>
+          <rect x="690" y="484" width="22" height="16" fill="none" stroke="#eaf3ff" stroke-width="1.1"></rect>
+          <rect x="722" y="484" width="22" height="16" fill="none" stroke="#eaf3ff" stroke-width="1.1"></rect>
+          <path d="M 762 484 L 762 532 M 778 484 C 786 494 786 522 778 532" fill="none" stroke="#eaf3ff" stroke-width="1.1"></path>
+          <circle cx="622" cy="524" r="4" fill="none" stroke="#eaf3ff" stroke-width="1.1"></circle>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="618,540 540,608 420,608" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="420" cy="608" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="336" y="594" class="lab" stroke="none">05 · GONDOLA</text>
+            <text x="336" y="630" class="fine" stroke="none">CREW 2 · WALNUT + BRASS</text>
+          </g>
+        </g>
+
+        <g class="part" id="p06" data-part="06" style="--lx:28px; --ly:38px;" tabindex="0">
+          <title>Propeller, pusher</title>
+          <path d="M 858 507 L 800 507" stroke="#eaf3ff" stroke-width="1.6"></path>
+          <path d="M 858 499 C 848 468 866 438 858 414 C 868 440 872 470 866 499 Z" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <path d="M 858 515 C 848 546 866 576 858 600 C 868 574 872 544 866 515 Z" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <circle cx="858" cy="507" r="8" fill="rgba(13,43,69,1)" stroke="#eaf3ff" stroke-width="1.6"></circle>
+          <circle cx="858" cy="507" r="2.6" fill="#eaf3ff"></circle>
+          <path d="M 858 415 A 92 92 0 1 0 858.2 415" fill="none" stroke="rgba(234,243,255,0.4)" stroke-width="0.9" stroke-dasharray="4 7"></path>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="880,540 960,620 1060,620" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="1060" cy="620" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="986" y="606" class="lab" stroke="none">06 · PROPELLER</text>
+            <text x="986" y="642" class="fine" stroke="none">PUSHER · LAMINATED ASH · 320 RPM</text>
+          </g>
+        </g>
+
+        <g class="part" id="p07" data-part="07" style="--lx:20px; --ly:42px;" tabindex="0">
+          <title>Boiler, condensing</title>
+          <rect x="800" y="492" width="30" height="42" rx="6" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.5"></rect>
+          <path d="M 804 492 C 808 484 822 484 826 492" fill="none" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <path d="M 815 484 L 815 462" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <path d="M 808 462 L 822 462" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <circle cx="822" cy="510" r="4.5" fill="none" stroke="#eaf3ff" stroke-width="1.1"></circle>
+          <path d="M 822 510 L 825 507" stroke="#eaf3ff" stroke-width="0.9"></path>
+          <path d="M 830 522 L 846 522 L 846 507 L 850 507" fill="none" stroke="#eaf3ff" stroke-width="1.3"></path>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="812,536 852,690 960,690" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="960" cy="690" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="890" y="676" class="lab" stroke="none">07 · BOILER</text>
+            <text x="890" y="712" class="fine" stroke="none">CONDENSING · COPPER · 2.8 ATM</text>
+          </g>
+        </g>
+
+        <g class="part" id="p08" data-part="08" style="--lx:0px; --ly:50px;" tabindex="0">
+          <title>Coil, aether resonant</title>
+          <path d="M 700 545 L 700 572 M 724 545 L 724 572" stroke="#eaf3ff" stroke-width="1.1"></path>
+          <path d="M 690 572 A 22 22 0 0 0 734 572" fill="none" stroke="#eaf3ff" stroke-width="1.7"></path>
+          <path d="M 696 578 A 16 16 0 0 0 728 578" fill="none" stroke="#eaf3ff" stroke-width="1.4"></path>
+          <path d="M 702 584 A 10 10 0 0 0 722 584" fill="none" stroke="#eaf3ff" stroke-width="1.1"></path>
+          <path d="M 684 600 L 684 586 M 712 606 L 712 592 M 740 600 L 740 586" stroke="rgba(234,243,255,0.5)" stroke-width="0.9" stroke-dasharray="3 4"></path>
+          <circle cx="712" cy="572" r="2.4" fill="#eaf3ff"></circle>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="712,606 640,700 520,700" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="520" cy="700" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="440" y="686" class="lab" stroke="none">08 · AETHER COIL</text>
+            <text x="440" y="722" class="fine" stroke="none">ELECTRUM · WIND COUNTER-SUNWISE</text>
+          </g>
+        </g>
+
+        <g class="part" id="p09" data-part="09" style="--lx:-22px; --ly:42px;" tabindex="0">
+          <title>Undercarriage, skid</title>
+          <path d="M 596 546 C 588 592 612 610 658 612 L 760 612 C 796 610 812 592 804 548" fill="none" stroke="#eaf3ff" stroke-width="1.8"></path>
+          <path d="M 640 546 L 630 602 M 762 546 L 774 602" stroke="#eaf3ff" stroke-width="1.4"></path>
+          <circle cx="630" cy="602" r="9" fill="rgba(13,43,69,1)" stroke="#eaf3ff" stroke-width="1.4"></circle>
+          <circle cx="630" cy="602" r="3" fill="#eaf3ff"></circle>
+          <path d="M 596 570 L 804 570" stroke="rgba(234,243,255,0.3)" stroke-width="0.8"></path>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="606,612 480,740 360,740" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="360" cy="740" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="278" y="726" class="lab" stroke="none">09 · UNDERCARRIAGE</text>
+            <text x="278" y="762" class="fine" stroke="none">ASH SKID + STEEL PIVOT WHEEL</text>
+          </g>
+        </g>
+
+        <g class="part" id="p10" data-part="10" style="--lx:-32px; --ly:26px;" tabindex="0">
+          <title>Ballast, sandbag</title>
+          <path d="M 502 432 L 494 470 M 898 432 L 906 470" stroke="#eaf3ff" stroke-width="1.1"></path>
+          <path d="M 482 470 C 476 494 484 506 494 506 C 504 506 512 494 506 470 Z" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <path d="M 488 470 L 500 470" stroke="#eaf3ff" stroke-width="2.4"></path>
+          <path d="M 896 470 C 890 494 898 506 908 506 C 918 506 926 494 920 470 Z" fill="rgba(18,58,92,0.5)" stroke="#eaf3ff" stroke-width="1.5"></path>
+          <path d="M 902 470 L 914 470" stroke="#eaf3ff" stroke-width="2.4"></path>
+          <g class="callout" stroke="#eaf3ff" fill="none">
+            <polyline points="490,500 400,556 300,556" stroke-width="1.1" marker-start="url(#dot)"></polyline>
+            <circle cx="300" cy="556" r="2.6" fill="#eaf3ff" stroke="none"></circle>
+            <text x="220" y="542" class="lab" stroke="none">10 · BALLAST</text>
+            <text x="220" y="578" class="fine" stroke="none">SANDBAG × 4 · DROP ON DEMAND</text>
+          </g>
+        </g>
+
+        <g stroke="rgba(234,243,255,0.5)" fill="none">
+          <path d="M 372 268 C 352 276 340 292 336 312" marker-end="url(#arr)" stroke-width="1.2"></path>
+          <path d="M 366 318 C 350 326 342 340 340 356" marker-end="url(#arr)" stroke-width="1.2"></path>
+        </g>
+        <text x="296" y="252" class="micro">REL. WIND 12 M/S</text>
+        <path d="M 700 190 L 700 470" stroke="rgba(234,243,255,0.65)" stroke-width="1.1" stroke-dasharray="14 5 3 5" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+        <text x="712" y="186" class="dimtxt">A</text>
+        <text x="712" y="486" class="dimtxt">A</text>
+      </g>
+
+      <g id="hiddenLayer" class="layer" stroke="rgba(234,243,255,0.55)" fill="none" stroke-width="1" stroke-dasharray="7 5">
+        <path d="M 470 330 C 470 262 570 240 700 240 C 830 240 930 262 930 330 C 930 398 830 424 700 424 C 570 424 470 398 470 330 Z"></path>
+        <ellipse cx="700" cy="330" rx="120" ry="52"></ellipse>
+        <circle cx="858" cy="507" r="86"></circle>
+        <rect x="622" y="480" width="166" height="56" rx="10"></rect>
+        <circle cx="630" cy="602" r="14"></circle>
+        <path d="M 494 486 L 494 470 M 908 486 L 908 470"></path>
+      </g>
+
+      <g id="dimLayer" class="layer">
+        <g stroke="#9fc2e8" stroke-width="1">
+          <path d="M 306 346 L 306 150 L 1094 150 L 1094 346" fill="none"></path>
+          <path d="M 306 150 L 1094 150" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+          <path d="M 440 210 L 402 210 L 402 455 L 440 455" fill="none"></path>
+          <path d="M 402 210 L 402 455" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+          <path d="M 1116 176 L 1330 176 L 1330 612 L 1116 612" fill="none"></path>
+          <path d="M 1330 176 L 1330 612" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+          <path d="M 440 640 L 440 690 L 1114 690 L 1114 640" fill="none"></path>
+          <path d="M 440 690 L 1114 690" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+          <path d="M 905 414 L 905 600" marker-start="url(#arr)" marker-end="url(#arr)"></path>
+          <path d="M 872 414 L 930 414 M 872 600 L 930 600" fill="none"></path>
+          <path d="M 610 570 L 566 570 M 566 570 L 566 612" fill="none"></path>
+        </g>
+        <text x="700" y="140" class="dimtxt" text-anchor="middle">SPAN 788</text>
+        <text x="392" y="337" class="dimtxt" text-anchor="middle" transform="rotate(-90 392 337)">Ø 245</text>
+        <text x="1346" y="399" class="dimtxt" text-anchor="middle" transform="rotate(-90 1346 399)">OVER-ALL 444</text>
+        <text x="777" y="712" class="dimtxt" text-anchor="middle">LENGTH 672</text>
+        <text x="921" y="502" class="dimtxt" text-anchor="middle" transform="rotate(-90 921 502)">PROP Ø 194</text>
+        <path d="M 508 262 L 452 216 L 396 216" stroke="#9fc2e8" stroke-width="1" fill="none" marker-start="url(#dot)"></path>
+        <text x="386" y="206" class="dimtxt" text-anchor="end">R 122</text>
+        <text x="556" y="560" class="dimtxt" text-anchor="end">FLOOR 42</text>
+      </g>
+
+      <g id="staticLayer" class="layer">
+        <g fill="none" stroke="rgba(234,243,255,0.7)" stroke-width="1.2">
+          <circle cx="250" cy="640" r="95"></circle>
+          <circle cx="250" cy="640" r="78"></circle>
+          <circle cx="250" cy="640" r="58" stroke-dasharray="6 4"></circle>
+          <circle cx="250" cy="640" r="34" stroke="rgba(234,243,255,0.4)"></circle>
+        </g>
+        <path d="M 250 562 A 78 78 0 0 1 328 640 L 250 640 Z" fill="url(#hatch)" stroke="none"></path>
+        <path d="M 250 718 A 78 78 0 0 1 172 640 L 250 640 Z" fill="url(#hatch)" stroke="none"></path>
+        <text x="250" y="636" class="lab" text-anchor="middle">RIB</text>
+        <text x="250" y="656" class="micro" text-anchor="middle">SECTION A-A</text>
+        <text x="250" y="770" class="fine" text-anchor="middle">SCALE 2:1</text>
+
+        <g>
+          <rect x="1006" y="60" width="324" height="128" fill="none" stroke="rgba(234,243,255,0.55)" stroke-width="1.2"></rect>
+          <text x="1022" y="84" class="lab">GENERAL NOTES</text>
+          <path d="M 1006 94 L 1330 94" stroke="rgba(234,243,255,0.55)" stroke-width="1"></path>
+          <text x="1022" y="114" class="fine">1. ALL DIMENSIONS IN MILLIMETRES.</text>
+          <text x="1022" y="132" class="fine">2. ENVELOPE PROOF PRESSURE 1.35 × WORKING.</text>
+          <text x="1022" y="150" class="fine">3. AETHER COIL WOUND COUNTER-SUNWISE.</text>
+          <text x="1022" y="168" class="fine">4. DO NOT OPERATE WITHIN CITY LIMITS.</text>
+        </g>
+
+        <g>
+          <text x="70" y="84" class="lab">SCHEDULE OF PARTS</text>
+          <path d="M 60 96 L 336 96" stroke="rgba(234,243,255,0.6)" stroke-width="1"></path>
+          <g class="fine">
+            <text x="70" y="118">NO</text><text x="106" y="118">PART</text><text x="262" y="118">QTY</text><text x="300" y="118">MAT.</text>
+          </g>
+          <path d="M 60 126 L 336 126" stroke="rgba(234,243,255,0.35)" stroke-width="0.8"></path>
+          <g class="fine" id="bomRows">
+            <rect class="bomrow" data-part="01" x="62" y="132" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="149">01</text><text x="106" y="149">ENVELOPE, LIFTING</text><text x="262" y="149">1</text><text x="300" y="149">SILK</text>
+            <rect class="bomrow" data-part="02" x="62" y="158" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="175">02</text><text x="106" y="175">WING, PORT FEATHER</text><text x="262" y="175">5</text><text x="300" y="175">QUILL</text>
+            <rect class="bomrow" data-part="03" x="62" y="184" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="201">03</text><text x="106" y="201">WING, STBD FEATHER</text><text x="262" y="201">5</text><text x="300" y="201">QUILL</text>
+            <rect class="bomrow" data-part="04" x="62" y="210" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="227">04</text><text x="106" y="227">EMPENNAGE, CRUCIF.</text><text x="262" y="227">1</text><text x="300" y="227">SPRUCE</text>
+            <rect class="bomrow" data-part="05" x="62" y="236" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="253">05</text><text x="106" y="253">GONDOLA, CREW (2)</text><text x="262" y="253">1</text><text x="300" y="253">WALNUT</text>
+            <rect class="bomrow" data-part="06" x="62" y="262" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="279">06</text><text x="106" y="279">PROPELLER, PUSHER</text><text x="262" y="279">1</text><text x="300" y="279">ASH</text>
+            <rect class="bomrow" data-part="07" x="62" y="288" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="305">07</text><text x="106" y="305">BOILER, CONDENSING</text><text x="262" y="305">1</text><text x="300" y="305">COPPER</text>
+            <rect class="bomrow" data-part="08" x="62" y="314" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="331">08</text><text x="106" y="331">COIL, AETHER RES.</text><text x="262" y="331">1</text><text x="300" y="331">ELECTRUM</text>
+            <rect class="bomrow" data-part="09" x="62" y="340" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="357">09</text><text x="106" y="357">UNDERCARRIAGE, SKID</text><text x="262" y="357">1</text><text x="300" y="357">ASH</text>
+            <rect class="bomrow" data-part="10" x="62" y="366" width="272" height="24" fill="transparent"></rect>
+            <text x="70" y="383">10</text><text x="106" y="383">BALLAST, SANDBAG</text><text x="262" y="383">4</text><text x="300" y="383">CANVAS</text>
+          </g>
+
+          <g>
+            <rect x="60" y="740" width="300" height="110" fill="none" stroke="rgba(234,243,255,0.55)" stroke-width="1.2"></rect>
+            <path d="M 60 740 L 360 740 M 60 772 L 360 772 M 60 808 L 360 808 M 180 740 L 180 850 M 270 772 L 270 850" stroke="rgba(234,243,255,0.4)" stroke-width="0.9" fill="none"></path>
+            <text x="72" y="762" class="serif" font-style="italic" font-size="17">Aerostat Mk.VII "Petrel"</text>
+            <text x="72" y="790" class="fine">DWG NO. 7 · REV C</text>
+            <text x="192" y="790" class="fine">SCALE 1:24</text>
+            <text x="282" y="790" class="fine">SHEET 1/1</text>
+            <text x="72" y="826" class="fine">DRAWN: A. LUMEN</text>
+            <text x="192" y="826" class="fine">CHECKED: V. SKY</text>
+            <text x="72" y="844" class="fine">DATE: 03 NOV 1926</text>
+            <text x="192" y="844" class="fine">TOL. ±0.2</text>
+          </g>
+
+          <g transform="rotate(-8 1180 800)">
+            <rect x="1040" y="762" width="280" height="74" fill="none" stroke="#c0392b" stroke-width="2.4"></rect>
+            <rect x="1048" y="770" width="264" height="58" fill="none" stroke="#c0392b" stroke-width="1"></rect>
+            <text x="1180" y="796" text-anchor="middle" fill="#c0392b" font-size="17" letter-spacing="0.28em">APPROVED</text>
+            <text x="1180" y="818" text-anchor="middle" fill="#c0392b" font-size="10" letter-spacing="0.22em">FOR AETHER TRIAL · 03 NOV 1926</text>
+          </g>
+
+          <text x="700" y="78" class="lab" text-anchor="middle" letter-spacing="0.4em">IMPOSSIBLE FLYING MACHINE</text>
+          <text x="700" y="102" class="micro" text-anchor="middle">GENERAL ARRANGEMENT · PORT PROFILE · BLUEPRINT NO.7</text>
+        </g>
+      </g>
+
+      <g fill="none" stroke="rgba(234,243,255,0.5)" stroke-width="1.4">
+        <path d="M 40 8 L 40 26 M 40 8 L 58 8"></path>
+        <path d="M 1360 8 L 1360 26 M 1360 8 L 1342 8"></path>
+        <path d="M 40 892 L 40 874 M 40 892 L 58 892"></path>
+        <path d="M 1360 892 L 1360 874 M 1360 892 L 1342 892"></path>
+      </g>
+      <path d="M 466 50 L 466 850 M 934 50 L 934 850 M 60 450 L 1340 450" stroke="rgba(234,243,255,0.06)" stroke-width="1.2" fill="none"></path>
+    </svg>
+
+    <div class="xhair v" id="xv" aria-hidden="true"></div>
+    <div class="xhair h" id="xh" aria-hidden="true"></div>
+    <div class="chip" id="chip" aria-hidden="true">X 0000 · Y 0000</div>
+    <div class="flash" id="flash" aria-hidden="true"></div>
+  </figure>
+</div>
+
+<footer class="foot">
+  <span><span class="key">Hover</span> a component to lift it from the assembly</span>
+  <span><span class="key">Click</span> empty paper to re-expose the print</span>
+  <span>Bureau of Improbable Flight · Drawer 7</span>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  const sheet = document.getElementById('sheet');
+  const svg = document.getElementById('bp');
+  const xv = document.getElementById('xv');
+  const xh = document.getElementById('xh');
+  const chip = document.getElementById('chip');
+  const flash = document.getElementById('flash');
+  const togDims = document.getElementById('togDims');
+  const togHidden = document.getElementById('togHidden');
+  const togGrid = document.getElementById('togGrid');
+  const VB_W = 1400;
+  const VB_H = 900;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- layer toggles ---------- */
+
+  function bindToggle(btn, cls) {
+    btn.addEventListener('click', () => {
+      const on = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+      svg.classList.toggle(cls, on);
+    });
+  }
+
+  bindToggle(togDims, 'no-dims');
+  bindToggle(togHidden, 'no-hidden');
+  bindToggle(togGrid, 'no-grid');
+
+  /* ---------- focus + BOM sync ---------- */
+
+  const parts = Array.prototype.slice.call(svg.querySelectorAll('.part'));
+  const rows = Array.prototype.slice.call(svg.querySelectorAll('.bomrow'));
+
+  function activate(id) {
+    parts.forEach((p) => {
+      const on = p.id === 'p' + id;
+      p.classList.toggle('active', on);
+      p.style.zIndex = on ? '5' : '';
+    });
+    rows.forEach((r) => r.classList.toggle('rowlit', r.getAttribute('data-part') === id));
+    sheet.classList.add('focus');
+  }
+
+  function deactivate() {
+    parts.forEach((p) => {
+      p.classList.remove('active');
+      p.style.zIndex = '';
+    });
+    rows.forEach((r) => r.classList.remove('rowlit'));
+    sheet.classList.remove('focus');
+  }
+
+  parts.forEach((p) => {
+    p.addEventListener('mouseenter', () => activate(p.getAttribute('data-part')));
+    p.addEventListener('mouseleave', deactivate);
+    p.addEventListener('focus', () => activate(p.getAttribute('data-part')));
+    p.addEventListener('blur', deactivate);
+  });
+
+  rows.forEach((r) => {
+    r.addEventListener('mouseenter', () => activate(r.getAttribute('data-part')));
+    r.addEventListener('mouseleave', deactivate);
+  });
+
+  /* ---------- drafting crosshair ---------- */
+
+  let rect = null;
+
+  function cacheRect() {
+    rect = sheet.getBoundingClientRect();
+  }
+
+  function track(e) {
+    if (!rect) cacheRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    if (px < 0 || py < 0 || px > rect.width || py > rect.height) {
+      sheet.classList.remove('tracking');
+      return;
+    }
+    sheet.classList.add('tracking');
+    xv.style.left = px + 'px';
+    xh.style.top = py + 'px';
+    const sx = Math.round((px / rect.width) * VB_W);
+    const sy = Math.round((py / rect.height) * VB_H);
+    chip.textContent = 'X ' + String(sx).padStart(4, '0') + ' · Y ' + String(sy).padStart(4, '0');
+    const flipX = px > rect.width - 150;
+    const flipY = py > rect.height - 60;
+    chip.style.left = (flipX ? px - chip.offsetWidth - 14 : px + 14) + 'px';
+    chip.style.top = (flipY ? py - chip.offsetHeight - 10 : py + 12) + 'px';
+  }
+
+  sheet.addEventListener('pointerenter', cacheRect);
+  sheet.addEventListener('pointermove', track);
+  sheet.addEventListener('pointerleave', () => sheet.classList.remove('tracking'));
+  window.addEventListener('resize', cacheRect);
+  window.addEventListener('scroll', () => { rect = null; }, { passive: true });
+
+  if (window.matchMedia('(pointer: coarse)').matches) {
+    sheet.style.cursor = 'default';
+  }
+
+  /* ---------- re-expose on empty-paper click ---------- */
+
+  sheet.addEventListener('click', (e) => {
+    if (e.target.closest('.part') || e.target.closest('button')) return;
+    if (reduceMotion) return;
+    flash.classList.remove('go');
+    void flash.offsetWidth;
+    flash.classList.add('go');
+  });
+})();
+</script>
+</body>
+</html>

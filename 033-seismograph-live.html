@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="TREMOR — a live seismograph station. Shake your pointer and the drum records your quake in ink on scrolling grid paper, with magnitude estimate, event log and a replayable archive quake.">
+<title>TREMOR · Work Nº 033 — a live seismograph station</title>
+<style>
+/* ============================================================
+   TREMOR — Work Nº 033
+   A seismograph that records the tremor of your hand.
+   ============================================================ */
+:root{
+  --paper:     #f1eee6;
+  --grid:      #e05545;
+  --ink:       #1c1c1c;
+  --console:   #23262b;
+  --console-d: #1a1c20;
+  --console-l: #2d3138;
+  --plate:     #14161a;
+  --amber:     #ffb000;
+  --amber-dim: rgba(255,176,0,.32);
+  --alarm:     #e05545;
+  --cream:     #e9e4d8;
+  --cream-dim: rgba(233,228,216,.62);
+  --cream-fnt: rgba(233,228,216,.36);
+  --mono:      ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+  --serif:     Georgia, 'Iowan Old Style', 'Palatino Linotype', ui-serif, serif;
+  --sans:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{ box-sizing:border-box; }
+html{ height:100%; }
+body{
+  margin:0;
+  min-height:100%;
+  font-family:var(--sans);
+  color:var(--cream);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, var(--console-l), var(--console) 26%, var(--console-d) 100%);
+  overflow-x:hidden;
+  cursor:crosshair;
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:var(--amber); color:#231a02; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--amber-dim); outline-offset:2px; border-radius:6px; }
+
+.rack{
+  max-width:1640px;
+  margin:0 auto;
+  padding:clamp(14px,2.4vh,30px) clamp(14px,2.6vw,44px) clamp(18px,3vh,36px);
+  display:flex; flex-direction:column; gap:clamp(12px,2vh,20px);
+}
+
+/* ------------------------- engraved header --------------------------- */
+header.plate{
+  position:relative;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+  flex-wrap:wrap;
+  background:linear-gradient(180deg, #191b1f, #101216 70%, #0c0e11);
+  border:1px solid #060708;
+  border-radius:12px;
+  padding:clamp(16px,2.4vh,26px) clamp(16px,2.6vw,30px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 -8px 18px rgba(0,0,0,.5),
+    0 14px 30px rgba(0,0,0,.45);
+}
+.rivet{
+  position:absolute; width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #55595f, #23252a 60%, #101114);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25), 0 1px 2px rgba(0,0,0,.6);
+}
+.rivet.tl{ top:8px; left:8px; } .rivet.tr{ top:8px; right:8px; }
+.rivet.bl{ bottom:8px; left:8px; } .rivet.br{ bottom:8px; right:8px; }
+.id-block{ min-width:0; }
+.mark-no{
+  margin:0 0 8px;
+  font:500 10px/1 var(--mono);
+  letter-spacing:.32em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--mono);
+  font-weight:700;
+  font-size:clamp(34px,5vw,64px);
+  line-height:.94;
+  letter-spacing:.16em;
+  color:#dcd7cb;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.08),
+    0 -1px 1px rgba(0,0,0,.85),
+    0 0 26px rgba(255,176,0,.08);
+}
+.mark-sub{
+  margin:10px 0 0;
+  font:italic 400 clamp(12px,1.4vw,14px)/1.55 var(--serif);
+  color:var(--cream-dim);
+  max-width:52ch;
+}
+.readout-block{ text-align:right; }
+.station{
+  font:700 10px/1.9 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.station b{ color:var(--amber); font-weight:700; }
+.clock{
+  font:700 clamp(20px,2.6vw,30px)/1 var(--mono);
+  letter-spacing:.14em;
+  color:var(--cream);
+  font-variant-numeric:tabular-nums;
+}
+.clock small{
+  display:block;
+  font:600 9px/1.6 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+
+/* ---------------------------- the drum ------------------------------- */
+.drum-bay{
+  position:relative;
+  background:linear-gradient(180deg, #101216, #0b0d10);
+  border:1px solid #060708;
+  border-radius:14px;
+  padding:clamp(10px,1.6vw,18px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 20px 44px rgba(0,0,0,.5);
+}
+.bay-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  flex-wrap:wrap;
+  padding:2px 6px 10px;
+  font:600 9.5px/1 var(--mono);
+  letter-spacing:.28em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.bay-head .live{ display:inline-flex; align-items:center; gap:7px; color:var(--cream-dim); }
+.lamp{
+  width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #b7f0c0, #3f9d54 60%, #1d4a29);
+  box-shadow:0 0 8px rgba(88,214,141,.5), inset 0 1px 1px rgba(255,255,255,.4);
+  transition:background .3s ease, box-shadow .3s ease;
+}
+.lamp.quiet{ background:radial-gradient(circle at 35% 30%, #f0d9b7, #9d843f 60%, #4a3d1d); box-shadow:0 0 6px rgba(255,176,0,.35); }
+.lamp.alarm{
+  background:radial-gradient(circle at 35% 30%, #ffd2c9, #d0452f 60%, #5a1408);
+  box-shadow:0 0 14px rgba(224,85,69,.8);
+  animation:lampBlink .5s steps(2, jump-none) infinite;
+}
+@keyframes lampBlink{ 50%{ opacity:.35; } }
+#seis{
+  display:block;
+  width:100%;
+  height:clamp(240px, 42vh, 460px);
+  border-radius:8px;
+  cursor:crosshair;
+  touch-action:none;
+  box-shadow:
+    0 0 0 1px #000,
+    inset 0 0 60px rgba(0,0,0,.18);
+}
+.bay-foot{
+  display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  padding:10px 6px 0;
+  font:600 9.5px/1 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.bay-foot b{ color:var(--cream-dim); font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* --------------------------- console row ----------------------------- */
+.console-row{
+  display:grid;
+  grid-template-columns:minmax(220px, 0.9fr) minmax(260px, 1.3fr) minmax(240px, 1.1fr);
+  gap:clamp(12px,2vw,20px);
+}
+@media (max-width:900px){
+  .console-row{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:640px){
+  .console-row{ grid-template-columns:1fr; }
+}
+.panel{
+  position:relative;
+  background:linear-gradient(180deg, var(--console-l), var(--console) 55%, #1d2025);
+  border:1px solid #101216;
+  border-radius:12px;
+  padding:16px 16px 15px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 -10px 20px rgba(0,0,0,.3),
+    0 14px 30px rgba(0,0,0,.4);
+  min-width:0;
+}
+.panel-k{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font:700 9.5px/1 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  margin:0 0 12px;
+}
+.engraved{
+  color:#cfc9bc;
+  text-shadow:0 1px 0 rgba(0,0,0,.8), 0 -1px 0 rgba(255,255,255,.06);
+}
+
+/* magnitude gauge */
+.gauge-wrap{ display:flex; justify-content:center; padding:2px 0 4px; }
+#gauge{ width:min(100%, 250px); display:block; overflow:visible; }
+.mag-row{
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-top:10px;
+  font:600 10px/1.6 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mag-big{
+  font:700 clamp(34px,4vw,44px)/1 var(--mono);
+  letter-spacing:.04em;
+  color:var(--cream);
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 18px rgba(255,176,0,.14);
+}
+.mag-word{ color:var(--amber); }
+.mag-note{
+  margin:8px 0 0;
+  font:italic 400 12px/1.55 var(--serif);
+  color:var(--cream-dim);
+  min-height:2.9em;
+}
+
+/* event log */
+.log{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex; flex-direction:column; gap:7px;
+  min-height:168px;
+  max-height:244px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--amber-dim) transparent;
+}
+.log::-webkit-scrollbar{ width:8px; }
+.log::-webkit-scrollbar-thumb{ background:var(--amber-dim); border-radius:4px; }
+.log::-webkit-scrollbar-track{ background:rgba(0,0,0,.25); border-radius:4px; }
+.log li{
+  display:flex; align-items:baseline; gap:10px;
+  font:600 10.5px/1.5 var(--mono);
+  letter-spacing:.1em;
+  color:var(--cream-dim);
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.05);
+  border-left:3px solid var(--amber-dim);
+  border-radius:6px;
+  padding:8px 10px;
+  animation:logIn .35s ease both;
+}
+@keyframes logIn{
+  from{ opacity:0; transform:translateY(-6px); }
+}
+.log li .t{ color:var(--cream-fnt); font-variant-numeric:tabular-nums; }
+.log li .m{ margin-left:auto; color:var(--cream); font-weight:700; font-variant-numeric:tabular-nums; }
+.log li.hot{ border-left-color:var(--alarm); }
+.log li.hot .m{ color:var(--alarm); }
+.log li.archive{ border-left-color:var(--amber); }
+.log li.archive .m{ color:var(--amber); }
+.log li .tag{
+  font-size:8.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.log-empty{
+  font:italic 400 12.5px/1.6 var(--serif);
+  color:var(--cream-fnt);
+  padding:14px 4px;
+}
+
+/* controls */
+.ctl-group{ margin:0 0 14px; }
+.ctl-l{
+  display:flex; justify-content:space-between;
+  font:600 9.5px/1 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream-dim);
+  margin:0 0 7px;
+}
+.ctl-l b{ color:var(--amber); font-variant-numeric:tabular-nums; }
+input[type="range"]{
+  appearance:none; -webkit-appearance:none;
+  width:100%; height:26px;
+  background:transparent;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+input[type="range"]::-webkit-slider-runnable-track{
+  height:4px; border-radius:2px;
+  background:linear-gradient(90deg, var(--amber-dim), rgba(255,255,255,.1));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px; height:18px; margin-top:-7px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ffe1a3, var(--amber) 55%, #7a5400);
+  box-shadow:0 2px 6px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.5);
+}
+input[type="range"]::-moz-range-track{
+  height:4px; border-radius:2px;
+  background:linear-gradient(90deg, var(--amber-dim), rgba(255,255,255,.1));
+}
+input[type="range"]::-moz-range-thumb{
+  width:18px; height:18px; border:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #ffe1a3, var(--amber) 55%, #7a5400);
+  box-shadow:0 2px 6px rgba(0,0,0,.55);
+}
+.btns{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:40px;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+  color:var(--cream);
+  font:700 10px/1 var(--mono);
+  letter-spacing:.18em; text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12);
+  transition:transform .1s ease, box-shadow .1s ease, filter .18s ease;
+  touch-action:manipulation;
+}
+@media (hover:hover){
+  .btn:hover{ filter:brightness(1.2); }
+}
+.btn:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.45); }
+.btn[aria-pressed="true"]{
+  border-color:var(--amber-dim);
+  background:linear-gradient(180deg, rgba(255,176,0,.28), rgba(255,176,0,.1));
+  color:#ffe1a3;
+}
+.btn.wide{ flex:1 1 100%; }
+.btn.archive{
+  background:linear-gradient(180deg, rgba(224,85,69,.32), rgba(224,85,69,.12));
+  border-color:rgba(224,85,69,.4);
+  color:#ffd2c9;
+}
+
+/* alarm strip */
+.alarm-strip{
+  position:relative;
+  overflow:hidden;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(0,0,0,.3);
+  padding:10px 14px;
+  display:flex; align-items:center; gap:12px;
+  font:600 10px/1.5 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.alarm-strip .beacon{
+  width:14px; height:14px; border-radius:50%; flex:none;
+  background:radial-gradient(circle at 35% 30%, #6b6f76, #2a2c31 62%, #141518);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.25);
+  transition:background .25s ease, box-shadow .25s ease;
+}
+.alarm-strip.on .beacon{
+  background:radial-gradient(circle at 35% 30%, #ffe9a8, var(--amber) 55%, #7a5400);
+  box-shadow:0 0 16px rgba(255,176,0,.75), inset 0 1px 1px rgba(255,255,255,.5);
+  animation:lampBlink .6s steps(2, jump-none) infinite;
+}
+.alarm-strip.on{ color:var(--amber); border-color:var(--amber-dim); }
+
+/* toast */
+.toast{
+  position:fixed; z-index:40;
+  left:50%; bottom:clamp(18px,4vh,34px);
+  transform:translate(-50%,10px);
+  background:rgba(10,12,14,.92);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--cream);
+  font:600 10.5px/1 var(--mono);
+  letter-spacing:.16em;
+  padding:12px 18px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 32px);
+  text-align:center;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.no-js{
+  position:fixed; inset:0; z-index:50;
+  display:grid; place-items:center;
+  background:var(--console-d); color:var(--cream-dim);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="rack">
+
+  <header class="plate">
+    <span class="rivet tl" aria-hidden="true"></span><span class="rivet tr" aria-hidden="true"></span>
+    <span class="rivet bl" aria-hidden="true"></span><span class="rivet br" aria-hidden="true"></span>
+    <div class="id-block">
+      <p class="mark-no">The Gallery of 100 · Work Nº 033 · station instrument</p>
+      <h1 class="mark-word">TREMOR</h1>
+      <p class="mark-sub">This instrument listens. Drag or shake your pointer across the room and the drum will write your restlessness into the record — every quake logged, dated, and kept.</p>
+    </div>
+    <div class="readout-block">
+      <p class="station">STATION <b>G-100</b> · BEDROCK, BASEMENT · MARK V</p>
+      <p class="clock"><span id="clock">--:--:--</span><small>station time · local</small></p>
+    </div>
+  </header>
+
+  <section class="drum-bay" aria-label="Seismograph drum">
+    <div class="bay-head">
+      <span class="live"><span class="lamp" id="lamp"></span><span id="lampText">DRUM TURNING · AWAITING TREMOR</span></span>
+      <span>SMOKE PAPER · 25 MM/MIN · SINGLE STYLUS</span>
+    </div>
+    <canvas id="seis" role="img"
+      aria-label="A seismograph drum: cream paper with fine red grid scrolling leftward while an ink needle draws the tremor of your pointer. Shake the pointer to record a quake."></canvas>
+    <div class="bay-foot">
+      <span>GAIN <b id="ftGain">×1.0</b></span>
+      <span>PAPER <b id="ftSpeed">120 MM/MIN</b></span>
+      <span>PEAK <b id="ftPeak">0.0 PX</b></span>
+      <span>TRACE <b id="ftSamples">0</b> SAMPLES</span>
+    </div>
+  </section>
+
+  <div class="console-row">
+    <section class="panel" aria-label="Magnitude estimate">
+      <p class="panel-k"><span class="engraved">Magnitude</span><span>EST · RICHTER</span></p>
+      <div class="gauge-wrap">
+        <svg id="gauge" viewBox="0 0 200 122" aria-hidden="true">
+          <defs>
+            <linearGradient id="arcWarm" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#58d68d"></stop>
+              <stop offset=".5" stop-color="#ffb000"></stop>
+              <stop offset="1" stop-color="#e05545"></stop>
+            </linearGradient>
+          </defs>
+          <path d="M18 104 A 82 82 0 0 1 182 104" fill="none" stroke="rgba(0,0,0,.5)" stroke-width="14" stroke-linecap="round"></path>
+          <path d="M18 104 A 82 82 0 0 1 182 104" fill="none" stroke="url(#arcWarm)" stroke-width="3" stroke-linecap="round" opacity=".85"></path>
+          <g id="ticks" stroke="rgba(233,228,216,.4)" stroke-width="1.5"></g>
+          <g id="tickNums" fill="rgba(233,228,216,.5)" font-size="9" font-family="ui-monospace, 'Courier New', monospace" text-anchor="middle"></g>
+          <line id="needle" x1="100" y1="104" x2="100" y2="36" stroke="#e9e4d8" stroke-width="2.5" stroke-linecap="round"></line>
+          <circle cx="100" cy="104" r="7" fill="#1c1c1c" stroke="rgba(233,228,216,.6)" stroke-width="1.5"></circle>
+          <circle cx="100" cy="104" r="2" fill="#e9e4d8"></circle>
+        </svg>
+      </div>
+      <p class="mag-row"><span class="mag-big" id="magBig">M 0.0</span><span class="mag-word" id="magWord">background</span></p>
+      <p class="mag-note" id="magNote">Still air. The stylus breathes with the building. Move — or shake — and the drum will know.</p>
+    </section>
+
+    <section class="panel" aria-label="Event log">
+      <p class="panel-k"><span class="engraved">Event log</span><span id="logCount">0 RECORDED</span></p>
+      <ul class="log" id="log">
+        <li class="log-empty" id="logEmpty" style="border:0;background:none;">No events yet. The record is patient; it has waited out worse than you.</li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-label="Instrument controls">
+      <p class="panel-k"><span class="engraved">Console</span><span>OPERATOR</span></p>
+      <div class="ctl-group">
+        <p class="ctl-l"><span>Sensitivity</span><b id="sensVal">×1.0</b></p>
+        <input type="range" id="sens" min="0.4" max="3" step="0.1" value="1" aria-label="Needle sensitivity">
+      </div>
+      <div class="ctl-group">
+        <p class="ctl-l"><span>Paper speed</span><b id="speedVal">120 mm/min</b></p>
+        <input type="range" id="speed" min="40" max="360" step="20" value="120" aria-label="Paper scroll speed">
+      </div>
+      <div class="alarm-strip" id="alarmStrip">
+        <span class="beacon" aria-hidden="true"></span>
+        <span id="alarmText">ALARM DISARMED · SILENT ROOM</span>
+      </div>
+      <p class="ctl-l" style="margin:14px 0 8px;"><span>Archive</span></p>
+      <div class="btns">
+        <button class="btn archive wide" id="replayBtn" title="Replay the stored macro-quake of 1952">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.8M10 1v2.4H7.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          Replay quake · archive 1952
+        </button>
+        <button class="btn" id="alarmBtn" aria-pressed="false">Arm alarm</button>
+        <button class="btn" id="clearBtn">Clear drum</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The stylus is servo-driven by JavaScript — please switch it on.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const lerp = (a,b,t) => a + (b-a)*t;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+const ui = {
+  seis: $('seis'), lamp: $('lamp'), lampText: $('lampText'),
+  clock: $('clock'), ftGain: $('ftGain'), ftSpeed: $('ftSpeed'),
+  ftPeak: $('ftPeak'), ftSamples: $('ftSamples'),
+  magBig: $('magBig'), magWord: $('magWord'), magNote: $('magNote'),
+  log: $('log'), logEmpty: $('logEmpty'), logCount: $('logCount'),
+  sens: $('sens'), sensVal: $('sensVal'), speed: $('speed'), speedVal: $('speedVal'),
+  replayBtn: $('replayBtn'), alarmBtn: $('alarmBtn'), clearBtn: $('clearBtn'),
+  alarmStrip: $('alarmStrip'), alarmText: $('alarmText'),
+  toast: $('toast'), needle: $('needle'), ticks: $('ticks'), tickNums: $('tickNums'),
+};
+
+/* ============================== gauge ================================ */
+(function buildGauge(){
+  const NS = ['http', 'www.w3.org/2000/svg'].join('://');
+  for (let m = 0; m <= 9; m++){
+    const ang = Math.PI * (1 - m / 9);
+    const c = Math.cos(ang), s = Math.sin(ang);
+    const r1 = 82, r2 = m % 3 === 0 ? 70 : 75;
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', (100 + c * r1).toFixed(1));
+    l.setAttribute('y1', (104 - s * r1).toFixed(1));
+    l.setAttribute('x2', (100 + c * r2).toFixed(1));
+    l.setAttribute('y2', (104 - s * r2).toFixed(1));
+    if (m % 3 === 0) l.setAttribute('stroke-width', '2');
+    ui.ticks.appendChild(l);
+    if (m % 3 === 0){
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', (100 + c * 60).toFixed(1));
+      t.setAttribute('y', (104 - s * 60 + 3).toFixed(1));
+      t.textContent = String(m);
+      ui.tickNums.appendChild(t);
+    }
+  }
+})();
+function setGauge(m){
+  const ang = Math.PI * (1 - clamp(m, 0, 9.8) / 9.8);
+  ui.needle.setAttribute('transform',
+    'rotate(' + (-(ang * 180 / Math.PI - 90)).toFixed(1) + ' 100 104)');
+}
+
+/* ============================== state ================================ */
+const canvas = ui.seis;
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+let sens = 1;
+let paperPx = 2;        /* px of scroll per frame-step baseline (scaled by speed slider) */
+let scrollPos = 0;      /* fractional sample cursor */
+let running = true, raf = 0;
+let last = performance.now();
+let tSec = 0;
+
+/* sample ring buffer: amplitude in px, width per sample */
+const MAXN = 4096;
+const amps = new Float32Array(MAXN);
+const wides = new Float32Array(MAXN);
+let head = 0;           /* index one past newest */
+let count = 0;          /* valid samples */
+const pxPerSample = 2.2;
+
+/* motion model */
+let E = 0;              /* excitation energy 0..~1.5 */
+let peakEver = 0;
+let phase = Math.random() * 7;
+let f1 = 5.1, f2 = 9.7, f3 = 16.3;
+let pressureAvg = .5;
+let lastPX = 0, lastPY = 0, lastPT = 0;
+let pointerSeen = false;
+
+/* quake event detection */
+let inQuake = false, quakeStart = 0, quakePeak = 0, quakeWidthSum = 0, quakeN = 0, quakeName = 'LOCAL';
+let cooldown = 0;
+let eventCount = 0;
+let lampState = 'green';
+
+/* archive quake playback */
+let playingArchive = false, archiveT = 0;
+let sampleAcc = 0;
+
+/* alarm */
+let alarmArmed = false;
+
+/* clock */
+let clockTick = 0;
+
+/* ============================== audio ================================ */
+let AC = null, master = null, noiseBuf = null, rumble = null, rumbleGain = null;
+let soundArmed = false;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.55;
+    master.connect(AC.destination);
+    const len = AC.sampleRate * 2;
+    noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    let brown = 0;
+    for (let i = 0; i < len; i++){
+      brown = (brown + (Math.random() * 2 - 1) * 0.02) * 0.995;
+      d[i] = brown * 8;
+    }
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function startRumble(intensity){
+  if (!soundArmed || !ensureAudio()) return;
+  if (!rumble){
+    rumble = AC.createBufferSource();
+    rumble.buffer = noiseBuf;
+    rumble.loop = true;
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 90;
+    const bp = AC.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 48;
+    bp.Q.value = 0.7;
+    rumbleGain = AC.createGain();
+    rumbleGain.gain.value = 0;
+    rumble.connect(lp); lp.connect(bp); bp.connect(rumbleGain);
+    rumbleGain.connect(master);
+    rumble.start();
+  }
+  const t0 = AC.currentTime;
+  rumbleGain.gain.cancelScheduledValues(t0);
+  rumbleGain.gain.setTargetAtTime(clamp(intensity, 0, 1) * 0.5, t0, 0.12);
+}
+function stopRumble(){
+  if (rumbleGain){
+    const t0 = AC.currentTime;
+    rumbleGain.gain.setTargetAtTime(0, t0, 0.4);
+  }
+}
+function chime(){
+  if (!soundArmed || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'square';
+  o.frequency.value = 880;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + 0.3);
+}
+
+/* ============================== sizing =============================== */
+function resize(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  W = canvas.clientWidth;
+  H = canvas.clientHeight;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', resize);
+
+/* ============================== pointer ============================== */
+function onMove(e){
+  const now = performance.now();
+  if (lastPT){
+    const dt = Math.max(4, now - lastPT) / 1000;
+    const dx = e.clientX - lastPX, dy = e.clientY - lastPY;
+    const speed = Math.hypot(dx, dy) / dt;      /* px per second */
+    const impulse = clamp(speed / 2400, 0, 1);
+    E = Math.min(1.6, E + impulse * 0.32 * sens);
+    if (speed > 900 && !reduceMotion){
+      f1 = 4 + Math.random() * 3;
+      f2 = 8 + Math.random() * 5;
+    }
+  }
+  const p = (e.pointerType === 'pen' && e.pressure > 0) ? e.pressure
+          : clamp(Math.hypot(e.clientX - lastPX, e.clientY - lastPY) / 220, .12, 1);
+  pressureAvg = lerp(pressureAvg, p, .2);
+  lastPX = e.clientX; lastPY = e.clientY; lastPT = now;
+  pointerSeen = true;
+}
+addEventListener('pointermove', onMove, { passive: true });
+addEventListener('pointerdown', e => {
+  E = Math.min(1.6, E + 0.22 * sens);
+  pressureAvg = lerp(pressureAvg, e.pointerType === 'pen' && e.pressure > 0 ? e.pressure : .85, .5);
+  onMove(e);
+}, { passive: true });
+
+/* ============================== archive ============================== */
+const QUAKE = [
+  { t0: 0.8, t1: 1.5,  pk: 0.42, f: 7.0 },   /* foreshock */
+  { t0: 3.0, t1: 4.4,  pk: 1.35, f: 3.6 },   /* mainshock */
+  { t0: 5.6, t1: 6.3,  pk: 0.55, f: 5.2 },   /* aftershock */
+  { t0: 7.4, t1: 8.1,  pk: 0.38, f: 6.4 },
+  { t0: 9.6, t1: 10.3, pk: 0.24, f: 7.8 },
+];
+function gaussian(x, mu, sig){
+  return Math.exp(-((x - mu) * (x - mu)) / (2 * sig * sig));
+}
+function archiveDrive(t){
+  let v = 0;
+  for (const q of QUAKE){
+    const mid = (q.t0 + q.t1) / 2;
+    const sig = (q.t1 - q.t0) / 2.6;
+    v = Math.max(v, q.pk * gaussian(t, mid, sig));
+  }
+  return v;
+}
+
+/* ============================== events =============================== */
+function stamp(){
+  const d = new Date();
+  const z = n => String(n).padStart(2, '0');
+  return z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+}
+function magnitudeOf(peakPx){
+  return clamp(Math.log10(peakPx * 90 + 1), 0.8, 9.7);
+}
+function magWord(m){
+  if (m < 2) return 'micro';
+  if (m < 3.5) return 'minor';
+  if (m < 5) return 'light';
+  if (m < 6) return 'moderate';
+  if (m < 7) return 'strong';
+  if (m < 8) return 'major';
+  return 'great';
+}
+function magNoteFor(m){
+  if (m < 2) return 'Recorded, catalogued, forgotten. The building did not notice.';
+  if (m < 3.5) return 'Felt by the patient and the superstitious near the instrument.';
+  if (m < 5) return 'Windows tremble. Teacups describe small circles.';
+  if (m < 6) return 'The room reorganizes itself slightly. Books lean.';
+  if (m < 7) return 'Serious. The station files a report and pours a coffee.';
+  if (m < 8) return 'A corridor-rattler. The archive shelf dusts itself.';
+  return 'Historic. This one leaves the building in the record forever.';
+}
+function addLog(kind, m, when){
+  if (ui.logEmpty && ui.logEmpty.parentNode) ui.logEmpty.remove();
+  const li = document.createElement('li');
+  li.className = kind;
+  const tag = kind === 'archive' ? 'ARCHIVE' : kind === 'hot' ? 'STRONG' : 'LOCAL';
+  li.innerHTML = '<span class="t">' + when + '</span>' +
+    '<span class="tag">' + tag + '</span>' +
+    '<span class="m">M ' + m.toFixed(1) + '</span>';
+  ui.log.prepend(li);
+  while (ui.log.children.length > 14) ui.log.lastElementChild.remove();
+  eventCount++;
+  ui.logCount.textContent = eventCount + ' RECORDED';
+}
+function endQuake(){
+  inQuake = false;
+  const m = magnitudeOf(quakePeak);
+  const dur = (performance.now() - quakeStart) / 1000;
+  addLog(quakeName === 'ARCHIVE' ? 'archive' : (m >= 5 ? 'hot' : ''), m, stamp());
+  toast('Quake logged · M ' + m.toFixed(1) + ' · ' + dur.toFixed(1) + 's · ' + magWord(m));
+  quakePeak = 0; quakeWidthSum = 0; quakeN = 0;
+  if (alarmArmed){
+    chime();
+    ui.alarmStrip.classList.add('on');
+    setTimeout(() => ui.alarmStrip.classList.remove('on'), 2400);
+  }
+}
+
+/* ============================== toast ================================ */
+let toastT = 0;
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => ui.toast.classList.remove('show'), 2600);
+}
+
+/* ============================== render =============================== */
+function midY(){ return H * 0.5; }
+function draw(now, dt){
+  ctx.clearRect(0, 0, W, H);
+
+  /* paper */
+  ctx.fillStyle = '#f1eee6';
+  ctx.fillRect(0, 0, W, H);
+
+  /* drum shading */
+  const drumShade = ctx.createLinearGradient(0, 0, W, 0);
+  drumShade.addColorStop(0, 'rgba(28,28,28,.22)');
+  drumShade.addColorStop(.08, 'rgba(28,28,28,0)');
+  drumShade.addColorStop(.92, 'rgba(28,28,28,0)');
+  drumShade.addColorStop(1, 'rgba(28,28,28,.28)');
+  ctx.fillStyle = drumShade;
+  ctx.fillRect(0, 0, W, H);
+
+  /* red grid — vertical lines scroll with the paper */
+  const minor = 13;
+  const off = (scrollPos * pxPerSample) % minor;
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(224,85,69,.30)';
+  ctx.beginPath();
+  for (let x = W - off; x > 0; x -= minor){
+    ctx.moveTo(x + .5, 0);
+    ctx.lineTo(x + .5, H);
+  }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(224,85,69,.55)';
+  ctx.beginPath();
+  for (let x = W - off; x > 0; x -= minor * 5){
+    ctx.moveTo(x + .5, 0);
+    ctx.lineTo(x + .5, H);
+  }
+  ctx.stroke();
+  /* horizontal hairlines */
+  ctx.strokeStyle = 'rgba(224,85,69,.26)';
+  ctx.beginPath();
+  for (let y = midY() % minor; y < H; y += minor){
+    ctx.moveTo(0, y + .5);
+    ctx.lineTo(W, y + .5);
+  }
+  ctx.stroke();
+  /* strong every 5th horizontal + center line */
+  ctx.strokeStyle = 'rgba(224,85,69,.6)';
+  ctx.beginPath();
+  for (let y = midY() % (minor * 5); y < H; y += minor * 5){
+    ctx.moveTo(0, y + .5);
+    ctx.lineTo(W, y + .5);
+  }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(224,85,69,.9)';
+  ctx.beginPath();
+  ctx.moveTo(0, midY() + .5);
+  ctx.lineTo(W, midY() + .5);
+  ctx.stroke();
+
+  /* edge timestamps printed on the paper */
+  ctx.fillStyle = 'rgba(28,28,28,.5)';
+  ctx.font = '600 8px ui-monospace, "Courier New", monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('G-100 · SMOKE PAPER · ' + stamp(), 10, 14);
+
+  /* trace */
+  const n = Math.min(count, Math.ceil(W / pxPerSample) + 2);
+  const needleX = W - 26;
+  let segStart = -1;
+  let segW = -1;
+  let maxDrawn = 0;
+  function flush(a, b, w){
+    if (b - a < 1) return;
+    ctx.beginPath();
+    for (let i = a; i < b; i++){
+      const idx = ((head - 1 - (b - 1 - i)) % MAXN + MAXN) % MAXN;
+      const age = (b - 1 - i);
+      const x = needleX - age * pxPerSample;
+      if (x < -4) continue;
+      const y = midY() - amps[idx];
+      if (i === a) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(28,28,28,.92)';
+    ctx.lineWidth = w;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+  for (let k = 0; k < n; k++){
+    const idx = ((head - 1 - k) % MAXN + MAXN) % MAXN;
+    const wq = Math.round(wides[idx] * 4) / 4;
+    if (segStart < 0){ segStart = k; segW = wq; }
+    else if (wq !== segW){
+      flush(segStart, k, segW);
+      segStart = k; segW = wq;
+    }
+    maxDrawn = Math.max(maxDrawn, Math.abs(amps[idx]));
+  }
+  if (segStart >= 0) flush(segStart, n, segW);
+  ui.ftSamples.textContent = String(count).toFixed(0).padStart(4, '0');
+
+  /* needle assembly */
+  const cur = count ? amps[((head - 1) % MAXN + MAXN) % MAXN] : 0;
+  const ny = midY() - cur;
+  const pivotX = needleX + 30;
+  const pivotY = -10;
+  const armLen = Math.hypot(pivotX - needleX, pivotY - ny);
+  const baseAng = Math.atan2(ny - pivotY, needleX - pivotX);
+  const armLen2 = armLen + 46;
+  ctx.save();
+  /* arm toward the pivot, then its counterweight tail */
+  ctx.strokeStyle = '#2a2c31';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(needleX, ny);
+  ctx.lineTo(
+    pivotX - Math.cos(baseAng) * 46,
+    clamp(pivotY - Math.sin(baseAng) * 46, -60, H + 60));
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(233,228,228,.28)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(needleX, ny);
+  ctx.lineTo(
+    pivotX - Math.cos(baseAng) * 46,
+    clamp(pivotY - Math.sin(baseAng) * 46, -60, H + 60));
+  ctx.stroke();
+  /* pivot housing near the top edge */
+  ctx.beginPath();
+  ctx.arc(clamp(pivotX, -20, W + 20), -12, 7, 0, Math.PI * 2);
+  ctx.fillStyle = '#14161a';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(233,228,216,.4)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  /* pen tip */
+  ctx.beginPath();
+  ctx.arc(needleX, ny, 2.6, 0, Math.PI * 2);
+  ctx.fillStyle = '#1c1c1c';
+  ctx.fill();
+  ctx.restore();
+
+  /* clamp marker when clipping */
+  if (Math.abs(cur) > midY() - 8){
+    ctx.fillStyle = 'rgba(224,85,69,.85)';
+    ctx.font = '700 9px ui-monospace, "Courier New", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('RAIL', W - 6, cur > 0 ? 14 : H - 6);
+  }
+
+  return maxDrawn;
+}
+
+/* ============================== loop ================================= */
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const dtRaw = (now - last) / 1000;
+  last = now;
+  const dt = clamp(dtRaw, 0.001, 0.05);
+  tSec += dt;
+  cooldown = Math.max(0, cooldown - dt);
+
+  /* clock, once a second */
+  clockTick += dt;
+  if (clockTick >= 1){
+    clockTick = 0;
+    ui.clock.textContent = stamp();
+  }
+
+  /* energy dynamics */
+  E *= Math.exp(-dt * 1.65);
+  let drive = 0;
+  if (playingArchive){
+    archiveT += dt;
+    drive = archiveDrive(archiveT);
+    if (archiveT > QUAKE[QUAKE.length - 1].t1 + 1.2){
+      playingArchive = false;
+      toast('Archive replay complete — the drum rests');
+    }
+  }
+  const eEff = Math.max(E, drive);
+  if (drive > E * 1.02) quakeName = 'ARCHIVE';
+  else if (!inQuake) quakeName = 'LOCAL';
+
+  /* integrate samples along the paper */
+  sampleAcc += dt * 60 * (paperPx / 2);
+  const steps = Math.floor(sampleAcc);
+  sampleAcc -= steps;
+  for (let s = 0; s < steps; s++){
+    const ts = tSec - (steps - s) / 60;
+    const jitter = reduceMotion ? 0 : (Math.random() - .5);
+    const base = reduceMotion ? 0.6 : 1.15;           /* stylus breathing */
+    const a = base
+      + Math.sin(ts * f1 + phase) * 1.7
+      + Math.sin(ts * f2 + phase * 2.1) * 0.9
+      + jitter * 1.1;
+    const excite = Math.sqrt(Math.max(0, eEff));
+    const swing = (a * (1 + excite * 0.35) + Math.sin(ts * f3 + phase) * 9 * excite) * excite * 16 * sens;
+    const maxA = midY() - 6;
+    const amp = clamp(swing, -maxA, maxA);
+    const wide = 0.7 + clamp(excite, 0, 1.2) * 2.1 * lerp(0.55, 1.35, pressureAvg);
+    amps[head] = amp;
+    wides[head] = wide;
+    head = (head + 1) % MAXN;
+    count = Math.min(count + 1, MAXN);
+    scrollPos += 1;
+    quakePeak = Math.max(quakePeak, Math.abs(amp));
+    quakeWidthSum += wide; quakeN++;
+
+    /* event detection */
+    if (!inQuake && eEff > 0.42 && cooldown <= 0){
+      inQuake = true;
+      quakeStart = now;
+      quakePeak = 0;
+      if (alarmArmed) startRumble(0.4 + eEff * 0.4);
+    } else if (inQuake){
+      if (alarmArmed && eEff > 0.5) startRumble(0.3 + eEff * 0.45);
+      if (eEff < 0.14){
+        endQuake();
+        cooldown = 1.4;
+        stopRumble();
+      }
+    }
+    if (inQuake && playingArchive && archiveT > QUAKE[QUAKE.length - 1].t1 + 0.8 && eEff < 0.1){
+      endQuake();
+      stopRumble();
+    }
+  }
+
+  /* readouts */
+  const curAmp = count ? Math.abs(amps[((head - 1) % MAXN + MAXN) % MAXN]) : 0;
+  peakEver = Math.max(peakEver * Math.exp(-dt * 0.12), curAmp);
+  const mNow = magnitudeOf(peakEver);
+  ui.magBig.textContent = 'M ' + mNow.toFixed(1);
+  ui.magWord.textContent = peakEver < 2.4 ? 'background' : magWord(mNow);
+  ui.magNote.textContent = pointerSeen
+    ? magNoteFor(mNow)
+    : 'Still air. The stylus breathes with the building. Move — or shake — and the drum will know.';
+  setGauge(mNow);
+  ui.ftPeak.textContent = peakEver.toFixed(1) + ' PX';
+
+  /* lamp state */
+  let lampNext = 'green';
+  let lampMsg = 'DRUM TURNING · AWAITING TREMOR';
+  if (inQuake){
+    lampNext = eEff > 0.8 ? 'alarm' : 'amber';
+    lampMsg = quakeName === 'ARCHIVE' ? 'ARCHIVE QUAKE PLAYING' : 'QUAKE IN PROGRESS · RECORDING';
+  } else if (playingArchive){
+    lampNext = 'amber'; lampMsg = 'ARCHIVE REPLAY · 1952 MACRO-QUAKE';
+  } else if (E > 0.1){
+    lampNext = 'amber'; lampMsg = 'TREMOR DECAYING · PAPER MOVING';
+  }
+  if (lampState !== lampNext){
+    ui.lamp.classList.remove('quiet', 'alarm');
+    if (lampNext !== 'green') ui.lamp.classList.add(lampNext === 'alarm' ? 'alarm' : 'quiet');
+    lampState = lampNext;
+  }
+  ui.lampText.textContent = lampMsg;
+
+  draw(now, dt);
+}
+
+/* ============================== controls ============================= */
+ui.sens.addEventListener('input', () => {
+  sens = parseFloat(ui.sens.value);
+  ui.sensVal.textContent = '×' + sens.toFixed(1);
+  ui.ftGain.textContent = '×' + sens.toFixed(1);
+});
+ui.speed.addEventListener('input', () => {
+  const v = parseInt(ui.speed.value, 10);
+  paperPx = v / 60;
+  ui.speedVal.textContent = v + ' mm/min';
+  ui.ftSpeed.textContent = v + ' MM/MIN';
+});
+paperPx = 2;
+
+ui.clearBtn.addEventListener('click', () => {
+  head = 0; count = 0; scrollPos = 0; peakEver = 0;
+  toast('Drum wiped — a clean sheet rolls on');
+  chime();
+});
+ui.replayBtn.addEventListener('click', () => {
+  if (playingArchive) return;
+  playingArchive = true;
+  archiveT = 0;
+  quakeName = 'ARCHIVE';
+  toast('Replaying archive quake · 1952 · magnitude est. M 6.4');
+  if (alarmArmed) startRumble(0.9);
+});
+ui.alarmBtn.addEventListener('click', () => {
+  alarmArmed = !alarmArmed;
+  ui.alarmBtn.setAttribute('aria-pressed', String(alarmArmed));
+  if (alarmArmed){
+    soundArmed = true;
+    ensureAudio();
+    ui.alarmText.textContent = 'ALARM ARMED · RUMBLE + BELL LIVE';
+    toast('Alarm armed — quakes will rumble and ring');
+    chime();
+  } else {
+    soundArmed = false;
+    stopRumble();
+    ui.alarmText.textContent = 'ALARM DISARMED · SILENT ROOM';
+    toast('Alarm disarmed — the room is silent again');
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+
+/* ============================== init ================================= */
+resize();
+ui.clock.textContent = stamp();
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="NEON BOTANY — a cyberpunk greenhouse: plant a seed and a unique luminous organism grows before you, under scanlines, mist, and night-cycle LED waves.">
+<meta name="theme-color" content="#0a0f0d">
+<title>Neon Botany — A Cyberpunk Greenhouse</title>
+<style>
+  :root{
+    --gh:#0a0f0d;
+    --gh-2:#0d1512;
+    --panel:rgba(13,22,18,.72);
+    --panel-line:rgba(41,211,152,.18);
+    --stem:#29d398;
+    --stem-dim:rgba(41,211,152,.35);
+    --blossom-1:#ff5ea8;
+    --blossom-2:#a78bfa;
+    --holo:rgba(103,232,249,.85);
+    --holo-dim:rgba(103,232,249,.4);
+    --amber:#fbbf24;
+    --text:#d7efe4;
+    --dim:rgba(215,239,228,.55);
+    --faint:rgba(215,239,228,.28);
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Courier New",Courier,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--gh);
+    color:var(--text);
+    font-family:var(--mono);
+    overflow:hidden;
+  }
+  ::selection{background:var(--stem);color:#04140d}
+  body::-webkit-scrollbar{width:10px}
+  body::-webkit-scrollbar-track{background:#070b09}
+  body::-webkit-scrollbar-thumb{background:#1e4a38;border-radius:5px}
+
+  .house{height:100vh;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(10px,1.6vh,18px) clamp(12px,2vw,26px)}
+
+  /* ————— masthead ————— */
+  .mast{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .mast h1{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(21px,3.1vw,34px);
+    letter-spacing:.3em;
+    text-indent:.3em;
+    text-transform:uppercase;
+    color:var(--text);
+  }
+  .mast h1 b{font-weight:500;color:var(--stem);text-shadow:0 0 18px rgba(41,211,152,.65)}
+  .mast .stat{
+    font-size:clamp(8.5px,1.05vw,10.5px);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--dim);
+    text-align:right;
+    line-height:1.9;
+  }
+  .mast .stat b{font-weight:400;color:var(--holo)}
+
+  /* ————— main ————— */
+  .main{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) clamp(250px,25vw,330px);
+    gap:12px;
+    min-height:0;
+  }
+
+  .glassroom{
+    position:relative;
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    background:
+      linear-gradient(180deg, rgba(16,26,22,.6), rgba(8,13,11,.8));
+    overflow:hidden;
+    box-shadow:inset 0 0 70px rgba(4,10,8,.9), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .glassroom canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .scanlines{
+    position:absolute;inset:0;pointer-events:none;z-index:3;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 2px, transparent 2px 5px);
+    mix-blend-mode:multiply;
+    opacity:.6;
+  }
+  .sweep{
+    position:absolute;left:0;right:0;height:22vh;z-index:2;pointer-events:none;
+    background:linear-gradient(180deg, transparent, rgba(103,232,249,.05) 40%, rgba(103,232,249,.09) 50%, rgba(103,232,249,.05) 60%, transparent);
+    animation:scanmove 9s linear infinite;
+  }
+  @keyframes scanmove{
+    0%{top:-24vh}
+    100%{top:104vh}
+  }
+  .corner{
+    position:absolute;width:26px;height:26px;z-index:4;pointer-events:none;
+    border:1.5px solid var(--holo-dim);
+  }
+  .corner.tl{top:10px;left:10px;border-right:none;border-bottom:none}
+  .corner.tr{top:10px;right:10px;border-left:none;border-bottom:none}
+  .corner.bl{bottom:10px;left:10px;border-right:none;border-top:none}
+  .corner.br{bottom:10px;right:10px;border-left:none;border-top:none}
+  .roomtag{
+    position:absolute;top:12px;left:16px;z-index:4;
+    font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--holo-dim);pointer-events:none;
+  }
+  .roomtag b{color:var(--holo);font-weight:400}
+  .clock2{
+    position:absolute;top:12px;right:16px;z-index:4;
+    font-size:9px;letter-spacing:.22em;color:var(--holo-dim);pointer-events:none;
+  }
+  .clock2 b{color:var(--holo);font-weight:400}
+
+  /* ————— side console ————— */
+  .side{
+    display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;padding-right:2px;
+  }
+  .side::-webkit-scrollbar{width:8px}
+  .side::-webkit-scrollbar-track{background:transparent}
+  .side::-webkit-scrollbar-thumb{background:#1e4a38;border-radius:4px}
+  .pane{
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:12px;
+    padding:13px 15px 14px;
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
+  }
+  .pane h2{
+    font-weight:400;
+    font-size:9.5px;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:var(--dim);
+    margin-bottom:11px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .pane h2 .dotled{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--stem);box-shadow:0 0 8px var(--stem);
+    opacity:.3;
+  }
+  .pane h2 .dotled.hot{opacity:1}
+
+  .seedbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  button.seed{
+    -webkit-appearance:none;appearance:none;
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--text);
+    background:rgba(41,211,152,.06);
+    border:1px solid rgba(41,211,152,.35);
+    border-radius:9px;
+    padding:12px 8px 11px;
+    cursor:pointer;
+    transition:background .18s ease, box-shadow .18s ease, border-color .18s ease, transform .1s ease;
+  }
+  button.seed:hover,button.seed:focus-visible{
+    background:rgba(41,211,152,.16);
+    border-color:var(--stem);
+    box-shadow:0 0 16px rgba(41,211,152,.3);
+  }
+  button.seed:active{transform:translateY(1px)}
+  button.seed:focus-visible{outline:2px solid var(--stem);outline-offset:2px}
+  button.seed small{
+    display:block;font-size:8px;letter-spacing:.12em;color:var(--dim);margin-top:3px;
+  }
+  button.seed.cultivar2{border-color:rgba(167,139,250,.4)}
+  button.seed.cultivar2:hover,button.seed.cultivar2:focus-visible{
+    background:rgba(167,139,250,.14);border-color:var(--blossom-2);box-shadow:0 0 16px rgba(167,139,250,.3);
+  }
+  button.seed.cultivar3{border-color:rgba(255,94,168,.4)}
+  button.seed.cultivar3:hover,button.seed.cultivar3:focus-visible{
+    background:rgba(255,94,168,.12);border-color:var(--blossom-1);box-shadow:0 0 16px rgba(255,94,168,.28);
+  }
+  button.seed:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+
+  .dial{margin-top:2px}
+  .dial label{
+    display:flex;justify-content:space-between;
+    font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:7px;
+  }
+  .dial label output{color:var(--stem)}
+  input[type="range"]{
+    -webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:3px;border-radius:2px;
+    background:linear-gradient(90deg, rgba(41,211,152,.6), rgba(103,232,249,.5));
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:15px;height:15px;border-radius:50%;
+    background:var(--gh);border:2px solid var(--stem);
+    margin-top:-6px;box-shadow:0 0 10px rgba(41,211,152,.55);
+  }
+  input[type="range"]::-moz-range-track{height:3px;border-radius:2px;background:linear-gradient(90deg, rgba(41,211,152,.6), rgba(103,232,249,.5))}
+  input[type="range"]::-moz-range-thumb{
+    width:13px;height:13px;border-radius:50%;background:var(--gh);border:2px solid var(--stem);
+    box-shadow:0 0 10px rgba(41,211,152,.55);
+  }
+  input[type="range"]:focus-visible{outline:2px solid var(--holo);outline-offset:2px;border-radius:4px}
+
+  .taglist{display:flex;flex-direction:column;gap:8px}
+  .holotag{
+    border:1px solid rgba(103,232,249,.3);
+    background:linear-gradient(180deg, rgba(103,232,249,.08), rgba(103,232,249,.02));
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:9px;
+    letter-spacing:.1em;
+    line-height:1.7;
+    color:var(--holo);
+    text-shadow:0 0 8px rgba(103,232,249,.3);
+    animation:holoflicker 7s steps(1) infinite;
+  }
+  .holotag b{font-weight:400;color:#eafcff}
+  .holotag .bar{
+    display:block;height:3px;border-radius:2px;margin-top:5px;
+    background:linear-gradient(90deg, var(--stem), var(--blossom-2));
+    box-shadow:0 0 6px rgba(41,211,152,.5);
+    transition:width .6s ease;
+  }
+  .holotag:nth-child(2){animation-delay:.9s}
+  .holotag:nth-child(3){animation-delay:1.7s}
+  @keyframes holoflicker{
+    0%,100%{opacity:1}
+    3%{opacity:.55}
+    4%{opacity:1}
+    47%{opacity:1}
+    48%{opacity:.7}
+    49%{opacity:1}
+  }
+  .tagempty{font-size:9px;letter-spacing:.14em;color:var(--faint);font-style:italic;font-family:var(--serif)}
+
+  .ledwavebox p{
+    font-size:9px;letter-spacing:.12em;line-height:1.8;color:var(--dim);
+  }
+  .ledwavebox b{color:var(--holo);font-weight:400}
+
+  .noscript{
+    position:fixed;inset:0;display:grid;place-items:center;
+    font-size:12px;letter-spacing:.15em;color:var(--dim);
+  }
+
+  @media (max-width:900px){
+    .house{height:auto;min-height:100vh;overflow-y:auto}
+    body{overflow:auto}
+    .main{grid-template-columns:1fr}
+    .glassroom{min-height:54vh}
+    .side{overflow:visible}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sweep{animation:none;display:none}
+    .holotag{animation:none}
+    button.seed{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="house">
+
+  <header class="mast">
+    <h1>Neon <b>Botany</b></h1>
+    <p class="stat">Greenhouse <b>B-7</b> &#183; hydroponic deck<br>cultivars grown <b id="grownCount">0</b> &#183; cycle <b id="cycleName">night</b></p>
+  </header>
+
+  <div class="main">
+
+    <section class="glassroom" aria-label="Greenhouse floor">
+      <canvas id="garden"></canvas>
+      <div class="scanlines" aria-hidden="true"></div>
+      <div class="sweep" aria-hidden="true"></div>
+      <span class="corner tl" aria-hidden="true"></span>
+      <span class="corner tr" aria-hidden="true"></span>
+      <span class="corner bl" aria-hidden="true"></span>
+      <span class="corner br" aria-hidden="true"></span>
+      <p class="roomtag">DECK <b>B-7</b> &#183; <span id="soilNote">3 planting sockets free</span></p>
+      <p class="clock2">CYCLE <b id="clockCycle">22:41</b> &#183; LED wave <b id="wavePos">0%</b></p>
+    </section>
+
+    <aside class="side">
+
+      <section class="pane" aria-label="Seed vault">
+        <h2>Seed vault <span class="dotled" id="ledSeed"></span></h2>
+        <div class="seedbtns">
+          <button class="seed" type="button" data-cv="0">Lumen fern<small>bioluminal fronds</small></button>
+          <button class="seed cultivar2" type="button" data-cv="1">Violet orchid<small>spore lanterns</small></button>
+          <button class="seed cultivar3" type="button" data-cv="2">Signal cactus<small>amber needles</small></button>
+          <button class="seed cultivar2" type="button" data-cv="3">Pulse vine<small>creeping light</small></button>
+        </div>
+      </section>
+
+      <section class="pane" aria-label="Environment dials">
+        <h2>Environment</h2>
+        <div class="dial">
+          <label for="nutrient">Nutrient feed <output id="nutrientOut">60%</output></label>
+          <input type="range" id="nutrient" min="5" max="100" value="60" aria-label="Nutrient feed rate">
+        </div>
+        <div class="dial">
+          <label for="waveRate">Night-cycle wave <output id="waveOut">slow</output></label>
+          <input type="range" id="waveRate" min="10" max="100" value="45" aria-label="LED wave rate">
+        </div>
+      </section>
+
+      <section class="pane" aria-label="Holographic plant tags">
+        <h2>Holo tags <span class="dotled" id="ledTags"></span></h2>
+        <div class="taglist" id="taglist">
+          <p class="tagempty">no cultivars yet &#8212; plant a seed</p>
+        </div>
+      </section>
+
+      <section class="pane ledwavebox" aria-label="About the night cycle">
+        <h2>Night cycle</h2>
+        <p>At <b>22:41</b> the grow-lamps dim and the LED ribbons take over: a slow wave of light rolls across the deck every few seconds, and every blossom answers in turn. <b>Click empty sockets</b> on the floor to plant; <b>click a plant</b> to harvest its seed count.</p>
+      </section>
+
+    </aside>
+
+  </div>
+
+</div>
+
+<div class="noscript" id="noscript" hidden>
+  The garden grows on canvas &#8212; JavaScript required for photosynthesis.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   NEON BOTANY — procedural luminous plants on canvas.
+   Each cultivar grows from a seed via a seeded recursive
+   skeleton; LED nodes pulse in waves; the night cycle sweeps.
+   ============================================================ */
+
+var canvas = document.getElementById("garden");
+var ctx = canvas.getContext("2d");
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+var W = 0, H = 0;
+var raf = null, tPrev = 0, time = 0;
+
+/* ————— cultivars ————— */
+
+var CV = [
+  { name:"Lumen fern", tag:"LMN", hue:"#29d398", bloom:"#7cf7cf", kind:"fern", maxH:0.62, branch:3, depth:4 },
+  { name:"Violet orchid", tag:"VOR", hue:"#a78bfa", bloom:"#d5c8ff", kind:"orchid", maxH:0.5, branch:2, depth:4 },
+  { name:"Signal cactus", tag:"SGC", hue:"#fbbf24", bloom:"#ffe08a", kind:"cactus", maxH:0.42, branch:1, depth:3 },
+  { name:"Pulse vine", tag:"PLV", hue:"#ff5ea8", bloom:"#ffa8cf", kind:"vine", maxH:0.55, branch:3, depth:5 }
+];
+
+/* ————— sockets ————— */
+
+var SOCKETS = [
+  { fx:0.18, fy:0.9 }, { fx:0.38, fy:0.86 }, { fx:0.6, fy:0.92 },
+  { fx:0.8, fy:0.87 }, { fx:0.5, fy:0.84 }, { fx:0.28, fy:0.94 }, { fx:0.7, fy:0.8 }
+];
+var plants = [];   /* one per socket or null */
+
+/* ————— PRNG ————— */
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ————— plant skeleton —————
+   Precomputed at planting: recursive branches with lengths,
+   angles, LED node offsets, blossoms. Growth reveals them. */
+
+function buildSkeleton(cvIdx, seed){
+  var rnd = mulberry32(seed);
+  var cv = CV[cvIdx];
+  var segs = [];
+  var blossoms = [];
+
+  function grow(x, y, ang, len, depth, birth){
+    if (depth <= 0 || len < 4) return;
+    var steps = 3;
+    var sway = (rnd() - 0.5) * 0.3;
+    /* segment chain */
+    var px = x, py = y, pa = ang;
+    for (var s = 0; s < steps; s++){
+      var nl = len / steps;
+      var na = pa + sway / steps + (rnd() - 0.5) * 0.1;
+      var nx = px + Math.cos(na) * nl;
+      var ny = py + Math.sin(na) * nl;
+      segs.push({
+        x1: px, y1: py, x2: nx, y2: ny,
+        depth: depth,
+        w: Math.max(0.8, depth * 1.35),
+        birth: birth + s * 0.02,
+        led: (s === 1 && rnd() < 0.7) ? { t: 0.5, ph: rnd() * 6.28 } : null,
+        hue: cv.hue
+      });
+      px = nx; py = ny; pa = na;
+    }
+    var endBirth = birth + 0.09;
+    /* blossoms at tips of shallow recursion */
+    if (depth === 1 || (depth === 2 && rnd() < 0.4)){
+      blossoms.push({
+        x: px, y: py,
+        r: 3 + rnd() * 5,
+        petals: 4 + Math.floor(rnd() * 4),
+        ph: rnd() * 6.28,
+        birth: endBirth,
+        hue: cv.bloom,
+        deep: cv.hue
+      });
+    }
+    var kids = cv.kind === "cactus" ? 1 : Math.max(1, cv.branch - (cv.depth - depth));
+    if (cv.kind === "vine") kids = rnd() < 0.7 ? 2 : 3;
+    var spread = cv.kind === "fern" ? 0.9 : cv.kind === "cactus" ? 0.28 : 0.7;
+    for (var k = 0; k < kids; k++){
+      var ka = ang + (k - (kids - 1) / 2) * spread + (rnd() - 0.5) * 0.24;
+      grow(px, py, ka, len * (0.62 + rnd() * 0.16), depth - 1, endBirth);
+    }
+  }
+
+  grow(0, 0, -Math.PI / 2, cv.maxH * 0.42, cv.depth, 0);
+  /* normalize birth times */
+  var maxB = 0;
+  for (var i = 0; i < segs.length; i++) maxB = Math.max(maxB, segs[i].birth);
+  for (var j = 0; j < blossoms.length; j++) maxB = Math.max(maxB, blossoms[j].birth);
+  for (var s2 = 0; s2 < segs.length; s2++) segs[s2].birth /= (maxB + 0.001);
+  for (var b2 = 0; b2 < blossoms.length; b2++) blossoms[b2].birth /= (maxB + 0.001);
+  return { segs: segs, blossoms: blossoms, cv: cv };
+}
+
+/* ————— planting ————— */
+
+var taglist = document.getElementById("taglist");
+var grownCount = document.getElementById("grownCount");
+var ledSeed = document.getElementById("ledSeed");
+var ledTags = document.getElementById("ledTags");
+var soilNote = document.getElementById("soilNote");
+var totalGrown = 0;
+
+function plant(socketIdx, cvIdx){
+  if (plants[socketIdx]) return false;
+  var seed = (Math.random() * 0xffffffff) >>> 0;
+  var sk = buildSkeleton(cvIdx, seed);
+  var code = CV[cvIdx].tag + "-" + ("000" + (seed % 4096).toString(16).toUpperCase()).slice(-3);
+  plants[socketIdx] = {
+    socket: socketIdx,
+    sk: sk,
+    code: code,
+    growth: 0,
+    plantedAt: time
+  };
+  totalGrown++;
+  grownCount.textContent = totalGrown;
+  addTag(plants[socketIdx]);
+  updateSockets();
+  ledSeed.classList.add("hot");
+  setTimeout(function(){ ledSeed.classList.remove("hot"); }, 900);
+  return true;
+}
+
+function addTag(p){
+  var empty = taglist.querySelector(".tagempty");
+  if (empty) empty.remove();
+  var el = document.createElement("div");
+  el.className = "holotag";
+  el.setAttribute("data-code", p.code);
+  el.innerHTML =
+    "<b>" + p.code + "</b> \u00B7 " + p.sk.cv.name + "<br>" +
+    "specimens " + p.sk.segs.length + " seg / " + p.sk.blossoms.length + " bloom" +
+    '<span class="bar" style="width:6%"></span>';
+  taglist.insertBefore(el, taglist.firstChild);
+  ledTags.classList.add("hot");
+  setTimeout(function(){ ledTags.classList.remove("hot"); }, 900);
+}
+
+function updateSockets(){
+  var free = 0;
+  for (var i = 0; i < SOCKETS.length; i++) if (!plants[i]) free++;
+  soilNote.textContent = free === 0 ? "deck full \u2014 harvest to free a socket" : free + " planting sockets free";
+}
+
+/* ————— environment ————— */
+
+var nutrient = 0.6;
+var waveRate = 45;
+var nutrientEl = document.getElementById("nutrient");
+var nutrientOut = document.getElementById("nutrientOut");
+var waveEl = document.getElementById("waveRate");
+var waveOut = document.getElementById("waveOut");
+
+nutrientEl.addEventListener("input", function(){
+  nutrient = nutrientEl.value / 100;
+  nutrientOut.textContent = nutrientEl.value + "%";
+});
+waveEl.addEventListener("input", function(){
+  waveRate = waveEl.value;
+  waveOut.textContent = waveRate < 30 ? "glacial" : waveRate < 60 ? "slow" : waveRate < 85 ? "brisk" : "strobe";
+});
+
+/* ————— render ————— */
+
+function resize(){
+  var wrap = canvas.parentElement.getBoundingClientRect();
+  W = Math.max(300, Math.round(wrap.width));
+  H = Math.max(260, Math.round(wrap.height));
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+function socketPos(i){
+  return { x: SOCKETS[i].fx * W, y: SOCKETS[i].fy * H };
+}
+
+function drawFloor(){
+  /* perspective grid floor */
+  ctx.strokeStyle = "rgba(41,211,152,.10)";
+  ctx.lineWidth = 1;
+  var horizon = H * 0.42;
+  for (var gy = 0; gy < 9; gy++){
+    var yy = horizon + (H - horizon) * Math.pow(gy / 9, 1.6);
+    ctx.beginPath();
+    ctx.moveTo(0, yy);
+    ctx.lineTo(W, yy);
+    ctx.stroke();
+  }
+  for (var gx = -6; gx <= 6; gx++){
+    var x0 = W / 2 + gx * W * 0.09;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 + gx * 10, horizon);
+    ctx.lineTo(x0 * 1.6 - W * 0.3, H);
+    ctx.stroke();
+  }
+  /* glass reflections of stems (cheap: vertical smear) */
+  ctx.globalAlpha = 0.08;
+  ctx.drawImage(canvas, 0, horizon - 4, W, 4, 0, horizon, W, H * 0.2);
+  ctx.globalAlpha = 1;
+}
+
+function drawRibs(waveT){
+  /* LED ribbons along the side walls: sine-lit dots */
+  var n = 16;
+  for (var side = 0; side < 2; side++){
+    var x = side === 0 ? 14 : W - 14;
+    for (var i = 0; i < n; i++){
+      var y = H * 0.1 + i * (H * 0.8 / n);
+      var lit = 0.5 + 0.5 * Math.sin(waveT * 6.28 - i * 0.55);
+      var col = i % 3 === 0 ? "103,232,249" : (i % 3 === 1 ? "41,211,152" : "167,139,250");
+      ctx.fillStyle = "rgba(" + col + "," + (0.08 + lit * 0.4).toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      if (lit > 0.72){
+        ctx.fillStyle = "rgba(" + col + "," + ((lit - 0.72) * 0.5).toFixed(3) + ")";
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+function drawPlant(p, t){
+  var sk = p.sk;
+  var pos = socketPos(p.socket);
+  var g = p.growth;
+  if (g <= 0.02){
+    /* seed */
+    ctx.fillStyle = "rgba(215,239,228,.5)";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y - 3, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+  /* pot glow */
+  var glow = ctx.createRadialGradient(pos.x, pos.y, 2, pos.x, pos.y, 44 * g);
+  glow.addColorStop(0, "rgba(41,211,152," + (0.16 * g).toFixed(3) + ")");
+  glow.addColorStop(1, "rgba(41,211,152,0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 44 * g, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* segments */
+  for (var i = 0; i < sk.segs.length; i++){
+    var s = sk.segs[i];
+    if (s.birth > g) continue;
+    var localG = Math.min(1, (g - s.birth) / 0.12);
+    var x1 = pos.x + s.x1, y1 = pos.y + s.y1;
+    var x2 = pos.x + (s.x1 + (s.x2 - s.x1) * localG);
+    var y2 = pos.y + (s.y1 + (s.y2 - s.y1) * localG);
+    ctx.strokeStyle = s.hue;
+    ctx.globalAlpha = 0.35 + 0.5 * localG;
+    ctx.lineWidth = s.w;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    /* LED node */
+    if (s.led && localG > 0.5){
+      var pulse = 0.5 + 0.5 * Math.sin(t * 2.4 + s.led.ph);
+      ctx.globalAlpha = 0.5 + pulse * 0.5;
+      ctx.fillStyle = s.hue;
+      ctx.beginPath();
+      ctx.arc(x2, y2, 1.8 + pulse * 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = (0.14 + pulse * 0.2);
+      ctx.beginPath();
+      ctx.arc(x2, y2, 6 + pulse * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  /* blossoms */
+  for (var b = 0; b < sk.blossoms.length; b++){
+    var bl = sk.blossoms[b];
+    if (bl.birth > g) continue;
+    var bg = Math.min(1, (g - bl.birth) / 0.18);
+    var bx = pos.x + bl.x, by = pos.y + bl.y;
+    var breathe = 1 + 0.08 * Math.sin(t * 1.8 + bl.ph);
+    var R = bl.r * bg * breathe;
+    for (var pt = 0; pt < bl.petals; pt++){
+      var a = (pt / bl.petals) * Math.PI * 2 + bl.ph + t * 0.12;
+      ctx.strokeStyle = bl.deep;
+      ctx.globalAlpha = 0.5 + bg * 0.35;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.quadraticCurveTo(
+        bx + Math.cos(a) * R * 0.6, by + Math.sin(a) * R * 0.6 - R * 0.3,
+        bx + Math.cos(a) * R, by + Math.sin(a) * R
+      );
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.8 * bg;
+    ctx.fillStyle = bl.hue;
+    ctx.beginPath();
+    ctx.arc(bx, by, Math.max(1, R * 0.28), 0, Math.PI * 2);
+    ctx.fill();
+    /* halo */
+    ctx.globalAlpha = 0.16 * bg * (0.6 + 0.4 * Math.sin(t * 2 + bl.ph));
+    ctx.beginPath();
+    ctx.arc(bx, by, R * 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawMist(t){
+  /* drifting mist blobs */
+  ctx.globalCompositeOperation = "screen";
+  for (var i = 0; i < 5; i++){
+    var mx = ((t * 8 * (i % 2 ? 1 : -1) + i * 260) % (W + 320)) - 160;
+    var my = H * (0.3 + 0.16 * Math.sin(t * 0.22 + i * 1.7));
+    var mg = ctx.createRadialGradient(mx, my, 4, mx, my, 150);
+    mg.addColorStop(0, "rgba(103,232,249,.05)");
+    mg.addColorStop(1, "rgba(103,232,249,0)");
+    ctx.fillStyle = mg;
+    ctx.beginPath();
+    ctx.arc(mx, my, 150, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function drawWave(t){
+  /* a luminous band crossing the floor */
+  var wx = ((t * (0.04 + waveRate * 0.004)) % 1.4 - 0.2) * W;
+  var wg = ctx.createLinearGradient(wx - W * 0.18, 0, wx + W * 0.18, 0);
+  wg.addColorStop(0, "rgba(41,211,152,0)");
+  wg.addColorStop(0.5, "rgba(41,211,152,.10)");
+  wg.addColorStop(1, "rgba(41,211,152,0)");
+  ctx.globalCompositeOperation = "screen";
+  ctx.fillStyle = wg;
+  ctx.fillRect(wx - W * 0.2, H * 0.4, W * 0.4, H * 0.6);
+  ctx.globalCompositeOperation = "source-over";
+  var pct = Math.round(((wx / W) % 1 + 1) % 1 * 100);
+  var wavePos = document.getElementById("wavePos");
+  if (wavePos) wavePos.textContent = pct + "%";
+}
+
+/* ————— frame ————— */
+
+var lastCycleMin = -1;
+function updateClock(){
+  var now = new Date();
+  var mins = now.getHours() * 60 + now.getMinutes();
+  if (mins === lastCycleMin) return;
+  lastCycleMin = mins;
+  var hh = ("0" + now.getHours()).slice(-2);
+  var mm = ("0" + now.getMinutes()).slice(-2);
+  document.getElementById("clockCycle").textContent = hh + ":" + mm;
+  var night = mins >= 21 * 60 || mins < 5 * 60;
+  var evening = mins >= 18 * 60 && mins < 21 * 60;
+  var dawn = mins >= 5 * 60 && mins < 8 * 60;
+  document.getElementById("cycleName").textContent = night ? "night" : evening ? "dusk" : dawn ? "dawn" : "day";
+}
+
+function frame(now){
+  var dt = Math.min(0.05, (now - tPrev) / 1000 || 0.016);
+  tPrev = now;
+  time += dt;
+  var t = time;
+
+  /* growth */
+  for (var i = 0; i < plants.length; i++){
+    var p = plants[i];
+    if (p && p.growth < 1){
+      p.growth += dt * (0.045 + nutrient * 0.075);
+      if (p.growth > 1) p.growth = 1;
+      /* update tag growth bar occasionally */
+      if (Math.random() < 0.06){
+        var el = taglist.querySelector('[data-code="' + p.code + '"] .bar');
+        if (el) el.style.width = Math.round(p.growth * 100) + "%";
+      }
+    }
+  }
+
+  ctx.clearRect(0, 0, W, H);
+  drawFloor();
+  drawWave(t);
+  drawRibs(t * (0.15 + waveRate * 0.006));
+  for (var j = 0; j < plants.length; j++){
+    if (plants[j]) drawPlant(plants[j], t);
+  }
+  drawMist(t);
+  updateClock();
+
+  raf = requestAnimationFrame(frame);
+}
+
+/* ————— interaction ————— */
+
+canvas.addEventListener("pointerdown", function(e){
+  var r = canvas.getBoundingClientRect();
+  var x = e.clientX - r.left;
+  var y = e.clientY - r.top;
+  /* find nearest socket */
+  var best = -1, bestD = 44 * 44;
+  for (var i = 0; i < SOCKETS.length; i++){
+    var sp = socketPos(i);
+    var dx = x - sp.x, dy = y - sp.y;
+    var d2 = dx * dx + dy * dy;
+    if (d2 < bestD){ bestD = d2; best = i; }
+  }
+  if (best === -1) return;
+  if (plants[best]){
+    /* harvest: only if fully grown */
+    if (plants[best].growth >= 1){
+      var tag = taglist.querySelector('[data-code="' + plants[best].code + '"]');
+      if (tag) tag.remove();
+      plants[best] = null;
+      updateSockets();
+      if (!taglist.querySelector(".holotag")){
+        var em = document.createElement("p");
+        em.className = "tagempty";
+        em.textContent = "no cultivars yet \u2014 plant a seed";
+        taglist.insertBefore(em, taglist.firstChild);
+      }
+    }
+    return;
+  }
+  /* plant currently selected cultivar */
+  plant(best, selectedCv);
+  if (emptySockets() === 0) disableSeedButtons(true);
+});
+
+/* seed buttons pick the cultivar AND plant into the first free socket */
+var selectedCv = 0;
+var seedBtns = document.querySelectorAll(".seed");
+function emptySockets(){
+  var n = 0;
+  for (var i = 0; i < SOCKETS.length; i++) if (!plants[i]) n++;
+  return n;
+}
+function disableSeedButtons(off){
+  for (var i = 0; i < seedBtns.length; i++) seedBtns[i].disabled = off;
+}
+for (var sb = 0; sb < seedBtns.length; sb++){
+  (function(btn){
+    btn.addEventListener("click", function(){
+      selectedCv = parseInt(btn.dataset.cv, 10);
+      var free = -1;
+      for (var i = 0; i < SOCKETS.length; i++){
+        if (!plants[i]){ free = i; break; }
+      }
+      if (free === -1) return;
+      plant(free, selectedCv);
+      if (emptySockets() === 0) disableSeedButtons(true);
+    });
+  })(seedBtns[sb]);
+}
+
+/* keyboard: 1-4 plant */
+document.addEventListener("keydown", function(e){
+  if (e.key >= "1" && e.key <= "4"){
+    var idx = parseInt(e.key, 10) - 1;
+    var btn = document.querySelector('.seed[data-cv="' + idx + '"]');
+    if (btn && !btn.disabled) btn.click();
+  }
+});
+
+/* ————— lifecycle ————— */
+
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){
+    if (raf){ cancelAnimationFrame(raf); raf = null; }
+  } else {
+    if (!raf){ tPrev = performance.now(); raf = requestAnimationFrame(frame); }
+  }
+});
+
+var resizeTimer = null;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 130);
+});
+
+if (!canvas.getContext){
+  document.getElementById("noscript").hidden = false;
+}
+
+updateSockets();
+resize();
+/* pre-grown starter: one lumen fern */
+plant(0, 0);
+plants[0].growth = 1;
+var starterBar = taglist.querySelector(".holotag .bar");
+if (starterBar) starterBar.style.width = "100%";
+
+if (REDUCED){
+  /* static frame; still functional via re-render on interaction */
+  (function staticFrame(){
+    ctx.clearRect(0, 0, W, H);
+    drawFloor();
+    drawRibs(0);
+    for (var j = 0; j < plants.length; j++) if (plants[j]) drawPlant(plants[j], 1.2);
+    updateClock();
+  })();
+  /* re-render on control changes */
+  nutrientEl.addEventListener("input", function(){
+    ctx.clearRect(0, 0, W, H);
+    drawFloor(); drawRibs(0);
+    for (var j2 = 0; j2 < plants.length; j2++) if (plants[j2]) drawPlant(plants[j2], 1.2);
+  });
+} else {
+  tPrev = performance.now();
+  raf = requestAnimationFrame(frame);
+}
+
+/* when reduced, planted plants need one render */
+canvas.addEventListener("pointerdown", function(){
+  if (!REDUCED) return;
+  setTimeout(function(){
+    ctx.clearRect(0, 0, W, H);
+    drawFloor(); drawRibs(0);
+    for (var j = 0; j < plants.length; j++) if (plants[j]) drawPlant(plants[j], 1.2);
+  }, 30);
+});
+
+})();
+</script>
+</body>
+</html>

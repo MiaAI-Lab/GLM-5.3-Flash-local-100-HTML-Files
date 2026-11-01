@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Glaze &amp; Fire — a potter's wheel atelier. Pull a spinning vessel from clay by its control points, glaze it from authentic chips, then fire it in a kiln ramp from 900 to 1300 degrees and crack open the door.">
+<title>Glaze &amp; Fire · Work Nº 038 — a potter's wheel atelier</title>
+<style>
+/* ============================================================
+   GLAZE & FIRE — Work Nº 038
+   Clay remembers every hand that pulls it.
+   ============================================================ */
+:root{
+  --studio-hi: #efe7db;
+  --studio-lo: #ddd2bd;
+  --bench:     #a68b64;
+  --bench-d:   #7c6446;
+  --clay:      #b4704f;
+  --clay-d:    #8a5237;
+  --wheel:     #5a5a5a;
+  --wheel-d:   #3d3d40;
+  --ink:       #3b3128;
+  --ink-dim:   rgba(59,49,40,.64);
+  --ink-faint: rgba(59,49,40,.38);
+  --card:      #f7f2e7;
+  --card-edge: rgba(59,49,40,.16);
+  --fire:      #b3402a;
+  --fire-hi:   #d4593c;
+  --ember:     #ff8c2e;
+  --serif:     Georgia, 'Iowan Old Style', 'Palatino Linotype', ui-serif, serif;
+  --mono:      ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+  --sans:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow:hidden;
+  font-family:var(--sans);
+  color:var(--ink);
+  background:linear-gradient(180deg, var(--studio-hi), var(--studio-lo));
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:var(--clay); color:#fdf6ec; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid rgba(179,64,42,.7); outline-offset:2px; border-radius:8px; }
+
+/* ------------------------------ shell -------------------------------- */
+.studio{
+  height:100%;
+  max-width:1500px;
+  margin:0 auto;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  padding:clamp(10px,1.8vh,20px) clamp(12px,2.4vw,36px) clamp(10px,1.8vh,18px);
+  gap:clamp(8px,1.6vh,14px);
+}
+@media (max-width:880px){
+  body{ overflow:auto; }
+  .studio{ height:auto; min-height:100%; grid-template-rows:auto auto auto; }
+}
+
+/* header */
+header.bench-top{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:14px; flex-wrap:wrap;
+}
+.mark-no{
+  margin:0 0 8px;
+  font:500 9.5px/1 var(--mono);
+  letter-spacing:.32em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:clamp(28px,3.8vw,46px);
+  line-height:1;
+  color:var(--ink);
+}
+.mark-word em{ font-style:italic; }
+.mark-sub{
+  margin:8px 0 0;
+  font:italic 400 clamp(11px,1.3vw,13.5px)/1.5 var(--serif);
+  color:var(--ink-dim);
+  max-width:48ch;
+}
+.temp-block{ text-align:right; }
+.temp-big{
+  font:700 clamp(26px,3vw,38px)/1 var(--mono);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.04em;
+  color:var(--ink);
+  transition:color .5s ease, text-shadow .5s ease;
+}
+.temp-big small{
+  font:600 11px/1 var(--mono);
+  letter-spacing:.3em;
+  color:var(--ink-faint);
+}
+.temp-big.hot{ color:var(--fire); text-shadow:0 0 22px rgba(255,140,46,.35); }
+.temp-lab{
+  margin:7px 0 0;
+  font:600 9px/1.6 var(--mono);
+  letter-spacing:.28em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+
+/* main split */
+.workbench{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(290px, 0.9fr);
+  gap:clamp(10px,2vw,26px);
+  min-height:0;
+}
+@media (max-width:880px){
+  .workbench{ grid-template-columns:1fr; }
+}
+
+/* wheel bay */
+.wheel-bay{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  background:
+    radial-gradient(90% 70% at 30% 0%, rgba(255,255,255,.55), transparent 55%),
+    linear-gradient(180deg, var(--studio-hi), var(--studio-lo));
+  border:1px solid var(--card-edge);
+  box-shadow:inset 0 0 0 6px rgba(255,255,255,.28), 0 18px 40px rgba(59,49,40,.18);
+}
+#lathe{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  display:block;
+  touch-action:none;
+  cursor:grab;
+}
+#lathe.dragging{ cursor:grabbing; }
+#lathe.locked{ cursor:default; }
+.stage-caption{
+  position:absolute; z-index:3;
+  left:50%; bottom:clamp(10px,2vh,18px);
+  transform:translateX(-50%);
+  font:600 9px/1.7 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-faint);
+  text-align:center;
+  pointer-events:none;
+  background:rgba(247,242,231,.72);
+  border:1px solid var(--card-edge);
+  border-radius:999px;
+  padding:7px 14px;
+  max-width:min(92%, 480px);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  transition:opacity .4s ease;
+}
+.stage-caption.hot{
+  color:#ffdba8;
+  background:rgba(30,10,4,.66);
+  border-color:rgba(255,140,46,.4);
+}
+
+/* console */
+.console{
+  display:flex; flex-direction:column; gap:clamp(8px,1.6vh,14px);
+  min-height:0;
+  overflow-y:auto;
+  padding-right:2px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(59,49,40,.3) transparent;
+}
+.console::-webkit-scrollbar{ width:8px; }
+.console::-webkit-scrollbar-thumb{ background:rgba(59,49,40,.24); border-radius:4px; }
+.console::-webkit-scrollbar-track{ background:transparent; }
+
+.steps{
+  display:flex; gap:6px;
+}
+.step{
+  flex:1;
+  text-align:center;
+  font:700 8.5px/1.6 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink-faint);
+  border:1px solid var(--card-edge);
+  border-radius:7px;
+  padding:7px 4px;
+  background:rgba(255,255,255,.35);
+  transition:background .3s ease, color .3s ease, border-color .3s ease;
+}
+.step.now{
+  color:#fdf6ec;
+  background:var(--ink);
+  border-color:var(--ink);
+}
+.step.done{ color:var(--ink-dim); background:rgba(179,64,42,.1); border-color:rgba(179,64,42,.3); }
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--card-edge);
+  border-radius:12px;
+  padding:14px 15px 13px;
+  box-shadow:0 12px 26px rgba(59,49,40,.12);
+}
+.panel-k{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font:700 9px/1 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-faint);
+  margin:0 0 11px;
+}
+.panel-k b{ color:var(--fire); letter-spacing:.2em; }
+
+/* glaze chips */
+.chips{ display:flex; flex-direction:column; gap:8px; }
+.chip{
+  appearance:none;
+  display:flex; align-items:center; gap:12px;
+  width:100%;
+  min-height:52px;
+  padding:8px 11px;
+  border-radius:10px;
+  border:1px solid var(--card-edge);
+  background:rgba(255,255,255,.45);
+  cursor:pointer;
+  text-align:left;
+  transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+  touch-action:manipulation;
+}
+@media (hover:hover){
+  .chip:hover{ transform:translateY(-1px); background:rgba(255,255,255,.85); }
+}
+.chip:active{ transform:scale(.98); }
+.chip[aria-pressed="true"]{
+  border-color:var(--ink);
+  background:rgba(255,255,255,.95);
+  box-shadow:0 4px 12px rgba(59,49,40,.16);
+}
+.chip-dot{
+  width:30px; height:30px;
+  border-radius:50%;
+  flex:none;
+  box-shadow:
+    inset 0 2px 5px rgba(255,255,255,.4),
+    inset 0 -4px 8px rgba(0,0,0,.35),
+    0 2px 6px rgba(59,49,40,.3);
+  border:1px solid rgba(59,49,40,.2);
+}
+.chip-name{
+  font-family:var(--serif);
+  font-size:15px;
+  color:var(--ink);
+}
+.chip-name small{
+  display:block;
+  font:600 8.5px/1.6 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.chip-temp{
+  margin-left:auto;
+  font:700 10px/1 var(--mono);
+  letter-spacing:.1em;
+  color:var(--ink-dim);
+  font-variant-numeric:tabular-nums;
+}
+.glaze-note{
+  margin:10px 0 0;
+  font:italic 400 12px/1.6 var(--serif);
+  color:var(--ink-dim);
+  min-height:2.6em;
+}
+
+/* buttons */
+.btns{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:42px;
+  padding:10px 14px;
+  border-radius:9px;
+  border:1px solid rgba(59,49,40,.35);
+  background:linear-gradient(180deg, #4c4034, #352c22);
+  color:#f7f2e7;
+  font:700 10px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 3px 0 rgba(40,32,22,.5), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:transform .1s ease, box-shadow .1s ease, filter .18s ease;
+  touch-action:manipulation;
+}
+.btn svg{ width:12px; height:12px; }
+@media (hover:hover){ .btn:hover{ filter:brightness(1.25); } }
+.btn:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(40,32,22,.5); }
+.btn[disabled]{ opacity:.4; cursor:not-allowed; transform:none; }
+.btn.fire{
+  flex:1;
+  min-height:54px;
+  font-size:12px;
+  letter-spacing:.3em;
+  background:linear-gradient(180deg, var(--fire-hi), #8f2d1a);
+  border-color:#6e2114;
+}
+@media (hover:hover){ .btn.fire:hover{ filter:brightness(1.15) saturate(1.1); } }
+.btn.ghost{
+  background:rgba(255,255,255,.5);
+  color:var(--ink);
+  border-color:rgba(59,49,40,.3);
+  box-shadow:0 3px 0 rgba(59,49,40,.2);
+}
+
+/* kiln readout */
+.kiln-row{
+  display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+  margin:2px 0 9px;
+}
+.kiln-temp{
+  font:700 30px/1 var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--ink);
+  transition:color .4s ease;
+}
+.kiln-temp.hot{ color:var(--fire); }
+.kiln-state{
+  font:700 9px/1.5 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-faint);
+  text-align:right;
+}
+.kiln-bar{
+  height:6px;
+  border-radius:3px;
+  background:rgba(59,49,40,.14);
+  overflow:hidden;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.15);
+}
+.kiln-bar i{
+  display:block; height:100%;
+  width:0%;
+  border-radius:3px;
+  background:linear-gradient(90deg, #d97c2a, var(--fire), var(--ember));
+  transition:width .25s linear;
+}
+.cones{
+  display:flex; gap:5px; align-items:center;
+  margin-top:10px;
+  font:600 8.5px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.cone{
+  width:0; height:0;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-bottom:11px solid rgba(59,49,40,.18);
+  transition:border-bottom-color .4s ease, transform .4s ease;
+}
+.cone.bent{
+  border-bottom-color:var(--fire);
+  transform:rotate(38deg) translateY(2px);
+}
+
+/* reveal card */
+.reveal{ display:none; }
+.reveal.show{ display:block; animation:revIn .6s ease both; }
+@keyframes revIn{
+  from{ opacity:0; transform:translateY(10px); }
+}
+.reveal-name{
+  margin:0;
+  font-family:var(--serif);
+  font-size:21px;
+  line-height:1.25;
+  color:var(--ink);
+}
+.reveal-quote{
+  margin:7px 0 10px;
+  font:italic 400 12.5px/1.6 var(--serif);
+  color:var(--ink-dim);
+}
+.reveal-specs{
+  display:flex; gap:8px 16px; flex-wrap:wrap;
+  font:600 9.5px/1.7 var(--mono);
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.reveal-specs b{ color:var(--ink-dim); }
+
+.hint{
+  margin:0;
+  font:400 11px/1.75 var(--mono);
+  color:var(--ink-dim);
+}
+.hint b{ color:var(--ink); }
+kbd{
+  font:600 8.5px/1 var(--mono);
+  color:var(--ink-dim);
+  border:1px solid rgba(59,49,40,.3);
+  border-bottom-width:2px;
+  border-radius:4px;
+  padding:2px 4px;
+  background:rgba(255,255,255,.5);
+}
+
+/* footer strip */
+.bench-foot{
+  display:flex; gap:8px 20px; flex-wrap:wrap; justify-content:center;
+  font:600 9px/1 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.bench-foot b{ color:var(--ink-dim); font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* toast */
+.toast{
+  position:fixed; z-index:40;
+  left:50%; bottom:clamp(16px,3.4vh,30px);
+  transform:translate(-50%,10px);
+  background:rgba(40,32,22,.94);
+  border:1px solid rgba(247,242,231,.22);
+  color:#f7f2e7;
+  font:600 10px/1 var(--mono);
+  letter-spacing:.16em;
+  padding:11px 16px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 32px);
+  text-align:center;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.no-js{
+  position:fixed; inset:0; z-index:50;
+  display:grid; place-items:center;
+  background:var(--studio-lo); color:var(--ink-dim);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="studio">
+
+  <header class="bench-top">
+    <div>
+      <p class="mark-no">The Gallery of 100 · Work Nº 038 · the wheel turns</p>
+      <h1 class="mark-word">Glaze &amp; <em>Fire</em></h1>
+      <p class="mark-sub">Pull the clay where you want it, choose an honest glaze, then trust the kiln. What comes out was always going to be yours.</p>
+    </div>
+    <div class="temp-block">
+      <p class="temp-big" id="tempBig">20<small> °C</small></p>
+      <p class="temp-lab">STUDIO TEMPERATURE · WET CLAY</p>
+    </div>
+  </header>
+
+  <div class="workbench">
+
+    <div class="wheel-bay">
+      <canvas id="lathe" role="img"
+        aria-label="A potter's wheel with a spinning clay vessel. Drag the control points to pull the walls outward or push them in, choose a glaze, and fire the kiln."></canvas>
+      <p class="stage-caption" id="stageCap">DRAG THE PULL POINTS · THE WHEEL TURNS UNDER THE CLAY</p>
+    </div>
+
+    <aside class="console" aria-label="Potter's console">
+
+      <div class="steps" aria-label="Process steps">
+        <span class="step now" id="stepShape">01 · Shape</span>
+        <span class="step" id="stepGlaze">02 · Glaze</span>
+        <span class="step" id="stepFire">03 · Fire</span>
+        <span class="step" id="stepDone">04 · Reveal</span>
+      </div>
+
+      <section class="panel" aria-label="The clay">
+        <p class="panel-k"><span>The clay</span><span>WHEEL Nº 3</span></p>
+        <p class="hint">Drag any <b>pull point</b> on the wall — outward to swell the belly, inward to neck it in. The profile is sampled through a spline, so every move reads as one gesture.</p>
+        <div class="btns" style="margin-top:11px;">
+          <button class="btn ghost" id="lumpBtn">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.8M10 1v2.4H7.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            New lump
+          </button>
+          <button class="btn ghost" id="centerBtn">Re-center</button>
+          <button class="btn" id="soundBtn" aria-pressed="true" title="Toggle wheel and kiln sound">Sound</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Glaze chips">
+        <p class="panel-k"><span>The glaze</span><b>CHIP SHELF</b></p>
+        <div class="chips" id="chips">
+          <button class="chip" data-glaze="celadon" aria-pressed="false">
+            <span class="chip-dot" style="background:radial-gradient(circle at 34% 28%, #c3d8c8, #9fbfae 58%, #6f8f7c);"></span>
+            <span class="chip-name">Celadon<small>jade · quiet · reduction</small></span>
+            <span class="chip-temp">1280°C</span>
+          </button>
+          <button class="chip" data-glaze="tenmoku" aria-pressed="false">
+            <span class="chip-dot" style="background:radial-gradient(circle at 34% 28%, #4a3a33, #241a16 58%, #120b09);"></span>
+            <span class="chip-name">Tenmoku<small>iron dark · oil-spot</small></span>
+            <span class="chip-temp">1300°C</span>
+          </button>
+          <button class="chip" data-glaze="shino" aria-pressed="false">
+            <span class="chip-dot" style="background:radial-gradient(circle at 34% 28%, #f4d0ae, #e8b28a 58%, #c08a5f);"></span>
+            <span class="chip-name">Shino<small>warm · candid · blush</small></span>
+            <span class="chip-temp">1230°C</span>
+          </button>
+          <button class="chip" data-glaze="raw" aria-pressed="true">
+            <span class="chip-dot" style="background:radial-gradient(circle at 34% 28%, #cc8763, #b4704f 58%, #7d4a33);"></span>
+            <span class="chip-name">Naked clay<small>no glaze · bisque only</small></span>
+            <span class="chip-temp">980°C</span>
+          </button>
+        </div>
+        <p class="glaze-note" id="glazeNote">Naked clay keeps the thrower's fingerprints and asks nothing from the fire but courage.</p>
+      </section>
+
+      <section class="panel" aria-label="The kiln">
+        <p class="panel-k"><span>The kiln</span><span>UPDRAFT · BRICK</span></p>
+        <div class="kiln-row">
+          <span class="kiln-temp" id="kilnTemp">20°C</span>
+          <span class="kiln-state" id="kilnState">COLD · DOOR OPEN</span>
+        </div>
+        <div class="kiln-bar" aria-hidden="true"><i id="kilnFill"></i></div>
+        <div class="cones" aria-label="Orton cones">
+          <span>CONES</span>
+          <span class="cone" data-c="1"></span><span class="cone" data-c="2"></span>
+          <span class="cone" data-c="3"></span><span class="cone" data-c="4"></span>
+          <span class="cone" data-c="5"></span><span class="cone" data-c="6"></span>
+          <span id="coneNote">—</span>
+        </div>
+        <div class="btns" style="margin-top:12px;">
+          <button class="btn fire" id="fireBtn">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1c2 2.4 3.4 3.8 3.4 6a3.4 3.4 0 1 1-6.8 0C2.6 5.4 4 3.6 6 1Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path><path d="M6 6.2c.8.9 1.3 1.5 1.3 2.3a1.3 1.3 0 1 1-2.6 0C4.7 7.7 5.2 7 6 6.2Z" fill="currentColor"></path></svg>
+            Fire the kiln
+          </button>
+          <button class="btn ghost" id="openBtn" disabled>Open door</button>
+        </div>
+      </section>
+
+      <section class="panel reveal" id="revealCard" aria-label="Finished vessel" aria-live="polite">
+        <p class="panel-k"><span>The reveal</span><b id="revealNo">OPUS 1</b></p>
+        <h2 class="reveal-name" id="revealName">Celadon bottle</h2>
+        <p class="reveal-quote" id="revealQuote">“The kiln had the last word, and for once it was kind.”</p>
+        <p class="reveal-specs">
+          <span>GLAZE <b id="specGlaze">CELADON</b></span>
+          <span>PEAK <b id="specPeak">1280°C</b></span>
+          <span>CRACKLE <b id="specCrackle">0</b></span>
+          <span>OPUS <b id="specOpus">01</b></span>
+        </p>
+      </section>
+
+    </aside>
+  </div>
+
+  <footer class="bench-foot" aria-label="Session statistics">
+    <span>OPUS <b id="ftOpus">01</b></span>
+    <span>WALL <b id="ftWall">THICK</b></span>
+    <span>SILHOUETTE <b id="ftForm">VESSEL</b></span>
+    <span>PULLS <b id="ftPulls">0</b></span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The wheel spins by JavaScript — please kick it into motion.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+const rand = (a,b) => a+Math.random()*(b-a);
+const irand = (a,b) => Math.floor(rand(a,b+1));
+const TAU = Math.PI*2;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ui = {
+  lathe: $('lathe'), stageCap: $('stageCap'), toast: $('toast'),
+  tempBig: $('tempBig'),
+  stepShape: $('stepShape'), stepGlaze: $('stepGlaze'), stepFire: $('stepFire'), stepDone: $('stepDone'),
+  chips: $('chips'), glazeNote: $('glazeNote'),
+  kilnTemp: $('kilnTemp'), kilnState: $('kilnState'), kilnFill: $('kilnFill'),
+  coneNote: $('coneNote'),
+  fireBtn: $('fireBtn'), openBtn: $('openBtn'), lumpBtn: $('lumpBtn'),
+  centerBtn: $('centerBtn'), soundBtn: $('soundBtn'),
+  revealCard: $('revealCard'), revealName: $('revealName'), revealQuote: $('revealQuote'),
+  revealNo: $('revealNo'), specGlaze: $('specGlaze'), specPeak: $('specPeak'),
+  specCrackle: $('specCrackle'), specOpus: $('specOpus'),
+  ftOpus: $('ftOpus'), ftWall: $('ftWall'), ftForm: $('ftForm'), ftPulls: $('ftPulls'),
+};
+const ctx = ui.lathe.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+
+/* ============================== glaze data =========================== */
+const GLAZES = {
+  celadon: {
+    name: 'Celadon', temp: 1280, col: [159,191,174], crackle: true, spots: false,
+    note: 'Celadon asks for a quiet, reduced fire and answers with lake-water green.',
+  },
+  tenmoku: {
+    name: 'Tenmoku', temp: 1300, col: [36,26,22], crackle: true, spots: true,
+    note: 'Tenmoku melts to black iron glass and leaves oil-spots where it pooled.',
+  },
+  shino: {
+    name: 'Shino', temp: 1230, col: [232,178,138], crackle: true, spots: false,
+    note: 'Shino blushes where the flame licked it — every firing writes differently.',
+  },
+  raw: {
+    name: 'Naked clay', temp: 980, col: [176,113,80], crackle: false, spots: false,
+    note: 'Naked clay keeps the thrower\u2019s fingerprints and asks nothing from the fire but courage.',
+  },
+};
+let glazeKey = 'raw';
+
+/* ============================== profile ============================== */
+const PRESETS = {
+  vessel: [ {r:.14,y:.02},{r:.30,y:.10},{r:.42,y:.30},{r:.38,y:.52},{r:.26,y:.70},{r:.22,y:.86},{r:.30,y:1.0} ],
+  bottle: [ {r:.12,y:.02},{r:.26,y:.12},{r:.34,y:.34},{r:.20,y:.62},{r:.14,y:.80},{r:.13,y:.90},{r:.17,y:1.0} ],
+  bowl:   [ {r:.30,y:.02},{r:.42,y:.14},{r:.50,y:.34},{r:.55,y:.55},{r:.58,y:.75},{r:.60,y:.88},{r:.62,y:1.0} ],
+  cup:    [ {r:.22,y:.02},{r:.34,y:.14},{r:.40,y:.34},{r:.38,y:.52},{r:.36,y:.68},{r:.37,y:.84},{r:.40,y:1.0} ],
+};
+let points = PRESETS.vessel.map(p => ({ r: p.r, y: p.y }));
+let presetKeys = Object.keys(PRESETS);
+let presetIdx = 0;
+let pulls = 0;
+let opus = 0;
+let crackles = [];
+
+function resetPoints(key, jitter){
+  const src = PRESETS[key] || PRESETS.vessel;
+  points = src.map(p => ({
+    r: clamp(p.r + (jitter ? rand(-0.05, 0.05) : 0), 0.05, 0.62),
+    y: p.y,
+  }));
+}
+function catmull(p0, p1, p2, p3, t){
+  const t2 = t*t, t3 = t2*t;
+  return 0.5 * ((2*p1) + (-p0+p2)*t +
+    (2*p0 - 5*p1 + 4*p2 - p3)*t2 +
+    (-p0 + 3*p1 - 3*p2 + p3)*t3);
+}
+function buildSamples(){
+  const out = [{ r: 0.004, y: 0 }];
+  const n = points.length;
+  for (let i = 0; i < n - 1; i++){
+    const p0 = points[Math.max(0, i-1)], p1 = points[i],
+          p2 = points[i+1], p3 = points[Math.min(n-1, i+2)];
+    const sub = 16;
+    for (let j = 0; j < sub; j++){
+      const t = j / sub;
+      out.push({
+        r: Math.max(0.006, catmull(p0.r, p1.r, p2.r, p3.r, t)),
+        y: clamp(catmull(p0.y, p1.y, p2.y, p3.y, t), 0, 1),
+      });
+    }
+  }
+  const lastP = points[n-1];
+  out.push({ r: Math.max(0.006, lastP.r), y: lastP.y });
+  return out;
+}
+let samples = buildSamples();
+
+/* ============================== geometry ============================= */
+let cx = 0, baseY = 0, rScale = 0, hScale = 0;
+function metrics(){
+  cx = W * 0.5;
+  baseY = H * 0.74;
+  rScale = Math.min(W * 0.44, H * 0.62) * 0.78;
+  hScale = Math.min(H * 0.56, W * 0.6) * 0.9;
+}
+function px(py){ return baseY - py * hScale; }
+function pr(prr){ return prr * rScale; }
+
+/* ============================== audio ================================ */
+let AC = null, master = null, noiseBuf = null;
+let soundOn = true;
+let hum = null, humGain = null;
+let roar = null, roarGain = null;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.5;
+    master.connect(AC.destination);
+    const len = AC.sampleRate * 1;
+    noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function startHum(){
+  if (!soundOn || !ensureAudio() || hum) return;
+  hum = AC.createOscillator();
+  const hum2 = AC.createOscillator();
+  hum.type = 'sawtooth'; hum.frequency.value = 52;
+  hum2.type = 'triangle'; hum2.frequency.value = 104;
+  const lp = AC.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 240;
+  humGain = AC.createGain();
+  humGain.gain.value = 0;
+  hum.connect(lp); hum2.connect(lp); lp.connect(humGain); humGain.connect(master);
+  hum.start(); hum2.start();
+}
+function setHum(v){
+  if (humGain){
+    const t0 = AC.currentTime;
+    humGain.gain.setTargetAtTime(clamp(v, 0, 1) * 0.16, t0, 0.08);
+  }
+}
+function stopHum(){
+  setHum(0);
+}
+function squelch(speed){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  const bp = AC.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 300 + Math.random() * 500 + speed * 2;
+  bp.Q.value = 2.2;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.14 + speed * 0.003, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.09);
+  src.connect(bp); bp.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + 0.12);
+}
+function startRoar(){
+  if (!soundOn || !ensureAudio()) return;
+  if (!roar){
+    roar = AC.createBufferSource();
+    roar.buffer = noiseBuf;
+    roar.loop = true;
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 320;
+    roarGain = AC.createGain();
+    roarGain.gain.value = 0;
+    roar.connect(lp); lp.connect(roarGain); roarGain.connect(master);
+    roar.start();
+  }
+}
+function setRoar(v){
+  if (roarGain){
+    const t0 = AC.currentTime;
+    roarGain.gain.setTargetAtTime(clamp(v, 0, 1) * 0.3, t0, 0.25);
+  }
+}
+function crackleTick(){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  const hp = AC.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 3200;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0.08 + Math.random() * 0.1, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.04);
+  src.connect(hp); hp.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + 0.06);
+}
+function revealDing(){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  [[880, .2], [1320, .12], [1760, .07]].forEach((pr2, i) => {
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.type = 'sine';
+    o.frequency.value = pr2[0];
+    const t1 = t0 + i * 0.09;
+    g.gain.setValueAtTime(0.0001, t1);
+    g.gain.exponentialRampToValueAtTime(pr2[1], t1 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.9);
+    o.connect(g); g.connect(master);
+    o.start(t1); o.stop(t1 + 1);
+  });
+}
+
+/* ============================== firing =============================== */
+let mode = 'shape';          /* shape | glaze | fire | done */
+let firing = false;
+let temp = 20;
+let peakTemp = 20;
+let heat = 0;                /* 0..1 glow factor */
+let fireT = 0;
+let firePhase = 'idle';      /* climbing | soak | cooling | opened */
+let openHold = 0;
+const embers = [];
+let wheelAng = 0;
+let dragging = null;
+let dragSpeed = 0;
+let squelchAcc = 0;
+
+function coneOf(tempV){
+  if (tempV >= 1300) return 6;
+  if (tempV >= 1260) return 5;
+  if (tempV >= 1220) return 4;
+  if (tempV >= 1180) return 3;
+  if (tempV >= 1130) return 2;
+  if (tempV >= 1080) return 1;
+  return 0;
+}
+
+function startFiring(){
+  if (firing || mode === 'done') return;
+  firing = true;
+  mode = 'fire';
+  fireT = 0;
+  peakTemp = GLAZES[glazeKey].temp;
+  firePhase = 'climbing';
+  ensureAudio();
+  startRoar();
+  ui.fireBtn.disabled = true;
+  ui.openBtn.disabled = true;
+  ui.lathe.classList.add('locked');
+  setStep('fire');
+  ui.stageCap.classList.add('hot');
+  ui.stageCap.textContent = 'THE KILN CLIMBS · DO NOT OPEN · THE CLAY IS CHANGING ITS MIND';
+  toast('Kiln lit — ramping toward ' + peakTemp + '\u00B0C');
+}
+function openKiln(){
+  if (!firing || firePhase !== 'cooling') return;
+  firePhase = 'opened';
+  finishFiring();
+}
+function finishFiring(){
+  firing = false;
+  setRoar(0);
+  mode = 'done';
+  opus++;
+  /* build crackle lines in normalized vessel space */
+  crackles = [];
+  const target = GLAZES[glazeKey].crackle ? irand(14, 30) : 0;
+  let maxRNow = 0.02;
+  for (const s of samples) maxRNow = Math.max(maxRNow, s.r);
+  for (let i = 0; i < target; i++){
+    const y0 = rand(0.05, 0.95);
+    const segs = [];
+    let yy = y0;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    let rr = rand(0.02, Math.max(0.05, maxRNow * 0.9));
+    segs.push({ r: rr, y: yy });
+    const n = irand(2, 5);
+    for (let j = 0; j < n; j++){
+      yy += rand(0.02, 0.07) * (Math.random() < 0.5 ? 1 : -1);
+      rr += rand(0.01, 0.05) * side;
+      rr = clamp(rr, 0.005, maxRNow * 1.05);
+      segs.push({ r: rr, y: clamp(yy, 0, 1) });
+    }
+    crackles.push(segs);
+  }
+  if (GLAZES[glazeKey].spots){
+    for (let i = 0; i < 16; i++){
+      crackles.push([{ r: rand(0.03, maxRNow), y: rand(0.08, 0.92), dot: true }]);
+    }
+  }
+  /* name the piece */
+  let maxR = 0;
+  for (const s of samples) maxR = Math.max(maxR, s.r);
+  const ratio = hScale / (maxR * rScale * 2);
+  const g = GLAZES[glazeKey];
+  let form, quote;
+  if (ratio > 1.7){ form = 'bottle'; quote = 'It stood in the fire like a held breath, and came out still holding it.'; }
+  else if (ratio < 0.95){ form = 'bowl'; quote = 'A bowl is an argument for holding things gently. The kiln agreed.'; }
+  else { form = g === GLAZES.raw ? 'cup' : 'guinomi'; quote = 'The kiln had the last word, and for once it was kind.'; }
+  const gname = glazeKey === 'raw' ? 'Naked' : g.name;
+  ui.revealName.textContent = gname + ' ' + form;
+  ui.revealQuote.textContent = '\u201C' + quote + '\u201D';
+  ui.specGlaze.textContent = g.name.toUpperCase();
+  ui.specPeak.textContent = String(peakTemp) + '\u00B0C';
+  ui.specCrackle.textContent = String(target);
+  ui.revealNo.textContent = 'OPUS ' + String(opus).padStart(2, '0');
+  ui.specOpus.textContent = String(opus).padStart(2, '0');
+  ui.ftOpus.textContent = String(opus).padStart(2, '0');
+  ui.revealCard.classList.add('show');
+  setStep('done');
+  ui.stageCap.classList.remove('hot');
+  ui.stageCap.textContent = 'FIRED TO ' + peakTemp + '\u00B0C · ' + g.name.toUpperCase() +
+    (g.crackle ? ' · CRACKLE HELD' : ' · UNGLAZED, HONEST');
+  ui.openBtn.disabled = true;
+  ui.fireBtn.disabled = true;
+  ui.stageCap.style.opacity = '1';
+  revealDing();
+  toast('The door opens — ' + gname.toLowerCase() + ' ' + form + ', opus ' + opus);
+}
+
+/* ============================== render =============================== */
+function mix(a, b, t){
+  return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+}
+function css(c, a){
+  return 'rgba(' + (c[0]|0) + ',' + (c[1]|0) + ',' + (c[2]|0) + ',' + (a === undefined ? 1 : a) + ')';
+}
+const CLAY = [180, 112, 79];
+const EMBER_RAMP = [
+  { t: 0.00, c: [70, 22, 10] },
+  { t: 0.35, c: [130, 38, 10] },
+  { t: 0.60, c: [214, 74, 18] },
+  { t: 0.80, c: [255, 138, 40] },
+  { t: 1.00, c: [255, 226, 150] },
+];
+function emberColor(h){
+  for (let i = 0; i < EMBER_RAMP.length - 1; i++){
+    const a = EMBER_RAMP[i], b = EMBER_RAMP[i+1];
+    if (h <= b.t){
+      return mix(a.c, b.c, (h - a.t) / (b.t - a.t));
+    }
+  }
+  return EMBER_RAMP[EMBER_RAMP.length - 1].c;
+}
+
+function vesselColors(){
+  if (mode === 'done'){
+    return GLAZES[glazeKey].col;
+  }
+  if (firing){
+    return mix(CLAY, emberColor(heat), 0.25 + heat * 0.75);
+  }
+  return CLAY;
+}
+
+function drawBackdrop(){
+  const kilnAmt = firing ? clamp(heat * 1.15, 0, 1) : (mode === 'fire' ? 0.25 : 0);
+  const hi = mix([239, 231, 219], [26, 12, 8], kilnAmt);
+  const lo = mix([221, 210, 189], [12, 6, 5], kilnAmt);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, css(hi));
+  g.addColorStop(1, css(lo));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  /* window light */
+  const wl = ctx.createRadialGradient(W*0.22, H*0.06, 8, W*0.22, H*0.06, W*0.5);
+  wl.addColorStop(0, 'rgba(255,255,255,' + (0.5 * (1 - kilnAmt)).toFixed(2) + ')');
+  wl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = wl;
+  ctx.fillRect(0, 0, W, H);
+  /* kiln glow from below when hot */
+  if (kilnAmt > 0.02){
+    const kg = ctx.createRadialGradient(cx, baseY, 10, cx, baseY, W * 0.55);
+    kg.addColorStop(0, 'rgba(255,120,30,' + (0.34 * kilnAmt).toFixed(2) + ')');
+    kg.addColorStop(1, 'rgba(255,60,10,0)');
+    ctx.fillStyle = kg;
+    ctx.fillRect(0, 0, W, H);
+  }
+  /* bench line */
+  ctx.strokeStyle = 'rgba(59,49,40,' + (0.14 * (1 - kilnAmt)).toFixed(2) + ')';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, baseY + rScale * 0.42);
+  ctx.lineTo(W, baseY + rScale * 0.42);
+  ctx.stroke();
+}
+
+function drawWheel(t){
+  const R = rScale * 0.72;
+  /* splash pan */
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY + 12, R * 1.42, R * 0.5, 0, 0, TAU);
+  const pg = ctx.createLinearGradient(0, baseY - R * 0.4, 0, baseY + R * 0.6);
+  pg.addColorStop(0, firing && heat > 0.1 ? '#4a2c22' : '#6d6d70');
+  pg.addColorStop(1, firing && heat > 0.1 ? '#1c0f0a' : '#434346');
+  ctx.fillStyle = pg;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  /* wheel head */
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY + 6, R, R * 0.34, 0, 0, TAU);
+  const hg = ctx.createRadialGradient(cx - R*0.25, baseY, 4, cx, baseY, R);
+  hg.addColorStop(0, firing && heat > 0.1 ? '#7a4a30' : '#77777a');
+  hg.addColorStop(1, firing && heat > 0.1 ? '#241209' : '#3d3d40');
+  ctx.fillStyle = hg;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  /* rotating bat rings */
+  const spin = wheelAng;
+  ctx.strokeStyle = 'rgba(255,255,255,.10)';
+  for (let ring = 1; ring <= 2; ring++){
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY + 6, R * (0.3 + ring * 0.3), R * (0.3 + ring * 0.3) * 0.34, 0, 0, TAU);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  /* spokes */
+  ctx.strokeStyle = 'rgba(20,20,22,.4)';
+  for (let i = 0; i < 6; i++){
+    const a = spin + (i / 6) * TAU;
+    const ex = cx + Math.cos(a) * R * 0.92;
+    const ey = baseY + 6 + Math.sin(a) * R * 0.31;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * R * 0.2, baseY + 6 + Math.sin(a) * R * 0.07);
+    ctx.lineTo(ex, ey);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  /* pedal shadow */
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
+  ctx.beginPath();
+  ctx.ellipse(cx, baseY + R * 0.5 + 10, R * 1.1, R * 0.16, 0, 0, TAU);
+  ctx.fill();
+}
+
+function drawVessel(t){
+  const samplesNow = mode === 'shape' ? buildSamples() : samples;
+  const base = vesselColors();
+  const dark = mix(base, [10, 6, 4], 0.55);
+  const light = mix(base, [255, 250, 240], 0.42);
+  const rows = [];
+  for (let i = 0; i < samplesNow.length - 1; i++){
+    const a = samplesNow[i], b = samplesNow[i+1];
+    const dy = Math.max(1e-4, b.y - a.y);
+    const slope = (b.r - a.r) / dy;
+    const yN = a.y;
+    let br = clamp(0.52 + slope * 1.7, 0.05, 1);
+    br *= 0.78 + 0.4 * yN;
+    if (firing) br = lerp(br, 1, heat * 0.5);
+    rows.push({ a, b, br });
+  }
+  const wob = (!reduceMotion && (dragging || firing))
+    ? Math.sin(t * 22) * 0.9 : 0;
+  const cxx = cx + wob * 0.4;
+
+  /* contact shadow */
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath();
+  ctx.ellipse(cxx, baseY + 2, pr(samplesNow[0].r) * 1.5, pr(samplesNow[0].r) * 0.32, 0, 0, TAU);
+  ctx.fill();
+
+  /* body rows */
+  for (const row of rows){
+    const y1 = px(row.a.y), y2 = px(row.b.y);
+    if (Math.abs(y2 - y1) < 0.15) continue;
+    const r1 = pr(row.a.r), r2 = pr(row.b.r);
+    const col = mix(dark, light, row.br);
+    ctx.fillStyle = css(col);
+    ctx.beginPath();
+    ctx.moveTo(cxx - r1, y1);
+    ctx.lineTo(cxx + r1, y1);
+    ctx.lineTo(cxx + r2, y2);
+    ctx.lineTo(cxx - r2, y2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* silhouette clip for sheen, ribs and crackle */
+  const top = samplesNow[samplesNow.length - 1];
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cxx - pr(samplesNow[0].r), px(samplesNow[0].y));
+  for (let i = 1; i < samplesNow.length; i++){
+    ctx.lineTo(cxx - pr(samplesNow[i].r), px(samplesNow[i].y));
+  }
+  ctx.lineTo(cxx + pr(samplesNow[samplesNow.length-1].r), px(samplesNow[samplesNow.length-1].y));
+  for (let i = samplesNow.length - 1; i >= 0; i--){
+    ctx.lineTo(cxx + pr(samplesNow[i].r), px(samplesNow[i].y));
+  }
+  ctx.closePath();
+  ctx.clip();
+
+  /* cylindrical sheen */
+  const rTopScreen = pr(top.r);
+  const sg = ctx.createLinearGradient(cxx - rTopScreen, 0, cxx + rTopScreen, 0);
+  sg.addColorStop(0, 'rgba(0,0,0,.16)');
+  sg.addColorStop(0.30, 'rgba(255,255,255,.13)');
+  sg.addColorStop(0.5, 'rgba(255,255,255,.02)');
+  sg.addColorStop(0.72, 'rgba(0,0,0,.12)');
+  sg.addColorStop(1, 'rgba(0,0,0,.26)');
+  ctx.fillStyle = sg;
+  ctx.fillRect(cxx - rTopScreen - 2, baseY - hScale, rTopScreen * 2 + 4, hScale + 4);
+
+  /* spinning throw ribs */
+  if (!reduceMotion){
+    ctx.strokeStyle = 'rgba(0,0,0,.10)';
+    for (let i = 0; i < 3; i++){
+      const f = ((t * 0.09 + i / 3) % 0.96);
+      const s = sampleAt(f);
+      if (!s) continue;
+      ctx.beginPath();
+      ctx.ellipse(cxx, px(s.y), pr(s.r), pr(s.r) * 0.24, 0, 0, TAU);
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+    }
+  }
+
+  /* crackle after the fire */
+  if (mode === 'done' && crackles.length){
+    ctx.strokeStyle = glazeKey === 'shino' ? 'rgba(120,70,40,.5)' : 'rgba(0,0,0,.4)';
+    ctx.lineWidth = 0.8;
+    for (const seg of crackles){
+      if (seg[0].dot){
+        ctx.fillStyle = glazeKey === 'tenmoku' ? 'rgba(150,82,34,.7)' : 'rgba(0,0,0,.35)';
+        ctx.beginPath();
+        ctx.arc(cxx + (seg[0].r > 0 ? 1 : -1) * pr(Math.abs(seg[0].r)) * 0.9,
+          px(seg[0].y), rand(1.4, 2.6), 0, TAU);
+        ctx.fill();
+        continue;
+      }
+      ctx.beginPath();
+      seg.forEach((pt2, j) => {
+        const x = cxx + (pt2.r > 0 ? 1 : -1) * pr(Math.abs(pt2.r)) * 0.92;
+        const y = px(pt2.y);
+        if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+  }
+
+  /* wet clay gleam while shaping */
+  if (mode === 'shape'){
+    ctx.fillStyle = 'rgba(255,255,255,.05)';
+    ctx.fillRect(cxx - rTopScreen, baseY - hScale, rTopScreen * 0.4, hScale);
+  }
+  ctx.restore();
+
+  /* rim / lip */
+  if (top.r > 0.03){
+    const ry = pr(top.r) * 0.26;
+    /* interior */
+    ctx.beginPath();
+    ctx.ellipse(cxx, px(top.y), pr(top.r), ry, 0, 0, TAU);
+    ctx.fillStyle = css(mix(base, [8, 5, 3], 0.58));
+    ctx.fill();
+    /* inner wall light */
+    ctx.beginPath();
+    ctx.ellipse(cxx, px(top.y) + ry * 0.24, pr(top.r) * 0.86, ry * 0.72, 0, 0, Math.PI, false);
+    ctx.strokeStyle = css(mix(base, [255, 250, 240], 0.28), 0.6);
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    /* rim highlight */
+    ctx.beginPath();
+    ctx.ellipse(cxx, px(top.y), pr(top.r), ry, 0, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.strokeStyle = css(mix(base, [255, 255, 250], 0.55), 0.75);
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  }
+
+  /* ember particles */
+  if (firing && heat > 0.15 && !reduceMotion){
+    if (embers.length < 46 && Math.random() < heat * 0.5){
+      embers.push({
+        x: cxx + rand(-rTopScreen, rTopScreen),
+        y: px(top.y) + rand(-10, 10),
+        vy: -rand(26, 70),
+        vx: rand(-12, 12),
+        life: 1,
+        r: rand(1, 2.6),
+      });
+    }
+  }
+  for (let i = embers.length - 1; i >= 0; i--){
+    const e = embers[i];
+    e.x += e.vx * 0.016;
+    e.y += e.vy * 0.016;
+    e.life -= 0.02;
+    if (e.life <= 0){ embers.splice(i, 1); continue; }
+    ctx.globalAlpha = Math.max(0, e.life) * 0.8;
+    ctx.fillStyle = css(emberColor(clamp(e.life + 0.25, 0, 1)));
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  /* pull-point handles */
+  if (mode === 'shape'){
+    for (let i = 0; i < points.length; i++){
+      const p = points[i];
+      const hx = cxx + pr(p.r);
+      const hy = px(p.y);
+      const isDrag = dragging && dragging.i === i;
+      ctx.beginPath();
+      ctx.arc(hx, hy, isDrag ? 9 : 6.5, 0, TAU);
+      ctx.fillStyle = isDrag ? 'rgba(179,64,42,.95)' : 'rgba(247,242,231,.9)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(59,49,40,.7)';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      if (isDrag){
+        ctx.beginPath();
+        ctx.arc(hx, hy, 14, 0, TAU);
+        ctx.strokeStyle = 'rgba(179,64,42,.4)';
+        ctx.stroke();
+      }
+    }
+    /* dashed guide from axis to first point */
+    ctx.setLineDash([2, 5]);
+    ctx.beginPath();
+    ctx.moveTo(cxx, px(points[0].y));
+    ctx.lineTo(cxx + pr(points[0].r), px(points[0].y));
+    ctx.strokeStyle = 'rgba(59,49,40,.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+function sampleAt(f){
+  for (let i = 0; i < samples.length - 1; i++){
+    if (samples[i].y <= f && samples[i+1].y >= f){
+      const u = (f - samples[i].y) / Math.max(1e-4, samples[i+1].y - samples[i].y);
+      return { r: lerp(samples[i].r, samples[i+1].r, u), y: f };
+    }
+  }
+  return null;
+}
+
+/* ============================== pointer ============================== */
+function ptOf(e){
+  const r = ui.lathe.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+ui.lathe.addEventListener('pointerdown', e => {
+  if (mode !== 'shape') return;
+  const p = ptOf(e);
+  let best = -1, bd = 30;
+  for (let i = 0; i < points.length; i++){
+    const d = Math.hypot(p.x - (cx + pr(points[i].r)), p.y - px(points[i].y));
+    if (d < bd){ bd = d; best = i; }
+  }
+  if (best < 0) return;
+  dragging = { i: best, x0: p.x, r0: points[best].r, moved: 0 };
+  ui.lathe.classList.add('dragging');
+  ui.lathe.setPointerCapture(e.pointerId);
+  ensureAudio();
+  startHum();
+});
+ui.lathe.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const p = ptOf(e);
+  const dx = p.x - dragging.x0;
+  const nr = clamp(dragging.r0 + dx / rScale, 0.02, 0.62);
+  const speed = Math.abs(nr - points[dragging.i].r) * rScale;
+  points[dragging.i].r = nr;
+  dragging.moved += speed;
+  dragSpeed = dragSpeed * 0.7 + speed * 0.3;
+  squelchAcc += speed;
+  if (squelchAcc > 26){
+    squelchAcc = 0;
+    squelch(dragSpeed);
+  }
+  setHum(clamp(0.3 + dragSpeed * 0.05, 0.3, 1));
+  pulls = Math.max(pulls, 1);
+});
+['pointerup', 'pointercancel'].forEach(ev =>
+  ui.lathe.addEventListener(ev, () => {
+    if (dragging && dragging.moved > 4){
+      pulls++;
+      ui.ftPulls.textContent = String(pulls);
+      toast('Pulled — the wall remembers your hand');
+      samples = buildSamples();
+      updateFormStats();
+    }
+    dragging = null;
+    dragSpeed = 0;
+    stopHum();
+    ui.lathe.classList.remove('dragging');
+  }));
+
+/* ============================== controls ============================= */
+let toastT = 0;
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => ui.toast.classList.remove('show'), 2200);
+}
+function setStep(which){
+  const map = { shape: ui.stepShape, glaze: ui.stepGlaze, fire: ui.stepFire, done: ui.stepDone };
+  const order = ['shape', 'glaze', 'fire', 'done'];
+  const idx = order.indexOf(which);
+  for (const k of order){
+    map[k].classList.remove('now', 'done');
+    const ki = order.indexOf(k);
+    if (ki === idx) map[k].classList.add('now');
+    else if (ki < idx) map[k].classList.add('done');
+  }
+}
+ui.chips.addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip || firing) return;
+  glazeKey = chip.dataset.glaze;
+  for (const c of ui.chips.children) c.setAttribute('aria-pressed', String(c === chip));
+  ui.glazeNote.textContent = GLAZES[glazeKey].note;
+  if (mode === 'shape' || mode === 'glaze'){
+    mode = 'glaze';
+    setStep('glaze');
+  }
+  toast('Glaze chosen — ' + GLAZES[glazeKey].name + ', cone ' + coneOf(GLAZES[glazeKey].temp));
+});
+ui.fireBtn.addEventListener('click', () => {
+  if (mode === 'done'){
+    toast('Throw a new lump first — this one is history');
+    return;
+  }
+  startFiring();
+});
+ui.openBtn.addEventListener('click', openKiln);
+ui.lumpBtn.addEventListener('click', () => {
+  if (firing){ toast('The kiln is busy — patience is a potter\u2019s tool'); return; }
+  presetIdx = (presetIdx + irand(0, presetKeys.length - 1)) % presetKeys.length;
+  resetPoints(presetKeys[presetIdx], true);
+  samples = buildSamples();
+  crackles = [];
+  mode = 'shape';
+  setStep('shape');
+  ui.revealCard.classList.remove('show');
+  ui.stageCap.classList.remove('hot');
+  ui.stageCap.textContent = 'DRAG THE PULL POINTS · THE WHEEL TURNS UNDER THE CLAY';
+  ui.fireBtn.disabled = false;
+  ui.openBtn.disabled = true;
+  ui.lathe.classList.remove('locked');
+  temp = 20;
+  heat = 0;
+  updateFormStats();
+  toast('A fresh lump, differently inclined');
+  squelch(30);
+});
+ui.centerBtn.addEventListener('click', () => {
+  if (firing) return;
+  resetPoints(presetKeys[presetIdx], false);
+  samples = buildSamples();
+  updateFormStats();
+  toast('Re-centered — the clay breathes out');
+});
+ui.soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  ui.soundBtn.setAttribute('aria-pressed', String(soundOn));
+  if (soundOn) ensureAudio();
+  else { stopHum(); setRoar(0); }
+  toast(soundOn ? 'The studio can be heard again' : 'The studio works in silence');
+});
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'f' && !firing) ui.fireBtn.click();
+  else if (k === 'n') ui.lumpBtn.click();
+  else if (k === 'c') ui.centerBtn.click();
+});
+
+function updateFormStats(){
+  let maxR = 0.02;
+  let minWall = 1;
+  for (const s of samples) maxR = Math.max(maxR, s.r);
+  const ratio = hScale / (maxR * rScale * 2);
+  ui.ftForm.textContent = ratio > 1.7 ? 'BOTTLE' : ratio < 0.95 ? 'BOWL' : 'VESSEL';
+  /* crude wall reading: tightest neck vs belly */
+  let belly = 0;
+  for (const s of samples) belly = Math.max(belly, s.r);
+  let neck = 1;
+  for (let i = Math.floor(samples.length * 0.5); i < samples.length; i++){
+    neck = Math.min(neck, samples[i].r);
+  }
+  ui.ftWall.textContent = neck / belly < 0.4 ? 'THIN-NECKED' : neck / belly > 0.85 ? 'OPEN' : 'THICK';
+}
+
+/* ============================== loop ================================= */
+let last = performance.now();
+let raf = 0, running = true;
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const dt = clamp((now - last) / 1000, 0.001, 0.05);
+  last = now;
+  const t = now / 1000;
+
+  /* wheel spin */
+  const spinRate = (dragging ? 2.4 : 0.8) * (reduceMotion ? 0 : 1);
+  wheelAng += dt * spinRate;
+
+  /* firing dynamics */
+  if (firing){
+    fireT += dt;
+    const target = peakTemp;
+    if (firePhase === 'climbing'){
+      const rampDur = 5.6;
+      const u = clamp(fireT / rampDur, 0, 1);
+      const eased = 1 - Math.pow(1 - u, 2.4);
+      temp = lerp(20, target, eased);
+      heat = clamp((temp - 700) / (target - 700), 0, 1);
+      setRoar(0.35 + heat * 0.65);
+      if (u >= 1){
+        firePhase = 'soak';
+        fireT = 0;
+        ui.kilnState.textContent = 'SOAKING · HEAT WORK';
+        toast('Peak heat — the glaze is melting into glass');
+      }
+    } else if (firePhase === 'soak'){
+      temp = target + Math.sin(fireT * 9) * 4;
+      heat = 1;
+      if (Math.random() < dt * 7) crackleTick();
+      if (fireT > 1.1){
+        firePhase = 'cooling';
+        fireT = 0;
+        ui.openBtn.disabled = false;
+        toast('Cooling begins — the door may be opened');
+      }
+    } else if (firePhase === 'cooling'){
+      const u = clamp(fireT / 3.2, 0, 1);
+      temp = lerp(peakTemp, 240, u * u);
+      heat = clamp(1 - u * 1.25, 0, 1);
+      setRoar(heat * 0.3);
+      if (u >= 1) openKiln();
+    }
+    ui.kilnState.textContent =
+      firePhase === 'climbing' ? 'CLIMBING · RAMP ' + Math.round((temp / peakTemp) * 100) + '%'
+      : firePhase === 'soak' ? 'SOAKING · HEAT WORK'
+      : firePhase === 'cooling' ? 'COOLING · WARM TO THE TOUCH'
+      : 'OPENED';
+  }
+  ui.kilnTemp.textContent = Math.round(temp) + '\u00B0C';
+  ui.kilnTemp.classList.toggle('hot', temp > 500);
+  ui.tempBig.innerHTML = Math.round(temp) + '<small> °C</small>';
+  ui.tempBig.classList.toggle('hot', temp > 500);
+  const fillPct = clamp((temp - 20) / (1310 - 20), 0, 1) * 100;
+  ui.kilnFill.style.width = fillPct.toFixed(1) + '%';
+  const cone = coneOf(temp);
+  const cones = document.querySelectorAll('.cone');
+  cones.forEach((c, i) => c.classList.toggle('bent', i < cone));
+  ui.coneNote.textContent = cone ? 'CONE ' + cone + ' BENT' : '—';
+
+  /* paint */
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawBackdrop();
+  drawWheel(t);
+  drawVessel(t);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+    stopHum(); setRoar(0);
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+let resizeQ = false;
+function resize(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  const r = ui.lathe.getBoundingClientRect();
+  W = r.width; H = r.height;
+  ui.lathe.width = Math.round(W * dpr);
+  ui.lathe.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  metrics();
+  updateFormStats();
+}
+addEventListener('resize', () => {
+  if (resizeQ) return;
+  resizeQ = true;
+  requestAnimationFrame(() => { resizeQ = false; resize(); });
+});
+
+/* ============================== init ================================= */
+resize();
+setStep('shape');
+ui.tempBig.innerHTML = '20<small> °C</small>';
+updateFormStats();
+samples = buildSamples();
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

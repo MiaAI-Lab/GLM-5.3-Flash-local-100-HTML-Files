@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIXTAPE '87 — front side, 45 minutes a face</title>
+<style>
+/* ============================================================
+   MIXTAPE '87 — a cassette deck you can hold
+   shell · J-card · mechanical keys · dancing VUs
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --desk: #191a1c;
+  --desk-hi: #26272a;
+  --shell: #2f2f33;
+  --shell-hi: #3d3d42;
+  --shell-lo: #232327;
+  --label-paper: #f4ecd7;
+  --label-line: #b8ab8a;
+  --label-ink: #33385f;
+  --label-ink-2: #2a2d2a;
+  --key: #cfcfd4;
+  --key-lo: #9a9aa0;
+  --key-face: #e4e4e8;
+  --vu-amber: #ffb347;
+  --vu-glow: rgba(255, 179, 71, 0.55);
+  --accent-red: #d94141;
+  --chrome-text: #b9bcc4;
+  --serif: Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  --hand: "Segoe Script", "Bradley Hand", "Comic Sans MS", cursive;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--chrome-text);
+  background:
+    radial-gradient(120% 80% at 50% -6%, #303136 0%, rgba(48, 49, 54, 0) 55%),
+    linear-gradient(180deg, var(--desk-hi) 0%, var(--desk) 45%, #101113 100%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  padding: clamp(12px, 2.4vw, 30px) clamp(10px, 2vw, 30px) clamp(20px, 3vw, 40px);
+}
+
+::selection { background: var(--vu-amber); color: #3a2404; }
+::-moz-selection { background: var(--vu-amber); color: #3a2404; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #101113; }
+::-webkit-scrollbar-thumb { background: #4a4a50; border: 2px solid #101113; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+.deckhead {
+  width: min(980px, 96vw);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: clamp(8px, 1.4vw, 14px);
+}
+.deckhead .model {
+  margin: 0;
+  font-weight: 200;
+  font-size: clamp(1.4rem, 3.6vw, 2.4rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #e8e9ec;
+}
+.deckhead .model b {
+  font-weight: 750;
+  color: var(--accent-red);
+  letter-spacing: 0.18em;
+}
+.deckhead .tag {
+  display: block;
+  margin-top: 0.5em;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #7d8089;
+}
+.deckhead .serial {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7d8089;
+  line-height: 2;
+}
+.deckhead .serial b { color: var(--chrome-text); font-weight: 400; }
+
+/* ---------- deck body ---------- */
+.deck {
+  position: relative;
+  width: min(940px, 96vw);
+  border-radius: 18px;
+  padding: clamp(14px, 2.4vw, 30px) clamp(14px, 2.6vw, 34px) clamp(16px, 2.6vw, 30px);
+  background:
+    linear-gradient(180deg, #3a3a40 0%, var(--shell) 12%, var(--shell) 86%, var(--shell-lo) 100%);
+  box-shadow:
+    0 50px 110px -35px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.55),
+    0 0 0 1px #1c1c1f;
+}
+.deck::before {
+  /* brushed metal flecks */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  background: repeating-linear-gradient(93deg,
+    rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px,
+    rgba(0, 0, 0, 0.05) 3px 4px, transparent 4px 7px);
+}
+.brandplate {
+  position: absolute;
+  top: clamp(12px, 2vw, 22px);
+  right: clamp(16px, 2.6vw, 32px);
+  font-family: var(--mono);
+  font-size: clamp(0.6rem, 1.3vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: #d5d7dc;
+  text-shadow: 0 1px 0 #000;
+}
+.brandplate span { color: var(--accent-red); }
+
+/* ---------- cassette window ---------- */
+.cassette-bay {
+  position: relative;
+  margin: clamp(6px, 1vw, 12px) auto clamp(14px, 2vw, 22px);
+  width: min(620px, 100%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #17181a, #202125);
+  box-shadow:
+    inset 0 4px 14px rgba(0, 0, 0, 0.85),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: clamp(10px, 1.8vw, 18px);
+}
+.lid-glass {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.9s ease;
+  transform-origin: top center;
+}
+.lid-glass::after {
+  /* glass diagonal reflection */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, 0.075) 42%, transparent 55%),
+    linear-gradient(292deg, transparent 62%, rgba(255, 255, 255, 0.05) 70%, transparent 78%);
+}
+body.ejected .lid-glass {
+  transform: rotateX(-58deg) translateY(-8%);
+  opacity: 0.25;
+}
+body.ejected .cassette {
+  transform: translateY(16%) scale(1.015);
+}
+
+/* the cassette */
+.cassette {
+  position: relative;
+  width: min(560px, 100%);
+  margin: 0 auto;
+  aspect-ratio: 100 / 63;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #35353a 0%, var(--shell) 55%, #28282c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5),
+    0 6px 18px rgba(0, 0, 0, 0.5);
+  transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1);
+  transform-origin: top center;
+}
+/* J-card window on cassette face */
+.jcard {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 8%;
+  bottom: 34%;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, #faf5e6 0%, var(--label-paper) 60%, #eee4c9 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(90, 80, 50, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+  padding: 4% 6%;
+  overflow: hidden;
+}
+.jcard::before {
+  /* ruled lines */
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 46%;
+  bottom: 8%;
+  background: repeating-linear-gradient(180deg,
+    transparent 0 calc(1.15em - 1px),
+    var(--label-line) calc(1.15em - 1px) 1.15em);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.jcard .jc-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--label-ink);
+  padding-bottom: 2px;
+}
+.jcard .jc-brand .n {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(0.5rem, 1.2vw, 0.66rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--label-ink);
+}
+.jcard .jc-brand .side {
+  font-family: var(--mono);
+  font-size: clamp(0.5rem, 1.2vw, 0.62rem);
+  letter-spacing: 0.2em;
+  color: var(--accent-red);
+  border: 1.5px solid var(--accent-red);
+  border-radius: 3px;
+  padding: 0.15em 0.5em;
+  text-transform: uppercase;
+}
+.jcard .jc-title {
+  margin: 0.35em 0 0.15em;
+  font-family: var(--hand);
+  color: var(--label-ink-2);
+  font-size: clamp(0.95rem, 2.6vw, 1.5rem);
+  line-height: 1.15;
+  outline: none;
+  border-radius: 3px;
+  padding: 0.05em 0.15em;
+  min-height: 1.2em;
+}
+.jcard .jc-title:focus {
+  box-shadow: 0 0 0 2px rgba(217, 65, 65, 0.55);
+  background: rgba(255, 255, 255, 0.5);
+}
+.jcard .jc-lines {
+  position: relative;
+  font-family: var(--hand);
+  color: var(--label-ink-2);
+  font-size: clamp(0.62rem, 1.6vw, 0.85rem);
+  line-height: 1.15;
+  outline: none;
+  border-radius: 3px;
+  padding: 0.05em 0.15em;
+}
+.jcard .jc-lines:focus {
+  box-shadow: 0 0 0 2px rgba(217, 65, 65, 0.55);
+  background: rgba(255, 255, 255, 0.5);
+}
+/* reel window */
+.reel-win {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 68%;
+  bottom: 8%;
+  border-radius: 6px;
+  background: #1b1b1e;
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6%;
+}
+.reel {
+  position: relative;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #3a3a40 0 26%, #55555c 27% 30%, #2c2c30 31%);
+  box-shadow:
+    inset 0 0 0 2px #1a1a1d,
+    0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.reel .spokes {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+}
+.reel .spokes i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14%;
+  height: 50%;
+  margin-left: -7%;
+  transform-origin: 50% 100%;
+  background: linear-gradient(180deg, #6a6a72, #4a4a52);
+  border-radius: 2px 2px 0 0;
+}
+.reel .spokes i:nth-child(1) { transform: rotate(0deg); }
+.reel .spokes i:nth-child(2) { transform: rotate(72deg); }
+.reel .spokes i:nth-child(3) { transform: rotate(144deg); }
+.reel .spokes i:nth-child(4) { transform: rotate(216deg); }
+.reel .spokes i:nth-child(5) { transform: rotate(288deg); }
+.reel .hub {
+  position: absolute;
+  inset: 33%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 34%, #7d7d85, #3c3c42 70%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+/* tape pack between reels */
+.tape-pack {
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  top: 50%;
+  height: 26%;
+  background: linear-gradient(180deg, #4a3b30, #33281f 60%, #241b14);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 2px 5px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6);
+  z-index: -1;
+}
+/* capstan holes etc */
+.screw {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #6a6a72, #333338 70%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.5);
+}
+.screw::after {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 46%;
+  height: 1.5px;
+  background: #17171a;
+  transform: rotate(38deg);
+}
+.screw.s1 { left: 3%; top: 6%; }
+.screw.s2 { right: 3%; top: 6%; }
+.screw.s3 { left: 3%; bottom: 6%; }
+.screw.s4 { right: 3%; bottom: 6%; }
+
+/* ---------- VU meters ---------- */
+.vu-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.8vw, 20px);
+  margin: 0 auto clamp(14px, 2vw, 22px);
+  width: min(620px, 100%);
+}
+.vu {
+  position: relative;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, #efe7d2 0%, #e6dcc0 70%, #d9cdab 100%);
+  box-shadow:
+    inset 0 2px 8px rgba(60, 45, 20, 0.35),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.5),
+    0 3px 10px rgba(0, 0, 0, 0.45);
+  padding: clamp(8px, 1.4vw, 14px) clamp(10px, 1.6vw, 16px) clamp(6px, 1vw, 10px);
+  overflow: hidden;
+}
+.vu svg { display: block; width: 100%; height: auto; }
+.vu .vu-name {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #6b5f42;
+}
+.needle {
+  transform-origin: 100px 96px;
+}
+body.playing .needle { will-change: transform; }
+
+/* ---------- transport ---------- */
+.transport {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: clamp(6px, 1vw, 12px);
+  width: min(620px, 100%);
+  margin: 0 auto;
+}
+.key {
+  position: relative;
+  flex: 1;
+  max-width: 108px;
+  min-height: 62px;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: clamp(0.52rem, 1.1vw, 0.62rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #3c3c42;
+  background:
+    linear-gradient(180deg, var(--key-face) 0%, var(--key) 55%, var(--key-lo) 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.28),
+    0 4px 0 #7c7c84,
+    0 8px 14px rgba(0, 0, 0, 0.5);
+  transform: translateY(0);
+  transition: transform 0.09s ease, box-shadow 0.09s ease, background-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.key svg { width: 16px; height: 16px; }
+.key:hover { filter: brightness(1.05); }
+.key:active, .key.engaged {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.7),
+    inset 0 3px 6px rgba(0, 0, 0, 0.35),
+    0 0 0 #7c7c84,
+    0 2px 6px rgba(0, 0, 0, 0.55);
+}
+.key:focus-visible {
+  outline: 2px solid var(--vu-amber);
+  outline-offset: 3px;
+}
+.key.engaged {
+  background: linear-gradient(180deg, #f2d9a8 0%, var(--vu-amber) 60%, #e09a2e 100%);
+  color: #4a2c05;
+}
+.key.rec.engaged {
+  background: linear-gradient(180deg, #f0a0a0 0%, var(--accent-red) 60%, #b02e2e 100%);
+  color: #fff;
+}
+.key:disabled { opacity: 0.45; cursor: not-allowed; }
+.key .led {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #55555c;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+.key.engaged .led {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px rgba(217, 65, 65, 0.9);
+}
+.key.play.engaged .led {
+  background: #7dff9a;
+  box-shadow: 0 0 8px rgba(125, 255, 154, 0.9);
+}
+
+/* ---------- counter + rear panel ---------- */
+.counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  width: min(620px, 100%);
+  margin: clamp(14px, 2vw, 22px) auto 0;
+}
+.counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--mono);
+  background: #141416;
+  border-radius: 4px;
+  padding: 0.5em 0.9em;
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+.counter .lbl {
+  font-size: 0.52rem;
+  letter-spacing: 0.3em;
+  color: #7d8089;
+}
+.counter .digits {
+  font-size: 1.05rem;
+  letter-spacing: 0.22em;
+  color: var(--vu-amber);
+  text-shadow: 0 0 8px var(--vu-glow);
+  font-variant-numeric: tabular-nums;
+}
+.tape-scale {
+  flex: 1;
+  min-width: 180px;
+}
+.tape-scale .ts-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: #141416;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.tape-scale .ts-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #6b4a24, var(--vu-amber));
+  box-shadow: 0 0 8px var(--vu-glow);
+}
+.tape-scale .ts-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.2em;
+  color: #7d8089;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+.foot-note {
+  width: min(760px, 92vw);
+  margin: clamp(16px, 2.6vw, 26px) auto 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #7d8089;
+  line-height: 2;
+}
+.foot-note .hand-note {
+  display: block;
+  margin-top: 0.8em;
+  font-family: var(--hand);
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #a7aab2;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 560px) {
+  .vu-row { grid-template-columns: 1fr; }
+  .key { min-height: 56px; max-width: none; }
+  .transport { flex-wrap: wrap; }
+  .key { flex: 1 1 30%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lid-glass, .cassette { transition: opacity 0.4s ease; }
+  body.ejected .lid-glass { transform: none; }
+  body.ejected .cassette { transform: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="deckhead">
+  <div>
+    <h1 class="model">Stera Sound <b>MX-87</b></h1>
+    <span class="tag">Stereo cassette deck · three heads · two motors · one good taste</span>
+  </div>
+  <p class="serial">
+    Unit <b>030 / 100</b><br>
+    Dolby <b>B · on</b><br>
+    Bias <b>CrO₂ · 70 µs EQ</b>
+  </p>
+</header>
+
+<main class="deck" id="deck">
+  <div class="brandplate">SOUND·FIELD <span>×</span> 87</div>
+
+  <section class="cassette-bay" aria-label="Cassette bay">
+    <div class="lid-glass">
+      <div class="cassette" id="cassette">
+        <span class="screw s1"></span><span class="screw s2"></span>
+        <span class="screw s3"></span><span class="screw s4"></span>
+
+        <div class="jcard">
+          <div class="jc-brand">
+            <span class="n">Chrome · 90</span>
+            <span class="side" id="sideFlag">Side A</span>
+          </div>
+          <p class="jc-title" id="jcardTitle" contenteditable="true" spellcheck="false"
+             aria-label="Mixtape title — editable">for the drive home, vol. 3</p>
+          <p class="jc-lines" id="jcardLines" contenteditable="true" spellcheck="false"
+             aria-label="Track list — editable">1. midnight on the overpass<br>2. her coat smells of rain<br>3. the last arcade in town<br>4. (b side knows the rest)</p>
+        </div>
+
+        <div class="reel-win" aria-hidden="true">
+          <div class="reel" id="reelLeft">
+            <div class="spokes"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="hub"></div>
+          </div>
+          <div class="tape-pack"></div>
+          <div class="reel" id="reelRight">
+            <div class="spokes"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="hub"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="vu-row" aria-label="VU meters">
+    <div class="vu">
+      <svg viewBox="0 0 200 116" aria-hidden="true">
+        <path d="M22 96 A 78 78 0 0 1 178 96" fill="none" stroke="#b8ab8a" stroke-width="1.4"></path>
+        <g fill="#6b5f42" font-size="9" font-family="ui-monospace, Menlo, monospace">
+          <text x="18" y="102">-20</text>
+          <text x="52" y="44">-10</text>
+          <text x="94" y="26">-5</text>
+          <text x="128" y="32">0</text>
+          <text x="162" y="56">+3</text>
+        </g>
+        <path d="M22 96 A 78 78 0 0 1 118 24.5" fill="none" stroke="#b02e2e" stroke-width="2.4"></path>
+        <g stroke="#6b5f42" stroke-width="1">
+          <line x1="22" y1="96" x2="30" y2="88"></line>
+          <line x1="57" y1="47" x2="62" y2="56"></line>
+          <line x1="100" y1="22" x2="100" y2="33"></line>
+          <line x1="143" y1="47" x2="138" y2="56"></line>
+          <line x1="178" y1="96" x2="170" y2="88"></line>
+        </g>
+        <line class="needle" id="needleL" x1="100" y1="96" x2="100" y2="26"
+              stroke="#22201a" stroke-width="2.2" stroke-linecap="round"></line>
+        <circle cx="100" cy="96" r="5" fill="#3c3626"></circle>
+      </svg>
+      <span class="vu-name">VU · L</span>
+    </div>
+    <div class="vu">
+      <svg viewBox="0 0 200 116" aria-hidden="true">
+        <path d="M22 96 A 78 78 0 0 1 178 96" fill="none" stroke="#b8ab8a" stroke-width="1.4"></path>
+        <g fill="#6b5f42" font-size="9" font-family="ui-monospace, Menlo, monospace">
+          <text x="18" y="102">-20</text>
+          <text x="52" y="44">-10</text>
+          <text x="94" y="26">-5</text>
+          <text x="128" y="32">0</text>
+          <text x="162" y="56">+3</text>
+        </g>
+        <path d="M22 96 A 78 78 0 0 1 118 24.5" fill="none" stroke="#b02e2e" stroke-width="2.4"></path>
+        <g stroke="#6b5f42" stroke-width="1">
+          <line x1="22" y1="96" x2="30" y2="88"></line>
+          <line x1="57" y1="47" x2="62" y2="56"></line>
+          <line x1="100" y1="22" x2="100" y2="33"></line>
+          <line x1="143" y1="47" x2="138" y2="56"></line>
+          <line x1="178" y1="96" x2="170" y2="88"></line>
+        </g>
+        <line class="needle" id="needleR" x1="100" y1="96" x2="100" y2="26"
+              stroke="#22201a" stroke-width="2.2" stroke-linecap="round"></line>
+        <circle cx="100" cy="96" r="5" fill="#3c3626"></circle>
+      </svg>
+      <span class="vu-name">VU · R</span>
+    </div>
+  </section>
+
+  <section class="transport" aria-label="Transport keys">
+    <button class="key rew" id="rewBtn" type="button">
+      <span class="led"></span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12h2V2zm3 6l8-6v12z" fill="currentColor"></path></svg>
+      Rew
+    </button>
+    <button class="key play" id="playBtn" type="button">
+      <span class="led"></span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2l10 6-10 6z" fill="currentColor"></path></svg>
+      Play
+    </button>
+    <button class="key stop" id="stopBtn" type="button">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1" fill="currentColor"></rect></svg>
+      Stop
+    </button>
+    <button class="key ff" id="ffBtn" type="button">
+      <span class="led"></span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2v12h2V2zM2 2l8 6-8 6z" fill="currentColor"></path></svg>
+      F.Fwd
+    </button>
+    <button class="key eject" id="ejectBtn" type="button">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 9l5-6 5 6H9.5v3h-3V9z" fill="currentColor"></path><rect x="3" y="13" width="10" height="1.8" fill="currentColor"></rect></svg>
+      Eject
+    </button>
+    <button class="key rec" id="recBtn" type="button">
+      <span class="led"></span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="currentColor"></circle></svg>
+      Rec
+    </button>
+  </section>
+
+  <div class="counter-row">
+    <div class="counter">
+      <span class="lbl">Counter</span>
+      <span class="digits" id="counterDigits">000</span>
+    </div>
+    <div class="tape-scale" aria-hidden="true">
+      <div class="ts-track"><div class="ts-fill" id="tsFill"></div></div>
+      <div class="ts-labels">
+        <span>Side A · start</span>
+        <span id="tsStatus">tape idle</span>
+        <span>45:00</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<p class="foot-note">
+  Press play — the deck sings a small song it wrote for itself, four bars at a time.<br>
+  The J-card takes ink; write on it.
+  <span class="hand-note">do not dupe · do not eat in the car · return to glovebox</span>
+</p>
+
+<p class="visually-hidden" id="live" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var liveEl = $('live');
+  var deck = $('deck');
+  var playBtn = $('playBtn');
+  var stopBtn = $('stopBtn');
+  var ffBtn = $('ffBtn');
+  var rewBtn = $('rewBtn');
+  var ejectBtn = $('ejectBtn');
+  var recBtn = $('recBtn');
+  var needleL = $('needleL');
+  var needleR = $('needleR');
+  var reelLeft = $('reelLeft');
+  var reelRight = $('reelRight');
+  var counterDigits = $('counterDigits');
+  var tsFill = $('tsFill');
+  var tsStatus = $('tsStatus');
+  var sideFlag = $('sideFlag');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var playing = false;
+  var fastMode = 0;          /* 0 none, 1 ff, -1 rew */
+  var ejected = false;
+  var tapeSec = 0;           /* position on side */
+  var SIDE_LEN = 45 * 60;
+  var rafId = 0;
+  var lastT = 0;
+  var needleLVal = 0, needleRVal = 0;
+  var reelAngle = 0;
+
+  /* ---------------- audio ---------------- */
+  var ac = null, master = null, comp = null;
+  var noiseBuf = null;
+  var musicTimer = 0;
+  var barIdx = 0;
+
+  function ensureAudio() {
+    if (ac) { if (ac.state === 'suspended') { ac.resume(); } return true; }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { return false; }
+    ac = new Ctx();
+    comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 4;
+    master = ac.createGain();
+    master.gain.value = 0;
+    master.connect(comp);
+    comp.connect(ac.destination);
+
+    var len = ac.sampleRate * 1.2;
+    noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = Math.random() * 2 - 1; }
+    return true;
+  }
+
+  function setMasterGain(v, timeConstant) {
+    if (!ac) { return; }
+    master.gain.setTargetAtTime(v, ac.currentTime, timeConstant || 0.25);
+  }
+
+  /* lo-fi voice: triangle wave through a wobbly lowpass + tape hiss */
+  function tapeNote(t, freq, dur, vol, lfoRate) {
+    var o = ac.createOscillator();
+    o.type = 'triangle';
+    o.frequency.value = freq;
+    var det = ac.createOscillator();
+    det.type = 'sine';
+    det.frequency.value = lfoRate || 5.2;
+    var detG = ac.createGain();
+    detG.gain.value = freq * 0.006; /* wow & flutter */
+    det.connect(detG);
+    detG.connect(o.frequency);
+
+    var f = ac.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(2400, t);
+    f.frequency.exponentialRampToValueAtTime(1100, t + dur);
+
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.02);
+    g.gain.setTargetAtTime(vol * 0.7, t + dur * 0.6, 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.1);
+
+    o.connect(f);
+    f.connect(g);
+    g.connect(master);
+    o.start(t);
+    det.start(t);
+    o.stop(t + dur + 0.15);
+    det.stop(t + dur + 0.15);
+  }
+
+  function hatTick(t, vol) {
+    var s = ac.createBufferSource();
+    s.buffer = noiseBuf;
+    var f = ac.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = 6500;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    s.connect(f);
+    f.connect(g);
+    g.connect(master);
+    s.start(t);
+    s.stop(t + 0.08);
+  }
+
+  function snareish(t, vol) {
+    var s = ac.createBufferSource();
+    s.buffer = noiseBuf;
+    var f = ac.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 1800;
+    f.Q.value = 0.8;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+    s.connect(f);
+    f.connect(g);
+    g.connect(master);
+    s.start(t);
+    s.stop(t + 0.16);
+  }
+
+  /* four-bar lo-fi loop in Am: Am - F - C - G, 84 bpm, eighths */
+  var CHORDS = [
+    { root: 220.0,  tones: [220.0, 261.63, 329.63] },   /* Am */
+    { root: 174.61, tones: [174.61, 220.0, 261.63] },   /* F */
+    { root: 130.81, tones: [130.81, 164.81, 196.0] },   /* C */
+    { root: 196.0,  tones: [196.0, 246.94, 293.66] }    /* G */
+  ];
+  var SEC_PER_EIGHTH = 60 / 84 / 2;
+
+  function scheduleBar(barStart, bar) {
+    var ch = CHORDS[bar % CHORDS.length];
+    var e, t;
+    /* bass: root on 1 and 3.5, fifth passing */
+    tapeNote(barStart, ch.root / 2, 0.5, 0.16);
+    tapeNote(barStart + 3 * SEC_PER_EIGHTH, ch.tones[2] / 2, 0.28, 0.1);
+    tapeNote(barStart + 6 * SEC_PER_EIGHTH, ch.root / 2, 0.4, 0.14);
+    /* chord pad on the off beats */
+    for (e = 1; e < 8; e += 2) {
+      t = barStart + e * SEC_PER_EIGHTH;
+      ch.tones.forEach(function (f, i) {
+        tapeNote(t, f, 0.3, 0.045 + (i === 0 ? 0.02 : 0), 4.4 + i);
+      });
+    }
+    /* dusty drums */
+    hatTick(barStart, 0.045);
+    hatTick(barStart + 2 * SEC_PER_EIGHTH, 0.035);
+    hatTick(barStart + 4 * SEC_PER_EIGHTH, 0.045);
+    hatTick(barStart + 6 * SEC_PER_EIGHTH, 0.035);
+    hatTick(barStart + 7 * SEC_PER_EIGHTH, 0.03);
+    snareish(barStart + 4 * SEC_PER_EIGHTH, 0.06);
+    /* melancholy lead, occasionally */
+    if (bar % 2 === 1) {
+      var lead = ch.tones[2] * 2;
+      tapeNote(barStart + 1.5 * SEC_PER_EIGHTH, lead, 0.5, 0.05, 6.1);
+      tapeNote(barStart + 5 * SEC_PER_EIGHTH, lead * 0.749, 0.7, 0.045, 5.4);
+    }
+  }
+
+  function musicLoop() {
+    if (!playing || !ac) { return; }
+    var horizon = ac.currentTime + 0.35;
+    while (barStart < horizon) {
+      scheduleBar(barStart, barIdx);
+      barStart += SEC_PER_EIGHTH * 8;
+      barIdx++;
+    }
+  }
+  var barStart = 0;
+
+  function hissLevel() {
+    /* gentle tape hiss bed */
+    if (!hissSrc) {
+      hissSrc = ac.createBufferSource();
+      hissSrc.buffer = noiseBuf;
+      hissSrc.loop = true;
+      var f = ac.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.value = 5200;
+      var g = ac.createGain();
+      g.gain.value = 0.012;
+      hissSrc.connect(f);
+      f.connect(g);
+      g.connect(master);
+      hissSrc.start();
+    }
+  }
+  var hissSrc = null;
+
+  function mechanicalClick(vol, freq) {
+    if (!ac) { return; }
+    vol = vol || 0.12;
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    o.type = 'square';
+    o.frequency.value = freq || 900;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    var f = ac.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = freq || 900;
+    f.Q.value = 2;
+    o.connect(f);
+    f.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + 0.07);
+  }
+
+  function clunk() {
+    if (!ac) { return; }
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(190, t);
+    o.frequency.exponentialRampToValueAtTime(85, t + 0.11);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.16, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+    o.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + 0.2);
+    /* servo whirr up */
+    var o2 = ac.createOscillator();
+    o2.type = 'sawtooth';
+    o2.frequency.setValueAtTime(90, t);
+    o2.frequency.linearRampToValueAtTime(240, t + 0.28);
+    var g2 = ac.createGain();
+    g2.gain.setValueAtTime(0.03, t);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o2.connect(g2);
+    g2.connect(master);
+    o2.start(t);
+    o2.stop(t + 0.32);
+  }
+
+  /* ---------------- transport state ---------------- */
+  function setEngaged(btn, on) {
+    btn.classList.toggle('engaged', !!on);
+  }
+
+  function startPlay() {
+    if (ejected || playing) { return; }
+    ensureAudio();
+    if (!ac) { return; }
+    playing = true;
+    fastMode = 0;
+    document.body.classList.add('playing');
+    setEngaged(playBtn, true);
+    setEngaged(ffBtn, false);
+    setEngaged(rewBtn, false);
+    tsStatus.textContent = 'playing · side A';
+    setMasterGain(0.85, 0.4);
+    hissLevel();
+    barStart = ac.currentTime + 0.08;
+    window.clearInterval(musicTimer);
+    musicTimer = window.setInterval(musicLoop, 120);
+    musicLoop();
+    mechanicalClick(0.12, 1050);
+    liveEl.textContent = 'Play engaged — the tape rolls.';
+  }
+
+  function stopAll(silent) {
+    playing = false;
+    fastMode = 0;
+    document.body.classList.remove('playing');
+    setEngaged(playBtn, false);
+    setEngaged(ffBtn, false);
+    setEngaged(rewBtn, false);
+    tsStatus.textContent = 'tape idle';
+    setMasterGain(0.0001, 0.2);
+    window.clearInterval(musicTimer);
+    if (!silent) { mechanicalClick(0.1, 700); }
+    liveEl.textContent = 'Stopped.';
+  }
+
+  function startFast(dir) {
+    if (ejected) { return; }
+    ensureAudio();
+    if (!ac) { return; }
+    if (playing && dir === fastMode) { stopAll(); return; }
+    playing = false;
+    window.clearInterval(musicTimer);
+    fastMode = dir;
+    document.body.classList.remove('playing');
+    setEngaged(playBtn, false);
+    setEngaged(ffBtn, dir === 1);
+    setEngaged(rewBtn, dir === -1);
+    setMasterGain(0.0001, 0.15);
+    tsStatus.textContent = dir === 1 ? 'fast forward' : 'rewinding';
+    mechanicalClick(0.11, dir === 1 ? 1350 : 1150);
+    liveEl.textContent = dir === 1 ? 'Fast forward.' : 'Rewinding.';
+  }
+
+  function toggleEject() {
+    ensureAudio();
+    if (!ejected) {
+      if (playing) { stopAll(true); }
+      ejected = true;
+      document.body.classList.add('ejected');
+      setEngaged(playBtn, false);
+      clunk();
+      tsStatus.textContent = 'deck open · no tape';
+      liveEl.textContent = 'Eject — the lid rises.';
+    } else {
+      ejected = false;
+      document.body.classList.remove('ejected');
+      clunk();
+      mechanicalClick(0.09, 620);
+      tsStatus.textContent = 'tape idle';
+      liveEl.textContent = 'Cassette seated — mechanism latched.';
+    }
+  }
+
+  playBtn.addEventListener('click', startPlay);
+  stopBtn.addEventListener('click', function () { stopAll(); });
+  ffBtn.addEventListener('click', function () { startFast(1); });
+  rewBtn.addEventListener('click', function () { startFast(-1); });
+  ejectBtn.addEventListener('click', toggleEject);
+  recBtn.addEventListener('click', function () {
+    ensureAudio();
+    if (!ac) { return; }
+    var on = recBtn.classList.toggle('engaged');
+    mechanicalClick(0.12, on ? 1500 : 800);
+    tsStatus.textContent = on ? 'recording · pause makes it permanent' : (playing ? 'playing · side A' : 'tape idle');
+    liveEl.textContent = on
+      ? 'Record armed — the red light is for you.'
+      : 'Record released.';
+    if (on && !playing) { startPlay(); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.isContentEditable) { return; }
+    if (e.code === 'Space' && e.target === document.body) {
+      e.preventDefault();
+      if (playing) { stopAll(); } else { startPlay(); }
+    }
+  });
+
+  /* ---------------- frame loop ---------------- */
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+    lastT = now;
+
+    var speed = 0;
+    if (playing) { speed = 1; }
+    else if (fastMode === 1) { speed = 24; }
+    else if (fastMode === -1) { speed = -30; }
+
+    if (speed !== 0 && !ejected) {
+      tapeSec += speed * dt;
+      if (tapeSec >= SIDE_LEN) {
+        tapeSec = SIDE_LEN;
+        if (playing) {
+          stopAll(true);
+          tsStatus.textContent = 'end of side · auto-stop';
+          liveEl.textContent = 'End of side A — the deck stops itself, politely.';
+        }
+      }
+      if (tapeSec < 0) {
+        tapeSec = 0;
+        if (fastMode === -1) {
+          stopAll(true);
+          tsStatus.textContent = 'rewound · start of side';
+        }
+      }
+      var frac = tapeSec / SIDE_LEN;
+      counterDigits.textContent = String(Math.floor(tapeSec / 1.875)).padStart(3, '0');
+      tsFill.style.width = (frac * 100).toFixed(2) + '%';
+
+      /* reels: left empties, right fills */
+      reelAngle += speed * dt * 240;
+      if (!reduced) {
+        reelLeft.style.transform = 'rotate(' + reelAngle.toFixed(1) + 'deg)';
+        reelRight.style.transform = 'rotate(' + (reelAngle * 1.18).toFixed(1) + 'deg)';
+      }
+    }
+
+    /* VU needles */
+    var targetL = 0, targetR = 0;
+    if (playing && ac) {
+      var beatPhase = ((ac.currentTime * 84 / 60) % 1);
+      var barPos = (barIdx % 2);
+      targetL = 0.42 + 0.5 * Math.pow(1 - beatPhase, 2) + Math.random() * 0.08 + (barPos ? 0.05 : 0);
+      targetR = 0.36 + 0.46 * Math.pow(1 - beatPhase, 2) + Math.random() * 0.1;
+      if (recBtn.classList.contains('engaged')) {
+        targetL += 0.06;
+        targetR += 0.06;
+      }
+    } else if (fastMode !== 0) {
+      targetL = 0.22 + Math.random() * 0.05;
+      targetR = 0.2 + Math.random() * 0.05;
+    }
+    targetL = Math.min(1, targetL);
+    targetR = Math.min(1, targetR);
+    var k = Math.min(1, dt * 9);
+    needleLVal += (targetL - needleLVal) * k;
+    needleRVal += (targetR - needleRVal) * k;
+    if (!reduced) {
+      needleL.setAttribute('transform', 'rotate(' + (-48 + needleLVal * 96).toFixed(1) + ' 100 96)');
+      needleR.setAttribute('transform', 'rotate(' + (-48 + needleRVal * 96).toFixed(1) + ' 100 96)');
+    }
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(rafId);
+    window.clearInterval(musicTimer);
+    if (ac) { try { ac.close(); } catch (err) {} }
+  });
+
+  /* boot */
+  counterDigits.textContent = '000';
+  lastT = performance.now();
+  rafId = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

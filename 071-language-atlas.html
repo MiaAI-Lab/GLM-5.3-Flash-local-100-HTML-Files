@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tongues of Earth — a typographic atlas of the great language families, drawn as living dot-density cartography.">
+<meta name="theme-color" content="#f0e9d8">
+<title>Tongues of Earth — A Typographic Atlas of Language Families</title>
+<style>
+  :root{
+    --paper:#f0e9d8;
+    --paper-deep:#e7dec7;
+    --ink:#2f2a22;
+    --ink-soft:rgba(47,42,34,.62);
+    --ink-faint:rgba(47,42,34,.34);
+    --ocean:#cdd9d4;
+    --rule:rgba(47,42,34,.5);
+    --plaque-bg:#f5efdf;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Courier New",Courier,monospace;
+    --disp:"Optima","Palatino Linotype",ui-serif,Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 700px at 18% -8%, rgba(255,255,255,.5), transparent 60%),
+      radial-gradient(900px 600px at 108% 112%, rgba(122,95,143,.10), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    overflow-x:hidden;
+  }
+  ::selection{background:#a4452f;color:var(--paper)}
+  body::-webkit-scrollbar{width:10px}
+  body::-webkit-scrollbar-track{background:var(--paper-deep)}
+  body::-webkit-scrollbar-thumb{background:#b7a884;border:2px solid var(--paper-deep);border-radius:6px}
+
+  .atlas{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:clamp(14px,2.4vw,30px) clamp(14px,3vw,44px) 18px;
+    gap:clamp(10px,1.6vh,18px);
+  }
+
+  /* ————— Cartouche ————— */
+  .cartouche{
+    align-self:center;
+    width:min(720px,100%);
+    text-align:center;
+    border:1.5px solid var(--rule);
+    outline:1px solid var(--rule);
+    outline-offset:4px;
+    background:linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,0) 55%);
+    padding:clamp(12px,1.8vh,20px) clamp(14px,3vw,34px) clamp(10px,1.5vh,16px);
+    position:relative;
+    box-shadow:0 1px 0 rgba(47,42,34,.14), inset 0 0 0 1px rgba(47,42,34,.06);
+  }
+  .cartouche .corner{position:absolute;width:18px;height:18px;color:var(--ink-soft)}
+  .cartouche .corner svg{width:100%;height:100%;display:block}
+  .corner.tl{top:5px;left:5px}
+  .corner.tr{top:5px;right:5px;transform:scaleX(-1)}
+  .corner.bl{bottom:5px;left:5px;transform:scaleY(-1)}
+  .corner.br{bottom:5px;right:5px;transform:scale(-1)}
+  .plate-row{
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1.05vw,10.5px);
+    letter-spacing:.32em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    display:flex;
+    justify-content:center;
+    gap:1.6em;
+    flex-wrap:wrap;
+  }
+  .cartouche h1{
+    font-family:var(--disp);
+    font-weight:500;
+    font-size:clamp(26px,4.6vw,52px);
+    letter-spacing:.3em;
+    text-indent:.3em;
+    line-height:1.08;
+    margin-top:.35em;
+    color:var(--ink);
+  }
+  .cartouche .sub{
+    font-style:italic;
+    font-size:clamp(12px,1.6vw,16.5px);
+    color:var(--ink-soft);
+    margin-top:.5em;
+    letter-spacing:.04em;
+  }
+  .cartouche .ruleline{
+    margin-top:.8em;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--rule) 18%, var(--rule) 82%, transparent);
+    position:relative;
+  }
+  .ruleline i{
+    position:absolute;left:50%;top:-7px;width:9px;height:9px;
+    background:var(--paper);
+    border:1.5px solid var(--rule);
+    transform:translateX(-50%) rotate(45deg);
+  }
+
+  /* ————— Map stage ————— */
+  .stage{
+    position:relative;
+    flex:1 1 auto;
+    min-height:min(64vh,640px);
+    border:1px solid var(--rule);
+    background:
+      linear-gradient(180deg, rgba(205,217,212,.28), rgba(205,217,212,.16)),
+      radial-gradient(140% 110% at 50% 8%, #d6e1dc 0%, var(--ocean) 58%, #c2cfc9 100%);
+    overflow:hidden;
+    box-shadow:inset 0 0 46px rgba(47,42,34,.10), 0 1px 0 rgba(255,255,255,.5) inset;
+  }
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation}
+  .grain{
+    position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.5;
+    background-image:
+      radial-gradient(rgba(47,42,34,.05) 1px, transparent 1.4px),
+      radial-gradient(rgba(47,42,34,.035) 1px, transparent 1.4px);
+    background-size:7px 7px, 11px 11px;
+    background-position:0 0, 3px 5px;
+  }
+  .vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 100% at 50% 42%, transparent 62%, rgba(47,42,34,.16) 100%);
+  }
+  .compass{
+    position:absolute;top:14px;right:16px;width:56px;height:56px;
+    color:var(--ink-soft);pointer-events:none;opacity:.9;
+  }
+  .compass svg{width:100%;height:100%}
+  .readout{
+    position:absolute;left:14px;bottom:12px;
+    font-family:var(--mono);
+    font-size:clamp(9px,1.1vw,11px);
+    letter-spacing:.14em;
+    color:var(--ink-soft);
+    background:rgba(240,233,216,.82);
+    border:1px solid var(--ink-faint);
+    padding:5px 9px;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  .readout b{font-weight:400;color:var(--ink)}
+  .hoverchip{
+    position:absolute;right:14px;bottom:12px;
+    font-family:var(--mono);font-size:clamp(9px,1.1vw,11px);
+    letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink);background:rgba(240,233,216,.85);
+    border:1px solid var(--ink-faint);
+    padding:5px 9px;pointer-events:none;
+    display:flex;align-items:center;gap:7px;
+    opacity:0;transform:translateY(4px);
+    transition:opacity .25s ease, transform .25s ease;
+    white-space:nowrap;
+  }
+  .hoverchip.on{opacity:1;transform:none}
+  .hoverchip .dot{width:9px;height:9px;border-radius:50%;background:#999;box-shadow:0 0 0 1px rgba(47,42,34,.4)}
+
+  /* ————— Legend ————— */
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px 10px;
+    padding:2px 4px 0;
+  }
+  .chip{
+    -webkit-appearance:none;appearance:none;
+    font-family:var(--serif);
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.28);
+    border:1px solid rgba(47,42,34,.32);
+    color:var(--ink);
+    padding:7px 12px 7px 9px;
+    font-size:clamp(10.5px,1.25vw,12.5px);
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    position:relative;
+  }
+  .chip .sw{width:11px;height:11px;border-radius:50%;flex:0 0 auto;box-shadow:inset 0 0 0 1.5px rgba(47,42,34,.35)}
+  .chip .n{line-height:1}
+  .chip .c{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--ink-soft)}
+  .chip:hover,.chip:focus-visible{transform:translateY(-2px);border-color:var(--ink);background:rgba(255,255,255,.55);box-shadow:0 3px 0 rgba(47,42,34,.14)}
+  .chip:focus-visible{outline:2px solid #a4452f;outline-offset:2px}
+  .chip.active{border-color:var(--ink);background:rgba(47,42,34,.07);box-shadow:0 3px 0 rgba(47,42,34,.2)}
+  .chip.active::after{
+    content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;
+    background:var(--fam, #a4452f);
+  }
+
+  .caption{
+    text-align:center;
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1vw,10px);
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding-top:2px;
+  }
+
+  /* ————— Specimen plaque ————— */
+  .plaque{
+    position:fixed;
+    right:clamp(10px,2.5vw,34px);
+    bottom:clamp(10px,2.5vw,34px);
+    width:min(620px, calc(100vw - 20px));
+    max-height:min(78vh, 620px);
+    overflow:auto;
+    background:var(--plaque-bg);
+    border:1.5px solid var(--rule);
+    outline:1px solid var(--rule);
+    outline-offset:3px;
+    box-shadow:0 18px 50px rgba(47,42,34,.32), inset 0 0 0 1px rgba(47,42,34,.05);
+    display:flex;
+    z-index:20;
+    opacity:0;
+    transform:translateY(22px) scale(.985);
+    pointer-events:none;
+    transition:opacity .32s ease, transform .32s cubic-bezier(.2,.8,.25,1);
+  }
+  .plaque.open{opacity:1;transform:none;pointer-events:auto}
+  .plaque::-webkit-scrollbar{width:8px}
+  .plaque::-webkit-scrollbar-track{background:var(--paper-deep)}
+  .plaque::-webkit-scrollbar-thumb{background:#b7a884;border-radius:4px}
+  .specimen{
+    flex:0 0 clamp(132px, 26vw, 210px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;
+    padding:clamp(16px,2.4vw,26px) clamp(10px,1.6vw,18px);
+    border-right:1px solid rgba(47,42,34,.25);
+    background:
+      radial-gradient(120% 90% at 50% 20%, rgba(255,255,255,.5), transparent 70%),
+      linear-gradient(180deg, rgba(47,42,34,.045), transparent 40%);
+    position:relative;
+  }
+  .specimen::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:6px;
+    background:var(--fam,#a4452f);
+  }
+  .glyph{
+    font-family:var(--serif);
+    font-size:clamp(84px,11vw,150px);
+    line-height:.94;
+    color:var(--ink);
+    text-shadow:0 1px 0 rgba(255,255,255,.6);
+    transform:scale(.82);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.2,.9,.3,1.2), opacity .4s ease;
+    user-select:none;
+  }
+  .plaque.open .glyph{transform:scale(1);opacity:1}
+  .scriptname{
+    font-family:var(--mono);
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-soft);text-align:center;
+  }
+  .facts{flex:1 1 auto;padding:clamp(14px,2.2vw,22px) clamp(16px,2.4vw,24px);min-width:0}
+  .famname{
+    font-family:var(--disp);
+    font-size:clamp(17px,2.4vw,24px);
+    letter-spacing:.14em;text-transform:uppercase;
+    line-height:1.2;
+  }
+  .famname small{
+    display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.26em;
+    color:var(--ink-soft);margin-top:6px;text-transform:uppercase;
+  }
+  .statgrid{
+    display:grid;grid-template-columns:1fr 1fr;gap:1px;
+    background:rgba(47,42,34,.22);
+    border:1px solid rgba(47,42,34,.22);
+    margin:14px 0 12px;
+  }
+  .statgrid .cell{background:var(--plaque-bg);padding:8px 10px}
+  .cell .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.24em;color:var(--ink-soft);text-transform:uppercase}
+  .cell .v{font-family:var(--mono);font-size:clamp(13px,1.8vw,17px);margin-top:3px;font-variant-numeric:tabular-nums}
+  .branches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .branches span{
+    font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+    border:1px solid rgba(47,42,34,.35);padding:3px 8px;
+    color:var(--ink-soft);background:rgba(255,255,255,.3);
+  }
+  .note{font-style:italic;font-size:clamp(12px,1.6vw,14.5px);color:var(--ink-soft);line-height:1.55}
+  .close{
+    position:absolute;top:8px;right:8px;z-index:2;
+    width:34px;height:34px;border:1px solid rgba(47,42,34,.4);
+    background:var(--plaque-bg);color:var(--ink);
+    font-family:var(--mono);font-size:14px;cursor:pointer;line-height:1;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .close:hover,.close:focus-visible{background:var(--ink);color:var(--plaque-bg);transform:rotate(90deg)}
+  .close:focus-visible{outline:2px solid #a4452f;outline-offset:2px}
+
+  .noscript{
+    margin:40px auto;max-width:520px;text-align:center;
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink-soft);
+    border:1px solid var(--rule);padding:20px;
+  }
+
+  @media (max-width:720px){
+    .plaque{
+      left:10px;right:10px;bottom:10px;width:auto;
+      flex-direction:column;
+    }
+    .specimen{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:14px;border-right:none;border-bottom:1px solid rgba(47,42,34,.25)}
+    .glyph{font-size:64px}
+    .scriptname{text-align:left}
+    .statgrid{grid-template-columns:1fr 1fr}
+    .compass{width:40px;height:40px;top:10px;right:10px}
+    .stage{min-height:52vh}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .chip,.plaque,.glyph,.close{transition:none}
+    .plaque.open .glyph{transform:none}
+    .glyph{transform:none;opacity:1}
+  }
+</style>
+</head>
+<body>
+<main class="atlas">
+
+  <header class="cartouche" aria-label="Title cartouche">
+    <span class="corner tl" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1l1.8 5.4L17 8l-5.2 1.6L10 15l-1.8-5.4L3 8l5.2-1.6z" fill="currentColor"/><circle cx="10" cy="8" r="1.6" fill="none" stroke="currentColor"/></svg></span>
+    <span class="corner tr" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1l1.8 5.4L17 8l-5.2 1.6L10 15l-1.8-5.4L3 8l5.2-1.6z" fill="currentColor"/><circle cx="10" cy="8" r="1.6" fill="none" stroke="currentColor"/></svg></span>
+    <span class="corner bl" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1l1.8 5.4L17 8l-5.2 1.6L10 15l-1.8-5.4L3 8l5.2-1.6z" fill="currentColor"/><circle cx="10" cy="8" r="1.6" fill="none" stroke="currentColor"/></svg></span>
+    <span class="corner br" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 1l1.8 5.4L17 8l-5.2 1.6L10 15l-1.8-5.4L3 8l5.2-1.6z" fill="currentColor"/><circle cx="10" cy="8" r="1.6" fill="none" stroke="currentColor"/></svg></span>
+    <p class="plate-row"><span>Lingvarum Tabula</span><span>Plate No. XXII</span><span>MMXXVI</span></p>
+    <h1>Tongues of Earth</h1>
+    <p class="sub">A typographic atlas of the great language families — every dot, three million voices</p>
+    <div class="ruleline" aria-hidden="true"><i></i></div>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Dot-density world map of language families">
+    <canvas id="map" tabindex="0" aria-label="World map. Each dot marks roughly three million speakers. Hover a cluster to hear it swell; press a family in the legend to open its specimen plaque."></canvas>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <span class="compass" aria-hidden="true">
+      <svg viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="26" fill="none" stroke="currentColor" stroke-width="1"/>
+        <circle cx="30" cy="30" r="2.4" fill="currentColor"/>
+        <path d="M30 6 L34 26 L30 22 L26 26 Z" fill="currentColor"/>
+        <path d="M30 54 L34 34 L30 38 L26 34 Z" fill="none" stroke="currentColor" stroke-width="1"/>
+        <path d="M6 30 L26 26 L22 30 L26 34 Z" fill="none" stroke="currentColor" stroke-width="1"/>
+        <path d="M54 30 L34 26 L38 30 L34 34 Z" fill="none" stroke="currentColor" stroke-width="1"/>
+      </svg>
+    </span>
+    <p class="readout" id="readout">LAT <b>—</b> · LON <b>—</b></p>
+    <p class="hoverchip" id="hoverchip"><span class="dot" id="hoverdot"></span><span id="hovername">—</span></p>
+  </section>
+
+  <nav class="legend" id="legend" aria-label="Language families"></nav>
+
+  <p class="caption">Point-in-polygon survey · Voronoi hearths · drawn entirely in this browser · no two maps age alike</p>
+
+</main>
+
+<aside class="plaque" id="plaque" aria-label="Family specimen plaque" aria-hidden="true">
+  <button class="close" id="plaqueClose" aria-label="Close specimen plaque">✕</button>
+  <div class="specimen">
+    <span class="glyph" id="glyph" aria-hidden="true">ॐ</span>
+    <span class="scriptname" id="scriptname">Devanāgarī</span>
+  </div>
+  <div class="facts">
+    <h2 class="famname" id="famname">Indo-European<small id="famsub"> Hearth of the family</small></h2>
+    <div class="statgrid">
+      <div class="cell"><span class="k">Speakers</span><span class="v" id="statSpeakers">—</span></div>
+      <div class="cell"><span class="k">Living languages</span><span class="v" id="statLangs">—</span></div>
+      <div class="cell" style="grid-column:1 / -1"><span class="k">Hearth</span><span class="v" id="statHearth" style="font-size:clamp(11px,1.4vw,13px)">—</span></div>
+    </div>
+    <div class="branches" id="branches"></div>
+    <p class="note" id="famnote">—</p>
+  </div>
+</aside>
+
+<div class="noscript" hidden>
+  This atlas is drawn with canvas and requires JavaScript. The paper regrets the omission.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ————————————————— Map geometry —————————————————
+   Stylised coastlines in [lon,lat]. Liberties taken in the manner
+   of nineteenth-century engravers; the dot matrix forgives a great deal. */
+
+var POLYS = [
+  /* North America */
+  [[-168,65],[-160,70],[-140,70],[-125,72],[-110,73],[-95,72],[-85,70],[-80,73],[-75,68],[-70,60],[-65,58],[-58,52],[-55,50],[-60,45],[-67,44],[-70,42],[-74,40],[-76,35],[-81,31],[-80,26],[-83,29],[-89,30],[-94,29],[-97,26],[-97,21],[-94,18],[-88,16],[-83,10],[-79,9],[-77,8],[-82,8],[-85,11],[-90,14],[-96,16],[-105,20],[-110,24],[-114,28],[-117,33],[-122,37],[-124,42],[-124,48],[-130,54],[-135,58],[-140,60],[-150,59],[-155,58],[-162,55],[-165,60]],
+  /* Greenland */
+  [[-45,60],[-40,64],[-32,68],[-25,70],[-20,74],[-25,78],[-35,82],[-50,82],[-58,76],[-55,70],[-52,64]],
+  /* South America */
+  [[-78,8],[-72,11],[-64,10],[-60,8],[-52,4],[-50,0],[-44,-3],[-38,-6],[-35,-8],[-39,-14],[-40,-20],[-48,-26],[-53,-33],[-58,-38],[-62,-40],[-65,-45],[-68,-50],[-70,-54],[-73,-50],[-73,-44],[-71,-37],[-71,-30],[-70,-22],[-71,-18],[-77,-12],[-81,-6],[-80,-2],[-78,2]],
+  /* Africa */
+  [[-6,36],[10,37],[12,34],[20,32],[30,31],[34,28],[36,22],[38,18],[42,12],[48,12],[51,10],[45,2],[42,-2],[40,-8],[38,-14],[35,-20],[33,-26],[28,-33],[20,-35],[17,-30],[14,-22],[12,-16],[9,-2],[9,4],[6,5],[-2,5],[-8,5],[-13,9],[-17,14],[-17,20],[-14,25],[-10,30]],
+  /* Eurasia, one long engraver's coast */
+  [[-9,37],[-6,36],[0,39],[3,42],[7,43],[10,44],[12,45],[14,45],[16,42],[18,40],[20,40],[22,38],[24,38],[26,40],[28,41],[31,41],[36,36],[35,33],[34,29],[38,17],[42,12],[45,12],[48,13],[52,14],[56,17],[59,22],[57,25],[52,27],[49,29],[53,27],[57,26],[62,25],[66,25],[68,24],[70,21],[73,16],[76,9],[78,8],[80,10],[80,14],[84,18],[87,21],[90,22],[92,20],[94,16],[97,10],[100,4],[103,1],[104,3],[105,9],[107,10],[109,12],[108,16],[106,19],[108,21],[110,21],[114,22],[118,24],[120,27],[121,30],[120,33],[119,35],[122,37],[121,39],[122,40],[125,39],[126,37],[129,35],[129,38],[128,40],[131,43],[135,44],[138,47],[141,49],[137,54],[142,59],[147,59],[153,59],[156,55],[158,52],[160,56],[162,60],[170,60],[178,65],[178,68],[170,70],[160,70],[150,71],[140,72],[130,71],[120,73],[110,76],[100,77],[90,75],[80,73],[70,72],[68,69],[60,69],[55,66],[45,66],[40,65],[35,66],[33,69],[28,71],[24,71],[18,69],[14,68],[12,65],[10,63],[6,62],[5,60],[6,58],[8,56],[10,54],[6,53],[4,52],[0,49],[-2,48],[-4,48],[-1,46],[-2,44],[-9,43]],
+  /* Britain · Ireland · Iceland */
+  [[-5,50],[-2,52],[-3,54],[-5,56],[-4,58],[-2,57],[-1,54],[1,52],[0,51]],
+  [[-10,52],[-6,54],[-6,55],[-8,55],[-10,54]],
+  [[-24,64],[-18,66],[-14,65],[-18,63]],
+  /* Japan arc */
+  [[130,31],[132,34],[136,35],[140,36],[141,39],[141,42],[143,43],[145,44],[142,45],[140,42],[139,38],[136,36],[132,33]],
+  /* Madagascar */
+  [[44,-25],[47,-25],[50,-16],[49,-12],[47,-15],[45,-20]],
+  /* Sumatra · Java · Borneo · Sulawesi · Philippines */
+  [[95,5],[98,3],[102,-1],[105,-5],[103,-6],[99,-2]],
+  [[105,-6],[110,-7],[114,-8],[112,-8],[107,-7]],
+  [[109,2],[113,4],[117,6],[119,2],[117,-2],[113,-3],[110,-1]],
+  [[119,-1],[121,-1],[123,-4],[121,-6],[119,-3]],
+  [[120,18],[122,16],[121,13],[124,11],[125,7],[122,7],[120,12]],
+  /* New Guinea · New Zealand · Sri Lanka */
+  [[131,-1],[136,-2],[141,-3],[146,-6],[148,-9],[145,-9],[141,-7],[136,-5],[132,-3]],
+  [[172,-34],[175,-37],[178,-38],[176,-41],[173,-43],[170,-46],[167,-46],[170,-42],[172,-38]],
+  [[80,6],[82,7],[81,9],[80,8]],
+  /* Cuba */
+  [[-85,22],[-80,23],[-75,20],[-79,21]]
+];
+
+/* Inland waters carved out of the dot field */
+var LAKES = [
+  [[10,54],[20,54],[26,60],[21,63],[17,61],[12,56]],
+  [[28,41],[33,42],[38,43],[41,42],[36,41],[31,41]],
+  [[47,37],[51,38],[53,42],[52,46],[49,46],[47,42]],
+  [[48,30],[51,27],[56,26],[53,29]],
+  [[-92,47],[-84,49],[-79,44],[-83,42],[-88,44]],
+  [[-95,60],[-85,63],[-78,60],[-82,55],[-90,55]]
+];
+
+/* Family hearths — nearest hearth wins each dot (Voronoi settlement) */
+var SEEDS = [
+  [10,50,"ie"],[35,52,"ie"],[40,54,"ie"],[60,60,"ie"],[85,60,"ie"],
+  [54,33,"ie"],[78,26,"ie"],[-98,40,"ie"],[-105,52,"ie"],[-45,-12,"ie"],
+  [-62,-36,"ie"],[134,-30,"ie"],
+  [77,13,"dr"],[74,17,"dr"],
+  [20,27,"aa"],[45,22,"aa"],[40,8,"aa"],[12,12,"aa"],[38,15,"aa"],
+  [-4,8,"nc"],[8,6,"nc"],[20,-2,"nc"],[33,-5,"nc"],[25,-25,"nc"],[-15,13,"nc"],
+  [28,9,"ns"],[20,-23,"ks"],
+  [104,31,"st"],[102,24,"st"],[88,30,"st"],
+  [104,22,"ta"],[107,13,"ta"],
+  [110,-7,"an"],[114,1,"an"],[122,12,"an"],[121,24,"an"],[167,-16,"an"],
+  [-150,-18,"an"],[158,7,"an"],[173,-40,"an"],[-157,20,"an"],[47,-19,"an"],
+  [139,37,"jk"],[127,38,"jk"],
+  [33,39,"tm"],[68,45,"tm"],[125,62,"tm"],[105,47,"tm"],[75,45,"tm"],
+  [26,62,"ur"],[19,47,"ur"],[75,66,"ur"],
+  [142,-6,"tng"],[140,-4,"tng"],[144,-8,"tng"],
+  [-42,72,"am"],[-95,66,"am"],[-125,60,"am"],[-95,50,"am"],[-108,34,"am"],
+  [-92,16,"am"],[-73,-14,"am"],[-74,5,"am"],[-60,-5,"am"],[-50,-18,"am"],
+  [-72,-38,"am"],[-69,-48,"am"],
+  [133,-25,"sh"],[122,-20,"sh"],[146,-19,"sh"],
+  [44,43,"iso"],[-3,43,"iso"]
+];
+
+/* ————————————————— The families ————————————————— */
+
+var FAMS = {
+  ie:{ name:"Indo-European", sub:"The steppe that learned to sail", color:"#a4452f",
+       glyph:"ॐ", script:"Devanāgarī", hearth:"45.0° N · 34.0° E — Pontic steppe",
+       millions:3200, langs:445,
+       branches:["English","Hindi","Spanish","Bengali","Portuguese","Russian","Persian"],
+       note:"From the Pontic steppe to every harbour on Earth — the tongue that learned to sail." },
+  st:{ name:"Sino-Tibetan", sub:"Ten thousand characters, one ink", color:"#3f5d7a",
+       glyph:"水", script:"Han script", hearth:"35.0° N · 111.0° E — Yellow River",
+       millions:1400, langs:500,
+       branches:["Mandarin","Cantonese","Wu","Burmese","Tibetan"],
+       note:"Ten thousand characters, one civilisation's ink; the mountain tongues keep its oldest tones." },
+  ta:{ name:"Tai · Austroasiatic", sub:"Rivers of the monsoon", color:"#8a7a2a",
+       glyph:"ก", script:"Thai · Khmer · Lao", hearth:"16.0° N · 102.0° E — Menam valley",
+       millions:160, langs:260,
+       branches:["Thai","Lao","Khmer","Vietnamese","Zhuang"],
+       note:"Rivers of the monsoon: soft consonants traded along the Mekong and the Menam." },
+  nc:{ name:"Niger-Congo", sub:"Noun classes like seed-grain", color:"#6d7d4f",
+       glyph:"Ɓ", script:"Latin, extended", hearth:"5.0° N · 12.0° E — Cameroon grasslands",
+       millions:550, langs:1550,
+       branches:["Swahili","Yorùbá","Igbo","Zulu","Fula"],
+       note:"The Bantu expansion walked this colour across half a continent, carrying noun classes like seed-grain." },
+  aa:{ name:"Afro-Asiatic", sub:"The tongue of Ḍād", color:"#b08a3e",
+       glyph:"ض", script:"Arabic · Ethiopic", hearth:"32.0° N · 35.0° E — the Levant",
+       millions:495, langs:375,
+       branches:["Arabic","Hausa","Amharic","Somali","Hebrew"],
+       note:"The tongue of Ḍād — a sound so rare the Arabs named themselves after it." },
+  an:{ name:"Austronesian", sub:"Against the monsoon, on open water", color:"#7a5f8f",
+       glyph:"H", script:"Latin & syllabaries", hearth:"23.7° N · 121.0° E — Taiwan",
+       millions:325, langs:1250,
+       branches:["Malay","Javanese","Tagalog","Māori","Malagasy"],
+       note:"Out of Taiwan, against the monsoon, across ten thousand miles of open water." },
+  dr:{ name:"Dravidian", sub:"Older than the plains above", color:"#4a6d6d",
+       glyph:"ந", script:"Tamil script", hearth:"11.0° N · 78.0° E — the far south",
+       millions:250, langs:85,
+       branches:["Tamil","Telugu","Kannada","Malayalam"],
+       note:"Older than the plains above them; the southern languages kept their own script-shapes." },
+  jk:{ name:"Japonic & Koreanic", sub:"Verbs at the end of thought", color:"#a06a72",
+       glyph:"の", script:"Kana · Hangul", hearth:"36.0° N · 136.0° E — Japan Sea",
+       millions:205, langs:4,
+       branches:["Japanese","Korean","Jeju"],
+       note:"Two islands of grammar that keep their verbs at the end of every thought." },
+  tm:{ name:"Turkic & Mongolic", sub:"Horizons that never close", color:"#8a6a4f",
+       glyph:"Ö", script:"Latin · Cyrillic · Runic", hearth:"49.0° N · 89.0° E — the Altai",
+       millions:185, langs:50,
+       branches:["Turkish","Uzbek","Kazakh","Mongolian","Tuvan"],
+       note:"Horsemen's words: vowel harmony, and horizons that never close." },
+  ur:{ name:"Uralic", sub:"Fifteen cases for snow and silence", color:"#6b5d8a",
+       glyph:"Ä", script:"Latin · Cyrillic", hearth:"61.0° N · 59.0° E — the Urals",
+       millions:25, langs:40,
+       branches:["Finnish","Hungarian","Estonian","Sámi","Nenets"],
+       note:"Fifteen cases for snow and silence; cousins scattered from Budapest to the tundra." },
+  ns:{ name:"Nilo-Saharan", sub:"Along the great rivers", color:"#566e46",
+       glyph:"Ŋ", script:"Latin, extended", hearth:"11.0° N · 31.0° E — the Sudd",
+       millions:60, langs:200,
+       branches:["Luo","Maasai","Kanuri","Songhay"],
+       note:"Whistled, tonal, sung along the marshes where the White Nile loses its way." },
+  ks:{ name:"Khoisan", sub:"The oldest phonemes on Earth", color:"#9c7c4a",
+       glyph:"ǃ", script:"Click orthography", hearth:"23.0° S · 20.0° E — the Kalahari",
+       millions:1, langs:30,
+       branches:["Khoekhoe","Juǀʼhoan","ǃXóõ"],
+       note:"Clicks older than agriculture; some tongues carry more sounds than the alphabet has letters." },
+  tng:{ name:"Trans-New Guinea", sub:"A thousand hills, a thousand grammars", color:"#4f7d74",
+       glyph:"ŋ", script:"Latin, extended", hearth:"5.5° S · 144.0° E — the Highlands",
+       millions:4, langs:400,
+       branches:["Melpa","Enga","Dani","Fore"],
+       note:"A thousand hills, a thousand grammars — the steepest diversity on Earth." },
+  am:{ name:"Languages of the Americas", sub:"Syllabics on bark, knots on cords", color:"#7d4f5d",
+       glyph:"Ñ", script:"Latin · syllabaries", hearth:"64.0° N · 172.0° W — Beringia",
+       millions:50, langs:620,
+       branches:["Quechua","Guaraní","Aymara","Mayan","Navajo","Inuktitut"],
+       note:"Before the ships: syllabics on bark, knots on cords, calendars in stone." },
+  sh:{ name:"Sahul — Papuan & Australian", sub:"One shore, once", color:"#5d7a8c",
+       glyph:"W", script:"Latin, extended", hearth:"10.0° S · 131.0° E — the Sahul shelf",
+       millions:2, langs:950,
+       branches:["Warlpiri","Yolŋu Matha","Dani","Ekari"],
+       note:"Sahul remembers when Australia and New Guinea were one shore." },
+  iso:{ name:"Isolates & ancient lines", sub:"Words with no cousins", color:"#7a7a68",
+       glyph:"E", script:"Euskara · others", hearth:"42.8° N · 44.6° E — the Caucasus",
+       millions:12, langs:30,
+       branches:["Basque","Burushaski","Ainu","Ket"],
+       note:"Words with no cousins — each one the last of its own star." }
+};
+
+var FAM_ORDER = ["ie","st","ta","nc","aa","an","dr","jk","tm","ur","ns","ks","tng","am","sh","iso"];
+
+/* ————————————————— Setup ————————————————— */
+
+var canvas = document.getElementById("map");
+var stage  = document.getElementById("stage");
+var ctx    = canvas.getContext("2d");
+var readout= document.getElementById("readout");
+var hoverchip = document.getElementById("hoverchip");
+var hovername = document.getElementById("hovername");
+var hoverdot  = document.getElementById("hoverdot");
+var legendEl  = document.getElementById("legend");
+var plaque    = document.getElementById("plaque");
+
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+var W = 0, H = 0, DPR = 1;
+var LON0 = -180, LON1 = 180, LAT0 = 78, LAT1 = -58;
+var dots = [];
+var landLayer = null;
+var famKeys = [];
+var famIntensity = {};   /* 0..1 highlight strength, eased */
+var pointer = {x:-1, y:-1, on:false};
+var hoverFam = null;
+var openFam = null;
+var ripples = [];
+var raf = null;
+var time = 0;
+
+function projX(lon){ return (lon - LON0) / (LON1 - LON0) * W; }
+function projY(lat){ return (LAT0 - lat) / (LAT0 - LAT1) * H; }
+function unprojX(px){ return LON0 + px / W * (LON1 - LON0); }
+function unprojY(py){ return LAT0 - py / H * (LAT0 - LAT1); }
+
+function inPoly(lon, lat, poly){
+  var inside = false;
+  for (var i = 0, j = poly.length - 1; i < poly.length; j = i++){
+    var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
+    if (((yi > lat) !== (yj > lat)) &&
+        (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function onLand(lon, lat){
+  for (var i = 0; i < POLYS.length; i++) if (inPoly(lon, lat, POLYS[i])) {
+    for (var k = 0; k < LAKES.length; k++) if (inPoly(lon, lat, LAKES[k])) return false;
+    return true;
+  }
+  return false;
+}
+function famAt(lon, lat){
+  var best = 1e12, key = "iso";
+  for (var i = 0; i < SEEDS.length; i++){
+    var dx = (SEEDS[i][0] - lon), dy = (SEEDS[i][1] - lat) * 0.82;
+    var d = dx * dx + dy * dy;
+    if (d < best){ best = d; key = SEEDS[i][2]; }
+  }
+  return key;
+}
+
+/* ————————————————— Dot survey ————————————————— */
+
+function buildDots(){
+  dots = [];
+  famKeys = Object.keys(FAMS);
+  for (var i = 0; i < famKeys.length; i++) famIntensity[famKeys[i]] = 0;
+  var step = Math.max(8, Math.min(13, W / 128));
+  var jrand = mulberry32(1907);
+  for (var py = step * 0.5; py < H; py += step){
+    for (var px = step * 0.5; px < W; px += step){
+      var lon = unprojX(px), lat = unprojY(py);
+      if (!onLand(lon, lat)) continue;
+      var jx = (jrand() - 0.5) * step * 0.85;
+      var jy = (jrand() - 0.5) * step * 0.85;
+      var x = px + jx, y = py + jy;
+      var l2 = unprojX(x), a2 = unprojY(y);
+      if (!onLand(l2, a2)) { x = px; y = py; l2 = lon; a2 = lat; }
+      var f = famAt(l2, a2);
+      dots.push({ x:x, y:y, f:f, r: step * 0.24 + jrand() * step * 0.1 });
+    }
+  }
+  /* group by family, once */
+  dots.sort(function(a,b){ return a.f < b.f ? -1 : a.f > b.f ? 1 : 0; });
+  var groups = {};
+  for (var d = 0; d < dots.length; d++){
+    var k = dots[d].f;
+    (groups[k] = groups[k] || []).push(dots[d]);
+  }
+  dotGroups = groups;
+}
+var dotGroups = {};
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ————————————————— Static layer (paper, coast, graticule) ————————————————— */
+
+function buildLandLayer(){
+  landLayer = document.createElement("canvas");
+  landLayer.width = Math.max(1, Math.round(W * DPR));
+  landLayer.height = Math.max(1, Math.round(H * DPR));
+  var c = landLayer.getContext("2d");
+  c.scale(DPR, DPR);
+
+  /* graticule */
+  c.strokeStyle = "rgba(47,42,34,.09)";
+  c.lineWidth = 1;
+  for (var lon = LON0; lon <= LON1; lon += 20){
+    var x = projX(lon);
+    c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke();
+  }
+  for (var lat = LAT1; lat <= LAT0; lat += 20){
+    var y = projY(lat);
+    c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke();
+  }
+
+  /* land wash + coast engraving */
+  var i, poly, p;
+  c.beginPath();
+  for (i = 0; i < POLYS.length; i++){
+    poly = POLYS[i];
+    for (p = 0; p < poly.length; p++){
+      var px2 = projX(poly[p][0]), py2 = projY(poly[p][1]);
+      if (p === 0) c.moveTo(px2, py2); else c.lineTo(px2, py2);
+    }
+    c.closePath();
+  }
+  c.fillStyle = "rgba(47,42,34,.075)";
+  c.fill();
+
+  c.strokeStyle = "rgba(47,42,34,.5)";
+  c.lineWidth = 1.1;
+  for (i = 0; i < POLYS.length; i++){
+    poly = POLYS[i];
+    c.beginPath();
+    for (p = 0; p < poly.length; p++){
+      var x3 = projX(poly[p][0]), y3 = projY(poly[p][1]);
+      if (p === 0) c.moveTo(x3, y3); else c.lineTo(x3, y3);
+    }
+    c.closePath(); c.stroke();
+  }
+  c.strokeStyle = "rgba(47,42,34,.28)";
+  c.lineWidth = 0.9;
+  for (i = 0; i < LAKES.length; i++){
+    poly = LAKES[i];
+    c.beginPath();
+    for (p = 0; p < poly.length; p++){
+      var x4 = projX(poly[p][0]), y4 = projY(poly[p][1]);
+      if (p === 0) c.moveTo(x4, y4); else c.lineTo(x4, y4);
+    }
+    c.closePath(); c.stroke();
+  }
+
+  /* engraved sea names */
+  c.fillStyle = "rgba(47,42,34,.42)";
+  c.font = "italic " + Math.max(9, Math.min(13, W * 0.011)) + "px Georgia, 'Times New Roman', serif";
+  c.textAlign = "center";
+  seaName(c, "OCEANUS ATLANTICUS", projX(-38), projY(22), 4);
+  seaName(c, "OCEANUS INDICUS", projX(78), projY(-30), 4);
+  seaName(c, "MARE PACIFICUM", projX(-135), projY(-18), 4);
+  seaName(c, "MARE ARCTICUM", projX(-5), projY(74), 4);
+  c.textAlign = "left";
+}
+function seaName(c, text, x, y, gap){
+  var prev = c.letterSpacing;
+  try { c.letterSpacing = "3px"; } catch(e){}
+  c.fillText(text, x, y);
+  try { c.letterSpacing = prev; } catch(e){}
+}
+
+/* ————————————————— Frame ————————————————— */
+
+function resize(){
+  var r = stage.getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.max(320, Math.round(r.width));
+  H = Math.max(240, Math.round(r.height));
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  buildLandLayer();
+  buildDots();
+  if (REDUCED) drawFrame(0); else ensureLoop();
+}
+
+function drawFrame(t){
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(landLayer, 0, 0, W, H);
+
+  /* ripple rings on the ocean */
+  for (var rp = ripples.length - 1; rp >= 0; rp--){
+    var rr = ripples[rp];
+    var age = (t - rr.t) / 900;
+    if (age >= 1){ ripples.splice(rp, 1); continue; }
+    var rad = 8 + age * 110;
+    ctx.strokeStyle = "rgba(47,42,34," + (0.34 * (1 - age)).toFixed(3) + ")";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(rr.x, rr.y, rad, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(rr.x, rr.y, rad * 0.55, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  /* dots, batched per family in a single path fill */
+  for (var g = 0; g < FAM_ORDER.length; g++){
+    var key = FAM_ORDER[g];
+    var list = dotGroups[key];
+    if (!list) continue;
+    var inten = famIntensity[key];
+    var alpha = 0.88 - inten * 0.0;
+    if (hoverFam || openFam){
+      var active = key === hoverFam || key === openFam;
+      alpha = active ? 0.95 : 0.88 * (1 - 0.62 * (1 - inten));
+    }
+    ctx.fillStyle = FAMS[key].color;
+    ctx.globalAlpha = Math.max(0.12, Math.min(1, alpha));
+    ctx.beginPath();
+    for (var i = 0; i < list.length; i++){
+      var d = list[i];
+      var r = d.r;
+      if (inten > 0.01){
+        var dist = pointer.on ? Math.hypot(d.x - pointer.x, d.y - pointer.y) : 9999;
+        var wave = Math.sin(t * 3.6 - dist * 0.028);
+        r = d.r * (1 + inten * 0.9 * Math.max(0, wave) * Math.max(0, 1 - dist / 340));
+      }
+      ctx.moveTo(d.x + r, d.y);
+      ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function easeIntensities(){
+  for (var i = 0; i < famKeys.length; i++){
+    var k = famKeys[i];
+    var target = (k === hoverFam || k === openFam) ? 1 : 0;
+    famIntensity[k] += (target - famIntensity[k]) * 0.12;
+    if (Math.abs(target - famIntensity[k]) < 0.004) famIntensity[k] = target;
+  }
+}
+
+function loop(){
+  time += 16.7;
+  easeIntensities();
+  drawFrame(time / 1000);
+  raf = requestAnimationFrame(loop);
+}
+function ensureLoop(){
+  if (!raf && !REDUCED) raf = requestAnimationFrame(loop);
+}
+function stopLoop(){
+  if (raf){ cancelAnimationFrame(raf); raf = null; }
+}
+
+/* ————————————————— Pointer ————————————————— */
+
+function dominantFamUnderPointer(){
+  if (!pointer.on) return null;
+  var counts = {};
+  var bestKey = null, bestN = 0;
+  for (var i = 0; i < dots.length; i++){
+    var d = dots[i];
+    var dx = d.x - pointer.x, dy = d.y - pointer.y;
+    if (dx * dx + dy * dy < 8100){
+      counts[d.f] = (counts[d.f] || 0) + 1;
+      if (counts[d.f] > bestN){ bestN = counts[d.f]; bestKey = d.f; }
+    }
+  }
+  return bestN >= 4 ? bestKey : null;
+}
+
+canvas.addEventListener("pointermove", function(e){
+  var r = canvas.getBoundingClientRect();
+  pointer.x = e.clientX - r.left;
+  pointer.y = e.clientY - r.top;
+  pointer.on = true;
+  var lat = unprojY(pointer.y), lon = unprojX(pointer.x);
+  var ns = lat >= 0 ? "N" : "S", ew = lon >= 0 ? "E" : "W";
+  readout.innerHTML = "LAT <b>" + Math.abs(lat).toFixed(1) + "° " + ns +
+                      "</b> · LON <b>" + Math.abs(lon).toFixed(1) + "° " + ew + "</b>";
+  var f = dominantFamUnderPointer();
+  setHover(f);
+  if (REDUCED) drawFrame(0);
+});
+canvas.addEventListener("pointerleave", function(){
+  pointer.on = false;
+  setHover(null);
+  readout.innerHTML = "LAT <b>—</b> · LON <b>—</b>";
+  if (REDUCED) drawFrame(0);
+});
+canvas.addEventListener("pointerdown", function(e){
+  var r = canvas.getBoundingClientRect();
+  var x = e.clientX - r.left, y = e.clientY - r.top;
+  pointer.x = x; pointer.y = y; pointer.on = true;
+  var f = dominantFamUnderPointer();
+  if (f){
+    openPlaque(f);
+  } else if (!REDUCED){
+    ripples.push({ x:x, y:y, t: time / 1000 });
+  }
+});
+
+function setHover(f){
+  if (f === hoverFam) return;
+  hoverFam = f;
+  if (f){
+    hovername.textContent = FAMS[f].name;
+    hoverdot.style.background = FAMS[f].color;
+    hoverchip.classList.add("on");
+  } else {
+    hoverchip.classList.remove("on");
+  }
+  refreshChips();
+  if (REDUCED) drawFrame(0);
+}
+
+/* ————————————————— Plaque ————————————————— */
+
+var elGlyph = document.getElementById("glyph");
+var elScript = document.getElementById("scriptname");
+var elName = document.getElementById("famname");
+var elSub = document.getElementById("famsub");
+var elSpeakers = document.getElementById("statSpeakers");
+var elLangs = document.getElementById("statLangs");
+var elHearth = document.getElementById("statHearth");
+var elBranches = document.getElementById("branches");
+var elNote = document.getElementById("famnote");
+var countRaf = null;
+
+function fmtMillions(m){
+  return (m * 1000000).toLocaleString("en-US");
+}
+
+function openPlaque(key){
+  openFam = key;
+  var F = FAMS[key];
+  plaque.style.setProperty("--fam", F.color);
+  elGlyph.textContent = F.glyph;
+  elScript.textContent = F.script;
+  elName.childNodes[0].nodeValue = F.name;
+  elSub.textContent = "Hearth of the family — " + F.sub.toLowerCase();
+  elHearth.textContent = F.hearth;
+  elLangs.textContent = F.langs.toLocaleString("en-US") + " living";
+  elBranches.innerHTML = "";
+  for (var i = 0; i < F.branches.length; i++){
+    var s = document.createElement("span");
+    s.textContent = F.branches[i];
+    elBranches.appendChild(s);
+  }
+  elNote.textContent = F.note;
+  plaque.classList.add("open");
+  plaque.setAttribute("aria-hidden", "false");
+  if (countRaf){ cancelAnimationFrame(countRaf); countRaf = null; }
+  if (REDUCED){
+    elSpeakers.textContent = fmtMillions(F.millions);
+  } else {
+    var t0 = performance.now(), dur = 950, target = F.millions;
+    (function tick(now){
+      var p = Math.min(1, (now - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      elSpeakers.textContent = fmtMillions(Math.round(target * e));
+      if (p < 1) countRaf = requestAnimationFrame(tick);
+    })(t0);
+  }
+  refreshChips();
+}
+function closePlaque(){
+  openFam = null;
+  plaque.classList.remove("open");
+  plaque.setAttribute("aria-hidden", "true");
+  if (countRaf){ cancelAnimationFrame(countRaf); countRaf = null; }
+  refreshChips();
+}
+document.getElementById("plaqueClose").addEventListener("click", closePlaque);
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape") closePlaque();
+});
+
+/* ————————————————— Legend ————————————————— */
+
+function buildLegend(){
+  for (var i = 0; i < FAM_ORDER.length; i++){
+    var key = FAM_ORDER[i], F = FAMS[key];
+    var b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.style.setProperty("--fam", F.color);
+    b.setAttribute("aria-label", F.name + ", " + F.millions + " million speakers. Open specimen plaque.");
+    b.innerHTML =
+      '<span class="sw" style="background:' + F.color + '"></span>' +
+      '<span class="n">' + F.name + "</span>" +
+      '<span class="c">' + F.millions + "M</span>";
+    b.addEventListener("click", function(k){
+      return function(){ (openFam === k) ? closePlaque() : openPlaque(k); };
+    }(key));
+    b.addEventListener("pointerenter", function(k){
+      return function(){ setHover(k); };
+    }(key));
+    b.addEventListener("pointerleave", function(){ setHover(openFam); });
+    b.addEventListener("focus", function(k){
+      return function(){ setHover(k); };
+    }(key));
+    b.addEventListener("blur", function(){ setHover(openFam); });
+    b.dataset.fam = key;
+    legendEl.appendChild(b);
+  }
+}
+function refreshChips(){
+  var chips = legendEl.children;
+  for (var i = 0; i < chips.length; i++){
+    chips[i].classList.toggle("active", chips[i].dataset.fam === openFam);
+  }
+}
+
+/* ————————————————— Lifecycle ————————————————— */
+
+var resizeTimer = null;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 140);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden) stopLoop(); else ensureLoop();
+});
+
+buildLegend();
+resize();
+if (REDUCED){
+  drawFrame(0);
+} else {
+  ensureLoop();
+}
+
+})();
+</script>
+</body>
+</html>

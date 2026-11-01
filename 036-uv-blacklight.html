@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="BLACKLIGHT — a fluorescent rave poster hidden in a pitch-dark room. Sweep your handheld UV beam to reveal hand-lettered glow, splatter and reactive patterns; stamp graffiti; flip all the lights for the full strobe.">
+<title>BLACKLIGHT · Work Nº 036 — a UV rave poster in the dark</title>
+<style>
+/* ============================================================
+   BLACKLIGHT — Work Nº 036
+   The poster is always there. You just can't see it yet.
+   ============================================================ */
+:root{
+  --void:      #060309;
+  --void-2:    #0a050f;
+  --lime:      #39ff14;
+  --magenta:   #ff10f0;
+  --yellow:    #fff152;
+  --cyan:      #00f0ff;
+  --violet:    #8a2be2;
+  --dim-ui:    rgba(214,205,230,.55);
+  --faint-ui:  rgba(214,205,230,.28);
+  --ghost:     rgba(214,205,230,.14);
+  --mono:      ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+  --serif:     Georgia, 'Iowan Old Style', ui-serif, serif;
+  --sans:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow:hidden;
+  background:var(--void);
+  font-family:var(--sans);
+  color:var(--dim-ui);
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:var(--magenta); color:#12001a; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid rgba(255,241,82,.7); outline-offset:2px; border-radius:8px; }
+
+/* ------------------------------ stage -------------------------------- */
+#stage{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  display:block;
+  cursor:none;
+  touch-action:none;
+}
+body.raving #stage{ cursor:none; }
+/* faint phosphor afterglow of the beam when reduced motion is on */
+#stage:focus-visible{ cursor:none; }
+
+/* ------------------------------ chrome ------------------------------- */
+.mark{
+  position:fixed; z-index:5;
+  top:clamp(16px,3vh,36px);
+  left:clamp(18px,3vw,42px);
+  pointer-events:none;
+  user-select:none;
+}
+.mark-no{
+  margin:0 0 10px;
+  font:500 9.5px/1 var(--mono);
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--faint-ui);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--sans);
+  font-weight:800;
+  font-size:clamp(22px,3vw,38px);
+  letter-spacing:.3em;
+  color:var(--dim-ui);
+  text-shadow:0 0 22px rgba(255,241,82,.1);
+}
+.mark-sub{
+  margin:10px 0 0;
+  font:italic 400 clamp(11px,1.3vw,13px)/1.6 var(--serif);
+  color:var(--faint-ui);
+  max-width:40ch;
+}
+
+/* dock */
+.dock{
+  position:fixed; z-index:6;
+  left:50%; bottom:clamp(12px,3vh,28px);
+  transform:translateX(-50%);
+  display:flex; align-items:center; gap:8px;
+  flex-wrap:wrap; justify-content:center;
+  padding:10px 12px;
+  border-radius:999px;
+  background:rgba(10,5,15,.72);
+  border:1px solid rgba(214,205,230,.12);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  max-width:calc(100vw - 20px);
+}
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; gap:8px;
+  min-height:42px;
+  padding:10px 15px;
+  border-radius:999px;
+  border:1px solid rgba(214,205,230,.18);
+  background:rgba(214,205,230,.05);
+  color:var(--dim-ui);
+  font:700 10px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  cursor:pointer;
+  transition:background .18s ease, color .18s ease, border-color .18s ease, transform .12s ease;
+  touch-action:manipulation;
+}
+.btn svg{ width:12px; height:12px; flex:none; }
+@media (hover:hover){
+  .btn:hover{ background:rgba(214,205,230,.12); color:#fff; border-color:rgba(214,205,230,.3); }
+}
+.btn:active{ transform:scale(.96); }
+.btn[aria-pressed="true"]{ color:var(--yellow); border-color:rgba(255,241,82,.4); background:rgba(255,241,82,.08); }
+.btn.uv{ color:#c9b6ff; border-color:rgba(138,43,226,.45); background:rgba(138,43,226,.1); }
+.btn.uv[aria-pressed="true"]{
+  color:#fff;
+  border-color:var(--lime);
+  background:rgba(57,255,20,.12);
+  box-shadow:0 0 18px rgba(57,255,20,.25);
+}
+.count{
+  font:600 9.5px/1 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--faint-ui);
+  padding:0 6px;
+}
+.count b{ color:var(--dim-ui); font-weight:700; }
+
+/* hint ribbon that fades after first sweep */
+.hint{
+  position:fixed; z-index:5;
+  left:50%; top:clamp(14px,3vh,34px);
+  transform:translateX(-50%);
+  font:600 9.5px/1.8 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--faint-ui);
+  text-align:center;
+  pointer-events:none;
+  transition:opacity 1.2s ease;
+  max-width:min(90vw, 560px);
+}
+.hint.gone{ opacity:0; }
+.hint em{ font-style:normal; color:var(--dim-ui); }
+
+/* bpm lamp */
+.lamp{
+  position:fixed; z-index:5;
+  right:clamp(16px,3vw,38px);
+  top:clamp(16px,3vh,36px);
+  display:flex; align-items:center; gap:9px;
+  font:600 9.5px/1 var(--mono);
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--faint-ui);
+  pointer-events:none;
+}
+.beat-dot{
+  width:11px; height:11px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #3a3444, #17131f 62%, #0b0812);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.12);
+  transition:background .12s ease, box-shadow .12s ease;
+}
+.beat-dot.hit{
+  background:radial-gradient(circle at 35% 30%, #ffe9fb, var(--magenta) 55%, #7a0a6e);
+  box-shadow:0 0 16px rgba(255,16,240,.7), inset 0 1px 1px rgba(255,255,255,.5);
+}
+.beat-dot.lime.hit{
+  background:radial-gradient(circle at 35% 30%, #eaffdc, var(--lime) 55%, #1f7a0a);
+  box-shadow:0 0 16px rgba(57,255,20,.7), inset 0 1px 1px rgba(255,255,255,.5);
+}
+
+/* toast */
+.toast{
+  position:fixed; z-index:8;
+  left:50%; bottom:clamp(76px,14vh,110px);
+  transform:translate(-50%,8px);
+  background:rgba(12,6,18,.9);
+  border:1px solid rgba(255,241,82,.3);
+  color:var(--yellow);
+  font:600 10.5px/1 var(--mono);
+  letter-spacing:.16em;
+  padding:11px 16px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 32px);
+  text-align:center;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* rave flash veil */
+#veil{
+  position:fixed; inset:0; z-index:7;
+  pointer-events:none;
+  background:
+    radial-gradient(80% 70% at 50% 45%, rgba(255,16,240,.06), transparent 70%);
+  opacity:0;
+}
+
+/* noscript */
+.no-js{
+  position:fixed; inset:0; z-index:20;
+  display:grid; place-items:center;
+  background:var(--void); color:var(--faint-ui);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+@media (max-width:560px){
+  .mark-sub{ display:none; }
+  .lamp{ display:none; }
+  .btn{ padding:9px 12px; }
+}
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<canvas id="stage" role="img"
+  aria-label="A pitch-dark room hiding a fluorescent rave poster. Sweep your pointer like a handheld blacklight to reveal glowing hand-lettering, splatter and UV patterns. Hold to widen the beam; click to stamp glow graffiti."></canvas>
+<div id="veil" aria-hidden="true"></div>
+
+<div class="mark" aria-hidden="false">
+  <p class="mark-no">The Gallery of 100 · Work Nº 036 · after hours</p>
+  <h1 class="mark-word">BLACKLIGHT</h1>
+  <p class="mark-sub">Somewhere in this dark, a poster is shouting. Your beam is the only witness — sweep, hold, and leave your mark.</p>
+</div>
+
+<p class="hint" id="hint">
+  <em>Sweep</em> the dark with your pointer · <em>hold</em> to widen the beam · <em>click</em> to stamp graffiti
+</p>
+
+<div class="lamp" aria-hidden="true">
+  <span class="beat-dot" id="beatDot"></span>
+  <span id="lampText">STANDBY · 124 BPM</span>
+</div>
+
+<div class="dock" role="toolbar" aria-label="Blacklight controls">
+  <button class="btn" id="soundBtn" aria-pressed="false" title="Toggle the warehouse sound system (M)">
+    <svg viewBox="0 0 14 12" aria-hidden="true"><path d="M1 4.2h2.4L7 1v10L3.4 7.8H1z" fill="currentColor"></path><path d="M9.4 3.4c1.5 1.4 1.5 3.8 0 5.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path></svg>
+    Sound
+  </button>
+  <button class="btn uv" id="raveBtn" aria-pressed="false" title="Flip every light on (L)">
+    <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v1.6M6 9.4V11M1 6h1.6M9.4 6H11M2.5 2.5l1.1 1.1M8.4 8.4l1.1 1.1M9.5 2.5 8.4 3.6M3.6 8.4 2.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path><circle cx="6" cy="6" r="1.7" fill="currentColor"></circle></svg>
+    All lights
+  </button>
+  <button class="btn" id="clearBtn" title="Paint the wall black again (C)">
+    <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 10h8M3.4 10 2.6 4.8 7 2l2.8 4.2-3.6 2.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    Repaint wall
+  </button>
+  <span class="count">STAMPS <b id="stStamps">0</b></span>
+  <span class="count">BEAM <b id="stBeam">SMALL</b></span>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The tube needs JavaScript to strike — please flip the switch.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+const rand = (a,b) => a+Math.random()*(b-a);
+const irand = (a,b) => Math.floor(rand(a,b+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const TAU = Math.PI*2;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ui = {
+  stage: $('stage'), veil: $('veil'), hint: $('hint'),
+  soundBtn: $('soundBtn'), raveBtn: $('raveBtn'), clearBtn: $('clearBtn'),
+  toast: $('toast'), stStamps: $('stStamps'), stBeam: $('stBeam'),
+  beatDot: $('beatDot'), lampText: $('lampText'),
+};
+const ctx = ui.stage.getContext('2d');
+
+/* ============================== palette ============================== */
+const FL = {
+  lime:    '#39ff14',
+  magenta: '#ff10f0',
+  yellow:  '#fff152',
+  cyan:    '#00f0ff',
+  violet:  '#8a2be2',
+  orange:  '#ff6a1f',
+};
+const FL_ARR = Object.values(FL);
+
+/* ============================== poster =============================== */
+const poster = document.createElement('canvas');
+const pctx = poster.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+
+const TAGS = ['GLOW', 'ACID', 'Rave', 'NITE', 'UV', 'PULSE', 'NEON', 'WILD'];
+
+function splat(x, y, color, scale){
+  pctx.fillStyle = color;
+  const blobs = irand(3, 6);
+  for (let i = 0; i < blobs; i++){
+    const a = rand(0, TAU);
+    const d = rand(0, 34) * scale;
+    const r = rand(2.5, 13) * scale;
+    pctx.beginPath();
+    pctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, r, 0, TAU);
+    pctx.fill();
+  }
+  /* drips */
+  const drips = irand(1, 3);
+  for (let i = 0; i < drips; i++){
+    const dx = x + rand(-16, 16) * scale;
+    const len = rand(14, 44) * scale;
+    pctx.fillRect(dx - 1.4 * scale, y, 2.8 * scale, len);
+    pctx.beginPath();
+    pctx.arc(dx, y + len, 2.4 * scale, 0, TAU);
+    pctx.fill();
+  }
+}
+
+function glowText(txt, x, y, size, color, ang, font){
+  pctx.save();
+  pctx.translate(x, y);
+  if (ang) pctx.rotate(ang);
+  pctx.font = '900 ' + size + 'px ' + (font ||
+    'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif');
+  pctx.textAlign = 'center';
+  pctx.textBaseline = 'middle';
+  /* chromatic misregistration layers */
+  pctx.globalAlpha = 0.85;
+  pctx.fillStyle = FL.cyan;
+  pctx.fillText(txt, -size * 0.045, -size * 0.02);
+  pctx.fillStyle = FL.magenta;
+  pctx.fillText(txt, size * 0.045, size * 0.02);
+  pctx.globalAlpha = 1;
+  pctx.fillStyle = color;
+  pctx.fillText(txt, 0, 0);
+  /* inner bite */
+  pctx.globalCompositeOperation = 'destination-out';
+  pctx.globalAlpha = 0.24;
+  pctx.fillText(txt, size * 0.012, -size * 0.012);
+  pctx.globalCompositeOperation = 'source-over';
+  pctx.globalAlpha = 1;
+  pctx.restore();
+}
+
+function drawPoster(){
+  pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  pctx.clearRect(0, 0, W, H);
+  const m = Math.min(W, H);
+
+  /* faint UV grid that only reads under the beam */
+  pctx.strokeStyle = 'rgba(138,43,226,.34)';
+  pctx.lineWidth = 1;
+  const grid = Math.max(46, m / 12);
+  pctx.beginPath();
+  for (let x = grid; x < W; x += grid){ pctx.moveTo(x, 0); pctx.lineTo(x, H); }
+  for (let y = grid; y < H; y += grid){ pctx.moveTo(0, y); pctx.lineTo(W, y); }
+  pctx.stroke();
+
+  /* corner registration bursts */
+  for (const [cx, cy] of [[W*0.08,H*0.1],[W*0.92,H*0.1],[W*0.08,H*0.9],[W*0.92,H*0.9]]){
+    pctx.strokeStyle = pick(FL_ARR);
+    pctx.lineWidth = 2;
+    for (let i = 0; i < 12; i++){
+      const a = (i / 12) * TAU;
+      pctx.beginPath();
+      pctx.moveTo(cx + Math.cos(a) * m * 0.028, cy + Math.sin(a) * m * 0.028);
+      pctx.lineTo(cx + Math.cos(a) * m * 0.05, cy + Math.sin(a) * m * 0.05);
+      pctx.stroke();
+    }
+  }
+
+  /* big concentric UV rings */
+  const rcx = W * 0.5, rcy = H * 0.46;
+  for (let i = 0; i < 5; i++){
+    pctx.beginPath();
+    pctx.arc(rcx, rcy, m * (0.18 + i * 0.075), 0, TAU);
+    pctx.strokeStyle = i % 2 ? 'rgba(0,240,255,.4)' : 'rgba(255,16,240,.36)';
+    pctx.lineWidth = i % 2 ? 2 : 4;
+    pctx.setLineDash(i % 3 ? [] : [10, 14]);
+    pctx.stroke();
+    pctx.setLineDash([]);
+  }
+
+  /* hand-lettered headline */
+  const hs = clamp(W * 0.115, 54, 190);
+  glowText('RAVE', W * 0.5, H * 0.3, hs, FL.yellow, -0.03);
+  glowText('IN THE', W * 0.5, H * 0.415, hs * 0.34, FL.cyan, 0.015,
+    'Georgia, "Iowan Old Style", ui-serif, serif');
+  glowText('BASEMENT', W * 0.5, H * 0.52, hs * 0.62, FL.lime, -0.012);
+
+  /* details block */
+  pctx.textAlign = 'center';
+  pctx.font = '700 ' + clamp(m*0.026, 12, 22) + 'px ui-monospace, "Courier New", monospace';
+  pctx.fillStyle = FL.magenta;
+  pctx.fillText('FRI · 23:59 — LATE', W * 0.5, H * 0.63);
+  pctx.fillStyle = FL.cyan;
+  pctx.fillText('DOOR: TELL THEM THE BEAM SENT YOU', W * 0.5, H * 0.665);
+
+  /* splatter field */
+  splat(W * 0.16, H * 0.34, FL.magenta, m / 700);
+  splat(W * 0.84, H * 0.62, FL.lime, m / 620);
+  splat(W * 0.78, H * 0.24, FL.yellow, m / 900);
+  splat(W * 0.2, H * 0.7, FL.cyan, m / 800);
+
+  /* reactive stripe tape */
+  const stripes = 3;
+  for (let i = 0; i < stripes; i++){
+    const y = H * (0.72 + i * 0.045);
+    pctx.save();
+    pctx.translate(W * 0.5, y);
+    pctx.rotate((i - 1) * 0.012);
+    const gw = W * 0.62;
+    const g = pctx.createLinearGradient(-gw/2, 0, gw/2, 0);
+    g.addColorStop(0, FL.violet);
+    g.addColorStop(0.5, FL.magenta);
+    g.addColorStop(1, FL.cyan);
+    pctx.fillStyle = g;
+    pctx.fillRect(-gw/2, 0, gw, clamp(m*0.014, 6, 14));
+    pctx.restore();
+  }
+
+  /* handprints */
+  drawHand(W * 0.3, H * 0.56, FL.orange, -0.4, m / 700);
+  drawHand(W * 0.71, H * 0.8, FL.violet, 0.5, m / 760);
+
+  /* barcode strip */
+  pctx.fillStyle = FL.yellow;
+  let bx = W * 0.07;
+  while (bx < W * 0.2){
+    const bw = rand(1.5, 6);
+    pctx.globalAlpha = 0.85;
+    pctx.fillRect(bx, H * 0.86, bw, m * 0.05);
+    bx += bw + rand(2, 7);
+  }
+  pctx.globalAlpha = 1;
+  pctx.font = '700 ' + clamp(m*0.02, 9, 16) + 'px ui-monospace, "Courier New", monospace';
+  pctx.textAlign = 'left';
+  pctx.fillStyle = FL.yellow;
+  pctx.fillText('UV-036-GATE', W * 0.07, H * 0.945);
+
+  /* stars */
+  pctx.fillStyle = FL.cyan;
+  for (let i = 0; i < 26; i++){
+    const sx = rand(W*0.04, W*0.96), sy = rand(H*0.04, H*0.95), r = rand(1, 3.2);
+    pctx.globalAlpha = rand(0.4, 0.95);
+    pctx.beginPath();
+    pctx.arc(sx, sy, r, 0, TAU);
+    pctx.fill();
+  }
+  pctx.globalAlpha = 1;
+}
+
+function drawHand(x, y, color, rot, s){
+  pctx.save();
+  pctx.translate(x, y);
+  pctx.rotate(rot);
+  pctx.scale(s, s);
+  pctx.fillStyle = color;
+  pctx.globalAlpha = 0.9;
+  /* palm */
+  pctx.beginPath();
+  pctx.ellipse(0, 8, 15, 18, 0, 0, TAU);
+  pctx.fill();
+  /* fingers */
+  const fx = [-11, -4, 3, 10];
+  const fy = [-4, -9, -11, -7];
+  const fl = [18, 24, 22, 16];
+  for (let i = 0; i < 4; i++){
+    pctx.beginPath();
+    pctx.ellipse(fx[i], fy[i] - fl[i]/2, 3.4, fl[i]/2, fx[i] * -0.012, 0, TAU);
+    pctx.fill();
+  }
+  /* thumb */
+  pctx.save();
+  pctx.rotate(-0.9);
+  pctx.beginPath();
+  pctx.ellipse(16, -2, 3.6, 11, 0, 0, TAU);
+  pctx.fill();
+  pctx.restore();
+  pctx.restore();
+  pctx.globalAlpha = 1;
+}
+
+/* graffiti stamps */
+let stamps = 0;
+function stamp(x, y){
+  stamps++;
+  ui.stStamps.textContent = String(stamps).padStart(2, '0');
+  const color = pick(FL_ARR);
+  const kind = Math.random();
+  pctx.save();
+  if (kind < 0.45){
+    splat(x, y, color, clamp(Math.min(W, H) / 620, 0.7, 1.6));
+  } else if (kind < 0.8){
+    glowText(pick(TAGS), x, y, clamp(Math.min(W,H)*0.06, 22, 64), color, rand(-0.14, 0.14));
+  } else {
+    /* radiating stencil star */
+    pctx.strokeStyle = color;
+    pctx.lineWidth = clamp(Math.min(W,H)*0.006, 2, 5);
+    pctx.beginPath();
+    for (let i = 0; i < 8; i++){
+      const a = (i / 8) * TAU;
+      pctx.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8);
+      pctx.lineTo(x + Math.cos(a) * rand(26, 44), y + Math.sin(a) * rand(26, 44));
+    }
+    pctx.stroke();
+    pctx.beginPath();
+    pctx.arc(x, y, 7, 0, TAU);
+    pctx.fillStyle = color;
+    pctx.fill();
+  }
+  pctx.restore();
+  blip(color === FL.lime ? 660 : color === FL.magenta ? 520 : 440);
+  toast('Stamped · ' + stamps + ' mark' + (stamps === 1 ? '' : 's') + ' in the dark');
+}
+
+/* ============================== beam ================================= */
+let px = -500, py = -500;
+let tx = -500, ty = -500;
+let vx = 0, vy = 0;
+let beamR = 170, beamTarget = 170;
+const BEAM_MIN = 150, BEAM_MAX = 430;
+let holding = false;
+let hasSwept = false;
+let beamWidthState = 'SMALL';
+
+ui.stage.addEventListener('pointermove', e => {
+  const nx = e.clientX, ny = e.clientY;
+  vx = nx - px; vy = ny - py;
+  px = tx = nx; py = ty = ny;
+  if (!hasSwept && (Math.abs(vx) > 2 || Math.abs(vy) > 2)){
+    hasSwept = true;
+    ui.hint.classList.add('gone');
+  }
+});
+ui.stage.addEventListener('pointerdown', e => {
+  holding = true;
+  px = tx = e.clientX; py = ty = e.clientY;
+  ui.stage.setPointerCapture(e.pointerId);
+  /* short tap stamps; long holds just widen */
+  stampTimer = setTimeout(() => { stampTimer = 0; }, 240);
+  ensureAudio();
+});
+ui.stage.addEventListener('pointerup', () => {
+  holding = false;
+  if (stampTimer){ clearTimeout(stampTimer); stampTimer = 0; stamp(px, py); }
+});
+ui.stage.addEventListener('pointercancel', () => { holding = false; stampTimer = 0; });
+ui.stage.addEventListener('pointerleave', () => { tx = -600; ty = -600; });
+let stampTimer = 0;
+
+/* ============================== audio ================================ */
+let AC = null, master = null, noiseBuf = null;
+let soundOn = false;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.55;
+    master.connect(AC.destination);
+    const len = AC.sampleRate * 0.5;
+    noiseBuf = AC.createBuffer(1, len, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function blip(freq){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(freq, t0);
+  o.frequency.exponentialRampToValueAtTime(freq * 1.5, t0 + 0.09);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + 0.26);
+}
+function kick(){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(150, t0);
+  o.frequency.exponentialRampToValueAtTime(42, t0 + 0.12);
+  g.gain.setValueAtTime(0.65, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + 0.28);
+}
+function hat(open){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const src = AC.createBufferSource();
+  src.buffer = noiseBuf;
+  const hp = AC.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 6800;
+  const g = AC.createGain();
+  const dur = open ? 0.16 : 0.045;
+  g.gain.setValueAtTime(open ? 0.14 : 0.09, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(hp); hp.connect(g); g.connect(master);
+  src.start(t0); src.stop(t0 + dur + 0.02);
+}
+function bass(freq, dur){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const o2 = AC.createOscillator();
+  const g = AC.createGain();
+  const lp = AC.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 480;
+  o.type = 'sawtooth'; o.frequency.value = freq;
+  o2.type = 'square';  o2.frequency.value = freq / 2;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+  o2.start(t0); o2.stop(t0 + dur + 0.05);
+}
+
+/* ============================== rave mode ============================ */
+let raving = false;
+let beatN = 0, nextBeat = 0;
+const BPM = 124;
+const BEAT = 60 / BPM;
+const BASSLINE = [55, 55, 82.4, 55, 65.4, 55, 49, 55];
+function startRave(){
+  raving = true;
+  document.body.classList.add('raving');
+  ui.raveBtn.setAttribute('aria-pressed', 'true');
+  ui.beatDot.classList.add('lime');
+  ui.lampText.textContent = 'ALL LIGHTS · ' + BPM + ' BPM';
+  nextBeat = performance.now() + 60;
+  beatN = 0;
+  toast('All lights on — the basement answers');
+  if (soundOn) ensureAudio();
+}
+function stopRave(){
+  raving = false;
+  document.body.classList.remove('raving');
+  ui.raveBtn.setAttribute('aria-pressed', 'false');
+  ui.beatDot.classList.remove('lime', 'hit');
+  ui.lampText.textContent = 'STANDBY · ' + BPM + ' BPM';
+  ui.veil.style.opacity = '0';
+  toast('Lights out again — the poster waits');
+}
+ui.raveBtn.addEventListener('click', () => { raving ? stopRave() : startRave(); });
+
+function runBeat(now){
+  if (!raving) return;
+  if (now < nextBeat) return;
+  nextBeat = now + BEAT * 1000;
+  const b = beatN % 8;
+  kick();
+  if (b % 2 === 1) hat(false);
+  if (b === 2 || b === 6) hat(true);
+  bass(BASSLINE[b], BEAT * 0.82);
+  /* dot flash */
+  ui.beatDot.classList.add('hit');
+  setTimeout(() => ui.beatDot.classList.remove('hit'), 110);
+  /* strobe veil */
+  if (!reduceMotion){
+    ui.veil.style.opacity = b % 4 === 0 ? '0.85' : '0.5';
+    setTimeout(() => { ui.veil.style.opacity = '0'; }, 110);
+  }
+  beatN++;
+}
+
+/* ============================== render =============================== */
+const masked = document.createElement('canvas');
+const mctx = masked.getContext('2d');
+
+function resize(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  W = innerWidth; H = innerHeight;
+  ui.stage.width = Math.round(W * dpr);
+  ui.stage.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  poster.width = Math.round(W * dpr);
+  poster.height = Math.round(H * dpr);
+  masked.width = Math.round(W * dpr);
+  masked.height = Math.round(H * dpr);
+  drawPoster();
+}
+let resizeQ = false;
+addEventListener('resize', () => {
+  if (resizeQ) return;
+  resizeQ = true;
+  requestAnimationFrame(() => { resizeQ = false; resize(); });
+});
+
+/* dust motes drifting in the beam */
+const motes = [];
+for (let i = 0; i < 50; i++){
+  motes.push({ x: Math.random(), y: Math.random(), r: rand(0.6, 2),
+               vx: rand(-6, 6), vy: rand(-10, -2), ph: rand(0, TAU) });
+}
+
+function drawMotes(t, cx, cy, r){
+  ctx.save();
+  for (const mo of motes){
+    const mx = ((mo.x * W) + t * mo.vx) % W;
+    const my = ((mo.y * H) + t * mo.vy) % H;
+    const d = Math.hypot(mx - cx, my - cy);
+    if (d > r) continue;
+    const fall = 1 - d / r;
+    ctx.globalAlpha = fall * (0.3 + 0.25 * Math.sin(t * 2 + mo.ph));
+    ctx.fillStyle = '#cfe8ff';
+    ctx.beginPath();
+    ctx.arc(mx, my, mo.r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function render(now, t){
+  /* base darkness */
+  ctx.fillStyle = '#060309';
+  ctx.fillRect(0, 0, W, H);
+
+  /* beam smoothing */
+  px = lerp(px, tx, 0.22);
+  py = lerp(py, ty, 0.22);
+  if (holding) beamTarget = Math.min(BEAM_MAX, beamTarget + 240 * (1/60));
+  else beamTarget = Math.max(BEAM_MIN, beamTarget - 200 * (1/60));
+  beamR = lerp(beamR, beamTarget, 0.14);
+  const state = beamR > 340 ? 'FLOOD' : beamR > 240 ? 'WIDE' : 'SMALL';
+  if (state !== beamWidthState){
+    beamWidthState = state;
+    ui.stBeam.textContent = state;
+  }
+
+  if (raving){
+    /* full poster flash: draw directly with beat-synced alpha */
+    const beatPhase = raving && !reduceMotion
+      ? Math.max(0, 1 - ((nextBeat - now) / 1000) / (BEAT * 0.5)) : 1;
+    const glow = reduceMotion ? 0.92 : (0.55 + 0.45 * Math.sin(Math.min(1, beatPhase) * Math.PI));
+    ctx.globalAlpha = glow;
+    ctx.drawImage(poster, 0, 0, W, H);
+    ctx.globalAlpha = 1;
+    /* magenta room wash */
+    ctx.fillStyle = 'rgba(255,16,240,.05)';
+    ctx.fillRect(0, 0, W, H);
+    runBeat(now);
+    return;
+  }
+
+  if (px < -100){ /* beam off-stage: pure dark, tiny ambient grain */
+    return;
+  }
+
+  /* mask the poster through the beam */
+  mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  mctx.clearRect(0, 0, W, H);
+  mctx.drawImage(poster, 0, 0, W, H);
+  mctx.globalCompositeOperation = 'destination-in';
+  const grad = mctx.createRadialGradient(px, py, 0, px, py, beamR);
+  grad.addColorStop(0, 'rgba(0,0,0,1)');
+  grad.addColorStop(0.55, 'rgba(0,0,0,.92)');
+  grad.addColorStop(0.85, 'rgba(0,0,0,.4)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  mctx.fillStyle = grad;
+  mctx.fillRect(0, 0, W, H);
+  mctx.globalCompositeOperation = 'source-over';
+
+  ctx.drawImage(masked, 0, 0, W, H);
+
+  /* violet haze inside the beam */
+  ctx.save();
+  const haze = ctx.createRadialGradient(px, py, 0, px, py, beamR);
+  haze.addColorStop(0, 'rgba(90,40,160,.14)');
+  haze.addColorStop(1, 'rgba(90,40,160,0)');
+  ctx.fillStyle = haze;
+  ctx.beginPath();
+  ctx.arc(px, py, beamR, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+
+  drawMotes(t, px, py, beamR);
+
+  /* beam rim */
+  ctx.beginPath();
+  ctx.arc(px, py, beamR, 0, TAU);
+  ctx.strokeStyle = 'rgba(138,43,226,.35)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(px, py, beamR * 0.55, 0, TAU);
+  ctx.strokeStyle = 'rgba(138,43,226,.14)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  /* tube glint at the hand */
+  const glintR = 5 + Math.sin(t * 3) * 1.2;
+  const gg = ctx.createRadialGradient(px, py, 0, px, py, glintR * 4);
+  gg.addColorStop(0, 'rgba(230,215,255,.9)');
+  gg.addColorStop(0.35, 'rgba(160,110,255,.35)');
+  gg.addColorStop(1, 'rgba(160,110,255,0)');
+  ctx.fillStyle = gg;
+  ctx.beginPath();
+  ctx.arc(px, py, glintR * 4, 0, TAU);
+  ctx.fill();
+  ctx.fillStyle = '#efe9ff';
+  ctx.beginPath();
+  ctx.arc(px, py, 2.2, 0, TAU);
+  ctx.fill();
+}
+
+/* ============================== loop ================================= */
+let raf = 0, running = true, last = performance.now();
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const t = now / 1000;
+  render(now, t);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+
+/* ============================== controls ============================= */
+let toastT = 0;
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => ui.toast.classList.remove('show'), 2200);
+}
+ui.soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  if (soundOn) ensureAudio();
+  ui.soundBtn.setAttribute('aria-pressed', String(soundOn));
+  toast(soundOn ? 'Sound on — the stack is warm' : 'Sound off — silent warehouse');
+  if (soundOn) blip(440);
+});
+ui.clearBtn.addEventListener('click', () => {
+  stamps = 0;
+  ui.stStamps.textContent = '00';
+  drawPoster();
+  toast('Wall repainted — fresh poster under the beam');
+});
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'l') ui.raveBtn.click();
+  else if (k === 'm') ui.soundBtn.click();
+  else if (k === 'c') ui.clearBtn.click();
+});
+
+/* ============================== init ================================= */
+resize();
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

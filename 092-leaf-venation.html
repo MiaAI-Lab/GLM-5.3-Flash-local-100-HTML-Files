@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VENATION · №092 — Generative Leaf Growth · The Gallery of 100</title>
+<style>
+:root{
+  --paper:   #f4efe2;
+  --paper-2: #ede7d7;
+  --graphite:#8b8578;
+  --ink-soft:#5f584a;
+  --sepia:   #4a3a2c;
+  --prussian:#1d3557;
+  --verdigris:#2f7f6f;
+  --hairline:rgba(95,88,74,.25);
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scrollbar-color:#c8bfa9 transparent; }
+html::-webkit-scrollbar{ width:10px; }
+html::-webkit-scrollbar-thumb{ background:#c8bfa9; border-radius:6px; }
+body{
+  font-family:var(--serif);
+  color:var(--ink-soft);
+  background:
+    radial-gradient(1000px 620px at 18% 6%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(900px 700px at 92% 100%, rgba(74,58,44,.06), transparent 55%),
+    var(--paper);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{ background:rgba(29,53,87,.18); color:var(--ink-soft); }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dotted var(--prussian); outline-offset:4px; border-radius:4px; }
+
+/* ---------- paper grain ---------- */
+.grain{ position:fixed; inset:0; pointer-events:none; z-index:50; opacity:.45; mix-blend-mode:multiply; }
+
+/* ---------- sheet ---------- */
+.sheet{
+  max-width:1400px; margin:0 auto;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:minmax(230px,300px) minmax(0,1fr);
+  gap:clamp(14px,2.6vw,40px);
+  padding:clamp(16px,3vw,42px) clamp(14px,3.4vw,48px);
+}
+@media (max-width:880px){
+  .sheet{ grid-template-columns:minmax(0,1fr); }
+}
+
+/* ---------- left margin column ---------- */
+.margin-col{ display:flex; flex-direction:column; gap:clamp(14px,2.4vh,24px); }
+.margin-col .rule-v{
+  width:1px; height:42px; margin-left:6px;
+  background:linear-gradient(180deg, rgba(95,88,74,.5), transparent);
+}
+h1{
+  font-size:clamp(1.7rem, 3.4vw, 2.5rem);
+  font-weight:600; letter-spacing:.3em; text-transform:uppercase;
+  color:#4b4538;
+  text-shadow:0 1px 0 rgba(255,255,255,.8), 0 -1px 0 rgba(95,88,74,.2);
+}
+.latin{
+  margin-top:6px;
+  font-style:italic; font-size:1.02rem; letter-spacing:.06em;
+  color:var(--ink-soft);
+}
+.latin::before{ content:"— "; color:var(--graphite); }
+.folio{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--graphite);
+  margin-top:10px;
+}
+.margin-note{
+  font-style:italic; font-size:.92rem; line-height:1.8; color:#6b6455;
+  max-width:30ch;
+}
+.margin-note b{ font-style:normal; font-weight:600; color:#4b4538; }
+.pencil-line{ height:1px; background:linear-gradient(90deg, rgba(95,88,74,.4), transparent); margin:4px 0; }
+
+.method{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.14em; line-height:2.05;
+  color:var(--graphite); text-transform:uppercase;
+}
+.method b{ color:var(--ink-soft); font-weight:400; }
+
+/* ---------- plate ---------- */
+.plate-wrap{ display:flex; flex-direction:column; gap:12px; min-width:0; }
+.plate{
+  position:relative;
+  border:1px solid var(--hairline);
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(255,255,255,.55), transparent 75%),
+    linear-gradient(170deg, var(--paper), var(--paper-2));
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset, 0 24px 50px -30px rgba(74,58,44,.5);
+  cursor:crosshair;
+  touch-action:none;
+  overflow:hidden;
+}
+.plate canvas{ display:block; width:100%; height:auto; }
+.plate .hint{
+  position:absolute; left:16px; bottom:12px;
+  font-style:italic; font-size:.78rem; color:#9a9280;
+  pointer-events:none;
+  transition:opacity .6s ease;
+}
+.plate.touched .hint{ opacity:0; }
+.plate-anno{
+  position:absolute; font-family:var(--mono); font-size:.56rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--graphite); pointer-events:none;
+}
+.plate-anno.tl{ top:12px; left:16px; }
+.plate-anno.br{ bottom:12px; right:16px; text-align:right; }
+
+/* ---------- controls ---------- */
+.controls{
+  display:grid;
+  grid-template-columns:auto auto 1fr auto;
+  gap:clamp(10px,1.8vw,22px);
+  align-items:center;
+  padding:13px 16px;
+  border:1px solid var(--hairline);
+  background:rgba(255,255,255,.35);
+  border-radius:4px;
+}
+@media (max-width:1100px){ .controls{ grid-template-columns:auto auto; } }
+@media (max-width:560px){ .controls{ grid-template-columns:1fr; } }
+.cgroup{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.cgroup .lbl{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--graphite);
+}
+.seg{ display:inline-flex; border:1px solid var(--hairline); border-radius:4px; overflow:hidden; background:rgba(255,255,255,.5); }
+.seg button{
+  font-family:var(--serif); font-style:italic;
+  font-size:.82rem; letter-spacing:.05em;
+  color:var(--ink-soft);
+  padding:8px 14px;
+  border:0; background:none; cursor:pointer;
+  transition:background .3s ease, color .3s ease;
+  touch-action:manipulation;
+}
+.seg button + button{ border-left:1px solid var(--hairline); }
+.seg button:hover{ background:rgba(74,58,44,.06); }
+.seg button.on{ background:var(--ink-soft); color:var(--paper); font-style:normal; }
+.swatches{ display:inline-flex; gap:8px; }
+.sw{
+  width:26px; height:26px; border-radius:50%;
+  border:1px solid rgba(95,88,74,.45);
+  cursor:pointer; padding:0; position:relative;
+  transition:transform .25s ease, box-shadow .25s ease;
+  touch-action:manipulation;
+}
+.sw:hover{ transform:scale(1.12); }
+.sw.on{ box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink-soft); transform:scale(1.12); }
+.sw span{ position:absolute; inset:4px; border-radius:50%; display:block; }
+.sw.sepia span{ background:var(--sepia); }
+.sw.prussian span{ background:var(--prussian); }
+.sw.verdigris span{ background:var(--verdigris); }
+
+.speed{
+  -webkit-appearance:none; appearance:none;
+  width:clamp(120px, 18vw, 220px); height:24px;
+  background:transparent; cursor:pointer; touch-action:none;
+}
+.speed::-webkit-slider-runnable-track{
+  height:2px; background:rgba(95,88,74,.45); border-radius:1px;
+}
+.speed::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; margin-top:-7px; border-radius:50%;
+  background:var(--paper);
+  border:2px solid var(--ink-soft);
+  box-shadow:0 1px 3px rgba(74,58,44,.4);
+}
+.speed::-moz-range-track{ height:2px; background:rgba(95,88,74,.45); }
+.speed::-moz-range-thumb{ width:14px; height:14px; border-radius:50%; background:var(--paper); border:2px solid var(--ink-soft); }
+
+.grow-btn{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--ink-soft);
+  border:1px solid rgba(95,88,74,.5);
+  border-radius:4px;
+  padding:10px 16px;
+  background:rgba(255,255,255,.5);
+  cursor:pointer;
+  transition:background .3s ease, color .3s ease, transform .2s ease;
+  touch-action:manipulation;
+}
+.grow-btn:hover{ background:var(--ink-soft); color:var(--paper); transform:translateY(-1px); }
+.grow-btn:active{ transform:translateY(0); }
+
+.counter{
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.16em;
+  color:var(--graphite);
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  line-height:1.9;
+}
+.counter b{ color:var(--ink-soft); font-weight:400; }
+@media (max-width:560px){ .counter{ text-align:left; } }
+
+/* ---------- colophon ---------- */
+.colophon{
+  grid-column:1 / -1;
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding-top:14px; border-top:1px solid var(--hairline);
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--graphite);
+}
+.colophon .v{ color:var(--verdigris); }
+
+@media (prefers-reduced-motion: reduce){
+  .sw, .seg button, .grow-btn{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<svg class="grain" aria-hidden="true" width="100%" height="100%">
+  <filter id="venGrain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" stitchTiles="stitch"></feTurbulence>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.42  0 0 0 0 0.36  0 0 0 0.05 0"></feColorMatrix>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#venGrain)"></rect>
+</svg>
+
+<div class="sheet">
+
+  <!-- ============ margin column ============ -->
+  <aside class="margin-col">
+    <div>
+      <h1>Venation</h1>
+      <p class="latin" id="latinName">Acer platanoides</p>
+      <p class="folio">FOLIUM №092 · PRESS STUDY</p>
+    </div>
+    <div class="rule-v" aria-hidden="true"></div>
+
+    <p class="margin-note">
+      A leaf is a <b>river system in miniature</b>. Here the rivers are grown, not drawn: attractor points pull
+      the veins outward, one patient step at a time, until every last margin is served.
+    </p>
+    <div class="pencil-line" aria-hidden="true"></div>
+
+    <div class="method">
+      <div>METHOD — <b>space colonization</b></div>
+      <div>INFLUENCE — <b>34 px</b></div>
+      <div>KILL — <b>5 px</b></div>
+      <div>STEP — <b>2.4 px</b></div>
+      <div>TOUCH — <b>to seed attractors</b></div>
+    </div>
+    <div class="pencil-line" aria-hidden="true"></div>
+
+    <p class="margin-note" style="font-size:.85rem">
+      The veins remember nothing and forget nothing: each new shoot simply leans toward the nearest
+      hunger. Add attractors along a grown vein and watch it <b>fork to meet you</b>.
+    </p>
+  </aside>
+
+  <!-- ============ plate ============ -->
+  <div class="plate-wrap">
+    <div class="plate" id="plate">
+      <canvas id="leafCanvas" role="img" aria-label="Generative leaf venation growing on paper"></canvas>
+      <span class="plate-anno tl" id="annoTL">SPEC. ACER · ITER 0000</span>
+      <span class="plate-anno br">HCB STUDIO · CREAM LAID · 092</span>
+      <p class="hint" id="plateHint">touch the paper to scatter attractor points — the veins will find them</p>
+    </div>
+
+    <div class="controls">
+      <div class="cgroup">
+        <span class="lbl">Species</span>
+        <div class="seg" role="group" aria-label="Leaf species">
+          <button type="button" class="on" data-species="maple">Acer</button>
+          <button type="button" data-species="ginkgo">Ginkgo</button>
+          <button type="button" data-species="fern">Filix</button>
+        </div>
+      </div>
+
+      <div class="cgroup">
+        <span class="lbl">Ink</span>
+        <div class="swatches" role="group" aria-label="Ink colour">
+          <button class="sw sepia on" type="button" data-ink="sepia" aria-label="Sepia ink"><span aria-hidden="true"></span></button>
+          <button class="sw prussian" type="button" data-ink="prussian" aria-label="Prussian ink"><span aria-hidden="true"></span></button>
+          <button class="sw verdigris" type="button" data-ink="verdigris" aria-label="Verdigris ink"><span aria-hidden="true"></span></button>
+        </div>
+      </div>
+
+      <div class="cgroup">
+        <label class="lbl" for="speed">Growth</label>
+        <input type="range" class="speed" id="speed" min="0" max="14" step="1" value="3" aria-label="Growth speed — iterations per frame">
+        <span class="counter" style="text-align:left" id="speedVal">×3</span>
+      </div>
+
+      <div class="cgroup">
+        <button class="grow-btn" id="regrowBtn" type="button">Regrow</button>
+      </div>
+    </div>
+
+    <div class="counter" id="counter">
+      ITERATION <b>0000</b> · NODES <b>0001</b> · ATTRACTORS <b>0000</b> · VEIN <b>0</b> MM
+    </div>
+  </div>
+
+  <footer class="colophon">
+    <span>Venation · №092 of 100</span>
+    <span class="v">GROWN, NOT DRAWN</span>
+    <span>The Gallery of 100</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var els = {
+  plate: document.getElementById("plate"),
+  cv: document.getElementById("leafCanvas"),
+  hint: document.getElementById("plateHint"),
+  latin: document.getElementById("latinName"),
+  annoTL: document.getElementById("annoTL"),
+  counter: document.getElementById("counter"),
+  speed: document.getElementById("speed"),
+  speedVal: document.getElementById("speedVal"),
+  regrow: document.getElementById("regrowBtn")
+};
+var ctx = els.cv.getContext("2d");
+
+/* paper layer: silhouette + margin pencil.  ink layer: veins accumulate. */
+var paperCv = document.createElement("canvas");
+var inkCv = document.createElement("canvas");
+var pctx = paperCv.getContext("2d");
+var ictx = inkCv.getContext("2d");
+
+/* ================= config ================= */
+var INKS = {
+  sepia:     [74, 58, 44],
+  prussian:  [29, 53, 87],
+  verdigris: [47, 127, 111]
+};
+var SPECIES = {
+  maple:  { latin:"Acer platanoides",  label:"ACER" },
+  ginkgo: { latin:"Ginkgo biloba",     label:"GINKGO" },
+  fern:   { latin:"Filix mas · frond", label:"FILIX" }
+};
+
+var CW = 0, CH = 0, DPR = 1;
+var species = "maple";
+var inkCol = "sepia";
+var speed = 3;
+
+/* venation params (scaled to plate) */
+var Di = 34, Dk = 5, STEP = 2.4, STALE = 3;
+var MAX_NODES = 5200;
+
+var attractors = [];
+var nodes = [];
+var attGrid = new Map();
+var iteration = 0;
+var veinLen = 0;          /* px of ink laid */
+var base = { x:0, y:0 };
+
+/* ================= silhouettes ================= */
+/* each returns radius factor 0..1 for polar (angle from up, -PI..PI), or use inside(x,y) */
+function mapleR(a){
+  var lobes = Math.pow(Math.abs(Math.cos(2.5 * a)), 0.65);
+  var serr = 0.045 * Math.abs(Math.sin(28 * a));
+  return 0.60 + 0.40 * lobes + serr - 0.02;
+}
+function mapleInside(nx, ny){
+  /* nx,ny normalized to unit disc around leaf center, y up */
+  if (ny < -0.86) return false;
+  var a = Math.atan2(nx, ny);
+  var r = Math.sqrt(nx * nx + ny * ny);
+  return r <= mapleR(a) * 0.96;
+}
+function ginkgoInside(nx, ny){
+  if (ny < -0.92) return false;
+  var a = Math.atan2(nx, Math.max(0.001, ny));   /* angle from up */
+  if (Math.abs(a) > 1.18) return false;          /* ~68° fan */
+  var r = Math.sqrt(nx * nx + ny * ny);
+  var wedge = Math.pow(Math.cos(a * 0.86), 0.42);
+  var notch = (Math.abs(a) < 0.13) ? 0.88 : 1.0;
+  return r <= wedge * notch * 0.97;
+}
+function fernInside(nx, ny){
+  /* vertical frond: y in [-1(base) .. 1(tip)], x across */
+  if (ny < -0.96 || ny > 0.97) return false;
+  var t = (ny + 1) / 2;                          /* 0 base .. 1 tip */
+  var env = Math.pow(Math.sin(Math.PI * Math.pow(t, 0.82)) , 0.55);
+  var pinna = 0.74 + 0.26 * Math.abs(Math.cos(t * 21));
+  var w = env * pinna * 0.5;
+  return Math.abs(nx) <= w;
+}
+
+/* ================= attractors ================= */
+function attKey(x, y){
+  return Math.floor(x / Di) + ":" + Math.floor(y / Di);
+}
+function gridAdd(a){
+  var k = attKey(a.x, a.y);
+  var arr = attGrid.get(k);
+  if (!arr){ arr = []; attGrid.set(k, arr); }
+  arr.push(a);
+}
+function gridRemove(a){
+  var k = attKey(a.x, a.y);
+  var arr = attGrid.get(k);
+  if (!arr) return;
+  var i = arr.indexOf(a);
+  if (i > -1) arr.splice(i, 1);
+  if (arr.length === 0) attGrid.delete(k);
+}
+function nearbyAttractors(x, y, r){
+  var out = [];
+  var c0x = Math.floor((x - r) / Di), c1x = Math.floor((x + r) / Di);
+  var c0y = Math.floor((y - r) / Di), c1y = Math.floor((y + r) / Di);
+  for (var cx = c0x; cx <= c1x; cx++){
+    for (var cy = c0y; cy <= c1y; cy++){
+      var arr = attGrid.get(cx + ":" + cy);
+      if (arr) for (var i = 0; i < arr.length; i++) out.push(arr[i]);
+    }
+  }
+  return out;
+}
+
+function seedAttractors(){
+  attractors = [];
+  attGrid.clear();
+  var inside = (species === "maple") ? mapleInside : (species === "ginkgo") ? ginkgoInside : fernInside;
+  var cx = CW / 2, cy = CH * (species === "ginkgo" ? 0.52 : 0.50);
+  var rad = Math.min(CW, CH) * (species === "fern" ? 0.40 : 0.42);
+  var target = 780;
+  var guard = 0;
+  while (attractors.length < target && guard < 30000){
+    guard++;
+    var a = Math.random() * Math.PI * 2;
+    var rr = Math.sqrt(Math.random());
+    /* bias slightly toward margin for nicer dendrites */
+    rr = Math.pow(rr, 0.8);
+    var nx = Math.cos(a) * rr;
+    var ny = Math.sin(a) * rr;
+    if (!inside(nx, ny)) continue;
+    var x = cx + nx * rad;
+    var y = cy - ny * rad;
+    var att = { x:x, y:y };
+    attractors.push(att);
+    gridAdd(att);
+  }
+}
+
+/* ================= nodes ================= */
+function seedNodes(){
+  nodes = [];
+  iteration = 0;
+  veinLen = 0;
+  var cx = CW / 2;
+  var by;
+  if (species === "ginkgo"){ by = CH * 0.52 + Math.min(CW, CH) * 0.42 * 0.94; }
+  else { by = CH * 0.50 + Math.min(CW, CH) * 0.42 * 0.80; }
+  if (species === "fern") by = CH * 0.50 + Math.min(CW, CH) * 0.40 * 0.93;
+  base = { x:cx, y:Math.min(by, CH - 24) };
+  var root = { x:base.x, y:base.y, px:base.x, py:base.y, len:0, done:false, gen:0 };
+  nodes.push(root);
+  /* a couple of starter nodes above the base to orient growth */
+  nodes.push({ x:base.x, y:base.y - STEP * 2, px:base.x, py:base.y, len:STEP * 2, done:false, gen:0 });
+  veinLen = STEP * 2;
+}
+
+/* ================= venation tick ================= */
+function tick(){
+  if (attractors.length === 0) return;
+  var active = 0;
+  var born = [];
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i];
+    if (n.done) continue;
+    active++;
+    var near = nearbyAttractors(n.x, n.y, Di);
+    var dx = 0, dy = 0, cnt = 0;
+    for (var k = 0; k < near.length; k++){
+      var a = near[k];
+      var ddx = a.x - n.x, ddy = a.y - n.y;
+      var d2 = ddx * ddx + ddy * ddy;
+      if (d2 > Di * Di || d2 < 0.0001) continue;
+      var d = Math.sqrt(d2);
+      var wgt = 1 / (d + 4);
+      dx += (ddx / d) * wgt;
+      dy += (ddy / d) * wgt;
+      cnt++;
+    }
+    if (cnt === 0){
+      n.stale = (n.stale || 0) + 1;
+      if (n.stale >= STALE) n.done = true;
+      continue;
+    }
+    n.stale = 0;
+    var mag = Math.sqrt(dx * dx + dy * dy);
+    if (mag < 0.0001) continue;
+    dx /= mag; dy /= mag;
+    if (nodes.length + born.length >= MAX_NODES) break;
+    var nx2 = n.x + dx * STEP;
+    var ny2 = n.y + dy * STEP;
+    var child = { x:nx2, y:ny2, px:n.x, py:n.y, len:n.len + STEP, done:false, stale:0, gen:n.gen + 1 };
+    born.push(child);
+    veinLen += STEP;
+  }
+  /* append + draw new segments */
+  if (born.length){
+    drawSegments(born);
+    for (var b = 0; b < born.length; b++) nodes.push(born[b]);
+  }
+  /* kill attractors near any node (born + existing tips) */
+  var check = born.length ? born : nodes.slice(-60);
+  for (var c = 0; c < check.length; c++){
+    var nn = check[c];
+    var near2 = nearbyAttractors(nn.x, nn.y, Dk);
+    for (var k2 = 0; k2 < near2.length; k2++){
+      var at = near2[k2];
+      var dd2 = (at.x - nn.x) * (at.x - nn.x) + (at.y - nn.y) * (at.y - nn.y);
+      if (dd2 <= Dk * Dk){
+        gridRemove(at);
+        at.dead = true;
+      }
+    }
+  }
+  /* compact dead attractors occasionally */
+  if (iteration % 12 === 0){
+    var alive = [];
+    for (var z = 0; z < attractors.length; z++){
+      if (!attractors[z].dead) alive.push(attractors[z]);
+    }
+    attractors = alive;
+  }
+  iteration++;
+}
+
+/* ================= ink rendering ================= */
+function segWidth(len, gen){
+  var t = clamp(len / (Math.min(CW, CH) * 0.62), 0, 1);
+  var w = 2.7 * Math.pow(1 - t, 1.35) + 0.45;
+  return w;
+}
+function drawSegments(list){
+  var col = INKS[inkCol];
+  for (var i = 0; i < list.length; i++){
+    var n = list[i];
+    var w = segWidth(n.len, n.gen);
+    ictx.strokeStyle = "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.82)";
+    ictx.lineWidth = w;
+    ictx.lineCap = "round";
+    ictx.beginPath();
+    ictx.moveTo(n.px, n.py);
+    ictx.lineTo(n.x, n.y);
+    ictx.stroke();
+  }
+}
+
+/* ================= paper layer ================= */
+function drawPaper(){
+  pctx.clearRect(0, 0, CW, CH);
+  var inside = (species === "maple") ? mapleInside : (species === "ginkgo") ? ginkgoInside : fernInside;
+  var cx = CW / 2, cy = CH * (species === "ginkgo" ? 0.52 : 0.50);
+  var rad = Math.min(CW, CH) * (species === "fern" ? 0.40 : 0.42);
+
+  /* silhouette outline: march angle, project to boundary via bisection */
+  pctx.strokeStyle = "rgba(95,88,74,.55)";
+  pctx.lineWidth = 1.3;
+  pctx.beginPath();
+  var first = true;
+  for (var a = -Math.PI; a <= Math.PI + 0.001; a += Math.PI / 220){
+    /* binary search boundary radius along direction (pointing up = -y screen) */
+    var lo = 0, hi = 1.35;
+    for (var it = 0; it < 22; it++){
+      var mid = (lo + hi) / 2;
+      var nx = Math.cos(a) * mid, ny = Math.sin(a) * mid;
+      if (inside(nx, ny)) lo = mid; else hi = mid;
+    }
+    var x = cx + Math.cos(a) * lo * rad;
+    var y = cy - Math.sin(a) * lo * rad;
+    if (first){ pctx.moveTo(x, y); first = false; }
+    else pctx.lineTo(x, y);
+  }
+  pctx.closePath();
+  pctx.stroke();
+
+  /* second pencil pass, slightly offset & lighter */
+  pctx.strokeStyle = "rgba(95,88,74,.18)";
+  pctx.lineWidth = 0.8;
+  pctx.beginPath();
+  first = true;
+  for (var a2 = -Math.PI; a2 <= Math.PI + 0.001; a2 += Math.PI / 160){
+    var lo2 = 0, hi2 = 1.35;
+    for (var it2 = 0; it2 < 20; it2++){
+      var mid2 = (lo2 + hi2) / 2;
+      if (inside(Math.cos(a2) * mid2, Math.sin(a2) * mid2)) lo2 = mid2; else hi2 = mid2;
+    }
+    var x2 = cx + Math.cos(a2) * lo2 * rad * 1.012;
+    var y2 = cy - Math.sin(a2) * lo2 * rad * 1.012;
+    if (first){ pctx.moveTo(x2, y2); first = false; }
+    else pctx.lineTo(x2, y2);
+  }
+  pctx.closePath();
+  pctx.stroke();
+
+  /* petiole / stem stub */
+  var by2 = (species === "ginkgo") ? CH * 0.52 + rad * 0.94 : (species === "fern" ? CH * 0.50 + rad * 0.93 : CH * 0.50 + rad * 0.80);
+  pctx.strokeStyle = "rgba(74,58,44,.7)";
+  pctx.lineWidth = 3;
+  pctx.lineCap = "round";
+  pctx.beginPath();
+  pctx.moveTo(cx, by2);
+  pctx.lineTo(cx, Math.min(CH - 18, by2 + 26));
+  pctx.stroke();
+}
+
+/* ================= main frame ================= */
+function draw(){
+  ctx.clearRect(0, 0, CW, CH);
+  ctx.drawImage(paperCv, 0, 0, CW, CH);
+  ctx.drawImage(inkCv, 0, 0, CW, CH);
+  /* live attractor stipple */
+  var col = INKS[inkCol];
+  ctx.fillStyle = "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.22)";
+  for (var i = 0; i < attractors.length; i += 2){
+    var a = attractors[i];
+    ctx.fillRect(a.x - 0.7, a.y - 0.7, 1.4, 1.4);
+  }
+  /* growing tips glimmer */
+  ctx.fillStyle = "rgba(" + col[0] + "," + col[1] + "," + col[2] + ",0.5)";
+  var recent = nodes.slice(-26);
+  for (var r = 0; r < recent.length; r++){
+    ctx.beginPath();
+    ctx.arc(recent[r].x, recent[r].y, 1.3, 0, 6.283);
+    ctx.fill();
+  }
+}
+
+/* ================= ui ================= */
+function updateCounter(){
+  var pad = function(n, w){
+    var s = String(Math.round(n));
+    while (s.length < w) s = "0" + s;
+    return s;
+  };
+  els.annoTL.textContent = "SPEC. " + SPECIES[species].label + " · ITER " + pad(iteration, 4);
+  els.counter.innerHTML =
+    "ITERATION <b>" + pad(iteration, 4) + "</b> · NODES <b>" + pad(nodes.length, 4) + "</b> · ATTRACTORS <b>" +
+    pad(attractors.length, 4) + "</b> · VEIN <b>" + Math.round(veinLen / 3.78) + "</b> MM";
+}
+
+function regenerate(){
+  fit();
+  drawPaper();
+  ictx.clearRect(0, 0, CW, CH);
+  seedAttractors();
+  seedNodes();
+  updateCounter();
+}
+
+/* ================= loop ================= */
+var raf = 0, running = true, lastT = 0, frame = 0;
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  frame++;
+  var ticks = speed;
+  if (reduced.matches) ticks = Math.min(ticks, 1);
+  var done = (attractors.length === 0) || (nodes.length >= MAX_NODES);
+  if (!done){
+    for (var i = 0; i < ticks; i++) tick();
+  }
+  draw();
+  if (frame % 10 === 0) updateCounter();
+}
+
+/* ================= input ================= */
+function addAttractor(clientX, clientY){
+  var r = els.cv.getBoundingClientRect();
+  var scale = CW / r.width;
+  var x = (clientX - r.left) * scale;
+  var y = (clientY - r.top) * scale;
+  if (x < 0 || y < 0 || x > CW || y > CH) return;
+  els.plate.classList.add("touched");
+  var a = { x:x, y:y };
+  attractors.push(a);
+  gridAdd(a);
+  /* wake nearby sleeping nodes so the vein re-routes toward the touch */
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i];
+    if (!n.done) continue;
+    var d2 = (n.x - x) * (n.x - x) + (n.y - y) * (n.y - y);
+    if (d2 < Di * Di * 2.6) { n.done = false; n.stale = 0; }
+  }
+}
+var painting = false;
+els.plate.addEventListener("pointerdown", function(e){
+  painting = true;
+  try { els.plate.setPointerCapture(e.pointerId); } catch(err){}
+  addAttractor(e.clientX, e.clientY);
+  e.preventDefault();
+});
+els.plate.addEventListener("pointermove", function(e){
+  if (!painting) return;
+  if (e.getCoalescedEvents){
+    var evs = e.getCoalescedEvents();
+    for (var i = 0; i < evs.length; i++) addAttractor(evs[i].clientX, evs[i].clientY);
+  } else {
+    addAttractor(e.clientX, e.clientY);
+  }
+});
+var endPaint = function(e){
+  if (!painting) return;
+  painting = false;
+  try { els.plate.releasePointerCapture(e.pointerId); } catch(err){}
+};
+els.plate.addEventListener("pointerup", endPaint);
+els.plate.addEventListener("pointercancel", endPaint);
+
+Array.prototype.forEach.call(document.querySelectorAll("[data-species]"), function(b){
+  b.addEventListener("click", function(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-species]"), function(x){ x.classList.remove("on"); });
+    b.classList.add("on");
+    species = b.getAttribute("data-species");
+    els.latin.textContent = SPECIES[species].latin;
+    regenerate();
+  });
+});
+Array.prototype.forEach.call(document.querySelectorAll("[data-ink]"), function(b){
+  b.addEventListener("click", function(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ink]"), function(x){ x.classList.remove("on"); });
+    b.classList.add("on");
+    var prev = inkCol;
+    inkCol = b.getAttribute("data-ink");
+    if (prev !== inkCol){
+      /* re-ink: redraw all segments in the new colour */
+      ictx.clearRect(0, 0, CW, CH);
+      drawSegments(nodes.slice(1));
+    }
+  });
+});
+els.speed.addEventListener("input", function(){
+  speed = parseInt(els.speed.value, 10);
+  els.speedVal.textContent = "×" + speed;
+});
+els.regrow.addEventListener("click", regenerate);
+
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  if (e.key === "r" || e.key === "R") regenerate();
+  if (e.key === " "){ e.preventDefault(); els.regrow.click(); }
+});
+
+/* ================= sizing ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var r = els.plate.getBoundingClientRect();
+  CW = Math.max(240, Math.round(r.width));
+  CH = Math.max(240, Math.round(CW * 0.82));
+  els.cv.width = Math.round(CW * DPR);
+  els.cv.height = Math.round(CH * DPR);
+  els.cv.style.height = (CH / CW * 100) + "%";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  paperCv.width = inkCv.width = Math.round(CW * DPR);
+  paperCv.height = inkCv.height = Math.round(CH * DPR);
+  pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ictx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    var keepNodes = nodes, keepAtt = attractors;
+    fit();
+    drawPaper();
+    /* re-scale? simplest honest behaviour: regrow on major resize */
+    regenerate();
+  }, 220);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+});
+
+/* ================= boot ================= */
+els.latin.textContent = SPECIES[species].latin;
+regenerate();
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

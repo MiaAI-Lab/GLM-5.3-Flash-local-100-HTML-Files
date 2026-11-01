@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field Sketch — A Traveler&rsquo;s Notebook</title>
+<style>
+  :root{
+    --paper:#f6f1e4;
+    --paper-lo:#ece4cf;
+    --pencil:#6b6862;
+    --ink-soft:#4d4a44;
+    --teal:#4e8a80;
+    --ochre:#c98a2d;
+    --tape:#d9c9a8;
+    --desk-a:#26333a;
+    --desk-b:#18232a;
+    --serif:Georgia,"Times New Roman",ui-serif,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(120% 90% at 50% 0%,rgba(255,236,200,.14),#0000 55%),
+      radial-gradient(140% 100% at 50% 120%,#000 40%,#0000 75%),
+      linear-gradient(175deg,var(--desk-a),var(--desk-b));
+    overflow:hidden;
+    font-family:var(--serif);
+    color:var(--ink-soft);
+    -webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;
+  }
+  ::selection{background:var(--ochre);color:#fff}
+
+  .masthead{
+    display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
+    padding:clamp(10px,2.2vh,20px) clamp(16px,3vw,40px) 0;
+    color:#e9e2cd;
+  }
+  .masthead .kick{
+    font-family:var(--mono);font-size:10px;letter-spacing:.32em;text-transform:uppercase;
+    color:rgba(233,226,205,.55);
+  }
+  .masthead h1{
+    font-size:clamp(1.3rem,3.2vw,2.2rem);font-weight:400;letter-spacing:.02em;
+  }
+  .masthead h1 em{font-style:italic;color:#d8b06a}
+  .masthead .dots{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .dot{
+    width:9px;height:9px;border-radius:50%;border:1px solid rgba(233,226,205,.5);
+    transition:background .3s,transform .3s;
+  }
+  .dot[aria-current="true"]{background:#d8b06a;border-color:#d8b06a;transform:scale(1.25)}
+  .masthead .hint{
+    flex-basis:100%;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(233,226,205,.4);font-family:var(--mono);
+  }
+
+  /* ============ the book ============ */
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:clamp(8px,2vh,24px)}
+  .book{
+    position:relative;
+    width:min(1080px,94vw);
+    aspect-ratio:2/1;
+    max-height:100%;
+    perspective:1900px;
+  }
+  .page{
+    position:absolute;top:0;bottom:0;width:50%;
+    background:
+      radial-gradient(120% 100% at 20% 0%,rgba(255,255,255,.5),#0000 50%),
+      repeating-linear-gradient(0deg,rgba(107,104,98,.045) 0 1px,#0000 1px 4px),
+      linear-gradient(160deg,var(--paper),var(--paper-lo));
+    box-shadow:
+      inset 0 0 34px rgba(107,104,98,.16),
+      0 18px 40px rgba(0,0,0,.5);
+    overflow:hidden;
+  }
+  .page.left{left:0;border-radius:6px 2px 2px 6px;
+    box-shadow:inset -14px 0 22px -12px rgba(70,60,40,.5),inset 0 0 34px rgba(107,104,98,.16),0 18px 40px rgba(0,0,0,.5)}
+  .page.right{right:0;border-radius:2px 6px 6px 2px;
+    box-shadow:inset 14px 0 22px -12px rgba(70,60,40,.45),inset 0 0 34px rgba(107,104,98,.16),0 18px 40px rgba(0,0,0,.5)}
+  .book::after{ /* desk shadow seam */
+    content:"";position:absolute;left:50%;top:2%;bottom:2%;width:26px;transform:translateX(-50%);
+    background:linear-gradient(90deg,#0000,rgba(40,32,18,.18) 50%,#0000);
+    pointer-events:none;border-radius:50%;
+    filter:blur(2px);
+  }
+
+  .leaf{
+    position:absolute;top:0;bottom:0;right:0;width:50%;
+    transform-origin:left center;transform-style:preserve-3d;
+    transition:transform 1.15s cubic-bezier(.42,.05,.3,1);
+    z-index:5;cursor:pointer;
+  }
+  .leaf.turning{transform:rotateY(-180deg);cursor:default}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    overflow:hidden;
+    background:
+      radial-gradient(120% 100% at 20% 0%,rgba(255,255,255,.5),#0000 50%),
+      repeating-linear-gradient(0deg,rgba(107,104,98,.045) 0 1px,#0000 1px 4px),
+      linear-gradient(160deg,var(--paper),var(--paper-lo));
+    box-shadow:inset 0 0 34px rgba(107,104,98,.16);
+  }
+  .face.front{border-radius:2px 6px 6px 2px}
+  .face.back{transform:rotateY(180deg);border-radius:6px 2px 2px 6px}
+  .leaf .sheen{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
+    background:linear-gradient(105deg,#0000 30%,rgba(255,255,240,.35) 48%,#0000 62%);
+  }
+  .leaf.turning .sheen{opacity:1}
+
+  .corner{
+    position:absolute;right:0;bottom:0;width:64px;height:64px;z-index:6;
+    cursor:pointer;border:0;background:#0000;padding:0;
+  }
+  .corner svg{position:absolute;inset:0;width:100%;height:100%}
+  .corner .curl{
+    position:absolute;right:-34px;bottom:-34px;width:68px;height:68px;
+    background:linear-gradient(315deg,var(--paper-lo) 46%,#d8cdb0 52%,rgba(120,108,82,.35) 60%,#0000 62%);
+    border-radius:8px 0 0 0;
+    transition:transform .35s cubic-bezier(.3,1.4,.5,1);
+    box-shadow:-3px -3px 8px rgba(70,60,40,.25);
+  }
+  .corner:hover .curl,.corner:focus-visible .curl{transform:translate(-5px,-5px) rotate(-3deg)}
+  .corner:focus-visible{outline:2px dashed var(--ochre);outline-offset:-6px;border-radius:12px}
+  .corner .tip{
+    position:absolute;right:6px;bottom:6px;
+    font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:rgba(77,74,68,.55);
+    text-transform:uppercase;pointer-events:none;
+  }
+
+  /* ============ page furniture ============ */
+  .pcontent{position:absolute;inset:0;padding:clamp(12px,3.2%,30px);display:flex;flex-direction:column}
+  .phead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2%}
+  .phead .city{
+    font-size:clamp(1rem,2.6vw,1.7rem);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .stamp{
+    font-family:var(--mono);font-size:clamp(7px,1vw,9px);letter-spacing:.24em;
+    color:#a34d3f;border:1.5px solid rgba(163,77,63,.55);border-radius:4px;
+    padding:4px 8px;transform:rotate(-4deg);text-transform:uppercase;
+    mask-image:radial-gradient(circle at 30% 60%,#000 92%,#0000 100%);
+    -webkit-mask-image:radial-gradient(circle at 30% 60%,#000 92%,#0000 100%);
+    opacity:.85;
+  }
+  .rule{height:1px;background:linear-gradient(90deg,rgba(107,104,98,.5),#0000);margin:1.5% 0 2.5%}
+
+  .sketchwrap{position:relative;flex:1;min-height:0}
+  .sketch{width:100%;height:100%;display:block}
+  .pencil-art{filter:grayscale(1) contrast(1.04);transition:filter .7s ease}
+  .sketchwrap:hover .pencil-art,.sketchwrap:focus-within .pencil-art{filter:grayscale(0) contrast(1) saturate(1.15)}
+  .wash{opacity:0;transition:opacity .8s ease}
+  .sketchwrap:hover .wash,.sketchwrap:focus-within .wash{opacity:1}
+  .sketchwrap{cursor:pointer}
+  .sketchwrap:focus-visible{outline:2px dashed var(--ochre);outline-offset:4px;border-radius:8px}
+  .reveal{
+    position:absolute;left:8px;bottom:2px;font-family:var(--mono);font-size:8px;
+    letter-spacing:.22em;text-transform:uppercase;color:rgba(77,74,68,.5);
+    transition:color .5s;
+  }
+  .sketchwrap:hover .reveal{color:var(--ochre)}
+
+  .notes{list-style:none;margin-top:2%;display:grid;gap:1.6%}
+  .notes li{
+    font-style:italic;font-size:clamp(11px,1.35vw,15px);line-height:1.45;color:#57544d;
+    padding-left:1.2em;position:relative;transform:rotate(-.4deg);
+  }
+  .notes li::before{content:"—";position:absolute;left:0;color:var(--ochre)}
+  .notes li b{font-style:normal;font-weight:600;color:var(--ink-soft)}
+  .pagenum{
+    position:absolute;bottom:2.5%;right:4%;
+    font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:rgba(77,74,68,.55);
+  }
+
+  /* tape + photos */
+  .photo{
+    position:absolute;width:26%;aspect-ratio:4/3;
+    background:linear-gradient(150deg,#c8bfa4,#b3a88b);
+    box-shadow:0 6px 14px rgba(40,34,20,.4);
+    transform:rotate(3deg);
+    padding:5.5% 5.5% 16%;
+  }
+  .photo .art{width:100%;height:100%;overflow:hidden;position:relative}
+  .photo figcaption{
+    position:absolute;left:0;right:0;bottom:3.5%;text-align:center;
+    font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:rgba(60,52,36,.75);
+    text-transform:uppercase;
+  }
+  .tape{
+    position:absolute;width:34%;height:16px;background:
+      repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 3px,#0000 3px 7px),
+      linear-gradient(var(--tape),rgba(217,201,168,.75));
+    box-shadow:0 1px 3px rgba(40,34,20,.3);
+    opacity:.92;
+  }
+  .tape.tl{top:-8px;left:-10px;transform:rotate(-38deg)}
+  .tape.tr{top:-8px;right:-10px;transform:rotate(36deg)}
+
+  /* coffee ring */
+  .coffee{
+    position:absolute;width:110px;height:96px;border-radius:50%;
+    border:7px solid rgba(122,84,44,.34);
+    filter:blur(.6px);
+    box-shadow:inset 0 0 10px rgba(122,84,44,.28),0 0 0 2px rgba(122,84,44,.1);
+    transform:rotate(-8deg) scaleY(.92);
+    pointer-events:none;
+  }
+  .coffee::after{
+    content:"";position:absolute;inset:8px;border-radius:50%;
+    border:2px solid rgba(122,84,44,.2);filter:blur(1px);
+  }
+
+  .polaroid-note{
+    position:absolute;font-style:italic;font-size:clamp(10px,1.2vw,13px);color:#57544d;
+    transform:rotate(2deg);
+  }
+
+  /* ============ templates hidden ============ */
+  template{display:none}
+
+  /* ============ responsive ============ */
+  @media (max-width:660px){
+    body{overflow:auto}
+    .book{aspect-ratio:3/3.6;width:min(440px,94vw)}
+    .page,.leaf{width:100%}
+    .page.left{display:none}
+    .page.right{border-radius:6px}
+    .face.back{border-radius:6px}
+    .book::after{display:none}
+    .photo{width:44%}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .leaf{transition:none}
+    .leaf.turning{transition:opacity .4s;transform:none;opacity:0}
+    .corner:hover .curl,.corner:focus-visible .curl{transform:none}
+    .pencil-art,.wash,.dot{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <span class="kick">Gallery of 100 &middot; Hall IV &middot; Traveler&rsquo;s Notebook</span>
+  <h1>Field <em>Sketch</em></h1>
+  <div class="dots" aria-hidden="true">
+    <span class="dot" data-d="0" aria-current="true"></span>
+    <span class="dot" data-d="1"></span>
+  </div>
+  <span class="hint">Hover a drawing to remember it in color &middot; turn the page at the corner</span>
+</header>
+
+<!-- shared paint + filter definitions -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wobble" x="-6%" y="-6%" width="112%" height="112%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="7" result="n"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4"></feDisplacementMap>
+    </filter>
+    <filter id="wobble2" x="-6%" y="-6%" width="112%" height="112%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="19" result="n"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"></feDisplacementMap>
+    </filter>
+    <linearGradient id="sunwash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2c98a"></stop>
+      <stop offset="1" stop-color="#f6f1e4" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="tealwash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4e8a80" stop-opacity=".55"></stop>
+      <stop offset="1" stop-color="#7fb3a5" stop-opacity=".25"></stop>
+    </linearGradient>
+    <linearGradient id="skyLx" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c995" stop-opacity="0"></stop>
+      <stop offset="1" stop-color="#c98a2d" stop-opacity=".35"></stop>
+    </linearGradient>
+  </defs>
+</svg>
+
+<main class="stage">
+  <div class="book" id="book" aria-label="Sketchbook spreads: Lisbon and Kyoto">
+    <div class="page left" id="staticLeft"></div>
+    <div class="page right" id="staticRight"></div>
+    <div class="leaf" id="leaf">
+      <div class="face front" id="leafFront"></div>
+      <div class="face back" id="leafBack"></div>
+      <div class="sheen" aria-hidden="true"></div>
+    </div>
+    <button class="corner" id="cornerBtn" type="button" aria-label="Turn the page">
+      <span class="curl" aria-hidden="true"></span>
+      <span class="tip">turn</span>
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M2 62 Q10 30 40 6" fill="none" stroke="rgba(77,74,68,.35)" stroke-width="1"></path></svg>
+    </button>
+  </div>
+</main>
+
+<!-- ===================== LISBON · LEFT ===================== -->
+<template id="tpl-lx-left">
+  <div class="pcontent">
+    <div class="phead"><span class="city">Lisboa</span><span class="stamp">Posted &middot; May 12</span></div>
+    <div class="rule"></div>
+    <div class="sketchwrap" tabindex="0" role="img" aria-label="Pencil sketch of tram 28 climbing a tiled hillside street">
+      <svg class="sketch" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet">
+        <g class="pencil-art" filter="url(#wobble)" stroke="#6b6862" fill="none" stroke-width="1.6" stroke-linecap="round">
+          <path d="M18 268 L442 268" stroke-width="2.2"></path>
+          <path d="M60 268 L60 214 L150 214 L150 268"></path>
+          <path d="M150 214 L166 196 L256 196 L256 268"></path>
+          <path d="M256 196 L272 180 L372 180 L372 268"></path>
+          <path d="M372 180 L390 166 L438 166 L438 268"></path>
+          <path d="M70 214 L70 268 M84 214 L84 268 M98 214 L98 268 M112 214 L112 268 M126 214 L126 268 M140 214 L140 268"></path>
+          <path d="M160 214 L160 268 M176 214 L176 268 M192 214 L192 268 M208 214 L208 268 M224 214 L224 268 M240 214 L240 268"></path>
+          <path d="M282 196 L282 268 M300 196 L300 268 M318 196 L318 268 M336 196 L336 268 M354 196 L354 268"></path>
+          <path d="M398 180 L398 268 M414 180 L414 268 M430 180 L430 268"></path>
+          <path d="M44 214 Q46 176 54 168 M436 166 Q438 132 430 124" stroke-width="1.1"></path>
+          <path d="M40 168 L452 168" stroke-width="1" stroke-dasharray="2 5"></path>
+        </g>
+        <g class="pencil-art" filter="url(#wobble2)" stroke="#4d4a44" fill="none" stroke-width="2" stroke-linecap="round">
+          <rect x="196" y="150" width="112" height="74" rx="9"></rect>
+          <path d="M196 168 L308 168"></path>
+          <rect x="206" y="176" width="22" height="26" rx="3"></rect>
+          <rect x="238" y="176" width="22" height="26" rx="3"></rect>
+          <rect x="270" y="176" width="22" height="26" rx="3"></rect>
+          <circle cx="216" cy="232" r="8"></circle>
+          <circle cx="288" cy="232" r="8"></circle>
+          <path d="M196 224 L308 224" stroke-width="1.2"></path>
+          <path d="M186 150 L318 150" stroke-width="3"></path>
+          <path d="M304 150 L304 128 L312 128 L312 150" stroke-width="1.4"></path>
+        </g>
+        <g class="wash">
+          <rect x="0" y="0" width="460" height="120" fill="url(#sunwash)"></rect>
+          <rect x="196" y="150" width="112" height="74" rx="9" fill="#f2b544" opacity=".5"></rect>
+          <rect x="206" y="176" width="22" height="26" rx="3" fill="#f6e3b0" opacity=".8"></rect>
+          <rect x="238" y="176" width="22" height="26" rx="3" fill="#f6e3b0" opacity=".8"></rect>
+          <rect x="270" y="176" width="22" height="26" rx="3" fill="#f6e3b0" opacity=".8"></rect>
+          <path d="M60 214 L60 268 L150 268 L150 214 Z" fill="#4e8a80" opacity=".28"></path>
+          <path d="M256 196 L256 268 L372 268 L372 196 Z" fill="#c98a2d" opacity=".22"></path>
+          <path d="M372 180 L372 268 L438 268 L438 166 Z" fill="#a34d3f" opacity=".22"></path>
+        </g>
+      </svg>
+      <span class="reveal">pencil &rarr; memory</span>
+    </div>
+    <ul class="notes">
+      <li>Tram 28 groans up <b>Calc&ccedil;ada da Estrela</b> like it resents the hill.</li>
+      <li>Azulejos the colour of pool water, half of them cracked, all of them singing.</li>
+      <li>Coffee n&deg;3. The waiter calls everyone <b>chefe</b>.</li>
+    </ul>
+    <div class="pagenum">p. 41</div>
+  </div>
+  <div class="coffee" style="right:8%;bottom:12%" aria-hidden="true"></div>
+</template>
+
+<!-- ===================== LISBON · RIGHT ===================== -->
+<template id="tpl-lx-right">
+  <div class="pcontent">
+    <div class="phead"><span class="city">Miradouros</span><span class="stamp">Dusk &middot; 19:40</span></div>
+    <div class="rule"></div>
+    <div class="sketchwrap" tabindex="0" role="img" aria-label="Pencil sketch of the rooftops of Alfama at dusk with seagulls">
+      <svg class="sketch" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet">
+        <g class="pencil-art" filter="url(#wobble)" stroke="#6b6862" fill="none" stroke-width="1.5" stroke-linecap="round">
+          <path d="M10 240 L110 240 L110 208 L170 208 L170 240 L250 240 L250 200 L320 200 L320 240 L400 240 L400 214 L452 214 L452 240"></path>
+          <path d="M10 240 L10 268 L452 268 L452 240" stroke-width="2"></path>
+          <path d="M118 208 Q140 178 162 208 M256 200 Q285 164 314 200 M404 214 Q428 186 452 214"></path>
+          <path d="M30 240 L30 218 M48 240 L48 224 M200 240 L200 222 M220 240 L220 226 M340 240 L340 220 M360 240 L360 228" stroke-width="1.1"></path>
+          <path d="M330 120 q6 -10 12 0 q6 -10 12 0 M368 96 q5 -9 10 0 q5 -9 10 0 M60 110 q5 -8 10 0 q5 -8 10 0" stroke-width="1.2"></path>
+          <path d="M0 262 Q120 254 230 262 T460 262" stroke-width="1" stroke-dasharray="1 4"></path>
+        </g>
+        <g class="wash">
+          <rect x="0" y="60" width="460" height="200" fill="url(#sunwash)" opacity=".9"></rect>
+          <path d="M10 240 L110 240 L110 208 L170 208 L170 240 Z" fill="#c98a2d" opacity=".35"></path>
+          <path d="M250 200 L250 240 L320 240 L320 200 Z" fill="#a34d3f" opacity=".35"></path>
+          <path d="M118 208 Q140 178 162 208 Z" fill="#4e8a80" opacity=".4"></path>
+          <path d="M256 200 Q285 164 314 200 Z" fill="#4e8a80" opacity=".4"></path>
+          <circle cx="368" cy="88" r="22" fill="#f2b544" opacity=".45"></circle>
+        </g>
+      </svg>
+      <span class="reveal">pencil &rarr; memory</span>
+    </div>
+    <figure class="photo" style="right:4%;top:6%;transform:rotate(-3deg)">
+      <span class="tape tl" aria-hidden="true"></span>
+      <div class="art" style="background:
+        radial-gradient(circle at 70% 24%,#f6d794 0 14%,#0000 15%),
+        linear-gradient(178deg,#d9a05b 0 46%,#8a5a3a 46% 52%,#5d7f78 52% 100%)"></div>
+      <figcaption>Alfama &middot; fado night</figcaption>
+    </figure>
+    <figure class="photo" style="left:6%;top:52%;transform:rotate(4deg);width:23%">
+      <span class="tape tr" aria-hidden="true"></span>
+      <div class="art" style="background:
+        repeating-conic-gradient(from 0deg at 50% 50%,#3f6f8e 0 14deg,#e7e2d2 14deg 28deg)"></div>
+      <figcaption>azulejo panel</figcaption>
+    </figure>
+    <p class="polaroid-note" style="right:8%;bottom:9%;width:38%">
+      &ldquo;The guitars start when the light goes blue. Nobody hurries anywhere.&rdquo;
+    </p>
+    <div class="pagenum">p. 42</div>
+  </div>
+</template>
+
+<!-- ===================== KYOTO · LEFT ===================== -->
+<template id="tpl-ky-left">
+  <div class="pcontent">
+    <div class="phead"><span class="city">Kyoto</span><span class="stamp">Posted &middot; May 27</span></div>
+    <div class="rule"></div>
+    <div class="sketchwrap" tabindex="0" role="img" aria-label="Pencil sketch of a torii gate path with pine trees">
+      <svg class="sketch" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet">
+        <g class="pencil-art" filter="url(#wobble)" stroke="#6b6862" fill="none" stroke-width="1.7" stroke-linecap="round">
+          <path d="M96 262 L96 96 M214 262 L214 96 M64 96 Q155 74 246 96 M84 118 L226 118 M78 108 L232 108" stroke-width="2"></path>
+          <path d="M155 118 L155 262" stroke-width="1.2"></path>
+          <path d="M246 262 L420 262" stroke-width="2"></path>
+          <path d="M262 262 L262 150 L346 150 L346 262 M262 178 L346 178 M262 206 L346 206 M262 234 L346 234" stroke-width="1.3"></path>
+          <path d="M290 262 L290 118 L318 118 L318 262" stroke-width="1.4"></path>
+          <path d="M356 262 q4 -60 30 -86 M400 262 q0 -44 22 -58" stroke-width="1.2"></path>
+          <path d="M368 176 q16 -14 34 -2 M396 196 q12 -10 26 0" stroke-width="1.1"></path>
+        </g>
+        <g class="pencil-art" filter="url(#wobble2)" stroke="#4d4a44" fill="none" stroke-width="1.6" stroke-linecap="round">
+          <path d="M30 262 q-2 -70 26 -96 q6 30 -2 58 M30 190 q-16 -8 -22 -22 q20 2 28 12 M56 166 q4 -20 -4 -30 q16 8 18 26" stroke-width="1.3"></path>
+          <path d="M28 262 L62 262" stroke-width="2.4"></path>
+          <path d="M436 262 q10 -34 2 -50" stroke-width="1.2"></path>
+          <path d="M0 262 L460 262 L460 274 L0 274 Z" fill="#6b6862" opacity=".14" stroke="none"></path>
+        </g>
+        <g class="wash">
+          <rect x="64" y="74" width="200" height="190" fill="#a34d3f" opacity=".26"></rect>
+          <rect x="64" y="74" width="12" height="188" fill="#a34d3f" opacity=".35"></rect>
+          <rect x="234" y="74" width="12" height="188" fill="#a34d3f" opacity=".35"></rect>
+          <rect x="262" y="150" width="84" height="112" fill="#4e8a80" opacity=".22"></rect>
+          <path d="M30 262 q-2 -70 26 -96 q6 30 -2 58 Z" fill="#4e8a80" opacity=".35"></path>
+          <path d="M96 262 L214 262 L214 258 L96 258 Z" fill="#8a8255" opacity=".3"></path>
+        </g>
+      </svg>
+      <span class="reveal">pencil &rarr; memory</span>
+    </div>
+    <ul class="notes">
+      <li>Rain at Fushimi. The vermilion only gets <b>louder</b> when it&rsquo;s wet.</li>
+      <li>A monk swept the same fifty stones for an hour. I counted. I stopped.</li>
+      <li>Matcha soft-serve under a heater that also toasts your eyebrows.</li>
+    </ul>
+    <div class="pagenum">p. 87</div>
+  </div>
+</template>
+
+<!-- ===================== KYOTO · RIGHT ===================== -->
+<template id="tpl-ky-right">
+  <div class="pcontent">
+    <div class="phead"><span class="city">Higashiyama</span><span class="stamp">Rain &middot; 16:05</span></div>
+    <div class="rule"></div>
+    <div class="sketchwrap" tabindex="0" role="img" aria-label="Pencil sketch of a pagoda above a lane of lanterns">
+      <svg class="sketch" viewBox="0 0 460 300" preserveAspectRatio="xMidYMid meet">
+        <g class="pencil-art" filter="url(#wobble)" stroke="#6b6862" fill="none" stroke-width="1.6" stroke-linecap="round">
+          <path d="M210 262 L210 238 L250 238 L250 262" stroke-width="1.4"></path>
+          <path d="M196 238 L264 238 L264 226 L196 226 Z"></path>
+          <path d="M206 226 L206 196 L254 196 L254 226" stroke-width="1.3"></path>
+          <path d="M190 196 L270 196 L270 186 L190 186 Z"></path>
+          <path d="M202 186 L202 158 L258 158 L258 186" stroke-width="1.3"></path>
+          <path d="M186 158 L274 158 L274 148 L186 148 Z"></path>
+          <path d="M212 148 L212 124 L248 124 L248 148" stroke-width="1.2"></path>
+          <path d="M230 124 L230 108 M224 108 L236 108" stroke-width="1.4"></path>
+          <path d="M186 148 Q230 140 274 148 M190 186 Q230 178 270 186 M196 226 Q230 220 264 226" stroke-width="1" stroke-dasharray="2 4"></path>
+          <path d="M20 262 L440 262" stroke-width="2"></path>
+          <path d="M20 262 q80 -14 130 -2 M330 262 q60 -12 110 2" stroke-width="1" stroke-dasharray="1 5"></path>
+        </g>
+        <g class="pencil-art" filter="url(#wobble2)" stroke="#4d4a44" fill="none" stroke-width="1.5" stroke-linecap="round">
+          <path d="M60 262 L60 236 L84 236 L84 262 M60 236 L84 224 L84 236" stroke-width="1.2"></path>
+          <path d="M108 262 L108 232 L134 232 L134 262 M108 232 L134 220 L134 232" stroke-width="1.2"></path>
+          <path d="M348 262 L348 230 L376 230 L376 262 M348 230 L376 218 L376 230" stroke-width="1.2"></path>
+          <path d="M396 262 L396 238 L420 238 L420 262 M396 238 L420 228 L420 238" stroke-width="1.2"></path>
+          <path d="M96 232 q4 -12 0 -18 M120 228 q4 -12 0 -18 M362 226 q4 -12 0 -18 M408 234 q4 -12 0 -18" stroke-width="1"></path>
+        </g>
+        <g class="wash">
+          <rect x="186" y="108" width="88" height="154" fill="#a34d3f" opacity=".3"></rect>
+          <rect x="190" y="196" width="80" height="10" fill="#8a6a4f" opacity=".45"></rect>
+          <rect x="186" y="158" width="88" height="10" fill="#8a6a4f" opacity=".45"></rect>
+          <rect x="60" y="224" width="24" height="38" fill="#f2b544" opacity=".55"></rect>
+          <rect x="108" y="220" width="26" height="42" fill="#f2b544" opacity=".55"></rect>
+          <rect x="348" y="218" width="28" height="44" fill="#f2b544" opacity=".55"></rect>
+          <rect x="396" y="228" width="24" height="34" fill="#f2b544" opacity=".55"></rect>
+          <rect x="0" y="40" width="460" height="110" fill="#4e8a80" opacity=".12"></rect>
+        </g>
+      </svg>
+      <span class="reveal">pencil &rarr; memory</span>
+    </div>
+    <figure class="photo" style="left:5%;top:8%;transform:rotate(3deg);width:24%">
+      <span class="tape tl" aria-hidden="true"></span>
+      <div class="art" style="background:
+        radial-gradient(60% 40% at 50% 100%,#5d7f78 0 60%,#0000 61%),
+        linear-gradient(180deg,#c9c2ae 0 30%,#a34d3f 30% 100%)"></div>
+      <figcaption>pagoda, 5 stories</figcaption>
+    </figure>
+    <p class="polaroid-note" style="left:6%;bottom:10%;width:44%">
+      &ldquo;Bought an umbrella shaped like a samurai&rsquo;s hat. Zero regrets.&rdquo;
+    </p>
+    <div class="pagenum">p. 88</div>
+  </div>
+</template>
+
+<script>
+(function(){
+"use strict";
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var book=document.getElementById("book");
+var staticLeft=document.getElementById("staticLeft");
+var staticRight=document.getElementById("staticRight");
+var leaf=document.getElementById("leaf");
+var leafFront=document.getElementById("leafFront");
+var leafBack=document.getElementById("leafBack");
+var cornerBtn=document.getElementById("cornerBtn");
+var dots=document.querySelectorAll(".dot");
+
+var TPL=[
+  {left:"tpl-lx-left",right:"tpl-lx-right",name:"Lisbon"},
+  {left:"tpl-ky-left",right:"tpl-ky-right",name:"Kyoto"}
+];
+var cur=0,turning=false;
+
+function narrow(){return window.matchMedia("(max-width: 660px)").matches;}
+function fill(el,tplId){
+  var tpl=document.getElementById(tplId);
+  el.innerHTML="";
+  el.appendChild(tpl.content.cloneNode(true));
+}
+function render(){
+  var next=1-cur;
+  fill(staticLeft,TPL[cur].left);
+  fill(staticRight,TPL[next].right);
+  fill(leafFront,TPL[cur].right);
+  fill(leafBack,narrow()?TPL[next].right:TPL[next].left);
+  dots.forEach(function(d,i){
+    if(i===cur)d.setAttribute("aria-current","true");
+    else d.removeAttribute("aria-current");
+  });
+}
+function turn(){
+  if(turning)return;
+  turning=true;
+  leaf.classList.add("turning");
+  leaf.setAttribute("aria-hidden","true");
+  var dur=RM?420:1180;
+  window.setTimeout(function(){
+    cur=1-cur;
+    render();
+    leaf.classList.remove("turning");
+    leaf.removeAttribute("aria-hidden");
+    turning=false;
+  },dur+30);
+}
+cornerBtn.addEventListener("click",turn);
+leaf.addEventListener("click",function(){if(!turning)turn();});
+book.addEventListener("keydown",function(e){
+  if(e.key===" "||e.key==="Enter"){
+    if(e.target===cornerBtn||e.target===book||e.target===document.body){turn();e.preventDefault();}
+  }
+});
+var resizeTimer=null,lastNarrow=narrow();
+window.addEventListener("resize",function(){
+  window.clearTimeout(resizeTimer);
+  resizeTimer=window.setTimeout(function(){
+    if(narrow()!==lastNarrow){lastNarrow=narrow();if(!turning)render();}
+  },180);
+});
+render();
+})();
+</script>
+</body>
+</html>

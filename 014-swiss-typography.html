@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRIDS &amp; TRUTH · №014 — Swiss Typographic Poster · The Gallery of 100</title>
+<style>
+:root{
+  --paper: #f2f0eb;
+  --ink:   #111111;
+  --red:   #e30613;
+  --sans: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+  --cols: 12;
+  --gut: clamp(14px, 1.6vw, 24px);
+  --margin: clamp(18px, 4vw, 64px);
+  --baseline: 8px;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+html{ scrollbar-color:#b9b6ae transparent; }
+html::-webkit-scrollbar{ width:9px; }
+html::-webkit-scrollbar-thumb{ background:#b9b6ae; }
+body{
+  font-family:var(--sans);
+  background:var(--paper);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  font-synthesis:none;
+}
+::selection{ background:var(--red); color:var(--paper); }
+:focus{ outline:none; }
+:focus-visible{ outline:3px solid var(--red); outline-offset:3px; }
+
+/* ---------- fixed HUD ---------- */
+.hud{
+  position:fixed; top:0; left:0; right:0; z-index:60;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px var(--margin);
+  background:linear-gradient(180deg, rgba(242,240,235,.96), rgba(242,240,235,.88));
+  border-bottom:1px solid var(--ink);
+  font-family:var(--mono);
+  font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
+}
+.hud .left{ display:flex; align-items:center; gap:14px; }
+.hud .dot-red{
+  width:10px; height:10px; border-radius:50%; background:var(--red); display:inline-block;
+}
+.hud .axis-readout{ font-variant-numeric:tabular-nums; color:#555; }
+.hud .axis-readout b{ color:var(--ink); font-weight:400; }
+.grid-toggle{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
+  border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+  padding:7px 12px; cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+  touch-action:manipulation;
+}
+.grid-toggle:hover{ background:var(--ink); color:var(--paper); }
+.grid-toggle[aria-pressed="true"]{ background:var(--red); border-color:var(--red); color:var(--paper); }
+
+/* ---------- grid overlay ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:50; pointer-events:none;
+  opacity:0; transition:opacity .35s ease;
+}
+body.show-grid .overlay{ opacity:1; }
+.overlay .col-zone{
+  position:absolute; top:0; bottom:0;
+  left:var(--margin); right:var(--margin);
+  display:grid;
+  grid-template-columns:repeat(12, 1fr);
+  gap:var(--gut);
+}
+.overlay .col-zone i{
+  background:rgba(227,6,19,.055);
+  border-left:1px solid rgba(227,6,19,.4);
+  border-right:1px solid rgba(227,6,19,.4);
+}
+.overlay .baselines{
+  position:absolute; top:0; bottom:0; left:0; right:0;
+  background:repeating-linear-gradient(
+    180deg,
+    rgba(17,17,17,.16) 0 1px,
+    transparent 1px var(--baseline)
+  );
+}
+.overlay .margins{
+  position:absolute; top:0; bottom:0; left:var(--margin); right:var(--margin);
+  border-left:1px solid rgba(17,17,17,.5);
+  border-right:1px solid rgba(17,17,17,.5);
+}
+.overlay .legend{
+  position:absolute; left:var(--margin); bottom:14px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.16em;
+  color:var(--red); text-transform:uppercase;
+  background:rgba(242,240,235,.9);
+  padding:3px 8px;
+}
+
+/* ---------- poster sections ---------- */
+.poster{
+  position:relative;
+  min-height:100vh;
+  padding:calc(64px + clamp(28px,6vh,80px)) var(--margin) clamp(40px,8vh,90px);
+  border-bottom:1px solid var(--ink);
+  overflow:hidden;
+}
+.grid12{
+  display:grid;
+  grid-template-columns:repeat(12, minmax(0,1fr));
+  gap:var(--gut);
+  position:relative;
+  z-index:2;
+}
+
+/* index numbers rail */
+.idx{
+  font-family:var(--mono);
+  font-size:.66rem; letter-spacing:.14em;
+  color:#777;
+  border-top:1px solid var(--ink);
+  padding-top:6px;
+  display:flex; justify-content:space-between;
+}
+.idx .r{ color:var(--red); }
+
+/* ---------- section 01 : statement ---------- */
+.s1 .huge{
+  grid-column:1 / 13;
+  font-size:clamp(3rem, 11.5vw, 10.5rem);
+  line-height:.92;
+  font-weight:800;
+  letter-spacing:-0.045em;
+  text-transform:uppercase;
+}
+.s1 .huge .thin{ font-weight:200; font-style:normal; }
+.s1 .deck{
+  grid-column:8 / 13;
+  margin-top:clamp(20px,4vh,48px);
+}
+.s1 .deck p{
+  font-size:clamp(1rem, 1.6vw, 1.3rem);
+  line-height:1.45;
+  font-weight:500;
+  letter-spacing:-0.01em;
+}
+.s1 .deck .lede{
+  border-top:3px solid var(--red);
+  padding-top:12px;
+  margin-bottom:1em;
+}
+.s1 .manifesto{
+  grid-column:2 / 7;
+  margin-top:clamp(26px,5vh,60px);
+  font-family:var(--mono);
+  font-size:.7rem; letter-spacing:.05em;
+  line-height:2;
+  color:#444;
+}
+
+/* ---------- section 02 : scrub headline ---------- */
+.s2 .scrub-wrap{
+  grid-column:1 / 13;
+  position:sticky;
+  top:32vh;
+  height:36vh;
+  display:flex; align-items:center;
+}
+.s2 .scrub{
+  font-size:clamp(2.4rem, 9vw, 8.4rem);
+  line-height:1;
+  text-transform:uppercase;
+  letter-spacing:-0.03em;
+  font-weight:200;
+  font-variation-settings:"wght" 200;
+  will-change:font-weight, letter-spacing, font-size;
+}
+.s2 .scrub .word{ display:inline-block; }
+.s2 .scrub .red{ color:var(--red); }
+.s2 .scrub-note{
+  position:absolute; left:0; bottom:-10vh;
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.16em;
+  color:#666; text-transform:uppercase;
+}
+.s2 .scrub-note b{ color:var(--red); font-weight:400; }
+
+/* ---------- section 03 : table of truths ---------- */
+.s3 .col-a{ grid-column:1 / 4; }
+.s3 .col-b{ grid-column:4 / 9; }
+.s3 .col-c{ grid-column:9 / 13; }
+.s3 h3{
+  font-size:clamp(1.4rem, 2.6vw, 2.1rem);
+  font-weight:800; letter-spacing:-0.02em; text-transform:uppercase;
+  line-height:1.05;
+  margin-bottom:14px;
+}
+.s3 h3 span{ color:var(--red); }
+.s3 p{ font-size:.95rem; line-height:1.55; font-weight:450; }
+.truth-list{ list-style:none; margin-top:8px; }
+.truth-list li{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  padding:9px 0;
+  border-bottom:1px solid rgba(17,17,17,.35);
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.08em;
+  text-transform:uppercase;
+  transition:padding-left .25s ease, color .2s ease;
+}
+.truth-list li:hover{ padding-left:10px; color:var(--red); }
+.truth-list li b{ font-weight:400; }
+.truth-list li .v{ color:var(--red); font-variant-numeric:tabular-nums; }
+
+/* big red numeral */
+.s3 .big-num{
+  font-size:clamp(6rem, 16vw, 15rem);
+  font-weight:900;
+  letter-spacing:-0.06em;
+  line-height:.85;
+  color:var(--red);
+  margin-top:clamp(16px,3vh,40px);
+}
+.s3 .num-caption{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em; text-transform:uppercase;
+  color:#555; margin-top:10px;
+}
+
+/* ---------- section 04 : grid demo blocks ---------- */
+.s4 .demo{ grid-column:1 / 13; }
+.s4 .demo-title{
+  font-size:clamp(1.6rem, 3vw, 2.6rem);
+  font-weight:800; letter-spacing:-0.02em; text-transform:uppercase;
+  margin-bottom:clamp(16px,3vh,32px);
+}
+.s4 .blocks{
+  display:grid;
+  grid-template-columns:repeat(12, minmax(0,1fr));
+  gap:var(--gut);
+}
+.block{
+  background:var(--ink);
+  color:var(--paper);
+  min-height:clamp(90px, 16vh, 170px);
+  padding:10px 12px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase;
+  transition:background .25s ease, transform .25s ease;
+}
+.block:hover{ background:var(--red); transform:translateY(-4px); }
+.block.accent{ background:var(--red); }
+.block.accent:hover{ background:var(--ink); }
+.block.b3{ grid-column:span 3; }
+.block.b4{ grid-column:span 4; }
+.block.b2{ grid-column:span 2; }
+.block .n{ font-size:1rem; letter-spacing:0; }
+
+/* ---------- section 05 : colophon manifesto ---------- */
+.s5 .final{
+  grid-column:2 / 12;
+  text-align:center;
+}
+.s5 .final .huge2{
+  font-size:clamp(2.6rem, 8.5vw, 7.5rem);
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:.98;
+  text-transform:uppercase;
+}
+.s5 .final .huge2 em{ font-style:normal; color:var(--red); }
+.s5 .final p{
+  margin:clamp(18px,3vh,34px) auto 0;
+  max-width:52ch;
+  font-size:clamp(.95rem,1.4vw,1.15rem);
+  line-height:1.6;
+  font-weight:450;
+}
+.s5 .cred{
+  margin-top:clamp(24px,4vh,44px);
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.22em; text-transform:uppercase;
+  color:#666;
+  display:flex; justify-content:center; gap:22px; flex-wrap:wrap;
+}
+.s5 .cred .r{ color:var(--red); }
+
+/* ---------- footer strip ---------- */
+.foot{
+  padding:16px var(--margin) 22px;
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.18em; text-transform:uppercase;
+  color:#666;
+}
+.foot .r{ color:var(--red); }
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .s1 .huge{ grid-column:1 / 13; }
+  .s1 .deck{ grid-column:1 / 13; }
+  .s1 .manifesto{ grid-column:1 / 13; }
+  .s3 .col-a{ grid-column:1 / 13; }
+  .s3 .col-b{ grid-column:1 / 13; }
+  .s3 .col-c{ grid-column:1 / 13; }
+  .block.b3,.block.b4{ grid-column:span 6; }
+  .block.b2{ grid-column:span 4; }
+}
+@media (max-width:560px){
+  .block.b3,.block.b4,.block.b2{ grid-column:span 6; }
+  .s2 .scrub-wrap{ top:26vh; height:30vh; }
+  .hud .axis-readout{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  .block, .truth-list li{ transition:none; }
+  .s2 .scrub{ will-change:auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" aria-hidden="true">
+  <div class="baselines"></div>
+  <div class="col-zone"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="margins"></div>
+  <div class="legend">Baseline 8px · 12 columns · G = grid on</div>
+</div>
+
+<header class="hud">
+  <div class="left">
+    <span class="dot-red" aria-hidden="true"></span>
+    <span>GRIDS &amp; TRUTH — №014</span>
+    <span class="axis-readout">AXIS <b id="axisW">200</b> · TRACK <b id="axisT">-0.030em</b> · SIZE <b id="axisS">100</b>%</span>
+  </div>
+  <button class="grid-toggle" id="gridToggle" type="button" aria-pressed="false">Grid · G</button>
+</header>
+
+<main>
+
+  <!-- 01 · statement -->
+  <section class="poster s1" aria-label="Statement">
+    <div class="grid12">
+      <div class="idx" style="grid-column:1/13"><span>01 / STATEMENT</span><span class="r">JOSEF Would Approve</span></div>
+      <h1 class="huge">Grids<br><span class="thin">&amp;</span> Truth</h1>
+      <div class="deck">
+        <p class="lede">Typography is not decoration. It is the visible order of thought — measured, gridded, and set flush left against chaos.</p>
+        <p>This page practices what it preaches: twelve columns, one red, one typeface stretched across five weights of honesty.</p>
+      </div>
+      <div class="manifesto">
+        <p>WE RETURN TO THE GRID<br>
+        BECAUSE THE GRID FORGIVES NOTHING.<br>
+        EVERY GAP IS A DECISION.<br>
+        EVERY LINE LENGTH, A PROMISE.<br>
+        EVERY MARGIN, A EDGE OF&nbsp;BELIEF.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · scrub -->
+  <section class="poster s2" aria-label="Variable scrub headline">
+    <div class="grid12">
+      <div class="idx" style="grid-column:1/13"><span>02 / AXIS</span><span class="r">Scroll = Weight</span></div>
+    </div>
+    <div class="scrub-wrap">
+      <p class="scrub" id="scrub"><span class="word">ORDER</span> <span class="word red">IS</span> <span class="word">A</span> <span class="word">CHOICE</span></p>
+      <p class="scrub-note">scroll to travel the weight axis — <b>200 thin</b> → <b>900 black</b> → tracking opens as it thins</p>
+    </div>
+  </section>
+
+  <!-- 03 · truths -->
+  <section class="poster s3" aria-label="Table of truths">
+    <div class="grid12">
+      <div class="idx" style="grid-column:1/13"><span>03 / DOCTRINE</span><span class="r">Müller-Brockmann, 1958</span></div>
+      <div class="col-a">
+        <h3>The<br><span>Doctrine</span></h3>
+        <p>The grid is a system, not a cage. Within it, asymmetry becomes rhythm and whitespace becomes argument. What follows is filed, not felt.</p>
+        <p style="margin-top:10px">Red is used once per composition — then never again without reason.</p>
+      </div>
+      <div class="col-b">
+        <ul class="truth-list">
+          <li><b>Columns</b><span class="v">12</span></li>
+          <li><b>Gutter</b><span class="v">FLUID</span></li>
+          <li><b>Baseline</b><span class="v">8 PX</span></li>
+          <li><b>Palette</b><span class="v">INK / PAPER / RED</span></li>
+          <li><b>Alignment</b><span class="v">FLUSH LEFT</span></li>
+          <li><b>Rag</b><span class="v">CONTROLLED</span></li>
+          <li><b>Orphans</b><span class="v">EXILED</span></li>
+          <li><b>Centering</b><span class="v">SUSPECT</span></li>
+        </ul>
+      </div>
+      <div class="col-c">
+        <div class="big-num" aria-hidden="true">12</div>
+        <p class="num-caption">columns carry the whole argument</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · grid demo -->
+  <section class="poster s4" aria-label="Grid demonstration">
+    <div class="grid12">
+      <div class="idx demo" style="grid-column:1/13"><span>04 / ARCHITECTURE</span><span class="r">Hover to Complain</span></div>
+      <div class="demo">
+        <h3 class="demo-title" style="grid-column:1/13">The columns, obedient</h3>
+        <div class="blocks">
+          <div class="block b3"><span class="n">3</span><span>col / ink</span></div>
+          <div class="block b3 accent"><span class="n">3</span><span>col / red</span></div>
+          <div class="block b2"><span class="n">2</span><span>col</span></div>
+          <div class="block b4"><span class="n">4</span><span>col / ink</span></div>
+          <div class="block b4"><span class="n">4</span><span>col</span></div>
+          <div class="block b2 accent"><span class="n">2</span><span>col / red</span></div>
+          <div class="block b2"><span class="n">2</span><span>col</span></div>
+          <div class="block b4 accent"><span class="n">4</span><span>col / red</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · colophon manifesto -->
+  <section class="poster s5" aria-label="Closing manifesto">
+    <div class="grid12">
+      <div class="idx" style="grid-column:1/13"><span>05 / CREDO</span><span class="r">End of File</span></div>
+      <div class="final">
+        <p class="huge2">Clarity<br><em>is</em> the style</p>
+        <p>No ornament survives the proof. What remains — scale, weight, space, and one red — is the whole vocabulary. Read slowly; the grid is patient.</p>
+        <div class="cred">
+          <span>GRIDS &amp; TRUTH</span>
+          <span class="r">№014 OF 100</span>
+          <span>SET IN SYSTEM SANS</span>
+          <span>SWITZERLAND, ABSTRACTLY</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span>THE GALLERY OF 100</span>
+  <span>PRESS <span class="r">G</span> FOR THE ARCHITECTURE</span>
+  <span>© THE GRID</span>
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+var scrub = document.getElementById("scrub");
+var axisW = document.getElementById("axisW");
+var axisT = document.getElementById("axisT");
+var axisS = document.getElementById("axisS");
+var gridToggle = document.getElementById("gridToggle");
+var words = scrub ? scrub.querySelectorAll(".word") : [];
+var ticking = false;
+
+/* ---------- scroll scrub: weight axis ---------- */
+function lerp(a,b,t){ return a + (b-a)*t; }
+var EASE = function(t){ return t*t*(3-2*t); };
+
+function updateScrub(){
+  ticking = false;
+  var sec = scrub.closest(".poster");
+  var r = sec.getBoundingClientRect();
+  var vh = window.innerHeight;
+  /* progress: 0 when section top reaches 85% vh, 1 when bottom passes 15% vh */
+  var total = r.height + vh * 0.5;
+  var p = clamp((vh * 0.85 - r.top) / total, 0, 1);
+  p = EASE(p);
+  /* weight travels 200 -> 900 -> 200 as user passes through */
+  var w;
+  if (p < 0.5){ w = lerp(200, 900, p / 0.5); }
+  else { w = lerp(900, 200, (p - 0.5) / 0.5); }
+  w = Math.round(w);
+  var track = -(0.01 + (900 - w) / 700 * 0.035);
+  var size = 88 + (900 - w) / 700 * 20;
+  scrub.style.fontWeight = String(w);
+  scrub.style.letterSpacing = track.toFixed(4) + "em";
+  scrub.style.fontSize = "calc(clamp(2.4rem, 9vw, 8.4rem) * " + (size/100).toFixed(4) + ")";
+  words[1] && words[1].style.setProperty("opacity", String(0.55 + (w-200)/700*0.45));
+  axisW.textContent = String(w);
+  axisT.textContent = track.toFixed(3) + "em";
+  axisS.textContent = String(Math.round(size));
+}
+
+function onScroll(){
+  if (ticking) return;
+  ticking = true;
+  if (reduced.matches){
+    /* calm fallback: static mid-weight, no per-frame scrub */
+    return;
+  }
+  requestAnimationFrame(updateScrub);
+}
+
+window.addEventListener("scroll", onScroll, { passive:true });
+window.addEventListener("resize", onScroll);
+
+/* ---------- grid toggle ---------- */
+function setGrid(on){
+  document.body.classList.toggle("show-grid", on);
+  gridToggle.setAttribute("aria-pressed", on ? "true" : "false");
+  gridToggle.textContent = on ? "Grid · ON" : "Grid · G";
+}
+gridToggle.addEventListener("click", function(){
+  setGrid(!document.body.classList.contains("show-grid"));
+});
+window.addEventListener("keydown", function(e){
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "g" || e.key === "G"){
+    if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+    setGrid(!document.body.classList.contains("show-grid"));
+  }
+});
+
+/* ---------- boot ---------- */
+if (reduced.matches){
+  scrub.style.fontWeight = "600";
+  scrub.style.letterSpacing = "-0.03em";
+  axisW.textContent = "600";
+  axisT.textContent = "-0.030em";
+} else {
+  updateScrub();
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONCRETE POETRY — Neo-Brutalist Poster Zine</title>
+<meta name="description" content="A neo-brutalist interactive poster zine: raw yellow ground, massive black caps, draggable slogan stickers, scrolling marquee strips, and a red block that stamps fresh slogans with a thud.">
+<style>
+/* ============================================================
+   CONCRETE POETRY — 003
+   Raw yellow. Massive black. Stickers that obey your hand.
+   ============================================================ */
+
+:root {
+  --yellow: #f6f61a;
+  --black: #000000;
+  --red: #ff3b30;
+  --near-black: #1d1d1f;
+  --paper: #fffef5;
+  --shadow: 8px 8px 0 var(--black);
+  --shadow-sm: 4px 4px 0 var(--black);
+  --border: 4px solid var(--black);
+  --font-heavy: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Arial Black", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--yellow);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--yellow);
+  color: var(--black);
+  font-family: var(--font-heavy);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--black);
+  color: var(--yellow);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--yellow);
+  border-left: var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--black);
+}
+
+:focus-visible {
+  outline: 4px solid var(--black);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   MASTHEAD
+   ------------------------------------------------------------ */
+
+.masthead {
+  border-bottom: var(--border);
+  padding: clamp(14px, 2.5vw, 28px) clamp(14px, 3vw, 40px);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--yellow);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.issue {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: var(--border);
+  background: var(--black);
+  color: var(--yellow);
+  padding: 8px 16px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.issue strong {
+  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.issue span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  margin-top: 4px;
+}
+
+.wordmark {
+  font-size: clamp(2rem, 7.5vw, 5.4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  text-transform: uppercase;
+  flex: 1 1 auto;
+  text-align: center;
+  min-width: 260px;
+}
+
+.wordmark .x {
+  color: var(--red);
+}
+
+.stamp-tag {
+  align-self: center;
+  border: var(--border);
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------
+   MARQUEE STRIPS
+   ------------------------------------------------------------ */
+
+.marquee {
+  border-bottom: var(--border);
+  overflow: hidden;
+  background: var(--black);
+  color: var(--yellow);
+  padding: 10px 0;
+  white-space: nowrap;
+}
+
+.marquee.flip {
+  background: var(--red);
+  color: var(--black);
+  border-top: var(--border);
+}
+
+.marquee-inner {
+  display: inline-flex;
+  gap: 42px;
+  padding-right: 42px;
+  width: max-content;
+  animation: slide 22s linear infinite;
+}
+
+.marquee.flip .marquee-inner {
+  animation-direction: reverse;
+  animation-duration: 26s;
+}
+
+.marquee span {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+@keyframes slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ------------------------------------------------------------
+   POSTER FIELD
+   ------------------------------------------------------------ */
+
+.field {
+  position: relative;
+  min-height: 88dvh;
+  padding: clamp(18px, 3.5vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(16px, 2.5vw, 36px);
+  align-items: start;
+}
+
+.poster-block {
+  position: relative;
+}
+
+.display {
+  font-size: clamp(3rem, 10.5vw, 9.5rem);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  margin-left: -0.04em;
+}
+
+.display .hollow {
+  color: transparent;
+  -webkit-text-stroke: 3px var(--black);
+  text-stroke: 3px var(--black);
+}
+
+.display .red {
+  color: var(--red);
+}
+
+.dek {
+  margin-top: 20px;
+  max-width: 46ch;
+  font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+.dek mark {
+  background: var(--black);
+  color: var(--yellow);
+  padding: 1px 7px;
+}
+
+/* numerals panel */
+.numerals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: var(--paper);
+  margin-top: clamp(20px, 3vw, 34px);
+}
+
+.num-cell {
+  padding: 14px 12px 10px;
+  border-right: var(--border);
+}
+
+.num-cell:last-child {
+  border-right: none;
+}
+
+.num-cell b {
+  display: block;
+  font-size: clamp(1.9rem, 4.5vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.num-cell span {
+  display: block;
+  margin-top: 6px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.num-cell:nth-child(2) {
+  background: var(--black);
+  color: var(--yellow);
+}
+
+.num-cell:nth-child(3) {
+  background: var(--red);
+  color: var(--black);
+}
+
+/* right column stack */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vw, 28px);
+}
+
+/* THE RED BLOCK (signature #2) */
+.red-block {
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: var(--red);
+  padding: clamp(20px, 3vw, 34px);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.09s ease-in, box-shadow 0.09s ease-in;
+  touch-action: manipulation;
+}
+
+.red-block:active,
+.red-block.thudding {
+  transform: translate(6px, 6px);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+.red-block h2 {
+  font-size: clamp(1.5rem, 3.6vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.red-block .stamp {
+  display: block;
+  margin-top: 14px;
+  min-height: 3.2em;
+  font-size: clamp(1.15rem, 2.6vw, 1.8rem);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+.red-block .stamp.anew {
+  animation: thud 0.38s cubic-bezier(0.15, 1.6, 0.35, 1) both;
+}
+
+@keyframes thud {
+  0%   { transform: scale(2.1) rotate(-5deg); opacity: 0; filter: blur(3px); }
+  55%  { transform: scale(0.94) rotate(1.4deg); opacity: 1; filter: blur(0); }
+  75%  { transform: scale(1.05) rotate(-0.8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.red-block .hint {
+  display: inline-block;
+  margin-top: 16px;
+  border: 3px solid var(--black);
+  background: var(--paper);
+  padding: 6px 12px;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
+}
+
+.red-block .counter {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  border: 3px solid var(--black);
+  background: var(--black);
+  color: var(--red);
+  padding: 4px 10px;
+}
+
+/* principles list */
+.principles {
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: var(--paper);
+}
+
+.principles header {
+  border-bottom: var(--border);
+  background: var(--black);
+  color: var(--paper);
+  padding: 12px 18px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.principles ol {
+  list-style: none;
+}
+
+.principles li {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 13px 18px;
+  border-bottom: 3px solid var(--black);
+  transition: background 0.12s, transform 0.12s;
+}
+
+.principles li:last-child {
+  border-bottom: none;
+}
+
+.principles li:hover {
+  background: var(--yellow);
+  transform: translateX(6px);
+}
+
+.principles li i {
+  font-style: normal;
+  font-weight: 900;
+  font-size: 1.25rem;
+  flex: 0 0 2.2ch;
+}
+
+.principles li p {
+  font-weight: 800;
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------
+   STICKERS (signature #1) — draggable, rotatable
+   ------------------------------------------------------------ */
+
+.sticker {
+  position: absolute;
+  z-index: 30;
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 18px;
+  font-weight: 900;
+  font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  will-change: transform;
+  white-space: nowrap;
+}
+
+.sticker.dragging {
+  cursor: grabbing;
+  z-index: 50;
+  box-shadow: 12px 12px 0 var(--black);
+}
+
+.sticker.paper { background: var(--paper); color: var(--black); }
+.sticker.black { background: var(--black); color: var(--yellow); }
+.sticker.red   { background: var(--red);   color: var(--black); }
+
+.sticker .sub {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  margin-top: 3px;
+  font-weight: 800;
+  opacity: 0.75;
+}
+
+/* sticker home positions (percent of field) */
+.s1 { left: 58%; top: 6%;  --rot: -6deg; }
+.s2 { left: 4%;  top: 58%; --rot: 4deg; }
+.s3 { left: 44%; top: 84%; --rot: -3deg; }
+.s4 { left: 70%; top: 38%; --rot: 7deg; }
+.s5 { left: 26%; top: 24%; --rot: -8deg; }
+
+.sticker-settled {
+  transform: rotate(var(--rot));
+  transition: transform 0.18s ease-out;
+}
+
+.sticker.dragging {
+  transform: rotate(var(--live-rot, 0deg));
+  transition: none;
+}
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+
+.colophon {
+  border-top: var(--border);
+  background: var(--black);
+  color: var(--yellow);
+  padding: 26px clamp(14px, 3vw, 40px) 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.colophon p {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.colophon .bar {
+  height: 18px;
+  flex: 1 1 160px;
+  border: 3px solid var(--yellow);
+  background: repeating-linear-gradient(90deg,
+    var(--yellow) 0 14px,
+    transparent 14px 24px);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .field {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .numerals {
+    grid-template-columns: 1fr;
+  }
+  .num-cell {
+    border-right: none;
+    border-bottom: var(--border);
+  }
+  .num-cell:last-child {
+    border-bottom: none;
+  }
+  .stamp-tag {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-inner {
+    animation: none;
+  }
+  .sticker-settled,
+  .principles li,
+  .red-block {
+    transition: none;
+  }
+  .red-block .stamp.anew {
+    animation: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="issue">
+    <strong>Nº 07</strong>
+    <span>Issue</span>
+  </div>
+  <h1 class="wordmark">Concrete<span class="x">×</span>Poetry</h1>
+  <div class="stamp-tag">Drag the stickers · Click the red</div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-inner">
+    <span>Form follows fury</span>
+    <span>★★</span>
+    <span>Less is a bore</span>
+    <span>★★</span>
+    <span>Concrete remembers</span>
+    <span>★★</span>
+    <span>Form follows fury</span>
+    <span>★★</span>
+    <span>Less is a bore</span>
+    <span>★★</span>
+    <span>Concrete remembers</span>
+    <span>★★</span>
+  </div>
+</div>
+
+<main class="field" id="field">
+
+  <section class="poster-block">
+    <h2 class="display">
+      Loud is<br>a <span class="hollow">load-</span><br>bearing <span class="red">wall</span>
+    </h2>
+    <p class="dek">
+      A poster zine set in <mark>black on warning-yellow</mark>, printed by nobody,
+      hosted by everybody. Every rule here is 4 pixels thick. Every opinion is
+      load-bearing. Touch the type and it will not apologize.
+    </p>
+    <div class="numerals" aria-label="Issue statistics">
+      <div class="num-cell"><b>4px</b><span>Border weight</span></div>
+      <div class="num-cell"><b>900</b><span>Only weight</span></div>
+      <div class="num-cell"><b>0</b><span>Rounded corners</span></div>
+    </div>
+  </section>
+
+  <section class="stack">
+
+    <div class="red-block" id="redBlock" role="button" tabindex="0"
+         aria-label="Stamp a fresh slogan. Press Enter or click.">
+      <span class="counter" id="stampCount">× 0</span>
+      <h2>Slogan<br>Dispenser</h2>
+      <span class="stamp" id="stampLine">Click to stamp a slogan into the record.</span>
+      <span class="hint">Hit me again</span>
+    </div>
+
+    <div class="principles">
+      <header>House rules</header>
+      <ol>
+        <li><i>01</i><p>Yellow is a volume, not a color.</p></li>
+        <li><i>02</i><p>Shadows go down and right, never soft.</p></li>
+        <li><i>03</i><p>Rotate nothing you cannot defend.</p></li>
+        <li><i>04</i><p>Red appears once per page. Use it like a fire alarm.</p></li>
+      </ol>
+    </div>
+
+  </section>
+
+  <!-- draggable stickers -->
+  <div class="sticker black s1 sticker-settled" tabindex="0" role="button"
+       aria-label="Draggable sticker: drag me">
+    Drag me<span class="sub">I dare</span>
+  </div>
+  <div class="sticker red s2 sticker-settled" tabindex="0" role="button"
+       aria-label="Draggable sticker: freshly stamped">
+    Freshly stamped<span class="sub">Still wet</span>
+  </div>
+  <div class="sticker paper s3 sticker-settled" tabindex="0" role="button"
+       aria-label="Draggable sticker: 4px forever">
+    4px forever<span class="sub">No radius</span>
+  </div>
+  <div class="sticker paper s4 sticker-settled" tabindex="0" role="button"
+       aria-label="Draggable sticker: anti graceful">
+    Anti-graceful<span class="sub">On purpose</span>
+  </div>
+  <div class="sticker black s5 sticker-settled" tabindex="0" role="button"
+       aria-label="Draggable sticker: noise is signal">
+    Noise is signal<span class="sub">Zine no. 07</span>
+  </div>
+
+</main>
+
+<div class="marquee flip" aria-hidden="true">
+  <div class="marquee-inner">
+    <span>Concrete poetry</span>
+    <span>→→</span>
+    <span>Set loud, read loud</span>
+    <span>→→</span>
+    <span>This page weighs 4 pixels per border</span>
+    <span>→→</span>
+    <span>Concrete poetry</span>
+    <span>→→</span>
+    <span>Set loud, read loud</span>
+    <span>→→</span>
+    <span>This page weighs 4 pixels per border</span>
+    <span>→→</span>
+  </div>
+</div>
+
+<footer class="colophon">
+  <p>Concrete Poetry — a poster zine in one file</p>
+  <div class="bar" aria-hidden="true"></div>
+  <p>Nº 07 / Print nothing / Post everything</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ============================================================
+     STICKER DRAG with slight rotation physics (signature #1)
+     ============================================================ */
+  var field = document.getElementById("field");
+  var stickers = Array.prototype.slice.call(document.querySelectorAll(".sticker"));
+  var dragEl = null;
+  var offX = 0, offY = 0;
+  var lastX = 0, lastY = 0;
+  var vx = 0, vy = 0;
+  var rot = 0;              /* live rotation in degrees */
+  var settleFrame = 0;
+
+  function deg(n) { return n.toFixed(2) + "deg"; }
+
+  function setSettled(el) {
+    el.classList.remove("dragging");
+    el.classList.add("sticker-settled");
+    el.style.setProperty("--rot", deg(rot % 360));
+    el.style.removeProperty("--live-rot");
+  }
+
+  stickers.forEach(function (st) {
+    /* keyboard nudge for accessibility */
+    st.addEventListener("keydown", function (e) {
+      var step = e.shiftKey ? 24 : 8;
+      var dx = 0, dy = 0;
+      if (e.key === "ArrowLeft") dx = -step;
+      else if (e.key === "ArrowRight") dx = step;
+      else if (e.key === "ArrowUp") dy = -step;
+      else if (e.key === "ArrowDown") dy = step;
+      else return;
+      e.preventDefault();
+      var r = st.getBoundingClientRect();
+      var fr = field.getBoundingClientRect();
+      st.style.left = Math.max(0, r.left - fr.left + dx) + "px";
+      st.style.top = Math.max(0, r.top - fr.top + dy) + "px";
+      st.style.right = "auto";
+      rot += dx * 0.4;
+      setSettled(st);
+    });
+
+    st.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      dragEl = st;
+      st.setPointerCapture(e.pointerId);
+      var r = st.getBoundingClientRect();
+      var fr = field.getBoundingClientRect();
+      offX = e.clientX - r.left;
+      offY = e.clientY - r.top;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      vx = 0; vy = 0;
+      /* fix current position into the field coordinate space */
+      st.style.left = (r.left - fr.left) + "px";
+      st.style.top = (r.top - fr.top) + "px";
+      st.classList.remove("sticker-settled");
+      st.classList.add("dragging");
+      e.preventDefault();
+    });
+  });
+
+  window.addEventListener("pointermove", function (e) {
+    if (!dragEl) return;
+    var fr = field.getBoundingClientRect();
+    var nx = e.clientX - fr.left - offX;
+    var ny = e.clientY - fr.top - offY;
+    vx = e.clientX - lastX;
+    vy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    /* velocity tilts the sticker, like being pulled through honey */
+    rot += (vx * 0.55 - rot * 0.08);
+    rot = Math.max(-28, Math.min(28, rot));
+    dragEl.style.setProperty("--live-rot", deg(rot));
+    var w = dragEl.offsetWidth;
+    var h = dragEl.offsetHeight;
+    dragEl.style.left = Math.max(-w * 0.35, Math.min(fr.width - w * 0.65, nx)) + "px";
+    dragEl.style.top = Math.max(-8, Math.min(fr.height - h * 0.4, ny)) + "px";
+  }, { passive: true });
+
+  function endDrag() {
+    if (!dragEl) return;
+    var el = dragEl;
+    dragEl = null;
+    /* momentum + settle animation */
+    if (reduced) {
+      rot = 0;
+      setSettled(el);
+      return;
+    }
+    el.classList.remove("dragging");
+    var vel = { vx: vx, vy: vy, rot: rot };
+    function settle() {
+      vel.vx *= 0.86;
+      vel.vy *= 0.86;
+      vel.rot *= 0.88;
+      var fr = field.getBoundingClientRect();
+      var x = parseFloat(el.style.left) + vel.vx;
+      var y = parseFloat(el.style.top) + vel.vy;
+      var w = el.offsetWidth, h = el.offsetHeight;
+      if (x < -w * 0.35 || x > fr.width - w * 0.65) vel.vx *= -0.5;
+      if (y < -8 || y > fr.height - h * 0.4) vel.vy *= -0.5;
+      x = Math.max(-w * 0.35, Math.min(fr.width - w * 0.65, x));
+      y = Math.max(-8, Math.min(fr.height - h * 0.4, y));
+      el.style.left = x + "px";
+      el.style.top = y + "px";
+      rot = vel.rot;
+      el.style.setProperty("--live-rot", deg(rot));
+      if (Math.abs(vel.vx) + Math.abs(vel.vy) + Math.abs(vel.rot) > 0.6) {
+        settleFrame = requestAnimationFrame(settle);
+      } else {
+        rot %= 360;
+        setSettled(el);
+      }
+    }
+    settleFrame = requestAnimationFrame(settle);
+  }
+
+  window.addEventListener("pointerup", endDrag);
+  window.addEventListener("pointercancel", endDrag);
+
+  /* ============================================================
+     SLOGAN DISPENSER (signature #2)
+     ============================================================ */
+  var SLOGANS = [
+    "Silence is a layout bug.",
+    "Grids are cages. Some cages sing.",
+    "Set it bigger. Then bigger.",
+    "Taste is fear wearing a scarf.",
+    "White space is stored fury.",
+    "Kerning is a moral position.",
+    "The margin is where doubt lives.",
+    "Uppercase is a way of shouting politely.",
+    "Every shadow here is 8px of conviction.",
+    "If it scrolls, it sells. If it stamps, it stays.",
+    "Hierarchy is violence made polite.",
+    "This slogan was stamped by a stranger.",
+    "Rotate the sticker. Defend the rotation.",
+    "Yellow is the sound of a door slamming.",
+    "A poster should interrupt a sentence.",
+    "Design is a rumor typeset confidently."
+  ];
+
+  var redBlock = document.getElementById("redBlock");
+  var stampLine = document.getElementById("stampLine");
+  var stampCount = document.getElementById("stampCount");
+  var count = 0;
+  var lastIdx = -1;
+
+  function stamp() {
+    var idx = Math.floor(Math.random() * SLOGANS.length);
+    if (idx === lastIdx) idx = (idx + 1) % SLOGANS.length;
+    lastIdx = idx;
+    count += 1;
+    stampCount.textContent = "× " + count;
+    stampLine.textContent = SLOGANS[idx];
+    stampLine.classList.remove("anew");
+    /* force reflow so the animation can restart */
+    void stampLine.offsetWidth;
+    stampLine.classList.add("anew");
+    redBlock.classList.remove("thudding");
+    void redBlock.offsetWidth;
+    redBlock.classList.add("thudding");
+  }
+
+  redBlock.addEventListener("click", stamp);
+  redBlock.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      stamp();
+    }
+  });
+})();
+</script>
+</body>
+</html>

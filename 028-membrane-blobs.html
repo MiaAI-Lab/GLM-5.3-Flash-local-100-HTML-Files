@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CELL DIVISION — specimen № 7, living</title>
+<style>
+/* ============================================================
+   CELL DIVISION — a bioluminescent petri dish
+   gooey SVG-filter blobs · mitosis · microscope staging
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --dish: #04110f;
+  --dish-hi: #0a201c;
+  --membrane: #39ffb4;
+  --membrane-blue: #39c0ff;
+  --nucleus: #ff5ea8;
+  --reticle: #9fb8ae;
+  --lab-ink: #cfe6da;
+  --lab-dim: #7fa094;
+  --lab-faint: #547268;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  --serif: Georgia, "Times New Roman", serif;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--mono);
+  color: var(--lab-ink);
+  background:
+    radial-gradient(110% 80% at 50% -10%, #0c221e 0%, rgba(12, 34, 30, 0) 55%),
+    linear-gradient(180deg, #061613 0%, var(--dish) 40%, #020a09 100%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--membrane); color: #04110f; }
+::-moz-selection { background: var(--membrane); color: #04110f; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #030c0a; }
+::-webkit-scrollbar-thumb { background: #1d4a3c; border: 2px solid #030c0a; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+.labhead {
+  width: min(1160px, 96vw);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: clamp(14px, 2.6vw, 30px) 0 clamp(8px, 1.4vw, 14px);
+}
+.labhead .specimen {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 3.4vw, 2.2rem);
+  letter-spacing: 0.06em;
+  color: var(--lab-ink);
+}
+.labhead .specimen em { color: var(--membrane); font-style: italic; }
+.labhead .serial {
+  display: block;
+  margin-top: 0.5em;
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--lab-dim);
+}
+.labhead .labmeta {
+  text-align: right;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lab-faint);
+  line-height: 2;
+}
+.labhead .labmeta b { color: var(--lab-dim); font-weight: 400; }
+
+/* ---------- stage ---------- */
+.scope {
+  position: relative;
+  width: min(92vw, 720px);
+  height: min(92vw, 720px);
+  max-height: 74dvh;
+  margin: 0 auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, #0f2f28 0%, var(--dish) 46%, #020a09 100%);
+  box-shadow:
+    0 40px 110px -30px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px rgba(159, 184, 174, 0.22),
+    inset 0 0 90px rgba(0, 0, 0, 0.75),
+    inset 0 24px 60px rgba(57, 255, 180, 0.05);
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+.scope svg.field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* vignette + glass */
+.scope::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.10), transparent 34%),
+    radial-gradient(circle at 50% 50%, transparent 52%, rgba(1, 6, 5, 0.55) 88%),
+    radial-gradient(circle at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* reticle ring + hairlines */
+.reticle {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.reticle .ring {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 1px solid rgba(159, 184, 174, 0.35);
+}
+.reticle .ring.r2 { inset: 14%; border-color: rgba(159, 184, 174, 0.2); }
+.reticle .h,
+.reticle .v {
+  position: absolute;
+  background: rgba(159, 184, 174, 0.3);
+}
+.reticle .h {
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+}
+.reticle .v {
+  left: 50%;
+  top: 5%;
+  bottom: 5%;
+  width: 1px;
+}
+.reticle .grad-tick {
+  position: absolute;
+  width: 1px;
+  height: 7px;
+  background: rgba(159, 184, 174, 0.4);
+  left: 50%;
+}
+.reticle .corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(159, 184, 174, 0.5);
+}
+.reticle .corner.tl { top: 12%; left: 12%; border-right: 0; border-bottom: 0; }
+.reticle .corner.tr { top: 12%; right: 12%; border-left: 0; border-bottom: 0; }
+.reticle .corner.bl { bottom: 12%; left: 12%; border-right: 0; border-top: 0; }
+.reticle .corner.br { bottom: 12%; right: 12%; border-left: 0; border-top: 0; }
+.reticle .scalebar {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.52rem;
+  letter-spacing: 0.3em;
+  color: var(--reticle);
+  background: rgba(2, 10, 9, 0.55);
+  border: 1px solid rgba(159, 184, 174, 0.3);
+  padding: 0.4em 0.9em;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* live readouts on the lens */
+.lens-read {
+  position: absolute;
+  z-index: 4;
+  font-size: clamp(0.56rem, 1.1vw, 0.66rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--reticle);
+  background: rgba(2, 10, 9, 0.6);
+  border: 1px solid rgba(159, 184, 174, 0.28);
+  border-radius: 2px;
+  padding: 0.5em 0.8em;
+  line-height: 1.9;
+  pointer-events: none;
+}
+.lens-read.tl { top: 6%; left: 4%; }
+.lens-read.tr { top: 6%; right: 4%; text-align: right; }
+.lens-read b {
+  color: var(--membrane);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.lens-read .pink { color: var(--nucleus); }
+
+/* ---------- footer console ---------- */
+.console {
+  width: min(1160px, 96vw);
+  margin: clamp(14px, 2.4vw, 26px) auto clamp(18px, 3vw, 36px);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(10px, 1.6vw, 18px);
+}
+.gauge {
+  border: 1px solid rgba(159, 184, 174, 0.25);
+  background: rgba(4, 17, 15, 0.7);
+  padding: clamp(10px, 1.6vw, 16px);
+  position: relative;
+}
+.gauge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 3px;
+  background: var(--membrane);
+}
+.gauge .g-label {
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--lab-faint);
+}
+.gauge .g-value {
+  margin-top: 0.5em;
+  font-size: clamp(1.15rem, 2.6vw, 1.7rem);
+  color: var(--lab-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.gauge .g-value .unit {
+  font-size: 0.55em;
+  letter-spacing: 0.14em;
+  color: var(--lab-dim);
+}
+.gauge .g-note {
+  margin-top: 0.45em;
+  font-size: 0.54rem;
+  letter-spacing: 0.14em;
+  color: var(--lab-faint);
+  text-transform: uppercase;
+}
+.gauge:nth-child(2)::before { background: var(--nucleus); }
+.gauge:nth-child(3)::before { background: var(--membrane-blue); }
+.gauge:nth-child(4)::before { background: var(--reticle); }
+
+.controls {
+  width: min(1160px, 96vw);
+  margin: 0 auto clamp(16px, 2.6vw, 30px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 20px);
+  flex-wrap: wrap;
+}
+.ctl {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--lab-ink);
+  background: rgba(57, 255, 180, 0.06);
+  border: 1px solid rgba(159, 184, 174, 0.35);
+  border-radius: 2px;
+  padding: 0.95em 1.5em;
+  cursor: pointer;
+  min-height: 46px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+.ctl:hover { border-color: var(--membrane); background: rgba(57, 255, 180, 0.13); transform: translateY(-2px); }
+.ctl:active { transform: translateY(0) scale(0.97); }
+.ctl:focus-visible { outline: 2px solid var(--membrane); outline-offset: 3px; }
+.ctl[aria-pressed="true"] {
+  background: rgba(57, 255, 180, 0.2);
+  border-color: var(--membrane);
+}
+.hint {
+  width: 100%;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(0.8rem, 1.7vw, 0.95rem);
+  color: var(--lab-dim);
+  margin: 0.4em 0 0;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+  .console { grid-template-columns: 1fr 1fr; }
+  .lens-read.tr { display: none; }
+}
+@media (max-width: 480px) {
+  .console { grid-template-columns: 1fr; }
+  .labhead .labmeta { text-align: left; }
+  .reticle .scalebar { font-size: 0.46rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctl { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="labhead">
+  <div>
+    <h1 class="specimen">Specimen <em>№ 7</em> — living culture</h1>
+    <span class="serial">Observation deck · colony under continuous watch</span>
+  </div>
+  <p class="labmeta">
+    Slide <b>028 / 100</b><br>
+    Medium <b>nutrient gel · luminous</b><br>
+    Lens <b>×40 · dark field</b>
+  </p>
+</header>
+
+<main class="scope" id="scope" aria-label="Petri dish observation lens — click a cell to divide it">
+  <svg class="field" id="field" aria-hidden="true">
+    <defs>
+      <filter id="goo" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"></feGaussianBlur>
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -11"
+          result="goo"></feColorMatrix>
+        <feComposite in="SourceGraphic" in2="goo" operator="atop"></feComposite>
+      </filter>
+      <radialGradient id="cellGrad" cx="0.36" cy="0.32" r="0.85">
+        <stop offset="0" stop-color="#b8ffe4" stop-opacity="0.95"></stop>
+        <stop offset="0.42" stop-color="#39ffb4" stop-opacity="0.72"></stop>
+        <stop offset="0.78" stop-color="#1c8f68" stop-opacity="0.5"></stop>
+        <stop offset="1" stop-color="#0a4a36" stop-opacity="0.42"></stop>
+      </radialGradient>
+      <radialGradient id="cellGradBlue" cx="0.36" cy="0.32" r="0.85">
+        <stop offset="0" stop-color="#c4ecff" stop-opacity="0.95"></stop>
+        <stop offset="0.42" stop-color="#39c0ff" stop-opacity="0.7"></stop>
+        <stop offset="0.78" stop-color="#1668a8" stop-opacity="0.48"></stop>
+        <stop offset="1" stop-color="#0a3050" stop-opacity="0.4"></stop>
+      </radialGradient>
+      <radialGradient id="nucGrad" cx="0.4" cy="0.36" r="0.8">
+        <stop offset="0" stop-color="#ffd3e8"></stop>
+        <stop offset="0.55" stop-color="#ff5ea8"></stop>
+        <stop offset="1" stop-color="#b03070"></stop>
+      </radialGradient>
+      <clipPath id="dishClip">
+        <circle cx="360" cy="360" r="356"></circle>
+      </clipPath>
+    </defs>
+    <g id="world" clip-path="url(#dishClip)" filter="url(#goo)"></g>
+  </svg>
+
+  <div class="reticle" aria-hidden="true">
+    <div class="ring"></div>
+    <div class="ring r2"></div>
+    <div class="h"></div>
+    <div class="v"></div>
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="scalebar" id="scalebar">── 50 µm ──</div>
+  </div>
+
+  <div class="lens-read tl">
+    MAG <b>×40</b><br>
+    MODE <b>DARK FIELD</b><br>
+    TEMP <b id="tempRead">36.7°C</b>
+  </div>
+  <div class="lens-read tr">
+    POP <b id="popRead">8</b><br>
+    GEN <b id="genRead">1</b><br>
+    MITOSIS <b class="pink" id="mitRead">0</b>
+  </div>
+</main>
+
+<section class="console" aria-label="Colony gauges">
+  <div class="gauge">
+    <div class="g-label">Population</div>
+    <div class="g-value" id="gPop">8</div>
+    <div class="g-note">cells under the lens</div>
+  </div>
+  <div class="gauge">
+    <div class="g-label">Generation</div>
+    <div class="g-value" id="gGen">1</div>
+    <div class="g-note">divisions since first observation</div>
+  </div>
+  <div class="gauge">
+    <div class="g-label">Biomass</div>
+    <div class="g-value" id="gBio">100<span class="unit"> µm²</span></div>
+    <div class="g-note">estimated membrane area</div>
+  </div>
+  <div class="gauge">
+    <div class="g-label">Colony age</div>
+    <div class="g-value" id="gAge">0:00<span class="unit"> min</span></div>
+    <div class="g-note">since the lens was opened</div>
+  </div>
+</section>
+
+<div class="controls">
+  <button class="ctl primary" id="feedBtn" type="button">Drop Nutrient</button>
+  <button class="ctl" id="driftBtn" type="button" aria-pressed="true">Drift · On</button>
+  <button class="ctl" id="resetBtn" type="button">Re-culture</button>
+  <p class="hint">Click any cell to trigger mitosis — bring two cells close and they will merge back into one.</p>
+</div>
+
+<p class="visually-hidden" id="live" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var world = $('world');
+  var scope = $('scope');
+  var liveEl = $('live');
+  var popRead = $('popRead');
+  var genRead = $('genRead');
+  var mitRead = $('mitRead');
+  var gPop = $('gPop');
+  var gGen = $('gGen');
+  var gBio = $('gBio');
+  var gAge = $('gAge');
+  var tempRead = $('tempRead');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var VB = 720;                 /* svg viewBox */
+  var C = VB / 2;
+  var DISH_R = 352;
+
+  /* ---------------- cell model ---------------- */
+  var cells = [];
+  var generation = 1;
+  var mitosisCount = 0;
+  var driftOn = !reduced;
+  var uid = 0;
+
+  function makeCell(x, y, r, gen, hue) {
+    var fill = hue === 'blue' ? 'url(#cellGradBlue)' : 'url(#cellGrad)';
+    var markup =
+      '<g>' +
+        '<circle r="' + r.toFixed(1) + '" fill="' + fill + '"></circle>' +
+        '<g class="nuc"><circle r="' + (r * 0.3).toFixed(1) + '" fill="url(#nucGrad)"></circle></g>' +
+      '</g>';
+    world.insertAdjacentHTML('beforeend', markup);
+    var g = world.lastElementChild;
+    var body = g.querySelector('circle');
+    var nucGrp = g.querySelector('.nuc');
+    var cell = {
+      id: ++uid,
+      el: g, body: body, nucGrp: nucGrp,
+      x: x, y: y,
+      r: r,
+      vx: (Math.random() - 0.5) * 14,
+      vy: (Math.random() - 0.5) * 14,
+      ph: Math.random() * Math.PI * 2,
+      wobble: 0.5 + Math.random(),
+      gen: gen || generation,
+      hue: hue || (Math.random() < 0.25 ? 'blue' : 'green'),
+      dividing: 0,           /* 0..1 mitosis progress */
+      divideT: 0,
+      mergeT: 0,
+      mergeWith: null
+    };
+    cells.push(cell);
+    return cell;
+  }
+
+  function removeCell(cell) {
+    if (cell.el.parentNode) { cell.el.parentNode.removeChild(cell.el); }
+    var i = cells.indexOf(cell);
+    if (i > -1) { cells.splice(i, 1); }
+  }
+
+  function seed() {
+    cells.slice().forEach(removeCell);
+    generation = 1;
+    mitosisCount = 0;
+    var i;
+    for (i = 0; i < 8; i++) {
+      var a = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+      var d = 90 + Math.random() * 170;
+      makeCell(C + Math.cos(a) * d, C + Math.sin(a) * d, 30 + Math.random() * 14, 1);
+    }
+    updateStats();
+    liveEl.textContent = 'Culture re-seeded with eight cells.';
+  }
+
+  /* ---------------- physics ---------------- */
+  function clampToDish(c) {
+    var dx = c.x - C;
+    var dy = c.y - C;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    var max = DISH_R - c.r;
+    if (d > max) {
+      var nx = dx / d;
+      var ny = dy / d;
+      c.x = C + nx * max;
+      c.y = C + ny * max;
+      /* reflect velocity */
+      var dot = c.vx * nx + c.vy * ny;
+      c.vx -= 2 * dot * nx;
+      c.vy -= 2 * dot * ny;
+      c.vx *= 0.86;
+      c.vy *= 0.86;
+    }
+  }
+
+  function separate(a, b) {
+    var dx = b.x - a.x;
+    var dy = b.y - a.y;
+    var d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+    var min = (a.r + b.r) * 0.86;   /* allow overlap for gooey bridging */
+    if (d < min) {
+      var overlap = (min - d) * 0.5;
+      var nx = dx / d;
+      var ny = dy / d;
+      a.x -= nx * overlap;
+      a.y -= ny * overlap;
+      b.x += nx * overlap;
+      b.y += ny * overlap;
+      var rel = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (rel < 0) {
+        var imp = rel * 0.42;
+        a.vx += nx * imp;
+        a.vy += ny * imp;
+        b.vx -= nx * imp;
+        b.vy -= ny * imp;
+      }
+      /* merging when well overlapped */
+      if (d < min * 0.55 && !a.dividing && !b.dividing) {
+        startMerge(a, b);
+      }
+    }
+  }
+
+  /* ---------------- mitosis ---------------- */
+  function startDivision(cell) {
+    if (cell.dividing || cell.mergeT > 0) { return; }
+    if (cells.length >= 26) {
+      liveEl.textContent = 'The dish is at capacity — the colony refuses to crowd further.';
+      return;
+    }
+    cell.dividing = 0.001;
+    cell.divAngle = Math.round(Math.random() * 180);
+    cell.divideT = 0;
+    mitosisCount++;
+    mitRead.textContent = String(mitosisCount);
+    liveEl.textContent = 'Mitosis under way — generation ' + (generation + 1) + ' begins.';
+  }
+
+  function finishDivision(cell) {
+    var r = cell.r * 0.76;
+    var ang = cell.divAngle ? cell.divAngle * Math.PI / 180 : Math.random() * Math.PI * 2;
+    var parentHue = cell.hue;
+    var child = makeCell(
+      cell.x + Math.cos(ang) * cell.r * 0.55,
+      cell.y + Math.sin(ang) * cell.r * 0.55,
+      r, generation + 1, parentHue
+    );
+    var push = 30;
+    cell.vx -= Math.cos(ang) * push;
+    cell.vy += 0;
+    cell.vy -= Math.sin(ang) * push;
+    child.vx += Math.cos(ang) * push;
+    child.vy += Math.sin(ang) * push;
+    cell.r = r;
+    cell.gen = generation + 1;
+    generation = Math.max(generation, cell.gen);
+    updateStats();
+  }
+
+  function startMerge(a, b) {
+    if (a.mergeT > 0 || b.mergeT > 0 || a.dividing || b.dividing) { return; }
+    a.mergeT = 0.001;
+    b.mergeT = 0.001;
+    a.mergeWith = b;
+    b.mergeWith = a;
+  }
+
+  function finishMerge(a, b) {
+    var bigR = Math.sqrt(a.r * a.r + b.r * b.r) * 0.92;
+    a.x = (a.x * a.r + b.x * b.r) / (a.r + b.r);
+    a.y = (a.y * a.r + b.y * b.r) / (a.r + b.r);
+    a.vx = (a.vx + b.vx) * 0.5;
+    a.vy = (a.vy + b.vy) * 0.5;
+    a.r = Math.min(bigR, 46);
+    removeCell(b);
+    a.mergeT = 0;
+    a.mergeWith = null;
+    liveEl.textContent = 'Two cells merged — the colony prefers company.';
+    updateStats();
+  }
+
+  /* ---------------- stats ---------------- */
+  var ageSec = 0;
+  function updateStats() {
+    var pop = cells.length;
+    popRead.textContent = String(pop);
+    genRead.textContent = String(generation);
+    gPop.textContent = String(pop);
+    gGen.textContent = String(generation);
+    var area = 0;
+    cells.forEach(function (c) { area += Math.PI * c.r * c.r; });
+    gBio.innerHTML = Math.round(area).toLocaleString('en-US') + '<span class="unit"> µm²</span>';
+  }
+
+  /* ---------------- render loop ---------------- */
+  var lastT = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+    lastT = now;
+    ageSec += dt;
+
+    var i, j, c;
+    var doPhysics = driftOn && !reduced;
+
+    for (i = 0; i < cells.length; i++) {
+      c = cells[i];
+
+      if (doPhysics) {
+        c.ph += dt * c.wobble;
+        c.vx += Math.cos(c.ph * 1.3) * 2.2 * dt * 10;
+        c.vy += Math.sin(c.ph * 0.9) * 2.2 * dt * 10;
+        /* gentle damping */
+        c.vx *= 0.995;
+        c.vy *= 0.995;
+        var spd = Math.sqrt(c.vx * c.vx + c.vy * c.vy);
+        var maxSpd = 34;
+        if (spd > maxSpd) {
+          c.vx = c.vx / spd * maxSpd;
+          c.vy = c.vy / spd * maxSpd;
+        }
+        c.x += c.vx * dt;
+        c.y += c.vy * dt;
+        clampToDish(c);
+      }
+
+      /* mitosis animation */
+      if (c.dividing > 0) {
+        c.divideT += dt;
+        var p = Math.min(1, c.divideT / 1.5);
+        c.dividing = p;
+        /* elongate body along the chosen division axis */
+        var stretch = 1 + p * 0.55;
+        c.el.setAttribute('transform',
+          'translate(' + c.x.toFixed(1) + ' ' + c.y.toFixed(1) + ') rotate(' + c.divAngle + ') scale(1,' + stretch.toFixed(3) + ') rotate(' + (-c.divAngle) + ')');
+        if (p >= 1) {
+          finishDivision(c);
+          c.dividing = 0;
+          c.divAngle = 0;
+          c.el.removeAttribute('transform');
+        }
+        continue;
+      }
+
+      /* merge animation: pull toward partner */
+      if (c.mergeT > 0 && c.mergeWith) {
+        var partner = c.mergeWith;
+        if (cells.indexOf(partner) === -1) {
+          c.mergeT = 0;
+          c.mergeWith = null;
+        } else if (c.id < partner.id) {
+          var mp = Math.min(1, (c.mergeT += dt) / 0.8);
+          var mx = partner.x - c.x;
+          var my = partner.y - c.y;
+          c.x += mx * mp * 0.12;
+          c.y += my * mp * 0.12;
+          if (mp >= 1) { finishMerge(c, partner); }
+        }
+        continue;
+      }
+
+      /* idle breathing: nucleus drift + gentle radius pulse */
+      var pulse = 1 + Math.sin(c.ph * 1.7) * 0.02;
+      var nucOff = Math.sin(c.ph * 0.8) * c.r * 0.1;
+      c.body.setAttribute('r', (c.r * pulse).toFixed(1));
+      c.nucGrp.setAttribute('transform',
+        'translate(' + nucOff.toFixed(1) + ' ' + (Math.cos(c.ph * 0.6) * c.r * 0.08).toFixed(1) + ')');
+      c.el.setAttribute('transform', 'translate(' + c.x.toFixed(1) + ' ' + c.y.toFixed(1) + ')');
+    }
+
+    /* pairwise separation/merge checks (n is small, capped 26) */
+    if (doPhysics) {
+      for (i = 0; i < cells.length; i++) {
+        for (j = i + 1; j < cells.length; j++) {
+          separate(cells[i], cells[j]);
+        }
+      }
+    }
+
+    /* colony age + temp jitter */
+    var mm = Math.floor(ageSec / 60);
+    var ss = Math.floor(ageSec % 60);
+    gAge.innerHTML = mm + ':' + (ss < 10 ? '0' : '') + ss + '<span class="unit"> min</span>';
+    if (Math.random() < 0.02) {
+      tempRead.textContent = (36.2 + Math.random() * 1.1).toFixed(1) + '°C';
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- nutrient drop ---------------- */
+  $('feedBtn').addEventListener('click', function () {
+    /* nutrient pulse: cells get a brief growth spurt */
+    var smallest = null;
+    cells.forEach(function (c) {
+      if (!smallest || c.r < smallest.r) { smallest = c; }
+    });
+    if (smallest && smallest.r < 44) {
+      smallest.r = Math.min(46, smallest.r * 1.28);
+    }
+    /* sometimes trigger a spontaneous division */
+    var candidates = cells.filter(function (c) { return !c.dividing && c.mergeT === 0; });
+    if (candidates.length) {
+      startDivision(candidates[Math.floor(Math.random() * candidates.length)]);
+    }
+    liveEl.textContent = 'Nutrient dropped — the colony quickens.';
+    window.setTimeout(function () { scope.classList.remove('fed'); }, 600);
+  });
+
+  $('driftBtn').addEventListener('click', function (e) {
+    driftOn = !driftOn;
+    e.currentTarget.setAttribute('aria-pressed', String(driftOn));
+    e.currentTarget.textContent = driftOn ? 'Drift · On' : 'Drift · Off';
+    liveEl.textContent = driftOn ? 'Brownian drift resumed.' : 'Drift frozen for close inspection.';
+  });
+
+  $('resetBtn').addEventListener('click', function () {
+    ageSec = 0;
+    seed();
+  });
+
+  /* ---------------- pointer: divide on click ---------------- */
+  var downPos = null;
+  scope.addEventListener('pointerdown', function (e) {
+    var rect = scope.getBoundingClientRect();
+    downPos = {
+      x: (e.clientX - rect.left) / rect.width * VB,
+      y: (e.clientY - rect.top) / rect.height * VB
+    };
+  });
+  scope.addEventListener('pointerup', function (e) {
+    if (!downPos) { return; }
+    var rect = scope.getBoundingClientRect();
+    var p = {
+      x: (e.clientX - rect.left) / rect.width * VB,
+      y: (e.clientY - rect.top) / rect.height * VB
+    };
+    var moved = Math.hypot(p.x - downPos.x, p.y - downPos.y);
+    downPos = null;
+    if (moved > 12) { return; }
+    /* find topmost cell under pointer */
+    var hit = null;
+    var bestD = Infinity;
+    cells.forEach(function (c) {
+      var d = Math.hypot(p.x - c.x, p.y - c.y);
+      if (d < c.r * 1.15 && d < bestD) {
+        bestD = d;
+        hit = c;
+      }
+    });
+    if (hit) { startDivision(hit); }
+  });
+
+  window.addEventListener('pagehide', function () {
+    /* rAF self-terminates on unload; nothing persistent to clean */
+  });
+
+  seed();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Rose Window — the great gothic rose of a cathedral transept. Drag the sun across the sky and watch jewel-toned glass deepen, flare and pass into candlelight.">
+<title>Rose Window — The Light of the Transept</title>
+<style>
+  :root{
+    --cobalt:#274690;
+    --ruby:#8e2c3a;
+    --amber:#d9a441;
+    --emerald:#2e6e4e;
+    --lead:#1a1a1a;
+    --stone:#b7b2a8;
+    --stone-2:#8f887c;
+    --stone-3:#6a645a;
+    --sky-a:#1c2a4a;
+    --sky-b:#0a0e1c;
+    --ink-warm:#f3e9d2;
+    --ink-dim:rgba(243,233,210,.66);
+    --candle:#ffb54d;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--amber); color:#241c10; }
+  html{ scrollbar-color:var(--stone-3) var(--sky-b); }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:var(--sky-b); }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(var(--stone-2), var(--stone-3)); border-radius:6px; border:2px solid var(--sky-b); }
+
+  body{
+    min-height:100vh;
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    color:var(--ink-warm);
+    background:
+      radial-gradient(150% 110% at 50% -8%, var(--sky-a) 0%, var(--sky-b) 62%, #05070f 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* faint stone wall behind everything */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:.16; z-index:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(183,178,168,.14) 0 1px, transparent 1px 46px),
+      repeating-linear-gradient(90deg, rgba(183,178,168,.1) 0 1px, transparent 1px 92px),
+      repeating-linear-gradient(90deg, rgba(183,178,168,.05) 46px 47px, transparent 47px 92px);
+  }
+  header.lintel, main, footer.sill{ position:relative; z-index:1; }
+
+  header.lintel{ text-align:center; padding:clamp(22px, 4vw, 48px) 16px 0; }
+  .lintel-eyebrow{
+    font-size:clamp(.6rem, 1.4vw, .72rem);
+    letter-spacing:.5em; text-indent:.5em; text-transform:uppercase;
+    color:var(--amber);
+  }
+  h1{
+    margin-top:10px;
+    font-size:clamp(1.9rem, 6vw, 3.7rem);
+    font-weight:700;
+    letter-spacing:.26em; text-indent:.26em;
+    text-transform:uppercase;
+    color:var(--stone);
+    text-shadow:0 2px 0 rgba(0,0,0,.55), 0 0 34px rgba(217,164,65,.14);
+    line-height:1.12;
+  }
+  .lintel-sub{
+    margin-top:12px;
+    font-style:italic;
+    font-size:clamp(.85rem, 2vw, 1.02rem);
+    color:var(--ink-dim);
+    max-width:56ch; margin-left:auto; margin-right:auto;
+    line-height:1.65;
+  }
+
+  main{
+    max-width:1160px; margin:0 auto;
+    padding:clamp(14px, 2.4vw, 30px) clamp(10px, 2vw, 24px) clamp(40px, 6vw, 72px);
+    display:flex; flex-direction:column; align-items:center; gap:clamp(14px, 2.4vw, 24px);
+  }
+
+  .rosewrap{
+    width:min(92vw, 860px);
+    position:relative;
+    border-radius:14px;
+    padding:clamp(8px, 1.6vw, 18px);
+    background:
+      radial-gradient(120% 120% at 50% 0%, rgba(183,178,168,.12), rgba(0,0,0,.32));
+    box-shadow:
+      0 34px 80px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(183,178,168,.28);
+  }
+  .rosewrap::before{ /* carved arch shadow above */
+    content:""; position:absolute; top:-2px; left:8%; right:8%; height:26px;
+    background:linear-gradient(180deg, rgba(183,178,168,.2), transparent);
+    border-radius:0 0 50% 50% / 0 0 100% 100%;
+    pointer-events:none;
+  }
+  #rose{ display:block; width:100%; height:auto; touch-action:none; }
+  #rose .pane{ cursor:pointer; }
+  #rose .pane .glass{ transition:opacity .18s ease; }
+  #rose .pane:hover .flare{ opacity:.32; }
+  #rose .pane:focus{ outline:none; }
+  #rose .pane:focus .flare{ opacity:.32; }
+  #rose text{ user-select:none; }
+  #sunHandle{ cursor:grab; }
+  #sunHandle:active{ cursor:grabbing; }
+  #sunHandle:focus{ outline:none; }
+  #sunHandle:focus .sun-halo{ opacity:.95; }
+
+  .caption{
+    min-height:2.1em; text-align:center;
+    display:flex; flex-direction:column; gap:3px; align-items:center;
+  }
+  .dedication{
+    font-variant:small-caps; letter-spacing:.3em; text-indent:.3em;
+    font-size:clamp(1rem, 2.4vw, 1.3rem);
+    color:var(--amber);
+    transition:opacity .25s ease;
+  }
+  .dedication .virtue{ font-style:italic; text-transform:none; letter-spacing:.06em; color:var(--ink-warm); }
+  .pane-hint{
+    font-size:clamp(.68rem, 1.6vw, .8rem);
+    letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+
+  .plinth{
+    width:min(94vw, 720px);
+    border:1px solid rgba(183,178,168,.35);
+    border-radius:12px;
+    background:
+      linear-gradient(180deg, rgba(183,178,168,.14), rgba(0,0,0,.34)),
+      repeating-linear-gradient(0deg, rgba(183,178,168,.06) 0 1px, transparent 1px 9px);
+    box-shadow:0 16px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(183,178,168,.3);
+    padding:clamp(14px, 2.4vw, 24px) clamp(14px, 3vw, 30px);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .plinth-top{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;
+  }
+  .hour{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.95rem, 2.4vw, 1.15rem);
+    letter-spacing:.16em;
+    color:var(--ink-warm);
+  }
+  .office{
+    font-variant:small-caps; letter-spacing:.24em;
+    font-size:clamp(.85rem, 2vw, 1.05rem);
+    color:var(--amber);
+  }
+  .suntrack{
+    position:relative; height:34px; margin:2px 0;
+    border-radius:17px;
+    background:
+      linear-gradient(90deg,
+        #101830 0%, #232a52 12%, #6e3a55 26%, #c97b4a 34%,
+        #7fa7d9 44%, #bcd3ea 50%, #7fa7d9 56%, #c97b4a 66%,
+        #6e3a55 74%, #232a52 88%, #101830 100%);
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.55), inset 0 -1px 0 rgba(183,178,168,.2);
+  }
+  .suntrack::before{
+    content:""; position:absolute; left:50%; top:0; bottom:0; width:1px;
+    background:rgba(243,233,210,.35);
+  }
+  .suntrack .tick{
+    position:absolute; top:50%; width:5px; height:5px; margin:-2.5px;
+    border-radius:50%; background:rgba(243,233,210,.5);
+    transform:translate(-50%, -50%);
+  }
+  .sun-knob{
+    position:absolute; top:50%; left:50%;
+    width:26px; height:26px; margin:-13px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffe9ae, var(--amber) 55%, #8a6a24);
+    box-shadow:0 0 12px rgba(217,164,65,.75), 0 2px 6px rgba(0,0,0,.5);
+    border:none; padding:0; cursor:pointer;
+    transform:translate(-50%, -50%);
+    transition:box-shadow .25s ease;
+  }
+  .sun-knob:hover{ box-shadow:0 0 18px rgba(217,164,65,.95), 0 2px 6px rgba(0,0,0,.5); }
+  .sun-knob:focus-visible{ outline:2px dashed var(--ink-warm); outline-offset:3px; }
+  .track-labels{
+    display:flex; justify-content:space-between;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.62rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .plinth-actions{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .act{
+    font-family:Georgia, ui-serif, serif;
+    font-variant:small-caps; letter-spacing:.22em; text-indent:.1em;
+    font-size:clamp(.78rem, 1.8vw, .9rem);
+    color:var(--ink-warm);
+    background:linear-gradient(180deg, rgba(183,178,168,.22), rgba(0,0,0,.3));
+    border:1px solid rgba(183,178,168,.45);
+    border-radius:10px;
+    padding:11px 20px;
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(243,233,210,.22), 0 4px 12px rgba(0,0,0,.4);
+    transition:transform .18s ease, filter .18s ease, box-shadow .25s ease;
+    touch-action:manipulation;
+    min-height:44px;
+  }
+  .act:hover{ transform:translateY(-2px); filter:brightness(1.15); }
+  .act:focus-visible{ outline:2px dashed var(--amber); outline-offset:3px; }
+  .act[aria-pressed="true"]{
+    color:#241c10;
+    background:linear-gradient(180deg, #ffe1a0, var(--amber) 70%, #a87f2c);
+    border-color:#8a6a24;
+    box-shadow:0 0 18px rgba(217,164,65,.45), inset 0 1px 0 rgba(255,240,200,.6);
+  }
+  .plinth-note{
+    text-align:center; font-style:italic;
+    font-size:.78rem; color:var(--ink-dim); line-height:1.6;
+  }
+
+  footer.sill{
+    max-width:1160px; margin:0 auto;
+    padding:0 16px clamp(30px, 5vw, 56px);
+    text-align:center;
+    color:var(--ink-dim); font-style:italic; font-size:.85rem;
+  }
+  footer.sill .sig{
+    display:block; margin-top:8px;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-style:normal; font-size:.62rem; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(217,164,65,.55);
+  }
+
+  @media (max-width:560px){
+    .plinth-actions{ flex-direction:column; }
+    .act{ width:100%; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .act, .sun-knob, .dedication{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="lintel">
+  <p class="lintel-eyebrow">The Transept · South Wall · Anno Domini MCCXIV</p>
+  <h1>Rose Window</h1>
+  <p class="lintel-sub">The master glazier set twelve hundred pieces of glass into stone, so that the faithful might read the light the way they read the psalter — one jewel at a time. Drag the sun across the sky; the glass will answer.</p>
+</header>
+
+<main>
+  <div class="rosewrap">
+    <svg id="rose" viewBox="0 0 1200 1000" role="img"
+      aria-label="A gothic rose window. The sun can be dragged around it; glass panes brighten and deepen as the light moves."></svg>
+  </div>
+
+  <div class="caption" aria-live="polite">
+    <p class="dedication" id="dedication">Lux Nova</p>
+    <p class="pane-hint" id="paneHint">Hover a pane to read its dedication · drag the sun to change the hour</p>
+  </div>
+
+  <section class="plinth" aria-label="Light controls">
+    <div class="plinth-top">
+      <span class="hour" id="hourRead">Hour VI · 06:00</span>
+      <span class="office" id="officeRead">Lauds</span>
+    </div>
+    <div class="suntrack" id="suntrack">
+      <span class="tick" style="left:0%"></span>
+      <span class="tick" style="left:25%"></span>
+      <span class="tick" style="left:50%"></span>
+      <span class="tick" style="left:75%"></span>
+      <span class="tick" style="left:100%"></span>
+      <button class="sun-knob" id="sunKnob" type="button" role="slider"
+        aria-label="Hour of daylight" aria-valuemin="0" aria-valuemax="24" aria-valuenow="6"
+        aria-valuetext="Hour VI, 06:00, Lauds"></button>
+    </div>
+    <div class="track-labels">
+      <span>Midnight</span><span>Dawn</span><span>Noon</span><span>Dusk</span><span>Midnight</span>
+    </div>
+    <div class="plinth-actions">
+      <button class="act" id="candleBtn" type="button" aria-pressed="false">Candlelight</button>
+      <button class="act" id="dayBtn" type="button" aria-pressed="true">Let the Day Pass</button>
+    </div>
+    <p class="plinth-note">When the sun is set, the west windows go dark and the glass reads by reflection. At night, only the candles speak — strike them and the window glows from within.</p>
+  </section>
+</main>
+
+<footer class="sill">
+  Restored 1893 by Messrs. Clayton &amp; Bell, after the fire of 1881. Do not lean against the tracery.
+  <span class="sig">Every pane drawn by mathematics · No window was broken in the making of this page</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var SVGNS = "http" + ":" + "/" + "/www.w3.org/2000/svg";
+  var svg = document.getElementById("rose");
+  var CX = 600, CY = 500;
+
+  function el(name, attrs, parent) {
+    var n = document.createElementNS(SVGNS, name);
+    for (var k in attrs) { n.setAttribute(k, attrs[k]); }
+    (parent || svg).appendChild(n);
+    return n;
+  }
+  function polar(r, deg) {
+    var a = deg * Math.PI / 180;
+    return [CX + Math.cos(a) * r, CY - Math.sin(a) * r];
+  }
+
+  /* ---------- defs: glass gradients, filters, inscription path ---------- */
+  var defs = el("defs", {});
+  function radialGrad(id, inner, mid, outer) {
+    var g = el("radialGradient", { id: id, cx: "38%", cy: "34%", r: "78%" }, defs);
+    el("stop", { offset: "0%", "stop-color": inner }, g);
+    el("stop", { offset: "55%", "stop-color": mid }, g);
+    el("stop", { offset: "100%", "stop-color": outer }, g);
+  }
+  radialGrad("g-cobalt", "#3f63b8", "#274690", "#152a5e");
+  radialGrad("g-ruby", "#b8505f", "#8e2c3a", "#4e151f");
+  radialGrad("g-amber", "#f0c96a", "#d9a441", "#8a6118");
+  radialGrad("g-emerald", "#4f9a70", "#2e6e4e", "#123526");
+  radialGrad("g-violet", "#7a5fa0", "#4a3572", "#211536");
+  radialGrad("g-white", "#fdf6e4", "#e8dcc0", "#b3a88e");
+  radialGrad("g-sun", "#fff6d8", "#ffd97a", "#c98f2a");
+
+  var inscPath = el("path", {
+    id: "insc", fill: "none",
+    d: "M " + (CX + 486) + " " + CY + " A 486 486 0 1 1 " + (CX - 486) + " " + CY + " A 486 486 0 1 1 " + (CX + 486) + " " + CY
+  }, defs);
+
+  var flareGrad = el("radialGradient", { id: "g-flare", cx: "50%", cy: "42%", r: "65%" }, defs);
+  el("stop", { offset: "0%", "stop-color": "#ffffff", "stop-opacity": ".85" }, flareGrad);
+  el("stop", { offset: "100%", "stop-color": "#ffffff", "stop-opacity": "0" }, flareGrad);
+
+  /* ---------- dedication vocabulary ---------- */
+  var OUTER_NAMES = ["Matthias", "Andreas", "Iacobus", "Ioannes", "Petrus", "Paulus", "Thomas", "Iacobus Minor", "Simon", "Thaddaeus", "Philippus", "Bartholomaeus", "Stephanus", "Agatha", "Lucia", "Cecilia", "Agnes", "Margareta", "Nicholaus", "Martinus", "Laurentius", "Benedictus", "Scholastica", "Katharina"];
+  var PETAL_NAMES = ["Caritas", "Spes", "Fides", "Temperantia", "Fortitudo", "Iustitia", "Prudentia", "Humilitas", "Patientia", "Benignitas", "Mansuetudo", "Veritas"];
+  var INNER_NAMES = ["Luna", "Mercurius", "Venus", "Sol", "Mars", "Iupiter", "Saturnus", "Stellae", "Nubes", "Pluvia", "Roris", "Aurora"];
+
+  /* ---------- pane registry ---------- */
+  var panes = [];   /* {midDeg, rFrac, glassEl, shadeEl, glowEl, group, name} */
+  var glassLayer = el("g", { "stroke-linejoin": "round" });
+  var leadLayer;
+  var paneLayer;
+
+  function registerPane(group, glass, shade, glow, midDeg, rFrac, name) {
+    panes.push({ group: group, glass: glass, shade: shade, glow: glow, midDeg: midDeg, rFrac: rFrac, name: name });
+  }
+
+  function wedgePath(r0, r1, a0, a1) {
+    var p0 = polar(r1, a0), p1 = polar(r1, a1), p2 = polar(r0, a1), p3 = polar(r0, a0);
+    var large = (a1 - a0) > 180 ? 1 : 0;
+    return "M " + p0[0].toFixed(1) + " " + p0[1].toFixed(1) +
+      " A " + r1 + " " + r1 + " 0 " + large + " 0 " + p1[0].toFixed(1) + " " + p1[1].toFixed(1) +
+      " L " + p2[0].toFixed(1) + " " + p2[1].toFixed(1) +
+      " A " + r0 + " " + r0 + " 0 " + large + " 1 " + p3[0].toFixed(1) + " " + p3[1].toFixed(1) + " Z";
+  }
+  function petalPath(r0, r1, a0, a1) {
+    var b0 = polar(r0, a0), b1 = polar(r0, a1);
+    var apexDeg = (a0 + a1) / 2;
+    var apex = polar(r1, apexDeg);
+    var apexL = polar(r1 - 26, apexDeg - (a1 - a0) * 0.24);
+    var apexR = polar(r1 - 26, apexDeg + (a1 - a0) * 0.24);
+    return "M " + b0[0].toFixed(1) + " " + b0[1].toFixed(1) +
+      " A " + r0 + " " + r0 + " 0 0 0 " + b1[0].toFixed(1) + " " + b1[1].toFixed(1) +
+      " L " + apexR[0].toFixed(1) + " " + apexR[1].toFixed(1) +
+      " L " + apex[0].toFixed(1) + " " + apex[1].toFixed(1) +
+      " L " + apexL[0].toFixed(1) + " " + apexL[1].toFixed(1) + " Z";
+  }
+
+  function makePane(d, name, gradId) {
+    var g = el("g", { class: "pane", tabindex: "-1" }, glassLayer);
+    g.setAttribute("role", "img");
+    g.setAttribute("aria-label", name);
+    var glass = el("path", { d: d, fill: "url(#" + gradId + ")", stroke: "none" }, g);
+    var shade = el("path", { d: d, fill: "#060a14", opacity: "0" }, g);
+    var glow = el("path", { d: d, fill: "url(#g-flare)", opacity: "0" }, g);
+    return { group: g, glass: glass, shade: shade, glow: glow, name: name };
+  }
+
+  function seededPalette(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var prand = seededPalette(1214);
+
+  function buildWindow() {
+    /* --- stone backing disc --- */
+    el("circle", { cx: CX, cy: CY, r: 494, fill: "#9a948a" }, glassLayer);
+    el("circle", { cx: CX, cy: CY, r: 494, fill: "none", stroke: "#57524a", "stroke-width": 6 });
+
+    /* --- outer ring: 24 wedges, r 336..462 --- */
+    var nA = 24, i, grad;
+    var outerAlts = ["g-cobalt", "g-ruby", "g-cobalt", "g-emerald", "g-ruby", "g-cobalt"];
+    for (i = 0; i < nA; i++) {
+      var a0 = i * (360 / nA), a1 = a0 + 360 / nA;
+      grad = (i % 6 === 3) ? "g-amber" : outerAlts[i % outerAlts.length];
+      if (prand() < 0.14) { grad = "g-white"; }
+      var p = makePane(wedgePath(336, 462, a0 + 0.6, a1 - 0.6), OUTER_NAMES[i], grad);
+      p.midDeg = a0 + 180 / nA; p.rFrac = (336 + 462) / 2 / 462;
+      p.group.dataset = p.group.dataset || {};
+      registerPane(p.group, p.glass, p.shade, p.glow, p.midDeg, p.rFrac, OUTER_NAMES[i]);
+    }
+
+    /* --- stone band with quatrefoils, r 318..336 --- */
+    el("circle", { cx: CX, cy: CY, r: 327, fill: "none", stroke: "#8f887c", "stroke-width": 18 });
+    el("circle", { cx: CX, cy: CY, r: 327, fill: "none", stroke: "#57524a", "stroke-width": 1.4 });
+    for (i = 0; i < nA; i++) {
+      var q = polar(327, i * 15 + 7.5);
+      el("circle", { cx: q[0].toFixed(1), cy: q[1].toFixed(1), r: 4.6, fill: "#6a645a", stroke: "#57524a", "stroke-width": 1 }, glassLayer);
+    }
+
+    /* --- petal ring: 12 pointed lancets, r 196..316 --- */
+    var nB = 12;
+    var petalAlts = ["g-emerald", "g-violet", "g-amber", "g-cobalt", "g-ruby", "g-emerald"];
+    for (i = 0; i < nB; i++) {
+      var b0 = i * (360 / nB), b1 = b0 + 360 / nB;
+      grad = petalAlts[i % petalAlts.length];
+      if (prand() < 0.16) { grad = "g-white"; }
+      var pb = makePane(petalPath(196, 316, b0 + 1.6, b1 - 1.6), PETAL_NAMES[i], grad);
+      pb.midDeg = b0 + 180 / nB; pb.rFrac = (196 + 300) / 2 / 462;
+      registerPane(pb.group, pb.glass, pb.shade, pb.glow, pb.midDeg, pb.rFrac, PETAL_NAMES[i]);
+    }
+
+    /* --- inner ring: 12 wedges offset, r 112..196 --- */
+    var nC = 12;
+    var innerAlts = ["g-ruby", "g-cobalt", "g-amber", "g-cobalt", "g-emerald", "g-ruby"];
+    for (i = 0; i < nC; i++) {
+      var c0 = i * (360 / nC) + 15, c1 = c0 + 360 / nC;
+      grad = innerAlts[i % innerAlts.length];
+      if (prand() < 0.12) { grad = "g-white"; }
+      var pc = makePane(wedgePath(112, 196, c0 + 1, c1 - 1), INNER_NAMES[i], grad);
+      pc.midDeg = c0 + 180 / nC; pc.rFrac = (112 + 190) / 2 / 462;
+      registerPane(pc.group, pc.glass, pc.shade, pc.glow, pc.midDeg, pc.rFrac, INNER_NAMES[i]);
+    }
+
+    /* --- center rosette: 6 panes + medallion --- */
+    var nD = 6;
+    for (i = 0; i < nD; i++) {
+      var d0 = i * (360 / nD), d1 = d0 + 360 / nD;
+      grad = (i % 2 === 0) ? "g-ruby" : "g-cobalt";
+      var pd = makePane(wedgePath(42, 112, d0 + 1.4, d1 - 1.4), "Lux Aeterna", grad);
+      pd.midDeg = d0 + 30; pd.rFrac = (42 + 108) / 2 / 462;
+      registerPane(pd.group, pd.glass, pd.shade, pd.glow, pd.midDeg, pd.rFrac, "Lux Aeterna");
+    }
+    var med = makePane("M " + (CX - 42) + " " + CY + " a 42 42 0 1 0 84 0 a 42 42 0 1 0 -84 0", "Lux Aeterna", "g-amber");
+    med.midDeg = 90; med.rFrac = 42 / 462;
+    registerPane(med.group, med.glass, med.shade, med.glow, 90, 42 / 462, "Lux Aeterna");
+  }
+
+  buildWindow();
+
+  /* ---------- lead tracery on top of glass ---------- */
+  leadLayer = el("g", { stroke: "#1a1a1a", fill: "none" });
+  el("circle", { cx: CX, cy: CY, r: 462, "stroke-width": 7 }, leadLayer);
+  el("circle", { cx: CX, cy: CY, r: 336, "stroke-width": 6 }, leadLayer);
+  el("circle", { cx: CX, cy: CY, r: 318, "stroke-width": 3 }, leadLayer);
+  el("circle", { cx: CX, cy: CY, r: 196, "stroke-width": 6 }, leadLayer);
+  el("circle", { cx: CX, cy: CY, r: 112, "stroke-width": 5 }, leadLayer);
+  el("circle", { cx: CX, cy: CY, r: 42, "stroke-width": 4 }, leadLayer);
+  var i2;
+  for (i2 = 0; i2 < 24; i2++) {
+    var sp0 = polar(336, i2 * 15), sp1 = polar(462, i2 * 15);
+    el("line", { x1: sp0[0].toFixed(1), y1: sp0[1].toFixed(1), x2: sp1[0].toFixed(1), y2: sp1[1].toFixed(1), "stroke-width": 4 }, leadLayer);
+  }
+  for (i2 = 0; i2 < 12; i2++) {
+    var tp0 = polar(196, i2 * 30), tp1 = polar(336, i2 * 30);
+    el("line", { x1: tp0[0].toFixed(1), y1: tp0[1].toFixed(1), x2: tp1[0].toFixed(1), y2: tp1[1].toFixed(1), "stroke-width": 5 }, leadLayer);
+  }
+  for (i2 = 0; i2 < 12; i2++) {
+    var ip0 = polar(112, i2 * 30 + 15), ip1 = polar(196, i2 * 30 + 15);
+    el("line", { x1: ip0[0].toFixed(1), y1: ip0[1].toFixed(1), x2: ip1[0].toFixed(1), y2: ip1[1].toFixed(1), "stroke-width": 3.4 }, leadLayer);
+  }
+  for (i2 = 0; i2 < 6; i2++) {
+    var cp0 = polar(42, i2 * 60), cp1 = polar(112, i2 * 60);
+    el("line", { x1: cp0[0].toFixed(1), y1: cp0[1].toFixed(1), x2: cp1[0].toFixed(1), y2: cp1[1].toFixed(1), "stroke-width": 3.4 }, leadLayer);
+  }
+  /* small lead crosses at petal tips */
+  for (i2 = 0; i2 < 12; i2++) {
+    var tip = polar(304, i2 * 30 + 15);
+    el("line", { x1: (tip[0] - 7).toFixed(1), y1: tip[1].toFixed(1), x2: (tip[0] + 7).toFixed(1), y2: tip[1].toFixed(1), "stroke-width": 2.6 }, leadLayer);
+    el("line", { x1: tip[0].toFixed(1), y1: (tip[1] - 7).toFixed(1), x2: tip[0].toFixed(1), y2: (tip[1] + 7).toFixed(1), "stroke-width": 2.6 }, leadLayer);
+  }
+
+  /* ---------- inscription ring ---------- */
+  var inscText = el("text", {
+    "font-family": "Georgia, serif", "font-size": "21",
+    fill: "#e8dcc0", "letter-spacing": "6",
+    style: "font-variant:small-caps;text-transform:lowercase"
+  }, leadLayer);
+  var inscTP = el("textPath", { href: "#insc", startOffset: "0", textLength: "3040", lengthAdjust: "spacingAndGlyphs" }, inscText);
+  inscTP.textContent = "· lux in tenebris lucet · domus est illuminatio mea · qui sequitur lucem non ambulat in tenebris · ora pro vitreis huius ecclesiae ·";
+
+  /* ---------- sun ---------- */
+  var skyLayer = el("g", {});
+  svg.insertBefore(skyLayer, svg.firstChild);
+  var sunHalo = el("circle", { class: "sun-halo", cx: CX, cy: CY - 545, r: 64, fill: "url(#g-flare)", opacity: "0.8" }, skyLayer);
+  var sunDisc = el("g", { id: "sunHandle", role: "slider", tabindex: "0",
+    "aria-label": "Position of the sun — drag or use arrow keys",
+    "aria-valuemin": "0", "aria-valuemax": "24", "aria-valuenow": "6" }, skyLayer);
+  el("circle", { cx: CX, cy: CY - 545, r: 30, fill: "url(#g-sun)" }, sunDisc);
+  var i3, ray;
+  for (i3 = 0; i3 < 12; i3++) {
+    var ra = i3 * 30 * Math.PI / 180;
+    var rx0 = CX + Math.cos(ra) * 36, ry0 = (CY - 545) + Math.sin(ra) * 36;
+    var rx1 = CX + Math.cos(ra) * 46, ry1 = (CY - 545) + Math.sin(ra) * 46;
+    ray = el("line", { x1: rx0.toFixed(1), y1: ry0.toFixed(1), x2: rx1.toFixed(1), y2: ry1.toFixed(1), stroke: "#d9a441", "stroke-width": 3, "stroke-linecap": "round" }, sunDisc);
+  }
+
+  var ORBIT = 545;
+  var angleDeg = 0;   /* -90 = midnight (bottom), 0 = 6h east, 90 = noon, 180 = 18h west */
+  function placeSun() {
+    var a = angleDeg * Math.PI / 180;
+    var x = CX + Math.cos(a) * ORBIT;
+    var y = CY - Math.sin(a) * ORBIT;
+    if (y > CY + ORBIT * 0.86) { y = CY + ORBIT * 0.86; } /* keep handle inside the viewBox */
+    sunDisc.setAttribute("transform", "translate(" + (x - CX).toFixed(1) + " " + (y - (CY - 545)).toFixed(1) + ")");
+    sunHalo.setAttribute("cx", x.toFixed(1));
+    sunHalo.setAttribute("cy", y.toFixed(1));
+    sunHalo.setAttribute("opacity", (Math.sin(a) < -0.05 ? 0.25 : 0.8).toFixed(2));
+  }
+
+  /* ---------- sky palette by hour ---------- */
+  var SKY = [
+    { h: 0,  a: "#0b1024", b: "#05070f" },
+    { h: 5,  a: "#1c2a4a", b: "#0a0e1c" },
+    { h: 7,  a: "#8a4b58", b: "#2a1e38" },
+    { h: 9,  a: "#5f7fae", b: "#22304e" },
+    { h: 13, a: "#7ea3cf", b: "#2c3f63" },
+    { h: 17, a: "#b3765a", b: "#3a2a44" },
+    { h: 19, a: "#4a3560", b: "#151026" },
+    { h: 21, a: "#131a34", b: "#070a16" },
+    { h: 24, a: "#0b1024", b: "#05070f" }
+  ];
+  function skyFor(hour) {
+    var i;
+    for (i = 0; i < SKY.length - 1; i++) {
+      if (hour >= SKY[i].h && hour <= SKY[i + 1].h) {
+        var t = (hour - SKY[i].h) / (SKY[i + 1].h - SKY[i].h);
+        return [mix(SKY[i].a, SKY[i + 1].a, t), mix(SKY[i].b, SKY[i + 1].b, t)];
+      }
+    }
+    return [SKY[0].a, SKY[0].b];
+  }
+  function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+  function mix(c1, c2, t) {
+    var a = hex(c1), b = hex(c2);
+    var r = Math.round(a[0] + (b[0] - a[0]) * t);
+    var g = Math.round(a[1] + (b[1] - a[1]) * t);
+    var bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
+
+  /* ---------- canonical hours ---------- */
+  var OFFICES = [[0, "Compline"], [3, "Nocturns"], [6, "Lauds"], [9, "Prime"], [12, "Sext"], [15, "None"], [18, "Vespers"], [21, "Compline"]];
+  var ROMANH = ["XII", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
+  function officeFor(hour) {
+    var name = OFFICES[0][1];
+    for (var i = 0; i < OFFICES.length; i++) {
+      if (hour >= OFFICES[i][0]) { name = OFFICES[i][1]; }
+    }
+    return name;
+  }
+
+  /* ---------- lighting engine ---------- */
+  var candle = false;
+  var flicker = 0.5;
+  var hourRead = document.getElementById("hourRead");
+  var officeRead = document.getElementById("officeRead");
+  var knob = document.getElementById("sunKnob");
+
+  function hourFromAngle(deg) {
+    var h = ((deg + 90) / 15) % 24;
+    if (h < 0) { h += 24; }
+    return h;
+  }
+  function applyLight() {
+    var hour = hourFromAngle(angleDeg);
+    var sky = skyFor(hour);
+    document.documentElement.style.setProperty("--sky-a", sky[0]);
+    document.documentElement.style.setProperty("--sky-b", sky[1]);
+    var a = angleDeg * Math.PI / 180;
+    var elevation = Math.sin(a);            /* -1..1 */
+    var sunUp = elevation > -0.06;
+    var hourTxt;
+    var hh = Math.floor(hour), mm = Math.round((hour - hh) * 60);
+    if (mm === 60) { hh = (hh + 1) % 24; mm = 0; }
+    var roman = ROMANH[(hh + 11) % 12];
+    hourTxt = "Hour " + roman + " · " + (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+    hourRead.textContent = hourTxt;
+    officeRead.textContent = officeFor(hour);
+    sunDisc.setAttribute("aria-valuenow", String(Math.round(hour)));
+    sunDisc.setAttribute("aria-valuetext", hourTxt + ", " + officeFor(hour));
+    knob.setAttribute("aria-valuenow", String(Math.round(hour)));
+    knob.setAttribute("aria-valuetext", hourTxt + ", " + officeFor(hour));
+    knob.style.left = (hour / 24 * 100).toFixed(2) + "%";
+
+    var n = panes.length, p;
+    if (candle) {
+      for (var i = 0; i < n; i++) {
+        p = panes[i];
+        var inner = Math.max(0, 1 - p.rFrac);
+        var warm = Math.min(1, 0.18 + inner * 0.9 * (0.82 + 0.18 * flicker));
+        p.shade.setAttribute("fill", "#2a1806");
+        p.shade.setAttribute("opacity", ((1 - warm) * 0.92).toFixed(3));
+        p.glow.setAttribute("opacity", (inner * 0.5 * (0.8 + 0.2 * flicker)).toFixed(3));
+      }
+      return;
+    }
+    var ambient = sunUp ? (0.3 + 0.7 * Math.max(0, elevation)) : 0.06;
+    for (var j = 0; j < n; j++) {
+      p = panes[j];
+      var paneRad = p.midDeg * Math.PI / 180;
+      var facing = Math.cos(paneRad - a);
+      var lit = ambient * (0.34 + 0.66 * Math.max(0, facing));
+      var flare = (sunUp && facing > 0.9) ? (facing - 0.9) * 4 * ambient : 0;
+      p.shade.setAttribute("fill", sunUp ? "#060a14" : "#04060c");
+      p.shade.setAttribute("opacity", (Math.min(0.94, 1 - lit)).toFixed(3));
+      p.glow.setAttribute("opacity", flare.toFixed(3));
+    }
+  }
+
+  /* ---------- interactions ---------- */
+  var dragging = false;
+  function pointerAngle(e) {
+    var rect = svg.getBoundingClientRect();
+    var vx = 1200 / rect.width;
+    var vy = 1000 / rect.height;
+    var x = (e.clientX - rect.left) * vx - CX;
+    var y = CY - (e.clientY - rect.top) * vy;
+    var d = Math.sqrt(x * x + y * y);
+    if (d < 330) { return null; } /* ignore pokes deep inside the glass */
+    return Math.atan2(y, x) * 180 / Math.PI;
+  }
+  svg.addEventListener("pointerdown", function (e) {
+    var a = pointerAngle(e);
+    if (a === null) { return; }
+    dragging = true;
+    setDayPass(false);
+    svg.setPointerCapture(e.pointerId);
+    setAngle(a);
+    e.preventDefault();
+  });
+  svg.addEventListener("pointermove", function (e) {
+    if (!dragging) { return; }
+    var a = pointerAngle(e);
+    if (a === null) { return; }
+    setAngle(a);
+  });
+  svg.addEventListener("pointerup", function () { dragging = false; });
+  svg.addEventListener("pointercancel", function () { dragging = false; });
+
+  function setAngle(deg) {
+    angleDeg = ((deg % 360) + 360) % 360 - 180; /* -180..180 */
+    placeSun();
+    applyLight();
+  }
+
+  sunDisc.addEventListener("keydown", function (e) {
+    var step = e.shiftKey ? 15 : 3.75;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") { setDayPass(false); setAngle(angleDeg - step); e.preventDefault(); }
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") { setDayPass(false); setAngle(angleDeg + step); e.preventDefault(); }
+  });
+  knob.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft") { setDayPass(false); setHour(hourFromAngle(angleDeg) - 0.5); e.preventDefault(); }
+    if (e.key === "ArrowRight") { setDayPass(false); setHour(hourFromAngle(angleDeg) + 0.5); e.preventDefault(); }
+  });
+  knob.addEventListener("pointerdown", function (e) {
+    var track = document.getElementById("suntrack");
+    function move(ev) {
+      var r = track.getBoundingClientRect();
+      var t = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+      setHour(t * 24);
+      ev.preventDefault();
+    }
+    function up() {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    move(e);
+  });
+  function setHour(h) {
+    h = ((h % 24) + 24) % 24;
+    setAngle(h * 15 - 90);
+  }
+
+  /* pane hover dedications */
+  var dedication = document.getElementById("dedication");
+  var paneHint = document.getElementById("paneHint");
+  glassLayer.addEventListener("pointerover", function (e) {
+    var g = e.target.closest("g.pane");
+    if (!g) { return; }
+    var name = g.getAttribute("aria-label");
+    dedication.innerHTML = "";
+    var nm = document.createElement("span");
+    nm.textContent = name;
+    var virt = document.createElement("span");
+    virt.className = "virtue";
+    virt.textContent = " — " + virtueOf(name);
+    dedication.appendChild(nm);
+    dedication.appendChild(virt);
+  });
+  glassLayer.addEventListener("focusin", function (e) {
+    var g = e.target.closest && e.target.closest("g.pane");
+    if (!g) { return; }
+    dedication.textContent = g.getAttribute("aria-label");
+  });
+  function virtueOf(name) {
+    var map = {
+      "Caritas": "love", "Spes": "hope", "Fides": "faith", "Temperantia": "temperance",
+      "Fortitudo": "courage", "Iustitia": "justice", "Prudentia": "wisdom",
+      "Humilitas": "humility", "Patientia": "patience", "Benignitas": "kindness",
+      "Mansuetudo": "gentleness", "Veritas": "truth", "Lux Aeterna": "light everlasting",
+      "Sol": "the sun itself", "Luna": "the moon", "Aurora": "the dawn"
+    };
+    if (map[name]) { return map[name]; }
+    if (OUTER_NAMES.indexOf(name) >= 0) { return "apostle and martyr"; }
+    return "a window of the inner ring";
+  }
+
+  /* candle + day controls */
+  var candleBtn = document.getElementById("candleBtn");
+  candleBtn.addEventListener("click", function () {
+    candle = !candle;
+    candleBtn.setAttribute("aria-pressed", String(candle));
+    if (candle) { setDayPass(false); paneHint.textContent = "The candles are lit — the window reads from within"; }
+    else { paneHint.textContent = "Hover a pane to read its dedication · drag the sun to change the hour"; }
+    applyLight();
+  });
+
+  var dayBtn = document.getElementById("dayBtn");
+  var dayPass = !RM;
+  var rafId = null;
+  function tick(now) {
+    if (!dayPass) { rafId = null; return; }
+    angleDeg += 0.055;
+    if (angleDeg > 180) { angleDeg -= 360; }
+    placeSun();
+    applyLight();
+    if (candle) { flicker = 0.5 + 0.5 * Math.sin(now * 0.006) * Math.sin(now * 0.0023 + 1.7); }
+    rafId = requestAnimationFrame(tick);
+  }
+  function setDayPass(on) {
+    dayPass = on;
+    dayBtn.setAttribute("aria-pressed", String(on));
+    if (on && rafId === null) { rafId = requestAnimationFrame(tick); }
+  }
+  dayBtn.addEventListener("click", function () { setDayPass(!dayPass); });
+
+  /* candle flicker while candle mode is on and day-pass off */
+  if (!RM) {
+    (function flickLoop(now) {
+      if (candle && !dayPass) {
+        flicker = 0.5 + 0.5 * Math.sin(now * 0.006) * Math.sin(now * 0.0023 + 1.7);
+        applyLight();
+      }
+      requestAnimationFrame(flickLoop);
+    })(0);
+  }
+
+  /* initial state: shortly after dawn */
+  setHour(6.4);
+  setDayPass(!RM);
+})();
+</script>
+</body>
+</html>

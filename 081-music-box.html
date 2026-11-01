@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DANSEURS — A Mechanical Music Box</title>
+<meta name="description" content="A brass-pinned music box: hold the key to wind the spring, release to let the cylinder pluck its comb note by note while the ballerina waltzes. Slow-motion reveals the mechanism.">
+<style>
+/* ============================================================
+   DANSEURS — 081
+   Hold to wind. Release to play. The cylinder remembers the tune.
+   ============================================================ */
+
+:root {
+  --walnut: #4a3524;
+  --walnut-deep: #33241636;
+  --walnut-dark: #33241a;
+  --walnut-hi: #5f4630;
+  --brass: #c9a227;
+  --brass-hi: #e9cd6d;
+  --brass-dark: #8a6d1c;
+  --velvet: #6e1423;
+  --velvet-deep: #520e19;
+  --ivory: #f3e9d8;
+  --silver: #d9dde2;
+  --ink: #2b2016;
+  --ink-soft: rgba(243, 233, 216, 0.62);
+  --paper: #efe6d2;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #2a2018;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #3a2c1e 0%, #241a12 58%, #170f09 100%);
+  color: var(--ivory);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 3vh, 40px) clamp(12px, 3vw, 40px);
+}
+
+::selection {
+  background: var(--brass);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   HALL — the centered ritual
+   ------------------------------------------------------------ */
+
+.hall {
+  width: min(1020px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2.4vh, 26px);
+}
+
+/* brass plate header */
+.plate-head {
+  text-align: center;
+  padding: clamp(10px, 1.8vh, 18px) clamp(20px, 4vw, 46px);
+  border-radius: 8px;
+  background:
+    linear-gradient(170deg, var(--brass-hi) 0%, var(--brass) 38%, var(--brass-dark) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 200, 0.8),
+    inset 0 -2px 6px rgba(60, 42, 8, 0.55),
+    0 12px 30px rgba(0, 0, 0, 0.5);
+  color: var(--ink);
+  position: relative;
+}
+
+.screw {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f4e3a1, #8a6d1c 75%);
+  box-shadow: inset 0 -1px 1px rgba(0,0,0,0.5);
+}
+
+.screw.s1 { left: 8px; top: 8px; }
+.screw.s2 { right: 8px; top: 8px; }
+.screw.s3 { left: 8px; bottom: 8px; }
+.screw.s4 { right: 8px; bottom: 8px; }
+
+.plate-head h1 {
+  font-weight: 600;
+  font-size: clamp(1.7rem, 5vw, 3.1rem);
+  letter-spacing: 0.34em;
+  line-height: 1.05;
+  text-indent: 0.34em;
+  color: #3a2c08;
+  text-shadow: 0 1px 0 rgba(255, 244, 200, 0.55), 0 -1px 1px rgba(60, 42, 8, 0.6);
+}
+
+.plate-head p {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: clamp(8.5px, 1.2vw, 10.5px);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(58, 44, 8, 0.78);
+}
+
+/* ------------------------------------------------------------
+   THE CASE
+   ------------------------------------------------------------ */
+
+.case {
+  width: 100%;
+  border-radius: 14px;
+  padding: clamp(10px, 1.6vw, 18px);
+  background:
+    linear-gradient(180deg, var(--walnut-hi) 0%, var(--walnut) 30%, var(--walnut-dark) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 226, 170, 0.18),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.55),
+    0 30px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+/* wood grain overlay */
+.case::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(178deg,
+      rgba(255, 220, 160, 0.045) 0 2px,
+      transparent 2px 7px,
+      rgba(0, 0, 0, 0.06) 7px 9px,
+      transparent 9px 15px),
+    repeating-linear-gradient(2deg,
+      transparent 0 26px,
+      rgba(0, 0, 0, 0.05) 26px 28px);
+  mix-blend-mode: overlay;
+}
+
+/* engraved brass nameplate on the lid */
+.lid-plate {
+  position: relative;
+  margin: 2px auto clamp(10px, 1.6vh, 16px);
+  width: fit-content;
+  padding: 7px 22px;
+  border-radius: 5px;
+  background: linear-gradient(170deg, var(--brass-hi), var(--brass) 45%, var(--brass-dark));
+  box-shadow: inset 0 1px 0 rgba(255,246,200,0.75), 0 3px 8px rgba(0,0,0,0.45);
+  font-family: var(--font-mono);
+  font-size: clamp(8.5px, 1.1vw, 10px);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #3a2c08;
+  text-align: center;
+}
+
+.lid-plate b {
+  font-weight: 700;
+}
+
+/* velvet interior */
+.interior {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 26vw, 280px);
+  gap: clamp(10px, 1.4vw, 16px);
+  padding: clamp(10px, 1.6vw, 18px);
+  background:
+    radial-gradient(90% 70% at 50% 8%, rgba(255, 160, 160, 0.10), transparent 60%),
+    repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.028) 0 1px,
+      transparent 1px 4px),
+    repeating-linear-gradient(-45deg,
+      rgba(0, 0, 0, 0.10) 0 1px,
+      transparent 1px 5px),
+    linear-gradient(180deg, var(--velvet) 0%, var(--velvet-deep) 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(201, 162, 39, 0.35),
+    inset 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+/* brass corner fittings on velvet */
+.interior .fitt {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--brass);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.fitt.tl { left: 5px; top: 5px; border-right: none; border-bottom: none; border-top-left-radius: 8px; }
+.fitt.tr { right: 5px; top: 5px; border-left: none; border-bottom: none; border-top-right-radius: 8px; }
+.fitt.bl { left: 5px; bottom: 5px; border-right: none; border-top: none; border-bottom-left-radius: 8px; }
+.fitt.br { right: 5px; bottom: 5px; border-left: none; border-top: none; border-bottom-right-radius: 8px; }
+
+/* movement canvas */
+.movement {
+  position: relative;
+  min-width: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(201, 162, 39, 0.28), 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+#mech {
+  display: block;
+  width: 100%;
+  height: clamp(220px, 30vh, 300px);
+}
+
+/* ballerina stage */
+.stage-right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 100%;
+  padding-bottom: 6px;
+}
+
+.dancer-wrap {
+  position: relative;
+  width: clamp(150px, 20vw, 210px);
+  aspect-ratio: 1 / 1.18;
+}
+
+#dancer {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.disc {
+  width: 100%;
+  height: 34%;
+  margin-top: -14%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 42%, #f0dc9a 0%, var(--brass) 42%, var(--brass-dark) 78%, #5f4b12 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 246, 200, 0.6),
+    inset 0 -4px 8px rgba(60, 42, 8, 0.5),
+    0 10px 20px rgba(0, 0, 0, 0.55);
+  position: relative;
+  overflow: hidden;
+}
+
+/* spokes etched into the disc */
+.disc::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(rgba(58, 44, 8, 0.35) 0deg 1.2deg, transparent 1.2deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, transparent 30%, #000 31%);
+  mask: radial-gradient(circle, transparent 30%, #000 31%);
+}
+
+.disc::after {
+  content: "";
+  position: absolute;
+  inset: 42%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #fff2c4, #8a6d1c);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.dancer-caption {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------
+   CONTROLS
+   ------------------------------------------------------------ */
+
+.controls {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 22px);
+  flex-wrap: wrap;
+}
+
+/* wind key */
+.key-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.key-btn {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 44%, #e9cd6d 0%, var(--brass) 46%, var(--brass-dark) 82%, #5f4b12 100%);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.55),
+    inset 0 2px 3px rgba(255, 246, 200, 0.7),
+    inset 0 -3px 6px rgba(60, 42, 8, 0.5);
+  display: grid;
+  place-items: center;
+  transition: transform 0.08s ease-out;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.key-btn:active,
+.key-btn.winding {
+  transform: scale(0.96);
+}
+
+.key-btn svg {
+  will-change: transform;
+}
+
+.key-btn .wing {
+  position: absolute;
+  width: 118%;
+  height: 118%;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 rgba(233, 205, 109, 0.5);
+}
+
+.key-btn.winding .wing {
+  animation: keyring 1.1s ease-out infinite;
+}
+
+@keyframes keyring {
+  0%   { box-shadow: 0 0 0 0 rgba(233, 205, 109, 0.5); }
+  100% { box-shadow: 0 0 0 18px rgba(233, 205, 109, 0); }
+}
+
+.key-hint {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+/* tension gauge */
+.gauge-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+#gaugeSvg {
+  display: block;
+}
+
+.gauge-face-val {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  fill: #3a2c08;
+}
+
+/* toggle buttons */
+.toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.tbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background: linear-gradient(180deg, rgba(201, 162, 39, 0.16), rgba(201, 162, 39, 0.05));
+  color: var(--ivory);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  transition: background 0.2s, border-color 0.2s;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.tbtn:hover,
+.tbtn:focus-visible {
+  background: linear-gradient(180deg, rgba(201, 162, 39, 0.3), rgba(201, 162, 39, 0.12));
+  border-color: var(--brass-hi);
+}
+
+.tbtn .lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(243, 233, 216, 0.18);
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.5);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.tbtn[aria-pressed="true"] .lamp {
+  background: var(--brass-hi);
+  box-shadow: 0 0 8px rgba(233, 205, 109, 0.8);
+}
+
+/* tune selector */
+.tunes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.tune-btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  color: var(--ink-soft);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  transition: all 0.2s;
+  min-height: 40px;
+  text-align: left;
+}
+
+.tune-btn:hover {
+  color: var(--ivory);
+  border-color: rgba(201, 162, 39, 0.7);
+}
+
+.tune-btn.active {
+  color: var(--ink);
+  background: linear-gradient(170deg, var(--brass-hi), var(--brass) 50%, var(--brass-dark));
+  border-color: var(--brass-hi);
+  font-style: normal;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ------------------------------------------------------------
+   CAPTION
+   ------------------------------------------------------------ */
+
+.caption {
+  min-height: 2.4em;
+  max-width: 56ch;
+  text-align: center;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.9vw, 1.2rem);
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.caption b {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ivory);
+}
+
+.caption.fade {
+  animation: capfade 0.5s ease;
+}
+
+@keyframes capfade {
+  from { opacity: 0.2; }
+  to   { opacity: 1; }
+}
+
+/* ------------------------------------------------------------
+   FOOTER PLATE
+   ------------------------------------------------------------ */
+
+.foot-plate {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(243, 233, 216, 0.4);
+  text-align: center;
+  line-height: 2;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 760px) {
+  .interior {
+    grid-template-columns: 1fr;
+  }
+  .stage-right {
+    order: -1;
+    padding-top: 4px;
+  }
+  .dancer-wrap {
+    width: clamp(130px, 38vw, 180px);
+  }
+  .controls {
+    align-items: center;
+  }
+  .toggles, .tunes {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION — the mechanism still plays, calmly
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .key-btn.winding .wing {
+    animation: none;
+  }
+  .caption.fade {
+    animation: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<main class="hall">
+
+  <header class="plate-head">
+    <span class="screw s1" aria-hidden="true"></span>
+    <span class="screw s2" aria-hidden="true"></span>
+    <span class="screw s3" aria-hidden="true"></span>
+    <span class="screw s4" aria-hidden="true"></span>
+    <h1>DANSEURS</h1>
+    <p>Mécanique de musique · № 7 · 36 dents</p>
+  </header>
+
+  <section class="case" aria-label="Mechanical music box">
+
+    <div class="lid-plate"><b>DANSEURS</b> · hold the key to wind · release to play</div>
+
+    <div class="interior">
+      <span class="fitt tl" aria-hidden="true"></span>
+      <span class="fitt tr" aria-hidden="true"></span>
+      <span class="fitt bl" aria-hidden="true"></span>
+      <span class="fitt br" aria-hidden="true"></span>
+
+      <div class="movement">
+        <canvas id="mech" aria-label="Brass pinned cylinder and comb — pins advance and pluck the teeth as the tune plays"></canvas>
+      </div>
+
+      <div class="stage-right">
+        <div class="dancer-wrap">
+          <svg id="dancer" viewBox="0 0 200 236" role="img" aria-label="Ballerina silhouette on a rotating brass disc">
+            <defs>
+              <linearGradient id="tutuGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fdf7ea"/>
+                <stop offset="0.55" stop-color="#f3e9d8"/>
+                <stop offset="1" stop-color="#cbbc9d"/>
+              </linearGradient>
+              <linearGradient id="skinGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f6ecd9"/>
+                <stop offset="1" stop-color="#cfc0a1"/>
+              </linearGradient>
+            </defs>
+            <g id="dancerSpin" transform="rotate(0 100 128)">
+              <!-- tutu -->
+              <path d="M100,96
+                       C82,98 60,104 46,116
+                       C40,122 44,128 54,126
+                       C74,122 92,120 100,120
+                       C108,120 126,122 146,126
+                       C156,128 160,122 154,116
+                       C140,104 118,98 100,96 Z"
+                    fill="url(#tutuGrad)" stroke="#8a7a58" stroke-width="1.4"/>
+              <!-- bodice -->
+              <path d="M93,64 C92,78 92,88 94,98 L106,98 C108,88 108,78 107,64 Z"
+                    fill="url(#skinGrad)" stroke="#8a7a58" stroke-width="1"/>
+              <!-- arms: fifth position en haut -->
+              <path d="M94,66 C84,58 76,48 74,38" fill="none" stroke="url(#skinGrad)" stroke-width="5" stroke-linecap="round"/>
+              <path d="M106,66 C116,58 124,48 126,38" fill="none" stroke="url(#skinGrad)" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="73" cy="35" r="2.6" fill="#f6ecd9"/>
+              <circle cx="127" cy="35" r="2.6" fill="#f6ecd9"/>
+              <!-- head -->
+              <circle cx="100" cy="52" r="11" fill="url(#skinGrad)" stroke="#8a7a58" stroke-width="1"/>
+              <!-- hair bun -->
+              <circle cx="100" cy="40" r="5.4" fill="#3a2f22"/>
+              <path d="M89,52 A11,11 0 0 1 111,52 L111,48 A11,9 0 0 0 89,48 Z" fill="#3a2f22"/>
+              <!-- legs: passé / tendu -->
+              <path d="M97,120 C95,134 92,148 88,160" fill="none" stroke="url(#skinGrad)" stroke-width="5.4" stroke-linecap="round"/>
+              <path d="M88,160 C86,168 84,174 80,182" fill="none" stroke="url(#skinGrad)" stroke-width="4.4" stroke-linecap="round"/>
+              <path d="M103,120 C107,134 112,146 120,156" fill="none" stroke="url(#skinGrad)" stroke-width="5.4" stroke-linecap="round"/>
+              <path d="M120,156 C124,162 130,166 138,170" fill="none" stroke="url(#skinGrad)" stroke-width="4.4" stroke-linecap="round"/>
+              <!-- pointe shoes -->
+              <path d="M78,182 C80,186 84,187 88,185 L84,178 Z" fill="#d8b7a8"/>
+              <path d="M138,170 C142,172 146,176 144,180 L136,174 Z" fill="#d8b7a8"/>
+            </g>
+          </svg>
+        </div>
+        <div class="disc" aria-hidden="true"></div>
+        <p class="dancer-caption">tourne en trois temps</p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="controls" aria-label="Music box controls">
+
+    <div class="key-cell">
+      <button class="key-btn" id="windKey" type="button"
+              aria-label="Wind-up key — press and hold to wind the spring, release to play">
+        <span class="wing" aria-hidden="true"></span>
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+          <g id="keySpin">
+            <path d="M32,32 L32,6" stroke="#3a2c08" stroke-width="7" stroke-linecap="round"/>
+            <rect x="24" y="2" width="16" height="9" rx="3" fill="#3a2c08" opacity="0.85"/>
+            <path d="M32,32 L52,44 M32,32 L12,44" stroke="#3a2c08" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+            <circle cx="32" cy="32" r="7.5" fill="#3a2c08"/>
+            <circle cx="32" cy="32" r="3" fill="#e9cd6d"/>
+          </g>
+        </svg>
+      </button>
+      <p class="key-hint">hold to wind · release to play</p>
+    </div>
+
+    <div class="gauge-cell">
+      <svg id="gaugeSvg" width="150" height="96" viewBox="0 0 150 96" role="img"
+           aria-label="Spring tension gauge">
+        <defs>
+          <linearGradient id="gFace" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f7eed8"/>
+            <stop offset="1" stop-color="#d9cba6"/>
+          </linearGradient>
+        </defs>
+        <path d="M12,88 A63,63 0 0 1 138,88 Z" fill="url(#gFace)" stroke="#8a6d1c" stroke-width="3"/>
+        <path d="M22,88 A53,53 0 0 1 62,36" fill="none" stroke="#a0431f" stroke-width="5" opacity="0.75"/>
+        <g stroke="#3a2c08" stroke-width="1.6">
+          <path d="M75,25 v7 M43,37 l4,6 M107,37 l-4,6 M27,62 l6,3.4 M123,62 l-6,3.4"/>
+        </g>
+        <text x="20" y="84" class="gauge-face-val">E</text>
+        <text x="124" y="84" class="gauge-face-val">F</text>
+        <line id="needle" x1="75" y1="88" x2="75" y2="34" stroke="#3a2c08" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="75" cy="88" r="6" fill="#8a6d1c" stroke="#3a2c08" stroke-width="1.6"/>
+      </svg>
+      <p class="key-hint">spring tension</p>
+    </div>
+
+    <div class="toggles" role="group" aria-label="Playback options">
+      <button class="tbtn" id="slowBtn" type="button" aria-pressed="false">
+        <span class="lamp" aria-hidden="true"></span>Slow mechanism
+      </button>
+      <button class="tbtn" id="soundBtn" type="button" aria-pressed="true">
+        <span class="lamp" aria-hidden="true"></span>Sound on
+      </button>
+    </div>
+
+    <div class="tunes" role="group" aria-label="Choose the tune on the cylinder">
+      <button class="tune-btn active" id="tuneA" type="button">Berceuse en sol</button>
+      <button class="tune-btn" id="tuneB" type="button">Valse tendre</button>
+    </div>
+
+  </section>
+
+  <p class="caption" id="caption">The spring is slack. <b>Hold the brass key</b> — the ratchet will fill it; let go, and the cylinder begins its rounds.</p>
+
+  <footer class="foot-plate">
+    Danseurs · the gallery of 100 · room 81<br>
+    wind gently · the comb has thirty-six teeth, six sing here
+  </footer>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     TUNES — beats in 3/4, one entry per pluck
+     ============================================================ */
+  var NOTE_FREQ = {
+    "D4": 293.66, "F4": 349.23, "G4": 392.00, "A4": 440.00, "Bb4": 466.16,
+    "B4": 493.88, "C5": 523.25, "D5": 587.33, "E5": 659.26, "F5": 698.46
+  };
+  var NAMES = ["D4", "F4", "G4", "A4", "Bb4", "B4", "C5", "D5", "E5", "F5"];
+
+  var TUNES = {
+    berceuse: {
+      name: "Berceuse en sol",
+      bpm: 88,
+      notes: [
+        ["D5", 0], ["G4", 1], ["A4", 2],
+        ["B4", 3], ["G4", 4], ["B4", 5],
+        ["A4", 6], ["D5", 7], ["E5", 8],
+        ["D5", 9], ["B4", 10], ["G4", 11],
+        ["E5", 12], ["D5", 13], ["B4", 14],
+        ["A4", 15], ["B4", 16], ["A4", 17],
+        ["G4", 18], ["B4", 19], ["A4", 20],
+        ["G4", 21], ["D4", 23]
+      ]
+    },
+    valse: {
+      name: "Valse tendre",
+      bpm: 104,
+      notes: [
+        ["F5", 0], ["C5", 1], ["A4", 2],
+        ["C5", 3], ["A4", 4], ["F4", 5],
+        ["G4", 6], ["Bb4", 7], ["D5", 8],
+        ["C5", 9], ["A4", 10], ["F4", 11],
+        ["F5", 12], ["E5", 13], ["C5", 14],
+        ["D5", 15], ["Bb4", 16], ["G4", 17],
+        ["A4", 18], ["F4", 19], ["C5", 20],
+        ["A4", 21], ["F4", 23]
+      ]
+    }
+  };
+
+  var tuneKey = "berceuse";
+  var tune = TUNES[tuneKey];
+  var totalBeats = 24;
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var tension = 0;            /* 0..1 */
+  var playing = false;
+  var winding = false;
+  var slowMo = false;
+  var soundOn = true;
+  var currentBeat = 0;
+  var dancerAngle = 0;
+  var keyAngle = 0;
+
+  var WIND_RATE = 0.26;       /* tension per second while winding */
+  var DRAIN_RATE = 0.048;     /* tension per second while playing */
+  var MIN_TO_PLAY = 0.08;
+
+  var done = [];              /* per-note played flags */
+
+  function resetNotes() {
+    done = tune.notes.map(function () { return false; });
+  }
+  resetNotes();
+
+  /* ============================================================
+     AUDIO — music-box pluck, user-initiated
+     ============================================================ */
+  var AC = null;
+  var master = null;
+
+  function ensureAudio() {
+    if (!soundOn) return null;
+    if (!AC) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      AC = new Ctx();
+      master = AC.createGain();
+      master.gain.value = 0.85;
+      master.connect(AC.destination);
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+
+  function pluckSound(freq) {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+
+    var o1 = ac.createOscillator();
+    var g1 = ac.createGain();
+    o1.type = "sine";
+    o1.frequency.value = freq;
+    g1.gain.setValueAtTime(0.0001, t0);
+    g1.gain.exponentialRampToValueAtTime(0.42, t0 + 0.006);
+    g1.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5);
+    o1.connect(g1).connect(master);
+    o1.start(t0);
+    o1.stop(t0 + 1.55);
+
+    var o2 = ac.createOscillator();
+    var g2 = ac.createGain();
+    o2.type = "sine";
+    o2.frequency.value = freq * 2.01;
+    g2.gain.setValueAtTime(0.0001, t0);
+    g2.gain.exponentialRampToValueAtTime(0.14, t0 + 0.005);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.7);
+    o2.connect(g2).connect(master);
+    o2.start(t0);
+    o2.stop(t0 + 0.75);
+
+    var o3 = ac.createOscillator();
+    var g3 = ac.createGain();
+    o3.type = "sine";
+    o3.frequency.value = freq * 3.02;
+    g3.gain.setValueAtTime(0.0001, t0);
+    g3.gain.exponentialRampToValueAtTime(0.05, t0 + 0.004);
+    g3.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+    o3.connect(g3).connect(master);
+    o3.start(t0);
+    o3.stop(t0 + 0.36);
+  }
+
+  function tickSound(loud) {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.type = "square";
+    o.frequency.value = loud ? 2600 : 2100;
+    g.gain.setValueAtTime(loud ? 0.03 : 0.016, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.03);
+    o.connect(g).connect(master);
+    o.start(t0);
+    o.stop(t0 + 0.035);
+  }
+
+  /* ============================================================
+     CANVAS — cylinder, pins, comb
+     ============================================================ */
+  var cv = document.getElementById("mech");
+  var ctx = cv.getContext("2d");
+  var cw = 0, chh = 0;
+  var PX_BEAT = 27;
+  var flashes = [];       /* {tooth, age} */
+  var motes = [];         /* floating note glyphs */
+
+  function sizeCanvas() {
+    var rect = cv.getBoundingClientRect();
+    cw = Math.max(1, rect.width);
+    chh = Math.max(1, rect.height);
+    cv.width = Math.round(cw * DPR);
+    cv.height = Math.round(chh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function geom() {
+    var combX = Math.min(84, cw * 0.2);
+    var top = 26;
+    var rowH = (chh - top - 18) / NAMES.length;
+    return { combX: combX, top: top, rowH: rowH };
+  }
+
+  function rowY(g, name) {
+    var idx = NAMES.indexOf(name);
+    return g.top + (idx + 0.5) * g.rowH;
+  }
+
+  function draw(now) {
+    var g = geom();
+    ctx.clearRect(0, 0, cw, chh);
+
+    /* velvet backdrop */
+    var vg = ctx.createLinearGradient(0, 0, 0, chh);
+    vg.addColorStop(0, "#6e1423");
+    vg.addColorStop(1, "#4c0d16");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, cw, chh);
+    /* velvet nap */
+    ctx.globalAlpha = 0.05;
+    for (var v = 0; v < 26; v++) {
+      ctx.fillStyle = v % 2 ? "#ff9a9a" : "#000000";
+      ctx.fillRect(0, (v * chh / 26), cw, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    /* ---- cylinder drum ---- */
+    var drumX = g.combX + 14;
+    var drumW = cw - drumX - 10;
+    var drumY = g.top - 6;
+    var drumH = chh - g.top - 2;
+
+    var dgrad = ctx.createLinearGradient(0, drumY, 0, drumY + drumH);
+    dgrad.addColorStop(0, "#e9cd6d");
+    dgrad.addColorStop(0.32, "#c9a227");
+    dgrad.addColorStop(0.62, "#8a6d1c");
+    dgrad.addColorStop(1, "#5f4b12");
+    ctx.fillStyle = dgrad;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(drumX, drumY, drumW, drumH, 10);
+    } else {
+      ctx.rect(drumX, drumY, drumW, drumH);
+    }
+    ctx.fill();
+    ctx.strokeStyle = "rgba(58,44,8,0.6)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    /* rotation: scrolling spiral hatch */
+    var scroll = (currentBeat * PX_BEAT) % 26;
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(drumX, drumY, drumW, drumH, 10);
+    else ctx.rect(drumX, drumY, drumW, drumH);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(58,44,8,0.28)";
+    ctx.lineWidth = 1.4;
+    for (var hx = drumX - 26 + scroll; hx < drumX + drumW + 26; hx += 26) {
+      ctx.beginPath();
+      ctx.moveTo(hx, drumY);
+      ctx.quadraticCurveTo(hx + 8, drumY + drumH / 2, hx, drumY + drumH);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    /* drum end cap */
+    ctx.fillStyle = "rgba(255,246,200,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(drumX + drumW - 8, drumY + drumH / 2, 5, drumH / 2 - 4, 0, 0, 6.2832);
+    ctx.fill();
+
+    /* ---- comb ---- */
+    /* pluck bar */
+    ctx.fillStyle = "#8a6d1c";
+    ctx.fillRect(g.combX - 5, g.top - 8, 7, drumH + 12);
+    ctx.fillStyle = "rgba(255,246,200,0.35)";
+    ctx.fillRect(g.combX - 5, g.top - 8, 2, drumH + 12);
+
+    ctx.font = "8.5px ui-monospace, 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+
+    for (var i = 0; i < NAMES.length; i++) {
+      var nm = NAMES[i];
+      var y = rowY(g, nm);
+      /* tooth */
+      var fl = 0;
+      for (var f = flashes.length - 1; f >= 0; f--) {
+        if (flashes[f].tooth === nm) {
+          fl = 1 - flashes[f].age / 0.5;
+          if (fl <= 0) { flashes.splice(f, 1); fl = 0; }
+        }
+      }
+      var base = ctx.createLinearGradient(g.combX, 0, g.combX + 34, 0);
+      base.addColorStop(0, "#b28c1f");
+      base.addColorStop(1, "#8a6d1c");
+      ctx.fillStyle = base;
+      ctx.fillRect(g.combX + 1, y - g.rowH * 0.26, 26 + fl * 6, g.rowH * 0.52);
+      if (fl > 0) {
+        ctx.fillStyle = "rgba(255,248,220," + (fl * 0.95).toFixed(3) + ")";
+        ctx.fillRect(g.combX + 1, y - g.rowH * 0.26, 26 + fl * 6, g.rowH * 0.52);
+        ctx.shadowColor = "rgba(255,240,180,0.9)";
+        ctx.shadowBlur = 12 * fl;
+        ctx.fillRect(g.combX + 1, y - g.rowH * 0.26, 26 + fl * 6, g.rowH * 0.52);
+        ctx.shadowBlur = 0;
+      }
+      /* tip */
+      ctx.fillStyle = "#d9dde2";
+      ctx.fillRect(g.combX + 27 + fl * 6, y - 1.6, 6, 3.2);
+      /* label */
+      ctx.fillStyle = "rgba(243,233,216,0.55)";
+      ctx.fillText(nm, g.combX - 24, y);
+    }
+
+    /* ---- pins ---- */
+    var viewBeats = (cw - drumX) / PX_BEAT;
+    for (var n = 0; n < tune.notes.length; n++) {
+      var beat = tune.notes[n][1];
+      var rel = beat - currentBeat;
+      if (rel < -0.2) rel += totalBeats;
+      if (rel < 0 || rel > viewBeats) continue;
+      var px = drumX + 12 + rel * PX_BEAT;
+      var py = rowY(g, tune.notes[n][0]);
+      var pr = 3.6;
+      var pg = ctx.createRadialGradient(px - 1.2, py - 1.2, 0.4, px, py, pr);
+      pg.addColorStop(0, "#ffffff");
+      pg.addColorStop(0.5, "#d9dde2");
+      pg.addColorStop(1, "#7c848d");
+      ctx.fillStyle = pg;
+      ctx.beginPath();
+      ctx.arc(px, py, pr, 0, 6.2832);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(58,44,8,0.5)";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+
+    /* ---- floating note glyphs ---- */
+    for (var m = motes.length - 1; m >= 0; m--) {
+      var mo = motes[m];
+      mo.age += 0.016;
+      mo.y -= 26 * 0.016 * (60 * 0.016);
+      mo.y -= 0.55;
+      mo.x += Math.sin(mo.age * 4 + mo.seed) * 0.5;
+      var a = 1 - mo.age / 1.4;
+      if (a <= 0) { motes.splice(m, 1); continue; }
+      ctx.globalAlpha = a;
+      ctx.fillStyle = "#f3e9d8";
+      ctx.beginPath();
+      ctx.ellipse(mo.x, mo.y, 4.4, 3.1, -0.35, 0, 6.2832);
+      ctx.fill();
+      ctx.strokeStyle = "#f3e9d8";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(mo.x + 4, mo.y - 0.6);
+      ctx.lineTo(mo.x + 4.6, mo.y - 13);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function spawnMote(x, y) {
+    if (reduced) return;
+    motes.push({ x: x, y: y, age: 0, seed: Math.random() * 6.28 });
+    if (motes.length > 26) motes.shift();
+  }
+
+  /* ============================================================
+     PLUCK
+     ============================================================ */
+  function pluck(name) {
+    pluckSound(NOTE_FREQ[name]);
+    flashes.push({ tooth: name, age: 0 });
+    if (flashes.length > 12) flashes.shift();
+    var g = geom();
+    spawnMote(g.combX + 36, rowY(g, name) - 6);
+  }
+
+  /* ============================================================
+     WIND KEY
+     ============================================================ */
+  var keyBtn = document.getElementById("windKey");
+  var keySpin = document.getElementById("keySpin");
+  var caption = document.getElementById("caption");
+  var needle = document.getElementById("needle");
+  var capTimer = 0;
+
+  function say(html) {
+    caption.innerHTML = html;
+    caption.classList.remove("fade");
+    void caption.offsetWidth;
+    caption.classList.add("fade");
+  }
+
+  function startWind() {
+    if (winding || playing) {
+      if (playing) say("Let the tune finish — or wait for the spring to run down.");
+      return;
+    }
+    winding = true;
+    keyBtn.classList.add("winding");
+    keyBtn.setAttribute("aria-pressed", "true");
+    say("Winding… <b>keep holding</b> — the ratchet clicks as the spring tightens.");
+  }
+
+  function endWind() {
+    if (!winding) return;
+    winding = false;
+    keyBtn.classList.remove("winding");
+    keyBtn.setAttribute("aria-pressed", "false");
+    if (tension < MIN_TO_PLAY) {
+      say("The spring barely turned. <b>Hold the key longer</b> — give it at least a quarter turn.");
+      return;
+    }
+    playing = true;
+    resetNotes();
+    currentBeat = 0;
+    say("Released — <b>" + tune.name + "</b> begins. The cylinder turns; the pins do the rest.");
+  }
+
+  keyBtn.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    keyBtn.setPointerCapture(e.pointerId);
+    startWind();
+  });
+  keyBtn.addEventListener("pointerup", endWind);
+  keyBtn.addEventListener("pointercancel", endWind);
+  keyBtn.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      startWind();
+    }
+  });
+  keyBtn.addEventListener("keyup", function (e) {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      endWind();
+    }
+  });
+
+  /* ============================================================
+     TOGGLES
+     ============================================================ */
+  var slowBtn = document.getElementById("slowBtn");
+  slowBtn.addEventListener("click", function () {
+    slowMo = !slowMo;
+    slowBtn.setAttribute("aria-pressed", slowMo ? "true" : "false");
+    say(slowMo
+      ? "Slow mechanism engaged — watch the pins ride the comb. The tempo bows, the pitch stays true."
+      : "Governor released — full tempo restored.");
+  });
+
+  var soundBtn = document.getElementById("soundBtn");
+  soundBtn.addEventListener("click", function () {
+    soundOn = !soundOn;
+    soundBtn.setAttribute("aria-pressed", soundOn ? "true" : "false");
+    soundBtn.lastChild.textContent = soundOn ? "Sound on" : "Sound off";
+    if (!soundOn && AC) {
+      /* soft dip of the master */
+      master.gain.value = 0;
+    } else if (AC) {
+      master.gain.value = 0.85;
+    }
+    say(soundOn ? "The box may sing again." : "Muted — the mechanism dances in silence.");
+  });
+
+  var tuneA = document.getElementById("tuneA");
+  var tuneB = document.getElementById("tuneB");
+  function setTune(key) {
+    if (playing) {
+      say("Wait for the spring to run down before swapping cylinders.");
+      return;
+    }
+    tuneKey = key;
+    tune = TUNES[key];
+    resetNotes();
+    currentBeat = 0;
+    tuneA.classList.toggle("active", key === "berceuse");
+    tuneB.classList.toggle("active", key === "valse");
+    say("Cylinder swapped: <b>" + tune.name + "</b>. Wind it up and let it sing.");
+  }
+  tuneA.addEventListener("click", function () { setTune("berceuse"); });
+  tuneB.addEventListener("click", function () { setTune("valse"); });
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+  var tickAcc = 0;
+  var flashAcc = 0;
+
+  function frame(now) {
+    var dtReal = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var dt = dtReal * (slowMo ? 0.3 : 1);
+
+    if (!document.hidden) {
+      /* winding */
+      if (winding) {
+        tension = Math.min(1, tension + WIND_RATE * dt);
+        keyAngle += 340 * dt;
+        tickAcc += dt;
+        if (tickAcc > 0.16) {
+          tickAcc = 0;
+          tickSound(false);
+        }
+        if (tension >= 1) {
+          say("Fully wound — the spring is taut. <b>Release the key</b> when you are ready.");
+        }
+      }
+
+      /* playing */
+      if (playing && !winding) {
+        var beatRate = (tune.bpm / 60) * (0.45 + 0.55 * tension);
+        currentBeat += beatRate * dt;
+        tension -= DRAIN_RATE * dt;
+        dancerAngle += (reduced ? 14 : 108) * dt;
+
+        for (var n = 0; n < tune.notes.length; n++) {
+          if (!done[n] && currentBeat >= tune.notes[n][1]) {
+            done[n] = true;
+            pluck(tune.notes[n][0]);
+          }
+        }
+        if (currentBeat >= totalBeats) {
+          currentBeat -= totalBeats;
+          for (var r = 0; r < done.length; r++) done[r] = false;
+        }
+        if (tension <= 0) {
+          tension = 0;
+          playing = false;
+          tickSound(true);
+          say("The spring has run down. The last note hangs in the velvet, then sleeps.");
+        }
+      }
+
+      /* flash aging */
+      flashAcc += dtReal;
+      if (flashAcc > 0.016) {
+        flashAcc = 0;
+        for (var f = flashes.length - 1; f >= 0; f--) {
+          flashes[f].age += 0.016;
+          if (flashes[f].age > 0.5) flashes.splice(f, 1);
+        }
+      }
+
+      /* visuals */
+      keySpin.setAttribute("transform", "rotate(" + (keyAngle % 360).toFixed(1) + " 32 32)");
+      document.getElementById("dancerSpin").setAttribute(
+        "transform", "rotate(" + (dancerAngle % 360).toFixed(1) + " 100 128)");
+      var ang = -90 + tension * 180;
+      needle.setAttribute("transform", "rotate(" + ang.toFixed(1) + " 75 88)");
+      draw(now);
+    }
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", sizeCanvas);
+
+  sizeCanvas();
+  draw(0);
+
+  if (reduced) {
+    /* calm mode: render statically, redraw on state-relevant events */
+    var statDraw = function () { draw(performance.now()); };
+    window.addEventListener("resize", statDraw);
+    setInterval(statDraw, 250);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

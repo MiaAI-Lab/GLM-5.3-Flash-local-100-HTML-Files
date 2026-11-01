@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WIND FIELDS · №012 — Generative Flow Field · The Gallery of 100</title>
+<style>
+:root{
+  --paper:   #f4f1e8;
+  --ink:     #14100b;
+  --ember-1: #e2711d;
+  --ember-2: #f2c14e;
+  --ember-3: #8c3b2f;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--serif);
+  background:#0f0c08;
+  color:var(--paper);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:rgba(226,113,29,.45); color:#fff; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed rgba(244,241,232,.8); outline-offset:4px; }
+
+/* ---------- stage ---------- */
+#stage{
+  position:fixed; inset:0; display:block;
+  touch-action:none; cursor:crosshair;
+}
+.stage-veil{
+  position:fixed; inset:0; pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(10,7,4,.55) 100%);
+  mix-blend-mode:multiply;
+}
+
+/* ---------- plaque ---------- */
+.plaque{
+  position:fixed; left:clamp(16px, 4vw, 44px); bottom:clamp(16px, 4vh, 40px);
+  max-width:min(460px, 84vw);
+  background:rgba(244,241,232,.96);
+  color:var(--ink);
+  padding:22px 26px 18px 26px;
+  border-radius:2px;
+  box-shadow:0 24px 60px rgba(0,0,0,.55), 0 2px 0 rgba(255,255,255,.5) inset;
+  border:1px solid rgba(20,16,11,.25);
+  transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .5s ease;
+  z-index:5;
+}
+.plaque.hidden{ transform:translateY(16px); opacity:0; pointer-events:none; }
+.plaque::before{
+  content:""; position:absolute; top:-9px; left:24px; right:24px; height:18px;
+  background:repeating-linear-gradient(45deg, rgba(20,16,11,.14) 0 6px, transparent 6px 12px);
+  border-top:1px solid rgba(20,16,11,.3);
+  pointer-events:none;
+}
+.plaque h1{
+  font-size:clamp(1.55rem, 3.2vw, 2.2rem);
+  font-weight:500;
+  letter-spacing:.04em;
+  line-height:1.04;
+  font-variant:small-caps;
+}
+.plaque h1 .num{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:.62em;
+  vertical-align:super;
+  letter-spacing:.1em;
+  margin-left:.35em;
+  opacity:.7;
+}
+.plaque .material{
+  margin-top:4px;
+  font-style:italic;
+  font-size:.92rem;
+  color:#5d544a;
+}
+.plaque .meta{
+  margin-top:12px;
+  padding-top:11px;
+  border-top:1px solid rgba(20,16,11,.18);
+  display:grid; gap:4px;
+  font-family:var(--mono);
+  font-size:.68rem;
+  letter-spacing:.06em;
+  color:#4a4238;
+}
+.plaque .meta b{ font-weight:400; color:var(--ink); }
+
+/* ---------- palette bar ---------- */
+.pal-bar{
+  position:fixed; top:clamp(14px, 3vh, 30px); right:clamp(14px, 3vw, 40px);
+  display:flex; gap:10px; align-items:center;
+  background:rgba(244,241,232,.1);
+  border:1px solid rgba(244,241,232,.22);
+  padding:8px 10px; border-radius:999px;
+  backdrop-filter:blur(6px);
+  z-index:5;
+}
+.pal-bar .hint{ font-family:var(--mono); font-size:.62rem; letter-spacing:.14em; color:rgba(244,241,232,.75); margin-right:4px; }
+.chip{
+  width:26px; height:26px; border-radius:50%;
+  border:1px solid rgba(244,241,232,.35);
+  cursor:pointer; padding:0;
+  position:relative;
+  transition:transform .25s ease, box-shadow .25s ease;
+  touch-action:manipulation;
+}
+.chip:hover{ transform:scale(1.15); }
+.chip.on{ transform:scale(1.15); box-shadow:0 0 0 2px rgba(244,241,232,.85), 0 0 14px rgba(255,255,255,.25); }
+.chip span{ position:absolute; inset:3px; border-radius:50%; display:block; }
+.chip.ember span{ background:conic-gradient(from 0deg, #e2711d, #f2c14e, #8c3b2f, #e2711d); }
+.chip.moss  span{ background:conic-gradient(from 0deg, #9bc53d, #e8fccd, #519e8a, #9bc53d); }
+.chip.glacier span{ background:conic-gradient(from 0deg, #9fd3e8, #e8f6fb, #2e6f8e, #9fd3e8); }
+.chip.dusk  span{ background:conic-gradient(from 0deg, #b89ae0, #f2e8ff, #6a4b9e, #b89ae0); }
+.chip:focus-visible{ outline-offset:3px; }
+
+/* ---------- readout ---------- */
+.readout{
+  position:fixed; top:clamp(14px, 3vh, 30px); left:clamp(16px, 4vw, 44px);
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.12em;
+  color:rgba(244,241,232,.72);
+  line-height:1.9;
+  z-index:5;
+  pointer-events:none;
+  text-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.readout b{ color:var(--paper); font-weight:400; }
+.readout .coord{ font-variant-numeric:tabular-nums; }
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:clamp(84px, 12vh, 120px);
+  transform:translate(-50%, 10px);
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.16em;
+  background:rgba(15,12,8,.85); color:var(--paper);
+  border:1px solid rgba(244,241,232,.3);
+  padding:9px 16px; border-radius:999px;
+  opacity:0; transition:opacity .4s ease, transform .4s ease;
+  pointer-events:none; z-index:6;
+}
+.toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+/* ---------- side legend (desktop) ---------- */
+.legend{
+  position:fixed; right:clamp(14px, 3vw, 40px); bottom:clamp(16px, 4vh, 40px);
+  text-align:right;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.14em;
+  color:rgba(244,241,232,.55);
+  line-height:2.05;
+  z-index:5;
+  pointer-events:none;
+}
+.legend em{ font-style:normal; color:rgba(244,241,232,.92); border:1px solid rgba(244,241,232,.35); border-radius:4px; padding:1px 5px; margin-left:6px; }
+
+/* ---------- responsive ---------- */
+@media (max-width:700px){
+  .legend{ display:none; }
+  .pal-bar{ top:auto; bottom:calc(clamp(16px,4vh,40px) + 4px); left:50%; right:auto; transform:translateX(-50%); }
+  .plaque{ max-width:min(400px, 92vw); padding:16px 18px 14px; }
+}
+@media (max-width:430px){
+  .pal-bar .hint{ display:none; }
+  .chip{ width:24px; height:24px; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .plaque, .toast, .chip{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<div class="stage-veil" aria-hidden="true"></div>
+
+<div class="readout" aria-hidden="true">
+  <div>FLOW&nbsp;FIELD&nbsp;STUDY — <b id="roPal">EMBER</b></div>
+  <div class="coord">X <b id="roX">—</b>&nbsp;&nbsp;Y <b id="roY">—</b>&nbsp;&nbsp;Θ <b id="roA">—</b></div>
+  <div>PARTICLES <b id="roN">0</b>&nbsp;&nbsp;SEEDS <b id="roS">0</b></div>
+</div>
+
+<div class="pal-bar" role="group" aria-label="Palette selector">
+  <span class="hint" aria-hidden="true">PALETTE&nbsp;1–4</span>
+  <button class="chip ember on" type="button" data-pal="0" aria-label="Ember palette" aria-pressed="true"><span aria-hidden="true"></span></button>
+  <button class="chip moss" type="button" data-pal="1" aria-label="Moss palette" aria-pressed="false"><span aria-hidden="true"></span></button>
+  <button class="chip glacier" type="button" data-pal="2" aria-label="Glacier palette" aria-pressed="false"><span aria-hidden="true"></span></button>
+  <button class="chip dusk" type="button" data-pal="3" aria-label="Dusk palette" aria-pressed="false"><span></span></button>
+</div>
+
+<aside class="plaque" id="plaque" aria-label="Artwork plaque">
+  <h1>Wind Fields<span class="num">№ 012</span></h1>
+  <p class="material">fine ink on digital air — four skies, one field, endless weather</p>
+  <div class="meta">
+    <div>MEDIUM — <b>3,200 particles / fading trails</b></div>
+    <div>FIELD — <b>layered trigonometric noise</b></div>
+    <div>GESTURE — <b>hand through smoke · click to seed</b></div>
+  </div>
+</aside>
+
+<div class="legend" aria-hidden="true">
+  <div><em>1–4</em> PALETTES</div>
+  <div><em>CLICK</em> SEED BURST</div>
+  <div><em>DRAG</em> BEND WIND</div>
+  <div><em>H</em> HIDE PLAQUE</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= palettes ================= */
+var PALETTES = [
+  { name:"EMBER",
+    bg:"#1a120b", trail:"#1a120b",
+    inks:["#e2711d","#f2c14e","#8c3b2f","#d9a066"],
+    ghost:"rgba(226,113,29,.10)", veil:"rgba(26,18,11,.055)", tilt:14 },
+  { name:"MOSS",
+    bg:"#0d1410", trail:"#0d1410",
+    inks:["#9bc53d","#e8fccd","#519e8a","#6f8f5a"],
+    ghost:"rgba(155,197,61,.10)", veil:"rgba(13,20,16,.06)", tilt:9 },
+  { name:"GLACIER",
+    bg:"#0a1420", trail:"#0a1420",
+    inks:["#9fd3e8","#e8f6fb","#2e6f8e","#5b9bd5"],
+    ghost:"rgba(159,211,232,.10)", veil:"rgba(10,20,32,.06)", tilt:-8 },
+  { name:"DUSK",
+    bg:"#140f1e", trail:"#140f1e",
+    inks:["#b89ae0","#f2e8ff","#6a4b9e","#8d70b8"],
+    ghost:"rgba(184,154,224,.10)", veil:"rgba(20,15,30,.065)", tilt:-16 }
+];
+
+/* ================= dom ================= */
+var cv = document.getElementById("stage");
+var ctx = cv.getContext("2d", { alpha:false });
+var els = {
+  roPal:document.getElementById("roPal"),
+  roX:document.getElementById("roX"),
+  roY:document.getElementById("roY"),
+  roA:document.getElementById("roA"),
+  roN:document.getElementById("roN"),
+  roS:document.getElementById("roS"),
+  toast:document.getElementById("toast"),
+  plaque:document.getElementById("plaque")
+};
+var chips = Array.prototype.slice.call(document.querySelectorAll(".chip"));
+
+/* ================= state ================= */
+var W=0, H=0, DPR=1;
+var particles = [];
+var MAX = 3400;
+var pal = 0, prevPal = 0, palMix = 1;
+var mouse = { x:-9999, y:-9999, px:-9999, py:-9999, vx:0, vy:0, active:false };
+var seeds = 0, raf = 0, frame = 0, running = true;
+var lastT = 0;
+var fieldOffset = Math.random() * 1000;
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= helpers ================= */
+function rnd(a,b){ return a + Math.random() * (b - a); }
+function lerp(a,b,t){ return a + (b - a) * t; }
+function hexRGB(h){
+  return [ parseInt(h.substr(1,2),16), parseInt(h.substr(3,2),16), parseInt(h.substr(5,2),16) ];
+}
+var PAL_RGBS = PALETTES.map(function(p){ return p.inks.map(hexRGB); });
+
+/* ================= resize ================= */
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + "px";
+  cv.style.height = H + "px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle = PALETTES[pal].bg;
+  ctx.fillRect(0,0,W,H);
+  targetCount();
+}
+function targetCount(){
+  var area = W * H;
+  var t = Math.round(Math.min(MAX, Math.max(900, area * 0.0016)));
+  while (particles.length < t) particles.push(spawn());
+  while (particles.length > t) particles.pop();
+  els.roN.textContent = String(particles.length);
+}
+
+/* ================= particles ================= */
+function spawn(){
+  return {
+    x:rnd(0,W), y:rnd(0,H),
+    px:0, py:0,
+    life:rnd(60,260),
+    ink:(Math.random() < 0.86 ? 0 : Math.floor(rnd(1,4))),
+    w:rnd(0.5,1.35),
+    speed:rnd(0.55,1.5),
+    fade:rnd(0.5,1)
+  };
+}
+
+/* ================= the field ================= */
+function fieldAngle(x, y, t){
+  var s = 0.0022;
+  var a = 0;
+  a += Math.sin(x * s + fieldOffset) + Math.cos(y * s * 1.3 - fieldOffset * 0.7);
+  a += 0.55 * Math.sin((x + y) * s * 0.55 + t * 0.24);
+  a += 0.35 * Math.sin(Math.sqrt((x - W*0.5) * (x - W*0.5) + (y - H*0.5) * (y - H*0.5)) * 0.006 - t * 0.35);
+  a += 0.5 * Math.sin(x * s * 2.6 - y * s * 1.9 + t * 0.18);
+  return a * 1.55 + PALETTES[pal].tilt * 0.045;
+}
+
+/* ================= palette crossfade ================= */
+function mixInk(idx, alpha){
+  var a = PALETTES[prevPal].inks[idx], b = PALETTES[pal].inks[idx];
+  var A = PAL_RGBS[prevPal][idx], B = PAL_RGBS[pal][idx];
+  var r = Math.round(lerp(A[0], B[0], palMix));
+  var g = Math.round(lerp(A[1], B[1], palMix));
+  var bl = Math.round(lerp(A[2], B[2], palMix));
+  return "rgba(" + r + "," + g + "," + bl + "," + alpha + ")";
+}
+
+function setPalette(n, viaKey){
+  if (n === pal) return;
+  prevPal = pal; pal = n; palMix = 0;
+  chips.forEach(function(c, i){
+    c.classList.toggle("on", i === n);
+    c.setAttribute("aria-pressed", i === n ? "true" : "false");
+  });
+  els.roPal.textContent = PALETTES[n].name;
+  fieldOffset = Math.random() * 1000;
+  showToast(PALETTES[n].name + " — palette " + (n+1));
+}
+
+/* ================= seeding ================= */
+function seedBurst(x, y){
+  var n = 130;
+  for (var i = 0; i < n; i++){
+    if (particles.length >= MAX + 400) break;
+    var a = (i / n) * Math.PI * 2 + rnd(-.2,.2);
+    var r = rnd(2, 26);
+    var p = spawn();
+    p.x = clamp(x + Math.cos(a) * r, 0, W-1);
+    p.y = clamp(y + Math.sin(a) * r, 0, H-1);
+    p.px = p.x; p.py = p.y;
+    p.life = rnd(140, 300);
+    p.speed = rnd(1.6, 3.4);
+    p.w = rnd(0.8, 1.6);
+    p.ink = (Math.random() < 0.6 ? 1 : 0);
+    particles.push(p);
+  }
+  seeds++;
+  els.roS.textContent = String(seeds);
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+/* ================= pointer wind bending ================= */
+var wind = { strength:0 };
+function applyPointerInfluence(p){
+  if (!mouse.active) return 0;
+  var dx = p.x - mouse.x, dy = p.y - mouse.y;
+  var d2 = dx*dx + dy*dy;
+  var R = 190;
+  if (d2 > R*R || d2 < 0.01) return 0;
+  var d = Math.sqrt(d2);
+  var fall = 1 - d / R;
+  fall = fall * fall;
+  var pvx = mouse.vx, pvy = mouse.vy;
+  var pm = Math.sqrt(pvx*pvx + pvy*pvy);
+  if (pm > 0.1){
+    var nx = pvx / pm, ny = pvy / pm;
+    var push = fall * Math.min(pm * 0.14, 3.4);
+    p.x += nx * push;
+    p.y += ny * push;
+  }
+  var s = Math.sin((d * 0.035) - frame * 0.045);
+  p.x += (-dy / d) * s * fall * 2.1;
+  p.y += ( dx / d) * s * fall * 2.1;
+  return fall;
+}
+
+/* ================= main loop ================= */
+function step(now){
+  if (!running) return;
+  raf = requestAnimationFrame(step);
+  frame++;
+  var dt = clamp((now - lastT) / 16.7, 0.25, 2.5);
+  lastT = now;
+
+  var P = PALETTES[pal];
+  if (palMix < 1){
+    palMix = Math.min(1, palMix + 0.02 * dt);
+    if (palMix >= 1) prevPal = pal;
+  }
+
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = P.veil;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.globalCompositeOperation = "lighter";
+  var active = mouse.active;
+  var mx = mouse.x, my = mouse.y;
+  var time = frame * 0.004;
+  var count = particles.length;
+  for (var i = 0; i < count; i++){
+    var p = particles[i];
+    p.px = p.x; p.py = p.y;
+    var a = fieldAngle(p.x, p.y, time);
+    var sp = p.speed * dt;
+    p.x += Math.cos(a) * sp;
+    p.y += Math.sin(a) * sp;
+    applyPointerInfluence(p);
+    p.x -= 0.012 * dt;
+    p.y += 0.006 * dt;
+    p.life -= dt * p.fade;
+    var alpha = Math.min(1, p.life / 40) * 0.55;
+    if (alpha <= 0.01){ particles[i] = spawn(); continue; }
+    if (p.x < -30 || p.x > W+30 || p.y < -30 || p.y > H+30 || p.life <= 0){ particles[i] = spawn(); continue; }
+
+    var idx = (p.ink === 0) ? 0 : p.ink;
+    ctx.strokeStyle = mixInk(idx, alpha);
+    ctx.lineWidth = p.w;
+    ctx.beginPath();
+    ctx.moveTo(p.px, p.py);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+
+  if (active && frame % 4 === 0){
+    ctx.globalCompositeOperation = "source-over";
+    var g = ctx.createRadialGradient(mx, my, 0, mx, my, 150);
+    g.addColorStop(0, P.ghost);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(mx - 150, my - 150, 300, 300);
+  }
+
+  if (frame % 20 === 0){
+    if (active){
+      els.roX.textContent = String(Math.round(mx));
+      els.roY.textContent = String(Math.round(my));
+      els.roA.textContent = Math.round(fieldAngle(mx, my, time) * 57.3) + "°";
+    }
+  }
+}
+
+/* ================= toast ================= */
+var toastTimer = 0;
+function showToast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 1900);
+}
+
+/* ================= events ================= */
+function pointerPos(e){
+  mouse.px = mouse.x; mouse.py = mouse.y;
+  mouse.x = e.clientX; mouse.y = e.clientY;
+  if (mouse.px > -9000){
+    mouse.vx = clamp(mouse.x - mouse.px, -40, 40);
+    mouse.vy = clamp(mouse.y - mouse.py, -40, 40);
+  }
+  mouse.active = true;
+}
+cv.addEventListener("pointermove", function(e){
+  pointerPos(e);
+  if (e.pointerType === "touch" && e.pressure > 0 && e.isPrimary){
+    seedBurst(e.clientX, e.clientY);
+  }
+});
+cv.addEventListener("pointerdown", function(e){
+  pointerPos(e);
+  seedBurst(e.clientX, e.clientY);
+});
+cv.addEventListener("pointerleave", function(){
+  mouse.active = false;
+  mouse.x = -9999; mouse.y = -9999;
+});
+cv.addEventListener("pointerup", function(e){
+  if (e.pointerType !== "touch") mouse.vx = mouse.vy = 0;
+});
+
+window.addEventListener("keydown", function(e){
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  var k = e.key;
+  if (k === "1" || k === "2" || k === "3" || k === "4"){
+    setPalette(parseInt(k,10) - 1, true);
+  } else if (k === "h" || k === "H"){
+    els.plaque.classList.toggle("hidden");
+  }
+});
+
+chips.forEach(function(c){
+  c.addEventListener("click", function(){ setPalette(parseInt(c.getAttribute("data-pal"),10)); });
+});
+
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resize, 150);
+});
+
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+  } else if (!running){
+    running = true;
+    lastT = performance.now();
+    raf = requestAnimationFrame(step);
+  }
+});
+
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+});
+
+/* ================= boot ================= */
+resize();
+if (reduced.matches){
+  /* calm version: pre-render a still field, minimal animation */
+  running = true;
+  for (var i = 0; i < 260; i++){ stepOnce(); }
+}
+var rafStart = requestAnimationFrame(step);
+
+function stepOnce(){
+  var save = frame;
+  frame++;
+  var P = PALETTES[pal];
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = P.veil;
+  ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation = "lighter";
+  var time = frame * 0.004;
+  for (var i = 0; i < particles.length; i++){
+    var p = particles[i];
+    p.px = p.x; p.py = p.y;
+    var a = fieldAngle(p.x, p.y, time);
+    p.x += Math.cos(a) * p.speed;
+    p.y += Math.sin(a) * p.speed;
+    p.x -= 0.012; p.y += 0.006;
+    p.life -= p.fade;
+    var alpha = Math.min(1, p.life / 40) * 0.55;
+    if (alpha <= 0.01 || p.life <= 0 || p.x < -30 || p.x > W+30 || p.y < -30 || p.y > H+30){
+      particles[i] = spawn(); continue;
+    }
+    ctx.strokeStyle = mixInk((p.ink === 0) ? 0 : p.ink, alpha);
+    ctx.lineWidth = p.w;
+    ctx.beginPath();
+    ctx.moveTo(p.px, p.py);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+  frame = save;
+}
+})();
+</script>
+</body>
+</html>

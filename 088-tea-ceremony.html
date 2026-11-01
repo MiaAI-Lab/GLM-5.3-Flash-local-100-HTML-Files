@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICHIGO ICHIE — A Wabi-Sabi Tea Ceremony</title>
+<meta name="description" content="A wabi-sabi tea ceremony on tatami: warm the bowl, whisk the matcha with your pointer until the froth builds, serve with a chime. Steam curls, a seasonal tokonoma scroll changes with the ritual.">
+<style>
+/* ============================================================
+   ICHIGO ICHIE — 088
+   one encounter, one chance. the whisk knows if you hurry.
+   ============================================================ */
+
+:root {
+  --tatami: #d6c9a3;
+  --tatami-deep: #c4b78f;
+  --tatami-edge: #3f4a3c;
+  --matcha: #7d9b5a;
+  --matcha-light: #a8c686;
+  --matcha-deep: #5c7a42;
+  --clay: #3f4a3c;
+  --clay-warm: #8a6a4a;
+  --shoji: #efe8d8;
+  --shoji-soft: rgba(239, 232, 216, 0.82);
+  --ink: #2e2a24;
+  --ink-soft: rgba(46, 42, 36, 0.6);
+  --ink-faint: rgba(46, 42, 36, 0.36);
+  --steam: rgba(255, 255, 255, 0.5);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--shoji);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--shoji);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--matcha);
+  color: var(--shoji);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--tatami);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--clay);
+  border-radius: 6px;
+  border: 2px solid var(--tatami);
+}
+
+:focus-visible {
+  outline: 2px solid var(--matcha-deep);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   ROOM
+   ------------------------------------------------------------ */
+
+.room {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.6vh, 30px) clamp(12px, 3vw, 42px) clamp(28px, 5vh, 56px);
+}
+
+.shoji-wall {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(63, 74, 60, 0.14) 0 3px,
+      transparent 3px 120px),
+    repeating-linear-gradient(0deg,
+      rgba(63, 74, 60, 0.10) 0 2px,
+      transparent 2px 150px),
+    radial-gradient(120% 80% at 18% 0%, rgba(255, 250, 235, 0.9), transparent 55%),
+    linear-gradient(180deg, #f4eee0 0%, var(--shoji) 45%, #e6ddc8 100%);
+}
+
+/* ------------------------------------------------------------
+   HEAD — seasonal scroll line
+   ------------------------------------------------------------ */
+
+.head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(12px, 2vh, 22px);
+}
+
+.head .title-block {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  font-weight: 400;
+  font-size: clamp(1.7rem, 4.6vw, 3rem);
+  letter-spacing: 0.2em;
+  line-height: 1;
+}
+
+.head .jp {
+  font-size: 0.62em;
+  color: var(--ink-soft);
+  letter-spacing: 0.5em;
+}
+
+.head .season {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: right;
+  line-height: 1.9;
+}
+
+.head .season b {
+  color: var(--clay-warm);
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------
+   MAIN BENCH — tatami scene + step cards
+   ------------------------------------------------------------ */
+
+.bench {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr);
+  gap: clamp(14px, 2.2vw, 28px);
+  align-items: stretch;
+}
+
+/* tatami scene panel */
+.tatami-panel {
+  position: relative;
+  border: 2px solid var(--tatami-edge);
+  box-shadow: 8px 8px 0 rgba(63, 74, 60, 0.18);
+  overflow: hidden;
+  background: var(--tatami);
+  min-height: clamp(360px, 58vh, 580px);
+}
+
+#tea {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+/* tokonoma scroll (top right of scene) */
+.scroll {
+  position: absolute;
+  top: 18px;
+  right: clamp(14px, 2.4vw, 30px);
+  width: clamp(72px, 9vw, 104px);
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(46, 42, 36, 0.3));
+}
+
+.scroll .paper {
+  background: linear-gradient(180deg, #f6f0dd, #e9e0c6);
+  border: 1px solid rgba(46, 42, 36, 0.3);
+  padding: 14px 8px 18px;
+  text-align: center;
+}
+
+.scroll .rods {
+  height: 8px;
+  background: linear-gradient(180deg, #4a3f30, #2c241a);
+  border-radius: 2px;
+}
+
+.scroll svg {
+  display: block;
+  margin: 2px auto 0;
+}
+
+.scroll .motto {
+  margin-top: 8px;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  margin-inline: auto;
+  height: 110px;
+  font-size: 15px;
+  letter-spacing: 0.4em;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.scene-note {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(46, 42, 36, 0.6);
+  background: rgba(239, 232, 216, 0.85);
+  padding: 6px 10px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   STEP CARDS
+   ------------------------------------------------------------ */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.6vw, 16px);
+  min-width: 0;
+}
+
+.step-card {
+  border: 1.5px solid var(--ink);
+  border-left: 6px solid var(--matcha);
+  background: rgba(255, 253, 246, 0.72);
+  box-shadow: 4px 4px 0 rgba(46, 42, 36, 0.12);
+  padding: 14px 16px;
+  position: relative;
+  transition: border-color 0.25s, background 0.25s, transform 0.25s;
+}
+
+.step-card.active {
+  background: rgba(255, 253, 246, 0.95);
+  border-left-color: var(--matcha-deep);
+  transform: translateX(4px);
+}
+
+.step-card.done {
+  border-left-color: var(--clay);
+  background: rgba(214, 201, 163, 0.4);
+}
+
+.step-card .no {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  justify-content: space-between;
+}
+
+.step-card .no .en {
+  color: var(--matcha-deep);
+}
+
+.step-card h2 {
+  font-weight: 500;
+  font-size: clamp(1.15rem, 2.4vw, 1.5rem);
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+.step-card p {
+  margin-top: 5px;
+  font-size: clamp(0.85rem, 1.6vw, 0.98rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.step-card .go {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--shoji);
+  background: var(--clay);
+  padding: 9px 16px;
+  border-radius: 3px;
+  transition: background 0.2s, transform 0.1s;
+  min-height: 38px;
+}
+
+.step-card .go:hover {
+  background: var(--matcha-deep);
+}
+
+.step-card .go:active {
+  transform: translateY(2px);
+}
+
+.step-card.done .go {
+  background: transparent;
+  color: var(--ink-faint);
+  border: 1px solid var(--ink-faint);
+  cursor: default;
+}
+
+/* froth meter */
+.froth-meter {
+  border: 1.5px solid var(--ink);
+  background: rgba(255, 253, 246, 0.72);
+  box-shadow: 4px 4px 0 rgba(46, 42, 36, 0.12);
+  padding: 12px 16px;
+}
+
+.froth-meter .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.froth-meter .row b {
+  color: var(--matcha-deep);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.froth-track {
+  height: 10px;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background: rgba(46, 42, 36, 0.06);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.froth-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--matcha), var(--matcha-light));
+  transition: width 0.2s ease-out;
+}
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+
+.foot {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(16px, 3vh, 30px);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE + MOTION
+   ------------------------------------------------------------ */
+
+@media (max-width: 940px) {
+  .bench {
+    grid-template-columns: 1fr;
+  }
+  .steps {
+    order: -1;
+  }
+  .tatami-panel {
+    min-height: clamp(320px, 52vh, 460px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-card,
+  .froth-fill {
+    transition: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="shoji-wall" aria-hidden="true"></div>
+
+<div class="room">
+
+  <header class="head">
+    <div class="title-block">
+      <h1>ICHIGO ICHIE <span class="jp">一期一会</span></h1>
+    </div>
+    <div class="season">
+      <p><b>Season</b> · <span id="seasonName">cherry</span> — <span id="seasonNote">the scroll hangs soft</span></p>
+      <p>room 88 · the gallery of 100</p>
+    </div>
+  </header>
+
+  <div class="bench">
+
+    <!-- ==================== TATAMI SCENE ==================== -->
+    <section class="tatami-panel" aria-label="Tea room scene">
+      <canvas id="tea" aria-label="Tatami tea room — move your pointer over the bowl to whisk, click serve when the froth is ready"></canvas>
+
+      <div class="scroll" aria-hidden="true">
+        <div class="rods"></div>
+        <div class="paper">
+          <svg id="seasonArt" width="72" height="72" viewBox="0 0 72 72"></svg>
+          <p class="motto" id="seasonMotto">一期一会</p>
+        </div>
+        <div class="rods"></div>
+      </div>
+
+      <p class="scene-note" id="sceneNote">warm water waiting · the kettle is quiet</p>
+    </section>
+
+    <!-- ==================== STEP CARDS ==================== -->
+    <div class="steps">
+
+      <article class="step-card" id="step1" data-step="1">
+        <p class="no"><span>Step 01 · 4 steps of 4</span><span class="en">bowl o-atsu</span></p>
+        <h2>Warm the Bowl</h2>
+        <p>Hot water from the kettle, swirled once, poured away. The clay learns
+          the temperature of the tea it is about to hold.</p>
+        <button class="go" type="button">Warm the bowl</button>
+      </article>
+
+      <article class="step-card" id="step2" data-step="2">
+        <p class="no"><span>Step 02</span><span class="en">matcha o-ireru</span></p>
+        <h2>Add the Matcha</h2>
+        <p>Two scoops of the green — the season's first grinding, whisked from
+          a tin older than the house.</p>
+        <button class="go" type="button">Sift the matcha</button>
+      </article>
+
+      <article class="step-card" id="step3" data-step="3">
+        <p class="no"><span>Step 03</span><span class="en">chasen o-awaseru</span></p>
+        <h2>Whisk, and Wait</h2>
+        <p>Move your pointer over the bowl — quick wrist strokes, back and
+          forth, never circles. The froth tells you when to stop.</p>
+        <div class="froth-meter">
+          <div class="row"><span>Froth</span><b id="frothVal">0%</b></div>
+          <div class="froth-track"><div class="froth-fill" id="frothFill"></div></div>
+        </div>
+      </article>
+
+      <article class="step-card" id="step4" data-step="4">
+        <p class="no"><span>Step 04</span><span class="en">o-cha o-dozo</span></p>
+        <h2>Serve, and Bow</h2>
+        <p>The bowl turns twice in your hands before it leaves you. One
+          encounter, one chance — <i>ichigo ichie</i>.</p>
+        <button class="go" type="button">Serve the bowl</button>
+      </article>
+
+    </div>
+
+  </div>
+
+  <footer class="foot">
+    <span>Ichigo Ichie · wabi-sabi in one file</span>
+    <span>the whisk knows if you hurry</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var step = 0;              /* 0 none, 1 warmed, 2 matcha, 3 whisking/whisked, 4 served */
+  var froth = 0;             /* 0..1 */
+  var whiskEnergy = 0;       /* recent pointer activity */
+  var serving = false;
+  var serveT = 0;
+  var bowlTilt = 0;
+  var steam = [];
+  var sparkles = [];
+  var pointer = { x: -999, y: -999, inside: false, lastX: 0, lastT: 0, vx: 0 };
+  var lastWhiskDir = 1;
+
+  /* ============================================================
+     SEASONS
+     ============================================================ */
+  var SEASONS = {
+    cherry: {
+      note: "the scroll hangs soft",
+      motto: "花ゟ月前",
+      draw: function (svg) {
+        svg.innerHTML =
+          '<g fill="none" stroke="#8a5a5a" stroke-width="2">' +
+          '<path d="M36,62 C34,48 34,38 36,26"/>' +
+          '</g>' +
+          '<g fill="#e8b4bc" stroke="#b4707c" stroke-width="1.2">' +
+          '<circle cx="36" cy="22" r="7"/>' +
+          '<circle cx="27" cy="30" r="6"/>' +
+          '<circle cx="45" cy="29" r="6"/>' +
+          '<circle cx="32" cy="38" r="5"/>' +
+          '<circle cx="41" cy="39" r="5"/>' +
+          '</g>' +
+          '<g fill="#b4707c">' +
+          '<circle cx="36" cy="22" r="1.6"/><circle cx="27" cy="30" r="1.4"/><circle cx="45" cy="29" r="1.4"/>' +
+          '</g>';
+      }
+    },
+    maple: {
+      note: "the scroll turns red",
+      motto: "紅葉 diffs",
+      draw: function (svg) {
+        svg.innerHTML =
+          '<g stroke="#a04328" fill="none" stroke-width="2">' +
+          '<path d="M36,60 C36,46 36,34 36,22"/>' +
+          '</g>' +
+          '<g fill="#c25a34">' +
+          '<path d="M36,24 l-5,-6 2,-4 3,2 3,-2 2,4 Z"/>' +
+          '<path d="M28,32 l-7,-3 -1,-4 3,-1 3,3 Z"/>' +
+          '<path d="M44,32 l7,-3 1,-4 -3,-1 -3,3 Z"/>' +
+          '<path d="M31,42 l-6,2 -3,-3 2,-3 4,0 Z"/>' +
+          '<path d="M41,42 l6,2 3,-3 -2,-3 -4,0 Z"/>' +
+          '</g>';
+      }
+    }
+  };
+  var seasonKey = "cherry";
+
+  function applySeason(key) {
+    seasonKey = key;
+    var s = SEASONS[key];
+    document.getElementById("seasonName").textContent = key;
+    document.getElementById("seasonNote").textContent = s.note;
+    document.getElementById("seasonMotto").textContent = s.motto;
+    s.draw(document.getElementById("seasonArt"));
+  }
+
+  /* ============================================================
+     AUDIO — chimes (user-initiated)
+     ============================================================ */
+  var AC = null;
+
+  function ensureAudio() {
+    if (!AC) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      AC = new Ctx();
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+
+  function chime(freqs, dur, vol) {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+    freqs.forEach(function (f, i) {
+      var o = ac.createOscillator();
+      var g = ac.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      g.gain.setValueAtTime(vol / (i + 1), t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g).connect(ac.destination);
+      o.start(t0);
+      o.stop(t0 + dur + 0.05);
+    });
+  }
+
+  /* ============================================================
+     CANVAS SCENE
+     ============================================================ */
+  var cv = document.getElementById("tea");
+  var ctx = cv.getContext("2d");
+  var vw = 0, vh = 0;
+
+  function sizeCanvas() {
+    var rect = cv.parentElement.getBoundingClientRect();
+    vw = Math.max(1, rect.width);
+    vh = Math.max(1, rect.height);
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function geom() {
+    var tatamiTop = vh * 0.34;
+    return {
+      tatamiTop: tatamiTop,
+      bowlX: vw * 0.42,
+      bowlY: vh * 0.66,
+      bowlR: Math.min(vw, vh) * 0.13
+    };
+  }
+
+  function drawScene(now, dt) {
+    var g = geom();
+    ctx.clearRect(0, 0, vw, vh);
+
+    /* ---- wall with soft shoji light ---- */
+    var wall = ctx.createLinearGradient(0, 0, 0, g.tatamiTop);
+    wall.addColorStop(0, "#efe8d8");
+    wall.addColorStop(1, "#e2d8bf");
+    ctx.fillStyle = wall;
+    ctx.fillRect(0, 0, vw, g.tatamiTop);
+    /* shoji lattice */
+    ctx.strokeStyle = "rgba(63,74,60,0.18)";
+    ctx.lineWidth = 2;
+    for (var wx = 0; wx < vw; wx += Math.max(70, vw / 9)) {
+      ctx.beginPath();
+      ctx.moveTo(wx, 0);
+      ctx.lineTo(wx, g.tatamiTop);
+      ctx.stroke();
+    }
+    for (var wy = 0; wy < g.tatamiTop; wy += Math.max(64, vh / 8)) {
+      ctx.beginPath();
+      ctx.moveTo(0, wy);
+      ctx.lineTo(vw, wy);
+      ctx.stroke();
+    }
+
+    /* ---- tatami floor ---- */
+    ctx.fillStyle = "#d6c9a3";
+    ctx.fillRect(0, g.tatamiTop, vw, vh - g.tatamiTop);
+    /* tatami mats: two rows of bordered mats */
+    var matH = (vh - g.tatamiTop) / 2;
+    for (var row = 0; row < 2; row++) {
+      for (var mI = 0; mI < 3; mI++) {
+        var mw = vw / 3;
+        var mx = mI * mw + (row % 2 ? mw / 2 : 0) - mw / 4;
+        var my = g.tatamiTop + row * matH;
+        ctx.fillStyle = row % 2 ? "#cfc29a" : "#d6c9a3";
+        ctx.fillRect(mx + 3, my + 3, mw - 6, matH - 6);
+        ctx.strokeStyle = "rgba(63,74,60,0.28)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(mx + 3, my + 3, mw - 6, matH - 6);
+        /* weave lines */
+        ctx.strokeStyle = "rgba(63,74,60,0.08)";
+        ctx.lineWidth = 1;
+        for (var wv = 8; wv < matH - 8; wv += 7) {
+          ctx.beginPath();
+          ctx.moveTo(mx + 6, my + wv);
+          ctx.lineTo(mx + mw - 6, my + wv);
+          ctx.stroke();
+        }
+        /* heri (edge cloth) */
+        ctx.fillStyle = "rgba(63,74,60,0.55)";
+        ctx.fillRect(mx + 3, my + 3, 5, matH - 6);
+      }
+    }
+    /* light falloff */
+    var light = ctx.createLinearGradient(0, g.tatamiTop, 0, vh);
+    light.addColorStop(0, "rgba(255,248,230,0.22)");
+    light.addColorStop(1, "rgba(63,74,60,0.14)");
+    ctx.fillStyle = light;
+    ctx.fillRect(0, g.tatamiTop, vw, vh - g.tatamiTop);
+
+    /* ---- kettle hint on the wall side ---- */
+    var kx = vw * 0.14, ky = g.tatamiTop - vh * 0.1;
+    ctx.fillStyle = "#2c2c2c";
+    ctx.beginPath();
+    ctx.ellipse(kx, ky, vw * 0.035, vw * 0.028, 0, 0, 6.2832);
+    ctx.fill();
+    ctx.strokeStyle = "#2c2c2c";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(kx - vw * 0.02, ky - vw * 0.02);
+    ctx.quadraticCurveTo(kx, ky - vw * 0.05, kx + vw * 0.02, ky - vw * 0.02);
+    ctx.stroke();
+    /* kettle steam */
+    if (!reduced) {
+      for (var ks = 0; ks < 3; ks++) {
+        var kt = (now / 1600 + ks * 0.37) % 1;
+        var ksy = ky - vw * 0.03 - kt * vh * 0.09;
+        var ksx = kx + Math.sin(kt * 5 + ks) * 6;
+        ctx.fillStyle = "rgba(255,255,255," + (0.3 * (1 - kt)).toFixed(2) + ")";
+        ctx.beginPath();
+        ctx.arc(ksx, ksy, 5 + kt * 9, 0, 6.2832);
+        ctx.fill();
+      }
+    }
+
+    /* ---- the bowl ---- */
+    var R = g.bowlR;
+    var tilt = bowlTilt;
+    ctx.save();
+    ctx.translate(g.bowlX, g.bowlY);
+    ctx.rotate(tilt * 0.5);
+
+    /* shadow on tatami */
+    ctx.fillStyle = "rgba(46,42,36,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(8, R * 0.55, R * 1.05, R * 0.28, 0, 0, 6.2832);
+    ctx.fill();
+
+    /* bowl body (chawan) */
+    var bodyGrad = ctx.createLinearGradient(-R, -R * 0.4, R, R * 0.6);
+    bodyGrad.addColorStop(0, "#4a5646");
+    bodyGrad.addColorStop(0.5, "#3f4a3c");
+    bodyGrad.addColorStop(1, "#2c352a");
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, R, R * 0.62, 0, 0, 6.2832);
+    ctx.fill();
+
+    /* inner tea */
+    if (step >= 2) {
+      var teaCol = step >= 3 ? "#7d9b5a" : "#6b8a4e";
+      ctx.fillStyle = teaCol;
+      ctx.beginPath();
+      ctx.ellipse(0, -R * 0.08, R * 0.82, R * 0.42, 0, 0, 6.2832);
+      ctx.fill();
+
+      /* froth: bubbly clusters scaled by froth level */
+      if (step >= 3) {
+        var clusters = Math.floor(froth * 34) + 2;
+        for (var fI = 0; fI < clusters; fI++) {
+          var fa = (fI * 2.399) % 6.2832;
+          var fr = Math.sqrt((fI % 7) / 7);
+          var fx2 = Math.cos(fa) * R * 0.6 * fr;
+          var fy2 = -R * 0.08 + Math.sin(fa) * R * 0.28 * fr;
+          var fs = 1.4 + (fI % 4) * 0.7 + froth * 1.6;
+          ctx.fillStyle = "rgba(168,198,134,0.9)";
+          ctx.beginPath();
+          ctx.arc(fx2, fy2, fs, 0, 6.2832);
+          ctx.fill();
+          ctx.fillStyle = "rgba(230,244,208,0.85)";
+          ctx.beginPath();
+          ctx.arc(fx2 - fs * 0.25, fy2 - fs * 0.3, fs * 0.45, 0, 6.2832);
+          ctx.fill();
+        }
+        /* froth dome when high */
+        if (froth > 0.65) {
+          ctx.fillStyle = "rgba(190,214,150,0.95)";
+          ctx.beginPath();
+          ctx.ellipse(0, -R * 0.16, R * 0.6 * froth, R * 0.22 * froth, 0, Math.PI, 0);
+          ctx.fill();
+        }
+      }
+    } else if (step === 1) {
+      /* warm water glint */
+      ctx.fillStyle = "rgba(232,220,190,0.5)";
+      ctx.beginPath();
+      ctx.ellipse(0, -R * 0.06, R * 0.7, R * 0.32, 0, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* rim highlight */
+    ctx.strokeStyle = "rgba(239,232,216,0.35)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, -R * 0.12, R * 0.97, R * 0.5, 0, Math.PI * 1.08, Math.PI * 1.92);
+    ctx.stroke();
+
+    /* whisk (chasen) when step 3 active */
+    if (step === 3 && pointer.inside) {
+      var wob = Math.sin(now * 0.035) * whiskEnergy * 0.35;
+      var whx = pointer.x - g.bowlX;
+      var why = pointer.y - g.bowlY;
+      ctx.save();
+      ctx.translate(whx, why);
+      ctx.rotate(wob);
+      /* handle */
+      ctx.strokeStyle = "#4a3f30";
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(0, -R * 0.9);
+      ctx.lineTo(0, -R * 0.15);
+      ctx.stroke();
+      /* tines */
+      ctx.strokeStyle = "#d9cfb4";
+      ctx.lineWidth = 1.4;
+      for (var tI = 0; tI < 12; tI++) {
+        var ta = -Math.PI / 2 + (tI - 5.5) * 0.16 + wob;
+        ctx.beginPath();
+        ctx.moveTo(0, -R * 0.15);
+        ctx.quadraticCurveTo(Math.cos(ta) * R * 0.16, -R * 0.02, Math.cos(ta) * R * 0.3, R * 0.12);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    /* ---- matcha dust while sifting (step 2 animation handled by dustT) ---- */
+    if (dustT > 0 && dustT < 1) {
+      ctx.fillStyle = "rgba(125,155,90,0.75)";
+      for (var dI = 0; dI < 26; dI++) {
+        var da = (dI * 2.399) % 6.2832;
+        var dd = Math.sqrt((dI % 8) / 8);
+        var dpx = g.bowlX + Math.cos(da) * R * 0.5 * dd;
+        var dpy = g.bowlY - R * 0.3 - (1 - dustT) * vh * 0.12 + Math.sin(da) * R * 0.14 * dd;
+        ctx.beginPath();
+        ctx.arc(dpx, dpy, 1.4, 0, 6.2832);
+        ctx.fill();
+      }
+    }
+
+    /* ---- steam from the bowl when warm ---- */
+    if (!reduced && (step === 1 || (step >= 3 && froth < 0.95))) {
+      if (Math.random() < 0.22) {
+        steam.push({
+          x: g.bowlX + (Math.random() - 0.5) * R,
+          y: g.bowlY - R * 0.5,
+          age: 0,
+          seed: Math.random() * 6.283
+        });
+        if (steam.length > 16) steam.shift();
+      }
+    }
+    for (var sI = steam.length - 1; sI >= 0; sI--) {
+      var sv = steam[sI];
+      sv.age += dt;
+      sv.y -= 20 * dt;
+      sv.x += Math.sin(sv.age * 2.2 + sv.seed) * 0.55;
+      var sa = Math.max(0, 0.4 - sv.age / 4.5);
+      if (sa <= 0) { steam.splice(sI, 1); continue; }
+      ctx.fillStyle = "rgba(255,255,255," + (sa * 0.45).toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.arc(sv.x, sv.y, 7 + sv.age * 7, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* ---- sparkle burst on serve ---- */
+    for (var spI = sparkles.length - 1; spI >= 0; spI--) {
+      var spv = sparkles[spI];
+      spv.age += dt;
+      var st2 = spv.age / 0.9;
+      if (st2 >= 1) { sparkles.splice(spI, 1); continue; }
+      ctx.strokeStyle = "rgba(168,198,134," + (0.7 * (1 - st2)).toFixed(2) + ")";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(spv.x, spv.y - st2 * 30, 3 + st2 * 14, 0, 6.2832);
+      ctx.stroke();
+    }
+
+    /* ---- serving tilt caption ---- */
+    if (serving) {
+      ctx.fillStyle = "rgba(46,42,36,0.6)";
+      ctx.font = "italic 14px ui-serif, Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText("matcha, for you", g.bowlX, g.bowlY - R * 1.5);
+      ctx.textAlign = "left";
+    }
+  }
+
+  var dustT = 0;
+
+  /* ============================================================
+     WHISK LOGIC
+     ============================================================ */
+  cv.addEventListener("pointermove", function (e) {
+    var rect = cv.getBoundingClientRect();
+    pointer.x = e.clientX - rect.left;
+    pointer.y = e.clientY - rect.top;
+    pointer.inside = true;
+    var nowT = performance.now();
+    var dtms = Math.max(1, nowT - pointer.lastT);
+    pointer.vx = Math.abs(pointer.x - pointer.lastX) / dtms;
+    pointer.lastX = pointer.x;
+    pointer.lastT = nowT;
+
+    if (step === 3) {
+      /* whisking: fast horizontal movement near the bowl builds froth */
+      var g = geom();
+      var near = Math.hypot(pointer.x - g.bowlX, pointer.y - (g.bowlY - g.bowlR * 0.1));
+      if (near < g.bowlR * 1.7 && pointer.vx > 0.25) {
+        whiskEnergy = Math.min(1, whiskEnergy + 0.09);
+        var speed = Math.min(1, pointer.vx / 1.6);
+        froth = Math.min(1, froth + speed * 0.012);
+        /* alternate direction adds finesse bonus */
+        if (pointer.x * lastWhiskDir < 0) {
+          froth = Math.min(1, froth + 0.004);
+          lastWhiskDir = -lastWhiskDir;
+        }
+        updateFrothUI();
+        if (reduced) drawScene(nowT, 0.016);
+      }
+    }
+  });
+
+  cv.addEventListener("pointerleave", function () {
+    pointer.inside = false;
+  });
+
+  function updateFrothUI() {
+    document.getElementById("frothVal").textContent = Math.round(froth * 100) + "%";
+    document.getElementById("frothFill").style.width = (froth * 100).toFixed(1) + "%";
+  }
+
+  /* ============================================================
+     STEPS
+     ============================================================ */
+  var noteEl = document.getElementById("sceneNote");
+  var cards = [
+    document.getElementById("step1"),
+    document.getElementById("step2"),
+    document.getElementById("step3"),
+    document.getElementById("step4")
+  ];
+
+  function setNote(t) {
+    noteEl.textContent = t;
+  }
+
+  function setCardState(i, state) {
+    cards.forEach(function (c, ci) {
+      c.classList.toggle("done", ci < state);
+      c.classList.toggle("active", ci === state);
+    });
+  }
+
+  cards[0].querySelector(".go").addEventListener("click", function () {
+    if (step !== 0) return;
+    step = 1;
+    setCardState(0, 1);
+    setNote("the bowl is warm · water poured away");
+    chime([420, 630], 0.5, 0.05);
+  });
+
+  cards[1].querySelector(".go").addEventListener("click", function () {
+    if (step !== 1) return;
+    step = 2;
+    dustT = 0.001;
+    setCardState(0, 2);
+    setNote("matcha sifted · two green scoops");
+    chime([520, 780], 0.5, 0.05);
+  });
+
+  cards[3].querySelector(".go").addEventListener("click", function () {
+    if (step === 3 && froth >= 0.75) {
+      serving = true;
+      serveT = 0;
+      step = 4;
+      setCardState(0, 4);
+      setNote("served · one encounter, one chance");
+      chime([660, 880, 1320], 1.3, 0.07);
+    } else if (step === 3) {
+      setNote("the froth is not ready — whisk a little longer");
+    } else if (step < 3) {
+      setNote("the bowl is not yet whisked");
+    }
+  });
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!document.hidden) {
+      /* dust sift animation */
+      if (dustT > 0 && dustT < 1) dustT = Math.min(1, dustT + dt / 0.9);
+
+      /* whisk energy decays; froth settles slightly if neglected */
+      if (step === 3) {
+        whiskEnergy = Math.max(0, whiskEnergy - dt * 0.5);
+        if (whiskEnergy <= 0.01 && froth > 0) {
+          froth = Math.max(0, froth - dt * 0.008);
+          updateFrothUI();
+        }
+        if (froth >= 0.75 && !cards[3].dataset.ready) {
+          cards[3].dataset.ready = "1";
+          setNote("the froth is ready · serve when you are");
+          chime([740, 1110], 0.4, 0.045);
+        }
+      }
+
+      /* serving animation */
+      if (serving) {
+        serveT += dt;
+        bowlTilt = Math.min(0.55, serveT * 0.9);
+        if (serveT > 1.4 && sparkles.length === 0) {
+          sparkles.push({ x: geom().bowlX, y: geom().bowlY - 20, age: 0 });
+        }
+      } else {
+        bowlTilt *= 0.9;
+      }
+
+      drawScene(now, dt);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    sizeCanvas();
+    if (reduced) drawScene(performance.now(), 0.016);
+  });
+
+  applySeason("cherry");
+  sizeCanvas();
+
+  if (reduced) {
+    drawScene(performance.now(), 0.016);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLEEP CAPSULE · №098 — Capsule Hotel Booking · The Gallery of 100</title>
+<style>
+:root{
+  --hall:     #10141f;
+  --hall-2:   #0a0d16;
+  --pod:      #1c2233;
+  --pod-2:    #141a29;
+  --metal:    #8a8f98;
+  --metal-2:  #5b616c;
+  --aurora:   #7c9cf5;
+  --ember:    #f5a9bd;
+  --star:     #ffd166;
+  --cream:    #eef0f4;
+  --txt:      #aab3c5;
+  --txt-dim:  #67718a;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+body[data-mode="aurora"]{ --mode: var(--aurora); }
+body[data-mode="starfield"]{ --mode: var(--star); }
+body[data-mode="ember"]{ --mode: var(--ember); }
+body{ --mode: var(--aurora); }
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scrollbar-color:#39415a transparent; }
+html::-webkit-scrollbar{ width:10px; }
+html::-webkit-scrollbar-thumb{ background:#39415a; border-radius:6px; }
+body{
+  font-family:var(--sans);
+  background:
+    radial-gradient(1100px 600px at 50% -10%, #1a2133, transparent 60%),
+    var(--hall);
+  color:var(--txt);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  transition:background 1.2s ease;
+}
+::selection{ background:var(--mode); color:#10141f; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--mode); outline-offset:3px; border-radius:4px; }
+button{ font-family:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+/* ---------- ambient wash driven by lighting mode ---------- */
+.wash{
+  position:fixed; inset:0; pointer-events:none; z-index:1;
+  background:radial-gradient(90% 70% at 50% 110%, color-mix(in srgb, var(--mode) 16%, transparent), transparent 70%);
+  transition:background 1.2s ease;
+  opacity:.9;
+}
+/* ---------- grid wall texture ---------- */
+.gridwall{
+  position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.35;
+  background:
+    linear-gradient(rgba(122,140,180,.05) 1px, transparent 1px) 0 0/100% 44px,
+    linear-gradient(90deg, rgba(122,140,180,.05) 1px, transparent 1px) 0 0/44px 100%;
+}
+
+.shell{
+  position:relative; z-index:2;
+  max-width:1380px; margin:0 auto;
+  padding:clamp(16px,3vh,34px) clamp(14px,3vw,42px) clamp(16px,2.6vh,28px);
+  display:flex; flex-direction:column; gap:clamp(12px,2vh,22px);
+  min-height:100vh;
+}
+
+/* ---------- header ---------- */
+.head{
+  display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap;
+  border-bottom:1px solid rgba(138,143,152,.25);
+  padding-bottom:14px;
+}
+.head h1{
+  font-weight:200;
+  font-size:clamp(1.7rem, 3.8vw, 2.8rem);
+  letter-spacing:.42em; text-transform:uppercase;
+  color:var(--cream);
+}
+.head h1 b{ font-weight:600; color:var(--mode); transition:color .8s ease; }
+.head .slogan{
+  font-style:italic; font-size:.9rem; color:var(--txt-dim); margin-top:6px; letter-spacing:.04em;
+}
+.quiet{
+  text-align:right;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em; line-height:2;
+  color:var(--txt-dim); text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+}
+.quiet .lamp{
+  display:inline-block; width:9px; height:9px; border-radius:50%;
+  background:#4de08a;
+  box-shadow:0 0 8px rgba(77,224,138,.8);
+  margin-right:8px;
+  vertical-align:baseline;
+}
+.quiet.awake .lamp{ background:#f5c04a; box-shadow:0 0 8px rgba(245,192,74,.8); }
+
+/* ---------- layout ---------- */
+.floor{
+  flex:1;
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(320px,1fr);
+  gap:clamp(16px,2.6vw,36px);
+  align-items:start;
+}
+@media (max-width:1020px){
+  .floor{ grid-template-columns:minmax(0,1fr); }
+}
+
+/* ---------- capsule wall ---------- */
+.wall-block h2, .panel-block h2{
+  font-weight:300; font-size:.72rem; letter-spacing:.4em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:12px;
+}
+.wall-block h2 span, .panel-block h2 span{ font-family:var(--mono); letter-spacing:.14em; font-size:.58rem; }
+
+.capsules{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:clamp(10px,1.6vw,18px);
+}
+@media (max-width:560px){
+  .capsules{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+}
+.pod{
+  position:relative;
+  border-radius:14px;
+  background:linear-gradient(180deg, var(--pod), var(--pod-2));
+  border:1px solid rgba(138,143,152,.3);
+  padding:12px 12px 10px;
+  cursor:pointer;
+  overflow:hidden;
+  transition:transform .3s ease, border-color .4s ease, box-shadow .5s ease;
+  touch-action:manipulation;
+  text-align:left;
+}
+.pod:hover{ transform:translateY(-3px); border-color:var(--metal); box-shadow:0 16px 30px -16px rgba(0,0,0,.7); }
+.pod .inner{
+  position:relative;
+  border-radius:9px;
+  height:118px;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, #101522, #0b0f1a);
+  box-shadow:inset 0 2px 10px rgba(0,0,0,.7);
+  display:grid; place-items:center;
+}
+.pod .shade{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(10,13,22,.92), rgba(10,13,22,.35) 55%, rgba(10,13,22,.05));
+  transform:translateY(0);
+  transition:transform 1s cubic-bezier(.6,0,.2,1), opacity 1s ease;
+}
+.pod.selected .shade{ transform:translateY(-46%); opacity:.4; }
+.pod .glowbar{
+  position:absolute; left:8%; right:8%; bottom:10px; height:4px; border-radius:2px;
+  background:var(--mode);
+  opacity:.28;
+  transition:opacity .5s ease, box-shadow .5s ease, background .8s ease;
+}
+.pod.selected .glowbar{ opacity:1; box-shadow:0 0 14px var(--mode); }
+.pod .scene{ position:absolute; inset:0; opacity:0; transition:opacity .9s ease; }
+.pod.selected .scene{ opacity:1; }
+.pod .num{
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.22em;
+  color:var(--metal);
+  display:flex; justify-content:space-between; margin-top:9px;
+}
+.pod.selected .num{ color:var(--mode); transition:color .6s ease; }
+.pod .state{
+  font-family:var(--mono); font-size:.5rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between; margin-top:4px;
+}
+.pod.selected .state .s2{ color:var(--mode); }
+.pod.occupied{ opacity:.45; cursor:not-allowed; }
+.pod.occupied .inner::after{
+  content:"OCCUPIED"; position:absolute; inset:0; display:grid; place-items:center;
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.3em; color:#5b616c;
+}
+
+/* ---------- control panel ---------- */
+.panel-block .panel{
+  background:linear-gradient(180deg, rgba(28,34,51,.9), rgba(16,20,32,.9));
+  border:1px solid rgba(138,143,152,.3);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 24px 50px -26px rgba(0,0,0,.8);
+}
+.panel .panel-head{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:12px 16px;
+  border-bottom:1px solid rgba(138,143,152,.2);
+  background:linear-gradient(180deg, rgba(138,143,152,.12), transparent);
+}
+.panel .panel-head .t{ font-weight:300; letter-spacing:.34em; font-size:.62rem; text-transform:uppercase; color:var(--cream); }
+.panel .panel-head .leds{ display:flex; gap:7px; }
+.panel .panel-head .leds i{
+  width:8px; height:8px; border-radius:50%; display:block;
+  background:#3a4258;
+  transition:background .4s ease, box-shadow .4s ease;
+}
+.panel .panel-head .leds i.on{ background:var(--mode); box-shadow:0 0 8px var(--mode); }
+
+.pgroup{ padding:14px 16px 4px; }
+.pgroup .plabel{
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between; margin-bottom:9px;
+}
+.pgroup .plabel b{ color:var(--cream); font-weight:400; }
+.pgroup + .pgroup{ border-top:1px dashed rgba(138,143,152,.2); padding-top:12px; margin-top:10px; }
+
+/* lighting modes */
+.modes{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.mode-btn{
+  border:1px solid rgba(138,143,152,.35);
+  border-radius:8px;
+  padding:10px 6px;
+  font-family:var(--mono); font-size:.52rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--txt);
+  text-align:center;
+  position:relative;
+  transition:border-color .3s ease, color .3s ease, background .3s ease;
+  touch-action:manipulation;
+}
+.mode-btn::before{
+  content:""; display:block; width:100%; height:22px; border-radius:5px; margin-bottom:7px;
+  background:linear-gradient(90deg, var(--mc1), var(--mc2));
+}
+.mode-btn[data-m="aurora"]{ --mc1:#7c9cf5; --mc2:#a5e8c8; }
+.mode-btn[data-m="starfield"]{ --mc1:#ffd166; --mc2:#fff3d6; }
+.mode-btn[data-m="ember"]{ --mc1:#f5a9bd; --mc2:#ff8a5c; }
+.mode-btn:hover{ border-color:var(--metal); }
+.mode-btn.on{ border-color:var(--mode); color:var(--cream); background:rgba(124,156,245,.08); }
+body[data-mode="starfield"] .mode-btn.on{ background:rgba(255,209,102,.08); }
+body[data-mode="ember"] .mode-btn.on{ background:rgba(245,169,189,.08); }
+
+/* temp slider */
+input[type="range"].temp{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:26px; background:transparent; cursor:pointer; touch-action:none;
+}
+input[type="range"].temp::-webkit-slider-runnable-track{
+  height:5px; border-radius:3px;
+  background:linear-gradient(90deg, #7c9cf5, #d9d0bd 50%, #ff8a5c);
+}
+input[type="range"].temp::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:20px; height:20px; margin-top:-7.5px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, #fff, #b9c0cc 70%);
+  border:2px solid var(--metal-2);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+input[type="range"].temp::-moz-range-track{ height:5px; border-radius:3px; background:linear-gradient(90deg,#7c9cf5,#d9d0bd 50%,#ff8a5c); }
+input[type="range"].temp::-moz-range-thumb{ width:18px; height:18px; border-radius:50%; background:radial-gradient(circle at 34% 30%,#fff,#b9c0cc 70%); border:2px solid var(--metal-2); }
+
+/* sound toggles */
+.sndrow{ display:flex; gap:8px; flex-wrap:wrap; }
+.snd{
+  flex:1; min-width:86px;
+  border:1px solid rgba(138,143,152,.35);
+  border-radius:8px;
+  padding:9px 8px;
+  font-family:var(--mono); font-size:.52rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--txt);
+  text-align:center;
+  transition:border-color .3s ease, color .3s ease, background .3s ease;
+  touch-action:manipulation;
+}
+.snd:hover{ border-color:var(--metal); }
+.snd[aria-pressed="true"]{ border-color:var(--mode); color:var(--cream); background:rgba(124,156,245,.07); }
+
+/* check-in card */
+.checkin{
+  margin-top:14px;
+  padding:14px 16px 16px;
+  border-top:1px solid rgba(138,143,152,.2);
+}
+.checkin .rows{ display:grid; gap:6px; font-family:var(--mono); font-size:.6rem; letter-spacing:.12em; color:var(--txt-dim); }
+.checkin .rows div{ display:flex; justify-content:space-between; gap:10px; }
+.checkin .rows b{ color:var(--cream); font-weight:400; font-variant-numeric:tabular-nums; }
+.checkin .rows .lit{ color:var(--mode); transition:color .6s ease; }
+.book{
+  width:100%;
+  margin-top:14px;
+  font-weight:300;
+  font-size:.78rem; letter-spacing:.4em; text-transform:uppercase;
+  color:#0e121d;
+  background:linear-gradient(180deg, #dfe4ec, var(--metal));
+  border-radius:9px;
+  padding:15px 10px;
+  box-shadow:0 10px 22px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.65);
+  transition:transform .2s ease, box-shadow .2s ease, filter .3s ease;
+  touch-action:manipulation;
+}
+.book:hover{ transform:translateY(-2px); box-shadow:0 16px 28px -12px rgba(0,0,0,.8); filter:brightness(1.05); }
+.book:active{ transform:translateY(0); }
+.book:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+
+/* footer */
+.foot{
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  border-top:1px solid rgba(138,143,152,.22);
+  padding-top:12px;
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--txt-dim);
+}
+.foot .m{ color:var(--mode); transition:color .6s ease; }
+
+/* toast */
+.toast{
+  position:fixed; left:50%; bottom:clamp(14px,3vh,28px);
+  transform:translate(-50%,8px);
+  z-index:30;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.24em; text-transform:uppercase;
+  color:#0e121d;
+  background:linear-gradient(180deg, #f2f4f8, var(--metal));
+  border-radius:999px;
+  padding:10px 20px;
+  box-shadow:0 12px 26px -12px rgba(0,0,0,.8);
+  opacity:0; transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+@media (prefers-reduced-motion: reduce){
+  .pod, .pod .shade, .pod .scene, .glowbar, .mode-btn, .book{ transition:none; }
+}
+</style>
+</head>
+<body data-mode="aurora">
+
+<div class="gridwall" aria-hidden="true"></div>
+<div class="wash" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <header class="head">
+    <div>
+      <h1>Sleep <b>Capsule</b></h1>
+      <p class="slogan">a bed, a light, a silence of your choosing — floor nine, bays A–F</p>
+    </div>
+    <div class="quiet" id="quietBox">
+      <span class="lamp" aria-hidden="true"></span>QUIET HOURS · 22:00 – 07:00<br>
+      <span id="hallClock">--:--</span> LOCAL · <span id="occupancy">0 / 12</span> CAPSULES TONIGHT
+    </div>
+  </header>
+
+  <div class="floor">
+
+    <!-- capsule wall -->
+    <section class="wall-block" aria-label="Capsule wall">
+      <h2>Bay map — floor nine <span>PICK A POD · SHADE SLIDES · LIGHT WARMS</span></h2>
+      <div class="capsules" id="capsules"></div>
+    </section>
+
+    <!-- control panel -->
+    <section class="panel-block" aria-label="Capsule controls">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="t">Console · Pod <span id="podName">— —</span></span>
+          <span class="leds" aria-hidden="true"><i id="ledA"></i><i id="ledB"></i><i id="ledC"></i></span>
+        </div>
+
+        <div class="pgroup">
+          <div class="plabel"><span>Lighting mode</span><b id="modeRead">AURORA</b></div>
+          <div class="modes" role="group" aria-label="Lighting mode">
+            <button class="mode-btn on" type="button" data-m="aurora" aria-pressed="true">Aurora</button>
+            <button class="mode-btn" type="button" data-m="starfield" aria-pressed="false">Starfield</button>
+            <button class="mode-btn" type="button" data-m="ember" aria-pressed="false">Ember</button>
+          </div>
+        </div>
+
+        <div class="pgroup">
+          <div class="plabel"><span>Mattress temperature</span><b id="tempRead">31.0 °C</b></div>
+          <input type="range" class="temp" id="tempSl" min="18" max="40" step="0.5" value="31" aria-label="Mattress temperature in degrees celsius">
+        </div>
+
+        <div class="pgroup">
+          <div class="plabel"><span>Sound therapy</span><b id="sndRead">NONE</b></div>
+          <div class="sndrow">
+            <button class="snd" type="button" data-s="rain" aria-pressed="false">Rain</button>
+            <button class="snd" type="button" data-s="hum" aria-pressed="false">Deep hum</button>
+            <button class="snd" type="button" data-s="shoal" aria-pressed="false">Night shoal</button>
+          </div>
+        </div>
+
+        <div class="checkin">
+          <div class="rows">
+            <div><span>GUEST</span><b>ROOM 9 · WALK-IN</b></div>
+            <div><span>POD</span><b id="ciPod">—</b></div>
+            <div><span>SCENE</span><b class="lit" id="ciMode">AURORA WASH</b></div>
+            <div><span>CLIMATE</span><b id="ciTemp">31.0 °C MATTRESS</b></div>
+            <div><span>SOUND</span><b id="ciSnd">SILENCE</b></div>
+            <div><span>RATE</span><b>¥4,800 · 22:00–10:00</b></div>
+          </div>
+          <button class="book" id="bookBtn" type="button" disabled>Check in</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <span>Sleep Capsule · №098 of 100</span>
+    <span class="m">THE ROOM IS THE DEMO — SWITCH THE LIGHT, WASH THE PAGE</span>
+    <span>FLOOR NINE · BAYS A–F</span>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var els = {
+  capsules: document.getElementById("capsules"),
+  podName: document.getElementById("podName"),
+  modeRead: document.getElementById("modeRead"),
+  tempRead: document.getElementById("tempRead"),
+  tempSl: document.getElementById("tempSl"),
+  sndRead: document.getElementById("sndRead"),
+  ciPod: document.getElementById("ciPod"),
+  ciMode: document.getElementById("ciMode"),
+  ciTemp: document.getElementById("ciTemp"),
+  ciSnd: document.getElementById("ciSnd"),
+  bookBtn: document.getElementById("bookBtn"),
+  quietBox: document.getElementById("quietBox"),
+  hallClock: document.getElementById("hallClock"),
+  occupancy: document.getElementById("occupancy"),
+  toast: document.getElementById("toast"),
+  ledA: document.getElementById("ledA"),
+  ledB: document.getElementById("ledB"),
+  ledC: document.getElementById("ledC")
+};
+
+/* ================= state ================= */
+var MODES = ["aurora", "starfield", "ember"];
+var mode = "aurora";
+var temp = 31;
+var sound = null;
+var selected = null;
+var pods = [];
+var OCCUPIED = [2, 7, 10];   /* indices already taken tonight */
+
+/* ================= pods ================= */
+function buildPods(){
+  els.capsules.innerHTML = "";
+  pods = [];
+  var bay = "ABCDEF";
+  for (var i = 0; i < 12; i++){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pod";
+    var code = bay[Math.floor(i / 2)] + "-" + String(i + 1).padStart(2, "0");
+    btn.setAttribute("data-i", String(i));
+    btn.innerHTML =
+      '<span class="inner">' +
+        '<canvas class="scene" width="150" height="118" aria-hidden="true"></canvas>' +
+        '<span class="shade" aria-hidden="true"></span>' +
+        '<span class="glowbar" aria-hidden="true"></span>' +
+      '</span>' +
+      '<span class="num"><span>' + code + '</span><span>BAY ' + bay[Math.floor(i / 2)] + '</span></span>' +
+      '<span class="state"><span class="s1">VACANT</span><span class="s2">—</span></span>';
+    btn.addEventListener("click", function(e){
+      var idx = parseInt(this.getAttribute("data-i"), 10);
+      if (OCCUPIED.indexOf(idx) > -1){
+        toast("POD " + pods[idx].code + " IS OCCUPIED — PICK ANOTHER");
+        return;
+      }
+      select(idx);
+    });
+    els.capsules.appendChild(btn);
+    pods.push({
+      i: i,
+      code: code,
+      el: btn,
+      scene: btn.querySelector(".scene"),
+      state: btn.querySelector(".state .s1"),
+      s2: btn.querySelector(".state .s2")
+    });
+    if (OCCUPIED.indexOf(i) > -1){
+      btn.classList.add("occupied");
+      pods[i].state.textContent = "TAKEN";
+    }
+  }
+}
+
+/* ================= pod scenes ================= */
+var sceneTick = 0;
+function rr(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+function paintScene(p){
+  var c = p.scene;
+  var g = c.getContext("2d");
+  var w = c.width, h = c.height;
+  g.clearRect(0, 0, w, h);
+  /* mattress */
+  g.fillStyle = "#232a3d";
+  rr(g, 10, h - 34, w - 20, 24, 7);
+  g.fill();
+  g.fillStyle = "rgba(255,255,255,.06)";
+  rr(g, 12, h - 33, w - 24, 9, 5);
+  g.fill();
+  /* pillow */
+  g.fillStyle = "#39415a";
+  rr(g, 14, h - 44, 34, 14, 6);
+  g.fill();
+
+  var t = sceneTick;
+  if (mode === "aurora"){
+    for (var b = 0; b < 3; b++){
+      var grd = g.createLinearGradient(0, 0, w, h * 0.6);
+      grd.addColorStop(0, "rgba(124,156,245,0)");
+      grd.addColorStop(0.5, "rgba(124,156,245," + (0.16 + 0.08 * Math.sin(t * 0.04 + b)).toFixed(3) + ")");
+      grd.addColorStop(1, "rgba(165,232,200,0)");
+      g.fillStyle = grd;
+      g.beginPath();
+      g.moveTo(-10, 40 + b * 14);
+      g.quadraticCurveTo(w * 0.5, 6 + Math.sin(t * 0.03 + b * 2) * 12, w + 10, 30 + b * 12);
+      g.lineTo(w + 10, 2 + b * 12);
+      g.quadraticCurveTo(w * 0.5, -12 + Math.sin(t * 0.03 + b * 2) * 10, -10, 16 + b * 12);
+      g.closePath();
+      g.fill();
+    }
+  } else if (mode === "starfield"){
+    for (var s = 0; s < 26; s++){
+      var sx = ((s * 61.7) % 100) / 100 * w;
+      var sy = ((s * 37.3) % 100) / 100 * (h - 44);
+      var tw2 = 0.5 + 0.5 * Math.sin(t * 0.06 + s * 2.1);
+      g.fillStyle = "rgba(255,209,102," + (0.25 + tw2 * 0.6).toFixed(2) + ")";
+      g.fillRect(sx, sy, s % 4 === 0 ? 2 : 1.4, s % 4 === 0 ? 2 : 1.4);
+    }
+    /* slow shooting star */
+    var ph = (t % 240) / 240;
+    if (ph < 0.12){
+      var lx = lerp(w * 0.1, w * 0.85, ph / 0.12);
+      var ly = lerp(10, 40, ph / 0.12);
+      g.strokeStyle = "rgba(255,243,214,.7)";
+      g.lineWidth = 1.2;
+      g.beginPath();
+      g.moveTo(lx, ly);
+      g.lineTo(lx - 16, ly - 6);
+      g.stroke();
+    }
+    g.fillStyle = "rgba(255,243,214,.75)";
+    g.beginPath();
+    g.arc(w * 0.8, 24, 7, 0, 6.283);
+    g.fill();
+    g.fillStyle = "#101522";
+    g.beginPath();
+    g.arc(w * 0.8 - 3, 21.5, 6, 0, 6.283);
+    g.fill();
+  } else { /* ember */
+    for (var e = 0; e < 5; e++){
+      var eg = g.createRadialGradient(w * 0.5, h * 0.42, 2, w * 0.5, h * 0.42, 30 + e * 14);
+      eg.addColorStop(0, "rgba(245,169,189," + (0.10 - e * 0.015).toFixed(3) + ")");
+      eg.addColorStop(1, "rgba(255,138,92,0)");
+      g.fillStyle = eg;
+      g.beginPath();
+      g.arc(w * 0.5, h * 0.42, 30 + e * 14, 0, 6.283);
+      g.fill();
+    }
+    /* floating embers */
+    for (var f = 0; f < 9; f++){
+      var fx = (0.15 + 0.7 * ((f * 37) % 100) / 100) * w;
+      var fy = h - 30 - (((t * (0.4 + (f % 3) * 0.15)) + f * 20) % (h - 40));
+      g.fillStyle = "rgba(255,180,140," + (0.35 + 0.3 * Math.sin(t * 0.08 + f)).toFixed(2) + ")";
+      g.beginPath();
+      g.arc(fx + Math.sin(t * 0.03 + f) * 5, fy, 1.6, 0, 6.283);
+      g.fill();
+    }
+  }
+  /* mode tint overlay */
+  var tintCol = mode === "aurora" ? "124,156,245" : mode === "starfield" ? "255,209,102" : "245,169,189";
+  g.fillStyle = "rgba(" + tintCol + ",.05)";
+  g.fillRect(0, 0, w, h);
+}
+
+/* ================= selection ================= */
+function select(idx){
+  selected = idx;
+  pods.forEach(function(p){
+    var on = p.i === idx;
+    p.el.classList.toggle("selected", on);
+    p.state.textContent = on ? "YOURS" : (OCCUPIED.indexOf(p.i) > -1 ? "TAKEN" : "VACANT");
+    p.s2.textContent = on ? "· SHADE UP" : "";
+  });
+  els.podName.textContent = pods[idx].code;
+  els.ciPod.textContent = "CAPSULE " + pods[idx].code;
+  els.bookBtn.disabled = false;
+  updateLeds();
+  toast("POD " + pods[idx].code + " · SHADE RISING · WELCOME");
+  setMode(mode, true);
+}
+function updateLeds(){
+  els.ledA.classList.toggle("on", !!selected);
+  els.ledB.classList.toggle("on", !!selected && sound !== null);
+  els.ledC.classList.toggle("on", !!selected);
+}
+
+/* ================= lighting mode ================= */
+function setMode(m, silent){
+  mode = m;
+  document.body.setAttribute("data-mode", m);
+  Array.prototype.forEach.call(document.querySelectorAll(".mode-btn"), function(b){
+    var on = b.getAttribute("data-m") === m;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  els.modeRead.textContent = m.toUpperCase();
+  els.ciMode.textContent = m.toUpperCase() + " WASH";
+  if (!silent) toast("LIGHTING — " + m.toUpperCase() + " · THE ROOM FOLLOW");
+  updateLeds();
+}
+Array.prototype.forEach.call(document.querySelectorAll(".mode-btn"), function(b){
+  b.addEventListener("click", function(){ setMode(b.getAttribute("data-m")); });
+});
+
+/* ================= temp ================= */
+els.tempSl.addEventListener("input", function(){
+  temp = parseFloat(els.tempSl.value);
+  els.tempRead.textContent = temp.toFixed(1) + " °C";
+  els.ciTemp.textContent = temp.toFixed(1) + " °C MATTRESS";
+  /* comfort LEDs: cool = blue, warm = ember */
+  els.ledB.classList.toggle("on", temp > 34);
+});
+
+/* ================= sound ================= */
+var AC = null, sndGain = null, sndNodes = [];
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  return true;
+}
+function stopSound(){
+  sndNodes.forEach(function(n){
+    try { n.stop && n.stop(); } catch(e){}
+    try { n.disconnect && n.disconnect(); } catch(e){}
+  });
+  sndNodes = [];
+  if (sndGain && AC){
+    sndGain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.3);
+    var old = sndGain;
+    setTimeout(function(){ try { old.disconnect(); } catch(e){} }, 700);
+  }
+  sndGain = null;
+}
+function startSound(kind){
+  if (!ensureAudio()) return;
+  if (AC.state === "suspended") AC.resume();
+  stopSound();
+  sndGain = AC.createGain();
+  sndGain.gain.value = 0.0001;
+  sndGain.connect(AC.destination);
+  sndGain.gain.setTargetAtTime(kind === "hum" ? 0.12 : 0.2, AC.currentTime, 1.1);
+  if (kind === "rain" || kind === "shoal"){
+    var len = AC.sampleRate * 3;
+    var buf = AC.createBuffer(1, len, AC.sampleRate);
+    var d = buf.getChannelData(0);
+    var last = 0;
+    for (var i = 0; i < len; i++){
+      var w = Math.random() * 2 - 1;
+      last = (last + 0.028 * w) / 1.028;
+      d[i] = last * 3.0;
+    }
+    var src = AC.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    var lp = AC.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = kind === "rain" ? 2100 : 480;
+    var hp = AC.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = kind === "rain" ? 500 : 60;
+    src.connect(hp); hp.connect(lp); lp.connect(sndGain);
+    src.start();
+    sndNodes.push(src, lp, hp);
+    /* slow swell */
+    var lfo = AC.createOscillator();
+    lfo.type = "sine"; lfo.frequency.value = 0.06;
+    var lg = AC.createGain(); lg.gain.value = kind === "rain" ? 400 : 160;
+    lfo.connect(lg); lg.connect(lp.frequency);
+    lfo.start();
+    sndNodes.push(lfo, lg);
+  } else if (kind === "hum"){
+    var o1 = AC.createOscillator();
+    o1.type = "sine"; o1.frequency.value = 52;
+    var o2 = AC.createOscillator();
+    o2.type = "sine"; o2.frequency.value = 78.2;
+    var g2 = AC.createGain(); g2.gain.value = 0.35;
+    o1.connect(sndGain); o2.connect(g2); g2.connect(sndGain);
+    o1.start(); o2.start();
+    sndNodes.push(o1, o2, g2);
+    /* gentle breathing lfo */
+    var bl = AC.createOscillator();
+    bl.type = "sine"; bl.frequency.value = 0.14;
+    var bg = AC.createGain(); bg.gain.value = 0.04;
+    bl.connect(bg); bg.connect(sndGain.gain);
+    bl.start();
+    sndNodes.push(bl, bg);
+  }
+}
+var SND_NAMES = { rain: "RAIN ON THE SHELL", hum: "DEEP HUM 52 HZ", shoal: "NIGHT SHOAL (LOW TIDE)" };
+Array.prototype.forEach.call(document.querySelectorAll(".snd"), function(b){
+  b.addEventListener("click", function(){
+    var s = b.getAttribute("data-s");
+    if (sound === s){
+      sound = null;
+      b.setAttribute("aria-pressed", "false");
+      els.sndRead.textContent = "NONE";
+      els.ciSnd.textContent = "SILENCE";
+      stopSound();
+      toast("SOUND — SILENCE RESTORED");
+    } else {
+      sound = s;
+      Array.prototype.forEach.call(document.querySelectorAll(".snd"), function(x){
+        x.setAttribute("aria-pressed", x === b ? "true" : "false");
+      });
+      els.sndRead.textContent = s.toUpperCase();
+      els.ciSnd.textContent = SND_NAMES[s];
+      startSound(s);
+      toast("SOUND — " + SND_NAMES[s]);
+    }
+    updateLeds();
+  });
+});
+
+/* ================= booking ================= */
+els.bookBtn.addEventListener("click", function(){
+  if (selected === null) return;
+  var p = pods[selected];
+  p.el.classList.add("occupied");
+  OCCUPIED.push(selected);
+  p.state.textContent = "TAKEN";
+  toast("CHECKED IN — CAPSULE " + p.code + " · SLEEP WELL");
+  els.bookBtn.disabled = true;
+  els.bookBtn.textContent = "Occupied tonight";
+  selected = null;
+  els.podName.textContent = "— —";
+  updateOccupancy();
+  updateLeds();
+});
+
+/* ================= clock + occupancy ================= */
+function updateOccupancy(){
+  els.occupancy.textContent = OCCUPIED.length + " / 12";
+}
+function tickClock(){
+  var now = new Date();
+  var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+  var hh = now.getHours();
+  var mins = pad(now.getMinutes());
+  els.hallClock.textContent = pad(hh) + ":" + mins;
+  var quiet = hh >= 22 || hh < 7;
+  els.quietBox.classList.toggle("awake", !quiet);
+}
+
+/* ================= toast ================= */
+var toastTimer = 0;
+function toast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 1900);
+}
+
+/* ================= loop ================= */
+var raf = 0, running = true, lastT = 0;
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  sceneTick += reduced.matches ? 0.4 : 1;
+  /* paint scenes at half rate for battery */
+  if (sceneTick % 2 === 0){
+    pods.forEach(function(p){
+      if (p.el.classList.contains("selected")) paintScene(p);
+    });
+  }
+}
+
+/* ================= events ================= */
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){}, 150);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  var n = parseInt(e.key, 10);
+  if (n >= 1 && n <= 9){
+    var idx = n - 1;
+    if (OCCUPIED.indexOf(idx) === -1) select(idx);
+  }
+  if (e.key === "0"){
+    var idx10 = 9;
+    if (OCCUPIED.indexOf(idx10) === -1) select(idx10);
+  }
+});
+
+/* ================= boot ================= */
+buildPods();
+updateOccupancy();
+tickClock();
+setInterval(tickClock, 15000);
+els.tempRead.textContent = temp.toFixed(1) + " °C";
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+/* warm one scene immediately */
+setTimeout(function(){ paintScene(pods[0]); }, 60);
+})();
+</script>
+</body>
+</html>

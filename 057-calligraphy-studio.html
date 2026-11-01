@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Scriptorium — A Calligraphy Practice Room</title>
+<style>
+  :root {
+    --paper: #f3ecdc;
+    --laid: #d9cdb4;
+    --chain: #cfc2a6;
+    --ink: #1f1c18;
+    --ink-soft: rgba(31, 28, 24, 0.66);
+    --seal: #a63a2b;
+    --wood-1: #4a3421;
+    --wood-2: #3a2818;
+    --wood-3: #553b26;
+    --desk-ink: #e7d9bd;
+    --desk-dim: rgba(231, 217, 189, 0.55);
+    --hair: rgba(231, 217, 189, 0.25);
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "Courier New", monospace;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--seal);
+    color: var(--paper);
+  }
+
+  html {
+    scrollbar-color: #6b4e30 var(--wood-2);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--wood-2);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #6b4e30;
+    border: 2px solid var(--wood-2);
+    border-radius: 5px;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 148px),
+      linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 55%, #2c1e11 100%);
+    color: var(--desk-ink);
+    font-family: var(--mono);
+    padding: clamp(12px, 2.4vw, 30px);
+  }
+
+  header {
+    max-width: 1280px;
+    margin: 0 auto 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--hair);
+    padding-bottom: 12px;
+  }
+
+  header h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(24px, 3.6vw, 40px);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--desk-ink);
+  }
+
+  header .sub {
+    margin-top: 5px;
+    font-size: 9.5px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--desk-dim);
+  }
+
+  header .grade {
+    text-align: right;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--desk-dim);
+    line-height: 1.8;
+  }
+
+  header .grade b {
+    color: var(--desk-ink);
+    font-weight: 400;
+  }
+
+  .room {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+    gap: clamp(14px, 2.4vw, 30px);
+    align-items: start;
+  }
+
+  /* ---------- tools column ---------- */
+
+  .tools {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .toolcard {
+    background: rgba(20, 13, 7, 0.5);
+    border: 1px solid var(--hair);
+    padding: 13px 14px 12px;
+  }
+
+  .toolcard h2 {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--desk-dim);
+    margin-bottom: 9px;
+  }
+
+  .glyphrow {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .glyph {
+    width: 44px;
+    height: 48px;
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--desk-ink);
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  }
+
+  .glyph:hover,
+  .glyph:focus-visible {
+    outline: none;
+    border-color: rgba(231, 217, 189, 0.6);
+    background: rgba(231, 217, 189, 0.08);
+  }
+
+  .glyph.active {
+    border-color: var(--seal);
+    color: var(--paper);
+    background: rgba(166, 58, 43, 0.28);
+  }
+
+  .nibs {
+    display: flex;
+    gap: 6px;
+  }
+
+  .nib {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--desk-dim);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 10px 6px;
+    min-height: 42px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .nib:hover,
+  .nib:focus-visible {
+    outline: none;
+    border-color: rgba(231, 217, 189, 0.6);
+    color: var(--desk-ink);
+  }
+
+  .nib.active {
+    border-color: var(--seal);
+    color: var(--paper);
+  }
+
+  .nib i {
+    display: block;
+    margin: 0 auto 6px;
+    height: 3px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  .meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+  }
+
+  .meter .bar {
+    flex: 1;
+    height: 8px;
+    border: 1px solid var(--hair);
+    padding: 1px;
+  }
+
+  .meter .bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2a2622, var(--ink));
+    width: 100%;
+    transition: width 0.25s ease;
+  }
+
+  .meter .lab {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--desk-dim);
+    white-space: nowrap;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .act {
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--desk-ink);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 11px 8px;
+    min-height: 42px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  }
+
+  .act:hover,
+  .act:focus-visible {
+    outline: none;
+    border-color: rgba(231, 217, 189, 0.6);
+    background: rgba(231, 217, 189, 0.07);
+  }
+
+  .act.primary {
+    border-color: rgba(166, 58, 43, 0.8);
+    color: #e8c8b8;
+  }
+
+  .act.primary:hover,
+  .act.primary:focus-visible {
+    background: rgba(166, 58, 43, 0.22);
+  }
+
+  .act[aria-pressed="true"] {
+    border-color: var(--seal);
+    color: var(--paper);
+    background: rgba(166, 58, 43, 0.22);
+  }
+
+  .howto {
+    font-size: 10px;
+    line-height: 2;
+    letter-spacing: 0.14em;
+    text-transform: lowercase;
+    font-variant: small-caps;
+    color: var(--desk-dim);
+  }
+
+  .howto b {
+    color: var(--desk-ink);
+    font-weight: 400;
+  }
+
+  .howto .sealword {
+    color: #d98a74;
+  }
+
+  /* ---------- the desk & sheet ---------- */
+
+  .desk {
+    display: flex;
+    justify-content: center;
+  }
+
+  .sheetwrap {
+    position: relative;
+    width: min(100%, 860px);
+  }
+
+  .sheet {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 27px, var(--laid) 27px 28px),
+      repeating-linear-gradient(90deg, transparent 0 118px, var(--chain) 118px 119px),
+      linear-gradient(160deg, #f6efe0 0%, var(--paper) 55%, #ece3cf 100%);
+    box-shadow:
+      0 1px 0 rgba(255, 250, 235, 0.6) inset,
+      0 24px 50px rgba(0, 0, 0, 0.5),
+      0 6px 16px rgba(0, 0, 0, 0.35);
+    cursor: crosshair;
+    touch-action: none;
+    overflow: hidden;
+  }
+
+  .sheet::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: clamp(36px, 9%, 84px);
+    width: 1px;
+    background: rgba(166, 58, 43, 0.4);
+    pointer-events: none;
+  }
+
+  .sheet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(140% 110% at 18% 8%, rgba(255, 255, 250, 0.34), transparent 55%),
+      radial-gradient(120% 120% at 100% 100%, rgba(88, 62, 34, 0.12), transparent 55%);
+  }
+
+  .sheet canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #ghost {
+    pointer-events: none;
+  }
+
+  #ink {
+    cursor: crosshair;
+  }
+
+  .sheetlabel {
+    position: absolute;
+    right: 14px;
+    top: 10px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(31, 28, 24, 0.4);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* ---------- score seal ---------- */
+
+  .seal {
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    width: 74px;
+    height: 74px;
+    border: 3px solid var(--seal);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--seal);
+    background: rgba(166, 58, 43, 0.07);
+    box-shadow: 0 0 0 1px rgba(166, 58, 43, 0.35) inset;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transform: rotate(-7deg);
+  }
+
+  .seal::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(166, 58, 43, 0.55);
+    border-radius: 5px;
+  }
+
+  .seal.show {
+    animation: stampin 0.5s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
+  }
+
+  @keyframes stampin {
+    0% {
+      opacity: 0;
+      transform: rotate(-2deg) scale(1.7);
+    }
+    60% {
+      opacity: 1;
+      transform: rotate(-8deg) scale(0.94);
+    }
+    100% {
+      opacity: 0.92;
+      transform: rotate(-7deg) scale(1);
+    }
+  }
+
+  .seal .big {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .seal .word {
+    font-size: 7.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- verdict strip ---------- */
+
+  .verdict {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--desk-dim);
+    min-height: 1.6em;
+  }
+
+  .verdict b {
+    color: var(--desk-ink);
+    font-weight: 400;
+  }
+
+  .noscript-note {
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--desk-dim);
+  }
+
+  @media (max-width: 900px) {
+    .room {
+      grid-template-columns: 1fr;
+    }
+    .tools {
+      order: 2;
+    }
+    .desk {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .glyph {
+      width: 38px;
+      height: 42px;
+      font-size: 22px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .seal.show {
+      animation: none;
+      opacity: 0.92;
+      transform: rotate(-7deg);
+    }
+    .meter .bar i,
+    .act,
+    .nib,
+    .glyph {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>The Scriptorium</h1>
+    <p class="sub">Practice room · laid paper · velocity-weighted nib</p>
+  </div>
+  <p class="grade">
+    Hand <b id="gradeName">untried</b><br>
+    Strokes this session <b id="strokeCount">0</b>
+  </p>
+</header>
+
+<main class="room">
+  <aside class="tools">
+    <div class="toolcard">
+      <h2>Model glyph</h2>
+      <div class="glyphrow" id="glyphRow" role="group" aria-label="Choose a model glyph"></div>
+    </div>
+
+    <div class="toolcard">
+      <h2>Nib</h2>
+      <div class="nibs" id="nibRow" role="group" aria-label="Choose a nib">
+        <button class="nib" type="button" data-base="2.2"><i style="width:6px;"></i>Fine</button>
+        <button class="nib active" type="button" data-base="4"><i style="width:12px;"></i>Medium</button>
+        <button class="nib" type="button" data-base="7"><i style="width:20px;"></i>Broad</button>
+      </div>
+      <div class="meter">
+        <span class="lab">Ink</span>
+        <span class="bar"><i id="inkBar"></i></span>
+        <button class="act" id="dipBtn" type="button" style="padding: 7px 10px; min-height: 34px;">Dip</button>
+      </div>
+    </div>
+
+    <div class="toolcard">
+      <h2>Sheet</h2>
+      <div class="actions">
+        <button class="act" id="traceBtn" type="button" aria-pressed="false">Tracing off</button>
+        <button class="act" id="soundBtn" type="button" aria-pressed="false">Scratch off</button>
+        <button class="act" id="undoBtn" type="button">Undo</button>
+        <button class="act primary" id="clearBtn" type="button">Fresh sheet</button>
+      </div>
+    </div>
+
+    <div class="toolcard howto">
+      <b>Slow strokes</b> pool the ink and fatten the line.<br>
+      <b>Fast strokes</b> run dry and fray at the edges.<br>
+      <b>Dip</b> when the ink runs low, or the nib rasps.<br>
+      <span class="sealword">Tracing mode</span> scores every stroke and stamps your seal.
+    </div>
+  </aside>
+
+  <section class="desk">
+    <div class="sheetwrap">
+      <div class="sheet" id="sheet">
+        <canvas id="ghost" aria-hidden="true"></canvas>
+        <canvas id="ink" role="img" aria-label="Laid paper for calligraphy practice — draw here with the mouse or a finger"></canvas>
+        <span class="sheetlabel">Foolscap · ruled 28</span>
+        <div class="seal" id="seal" aria-hidden="true">
+          <span class="big" id="sealBig">—</span>
+          <span class="word" id="sealWord">awaiting</span>
+        </div>
+      </div>
+      <p class="verdict" id="verdict">Take up the nib. The paper forgives everything except hurry.</p>
+    </div>
+  </section>
+</main>
+
+<noscript>
+  <div class="noscript-note">The ink is dry until JavaScript is enabled — the scriptorium waits with the lids closed.</div>
+</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const sheet = document.getElementById('sheet');
+  const ghost = document.getElementById('ghost');
+  const ink = document.getElementById('ink');
+  const gtx = ghost.getContext('2d');
+  const itx = ink.getContext('2d');
+  const glyphRow = document.getElementById('glyphRow');
+  const nibRow = document.getElementById('nibRow');
+  const inkBar = document.getElementById('inkBar');
+  const dipBtn = document.getElementById('dipBtn');
+  const traceBtn = document.getElementById('traceBtn');
+  const soundBtn = document.getElementById('soundBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const seal = document.getElementById('seal');
+  const sealBig = document.getElementById('sealBig');
+  const sealWord = document.getElementById('sealWord');
+  const verdict = document.getElementById('verdict');
+  const gradeName = document.getElementById('gradeName');
+  const strokeCountEl = document.getElementById('strokeCount');
+
+  const GLYPHS = ['A', 'g', 'R', '&', 'Q', 'f', 'Z'];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0;
+  let H = 0;
+  let dpr = 1;
+  let glyph = 'A';
+  let nibBase = 4;
+  let tracing = false;
+  let inkLoad = 1;
+  let strokeCount = 0;
+  let gradeIdx = 0;
+  const GRADES = ['untried', 'apprentice', 'steady', 'accomplished', 'master hand'];
+
+  /* ---------- strokes record ---------- */
+
+  const strokes = [];
+
+  /* ---------- sizing ---------- */
+
+  function sizeCanvases() {
+    const rect = sheet.getBoundingClientRect();
+    const oldW = W;
+    const oldH = H;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(80, Math.round(rect.width));
+    H = Math.max(80, Math.round(rect.height));
+    [ghost, ink].forEach((c) => {
+      c.width = Math.round(W * dpr);
+      c.height = Math.round(H * dpr);
+    });
+    gtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    itx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (oldW && oldH && (oldW !== W || oldH !== H)) {
+      const sx = W / oldW;
+      const sy = H / oldH;
+      strokes.forEach((st) => {
+        st.pts.forEach((p) => {
+          p.x *= sx;
+          p.y *= sy;
+          p.w *= sy;
+        });
+        st.pool.forEach((p) => {
+          p.x *= sx;
+          p.y *= sy;
+        });
+      });
+    }
+    renderGhost();
+    renderMask();
+    rerenderInk();
+  }
+
+  /* ---------- ghost + mask ---------- */
+
+  let maskData = null;
+  let maskBox = null;
+
+  function renderGhost() {
+    gtx.clearRect(0, 0, W, H);
+    if (!tracing) return;
+    const size = Math.min(W, H) * 0.78;
+    gtx.font = size + 'px ui-serif, Georgia, "Times New Roman", serif';
+    gtx.textAlign = 'center';
+    gtx.textBaseline = 'middle';
+    gtx.fillStyle = 'rgba(31, 28, 24, 0.07)';
+    gtx.fillText(glyph, W * 0.55, H * 0.5);
+    gtx.strokeStyle = 'rgba(166, 58, 43, 0.35)';
+    gtx.lineWidth = 1;
+    gtx.strokeText(glyph, W * 0.55, H * 0.5);
+  }
+
+  function renderMask() {
+    const mc = document.createElement('canvas');
+    mc.width = W;
+    mc.height = H;
+    const mx = mc.getContext('2d');
+    const size = Math.min(W, H) * 0.78;
+    mx.font = size + 'px ui-serif, Georgia, "Times New Roman", serif';
+    mx.textAlign = 'center';
+    mx.textBaseline = 'middle';
+    mx.fillStyle = '#000';
+    mx.fillText(glyph, W * 0.55, H * 0.5);
+    maskData = mx.getImageData(0, 0, W, H).data;
+    let minX = W;
+    let minY = H;
+    let maxX = 0;
+    let maxY = 0;
+    for (let y = 0; y < H; y += 3) {
+      for (let x = 0; x < W; x += 3) {
+        if (maskData[(y * W + x) * 4 + 3] > 40) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    maskBox = maxX > minX ? { x0: minX, y0: minY, x1: maxX, y1: maxY } : null;
+  }
+
+  function maskAt(x, y) {
+    x = Math.round(x);
+    y = Math.round(y);
+    if (x < 0 || y < 0 || x >= W || y >= H) return 0;
+    return maskData[(y * W + x) * 4 + 3];
+  }
+
+  /* ---------- ink rendering ---------- */
+
+  function strokeStyleFor(alpha) {
+    return 'rgba(31, 28, 24, ' + alpha.toFixed(3) + ')';
+  }
+
+  function drawSegment(p0, p1, w0, w1, alpha) {
+    itx.strokeStyle = strokeStyleFor(alpha);
+    itx.lineCap = 'round';
+    itx.lineJoin = 'round';
+    itx.lineWidth = Math.max(0.4, (w0 + w1) / 2);
+    itx.beginPath();
+    itx.moveTo(p0.x, p0.y);
+    itx.lineTo(p1.x, p1.y);
+    itx.stroke();
+  }
+
+  function drawPool(p, w) {
+    const r = w * 1.1;
+    const g = itx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    g.addColorStop(0, 'rgba(20, 18, 15, 0.4)');
+    g.addColorStop(1, 'rgba(20, 18, 15, 0)');
+    itx.fillStyle = g;
+    itx.beginPath();
+    itx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    itx.fill();
+  }
+
+  function drawDry(p0, p1, w, alpha) {
+    for (let i = 0; i < 3; i++) {
+      const jx = (Math.random() - 0.5) * w * 1.6;
+      const jy = (Math.random() - 0.5) * w * 1.6;
+      itx.strokeStyle = strokeStyleFor(alpha * (0.16 + Math.random() * 0.14));
+      itx.lineWidth = Math.max(0.3, w * (0.12 + Math.random() * 0.2));
+      itx.lineCap = 'round';
+      itx.beginPath();
+      itx.moveTo(p0.x + jx * 0.4, p0.y + jy * 0.4);
+      itx.lineTo(p1.x + jx, p1.y + jy);
+      itx.stroke();
+    }
+  }
+
+  function drawStroke(st) {
+    const pts = st.pts;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1];
+      const b = pts[i];
+      if (b.dry) {
+        drawDry(a, b, b.w, b.a);
+      }
+      drawSegment(a, b, a.w, b.w, b.a);
+    }
+    st.pool.forEach((p) => drawPool(p, p.w));
+  }
+
+  function rerenderInk() {
+    itx.clearRect(0, 0, W, H);
+    strokes.forEach(drawStroke);
+  }
+
+  /* ---------- nib audio (optional, user-enabled) ---------- */
+
+  const scratch = {
+    ctx: null,
+    src: null,
+    gain: null,
+    on: false,
+    start() {
+      if (this.src) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      this.ctx = new AC();
+      const len = this.ctx.sampleRate * 1.5;
+      const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * (0.6 + 0.4 * Math.sin(i / 90));
+      }
+      this.src = this.ctx.createBufferSource();
+      this.src.buffer = buf;
+      this.src.loop = true;
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 2400;
+      bp.Q.value = 1.4;
+      this.gain = this.ctx.createGain();
+      this.gain.gain.value = 0;
+      this.src.connect(bp);
+      bp.connect(this.gain);
+      this.gain.connect(this.ctx.destination);
+      this.src.start();
+    },
+    level(v) {
+      if (!this.on || !this.gain) return;
+      this.gain.gain.setTargetAtTime(Math.min(0.05, v), this.ctx.currentTime, 0.05);
+    },
+    mute() {
+      if (this.gain) this.gain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+    }
+  };
+
+  soundBtn.addEventListener('click', () => {
+    scratch.on = !scratch.on;
+    soundBtn.setAttribute('aria-pressed', scratch.on ? 'true' : 'false');
+    soundBtn.textContent = scratch.on ? 'Scratch on' : 'Scratch off';
+    if (scratch.on) {
+      scratch.start();
+      if (scratch.ctx && scratch.ctx.state === 'suspended') scratch.ctx.resume();
+    } else {
+      scratch.mute();
+    }
+  });
+
+  /* ---------- drawing ---------- */
+
+  let current = null;
+  let lastT = 0;
+  let emaVel = 0;
+
+  function localPoint(e) {
+    const r = sheet.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  ink.addEventListener('pointerdown', (e) => {
+    if (inkLoad <= 0.02) {
+      verdict.textContent = 'The nib is dry — dip it in the well and try again.';
+      return;
+    }
+    e.preventDefault();
+    ink.setPointerCapture(e.pointerId);
+    const p = localPoint(e);
+    current = {
+      pts: [{ x: p.x, y: p.y, w: nibBase * 1.35, a: 0.55 + inkLoad * 0.4, dry: false }],
+      pool: []
+    };
+    lastT = performance.now();
+    emaVel = 0;
+    hideSeal();
+  });
+
+  ink.addEventListener('pointermove', (e) => {
+    if (!current) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    lastT = now;
+    const p = localPoint(e);
+    const prev = current.pts[current.pts.length - 1];
+    const dist = Math.hypot(p.x - prev.x, p.y - prev.y);
+    if (dist < 1.1) return;
+
+    const instVel = dist / dt;
+    emaVel = emaVel * 0.72 + instVel * 0.28;
+
+    const speedF = Math.min(1, emaVel / 1.9);
+    let w = nibBase * (1.5 - speedF * 1.08);
+    w *= 0.85 + inkLoad * 0.3;
+    const dry = speedF > 0.55 || inkLoad < 0.18;
+    const alpha = (dry ? 0.5 : 0.78) * (0.35 + inkLoad * 0.65);
+
+    const pt = { x: p.x, y: p.y, w: w, a: alpha, dry: dry };
+    current.pts.push(pt);
+
+    if (dry) drawDry(prev, pt, w, alpha);
+    drawSegment(prev, pt, prev.w, w, alpha);
+    if (emaVel < 0.14 && dist < 6 && Math.random() < 0.5) {
+      current.pool.push({ x: p.x, y: p.y, w: w });
+      drawPool(pt, w);
+    }
+
+    inkLoad = Math.max(0, inkLoad - dist * 0.00055);
+    inkBar.style.width = (inkLoad * 100).toFixed(1) + '%';
+    scratch.level(0.008 + speedF * 0.03);
+  });
+
+  function endStroke() {
+    if (!current) return;
+    strokes.push(current);
+    current = null;
+    scratch.mute();
+    strokeCount++;
+    strokeCountEl.textContent = String(strokeCount);
+    if (strokeCount % 6 === 0 && gradeIdx < GRADES.length - 1) {
+      gradeIdx++;
+      gradeName.textContent = GRADES[gradeIdx];
+    }
+    if (tracing) scoreStroke(strokes[strokes.length - 1]);
+    else verdict.textContent = verdictLines[(Math.random() * verdictLines.length) | 0];
+  }
+
+  ink.addEventListener('pointerup', endStroke);
+  ink.addEventListener('pointercancel', endStroke);
+
+  const verdictLines = [
+    'A confident hand. The downstroke remembers to breathe.',
+    'Good entry, braver exit. Let the tail run.',
+    'The nib sang on the curves and caught on the corners.',
+    'Ink where you meant it. The paper approves.',
+    'Slower at the turns — the pools will thank you.'
+  ];
+
+  /* ---------- scoring (tracing mode) ---------- */
+
+  let coverCanvas = null;
+
+  function scoreStroke(st) {
+    if (!maskData || !maskBox) return;
+
+    let on = 0;
+    let total = 0;
+    const pts = st.pts;
+    for (let i = 0; i < pts.length; i += 2) {
+      total++;
+      const m = maskAt(pts[i].x, pts[i].y);
+      if (m > 40) on++;
+    }
+    const adherence = total ? on / total : 0;
+
+    if (!coverCanvas) {
+      coverCanvas = document.createElement('canvas');
+      coverCanvas.width = W;
+      coverCanvas.height = H;
+    }
+    const cx = coverCanvas.getContext('2d');
+    cx.clearRect(0, 0, W, H);
+    cx.strokeStyle = '#000';
+    cx.lineCap = 'round';
+    cx.lineJoin = 'round';
+    cx.lineWidth = Math.max(16, nibBase * 3.2);
+    cx.beginPath();
+    cx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) cx.lineTo(pts[i].x, pts[i].y);
+    cx.stroke();
+    const coverData = cx.getImageData(0, 0, W, H).data;
+
+    let covered = 0;
+    let glyphPts = 0;
+    const b = maskBox;
+    for (let y = b.y0; y <= b.y1; y += 6) {
+      for (let x = b.x0; x <= b.x1; x += 6) {
+        if (maskData[(y * W + x) * 4 + 3] > 40) {
+          glyphPts++;
+          if (coverData[(y * W + x) * 4 + 3] > 30) covered++;
+        }
+      }
+    }
+    const coverage = glyphPts ? covered / glyphPts : 0;
+
+    const score = Math.round(adherence * 0.65 * 100 + coverage * 0.35 * 100);
+    let word;
+    if (score >= 85) word = 'graceful';
+    else if (score >= 70) word = 'assured';
+    else if (score >= 50) word = 'promising';
+    else word = 'awkward';
+
+    verdict.innerHTML = 'Adherence <b>' + Math.round(adherence * 100) + '%</b> · coverage <b>' +
+      Math.round(coverage * 100) + '%</b> — the seal says <b>' + word + '</b>.';
+    sealBig.textContent = String(score);
+    sealWord.textContent = word;
+    seal.classList.remove('show');
+    void seal.offsetWidth;
+    seal.classList.add('show');
+  }
+
+  function hideSeal() {
+    seal.classList.remove('show');
+  }
+
+  /* ---------- controls ---------- */
+
+  GLYPHS.forEach((g) => {
+    const b = document.createElement('button');
+    b.className = 'glyph' + (g === glyph ? ' active' : '');
+    b.type = 'button';
+    b.textContent = g;
+    b.setAttribute('aria-label', 'Model glyph ' + g);
+    b.addEventListener('click', () => {
+      glyph = g;
+      Array.prototype.forEach.call(glyphRow.children, (c) => c.classList.remove('active'));
+      b.classList.add('active');
+      renderGhost();
+      renderMask();
+      hideSeal();
+      verdict.textContent = 'Model set to "' + g + '". Trace it slow, then try it from memory.';
+    });
+    glyphRow.appendChild(b);
+  });
+
+  nibRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.nib');
+    if (!btn) return;
+    nibBase = parseFloat(btn.getAttribute('data-base'));
+    Array.prototype.forEach.call(nibRow.children, (c) => c.classList.remove('active'));
+    btn.classList.add('active');
+  });
+
+  dipBtn.addEventListener('click', () => {
+    inkLoad = 1;
+    inkBar.style.width = '100%';
+    verdict.textContent = 'The nib drinks deep. Write before it dries.';
+  });
+
+  traceBtn.addEventListener('click', () => {
+    tracing = !tracing;
+    traceBtn.setAttribute('aria-pressed', tracing ? 'true' : 'false');
+    traceBtn.textContent = tracing ? 'Tracing on' : 'Tracing off';
+    renderGhost();
+    hideSeal();
+    verdict.textContent = tracing
+      ? 'Tracing mode — the model shows through. Every stroke is judged.'
+      : 'Tracing off. Work from memory; the ghost is gone.';
+  });
+
+  undoBtn.addEventListener('click', () => {
+    if (!strokes.length) return;
+    strokes.pop();
+    rerenderInk();
+    hideSeal();
+    verdict.textContent = 'The last stroke is wiped from the record.';
+  });
+
+  clearBtn.addEventListener('click', () => {
+    strokes.length = 0;
+    rerenderInk();
+    hideSeal();
+    verdict.textContent = 'A fresh sheet. Whatever it held is between you and the fire.';
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'z' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      undoBtn.click();
+    }
+  });
+
+  window.addEventListener('resize', sizeCanvases);
+
+  inkBar.style.width = '100%';
+  sizeCanvases();
+})();
+</script>
+</body>
+</html>

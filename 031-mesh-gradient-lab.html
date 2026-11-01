@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Gradient Atelier — an interactive mesh-pigment laboratory. Drag color nodes across a living cloth of light; sow and cull pigments; read the recipe.">
+<title>Gradient Atelier · Work Nº 031 — a mesh-pigment laboratory</title>
+<style>
+/* ============================================================
+   GRADIENT ATELIER — Work Nº 031
+   A living mesh of pigment on near-black glass chrome.
+   ============================================================ */
+:root{
+  --ink:        #f5f2ea;
+  --ink-dim:    rgba(245,242,234,.64);
+  --ink-faint:  rgba(245,242,234,.38);
+  --glass-hi:   rgba(255,255,255,.14);
+  --glass-edge: rgba(255,255,255,.09);
+  --accent:     #ffb199;
+  --shadow:     0 24px 64px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.35);
+  --serif:      Georgia, 'Iowan Old Style', 'Palatino Linotype', ui-serif, serif;
+  --sans:       system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono:       ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow:hidden;
+  background:#0a0709;
+  color:var(--ink);
+  font-family:var(--sans);
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:#ffb199; color:#2b0f18; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid rgba(255,205,180,.85); outline-offset:2px; border-radius:10px; }
+
+/* ---------- the living cloth ---------- */
+#mesh{
+  position:fixed; inset:0; z-index:0;
+  width:100%; height:100%;
+  display:block;
+  cursor:crosshair;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+/* film grain, drawn once to its own canvas */
+#grain{
+  position:fixed; inset:0; z-index:2;
+  width:100%; height:100%;
+  pointer-events:none;
+  opacity:.14;
+  mix-blend-mode:overlay;
+  transition:opacity .45s ease;
+}
+body.grain-off #grain{ opacity:0; }
+/* stage light falloff */
+.vignette{
+  position:fixed; inset:0; z-index:3;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), transparent 14%),
+    radial-gradient(122% 90% at 50% 42%, transparent 52%, rgba(5,3,6,.52) 100%);
+}
+
+/* ---------- wordmark ---------- */
+.mark{
+  position:fixed; z-index:5;
+  top:clamp(18px, 3.5vh, 42px);
+  left:clamp(18px, 3.5vw, 46px);
+  user-select:none;
+  pointer-events:none;
+}
+.mark-no{
+  margin:0 0 12px;
+  font:500 10px/1 var(--mono);
+  letter-spacing:.34em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:clamp(30px, 4.6vw, 58px);
+  line-height:.98;
+  letter-spacing:.01em;
+  text-shadow:0 2px 30px rgba(0,0,0,.45);
+}
+.mark-word em{ font-style:italic; letter-spacing:.02em; }
+.mark-sub{
+  margin:13px 0 0;
+  font:400 11px/1.7 var(--sans);
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--ink-dim);
+  max-width:34ch;
+}
+.mark-rule{
+  width:66px; height:1px; margin-top:16px;
+  background:linear-gradient(90deg, var(--accent), transparent);
+}
+
+/* ---------- floating control card ---------- */
+.card{
+  position:fixed; z-index:6;
+  top:clamp(16px, 3.2vh, 38px);
+  right:clamp(16px, 3vw, 42px);
+  width:min(300px, calc(100vw - 32px));
+  padding:18px 18px 16px;
+  border-radius:18px;
+  background:linear-gradient(165deg, rgba(17,15,20,.68), rgba(8,7,10,.58));
+  border:1px solid var(--glass-edge);
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(18px) saturate(1.35);
+  -webkit-backdrop-filter:blur(18px) saturate(1.35);
+}
+.card-head{
+  display:flex; justify-content:space-between; align-items:center;
+  font:500 9.5px/1 var(--mono);
+  letter-spacing:.28em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.card-kicker{ display:inline-flex; align-items:center; gap:8px; }
+.live-dot{
+  width:12px; height:12px; border-radius:50%;
+  box-shadow:0 0 0 3px rgba(255,255,255,.07), inset 0 1px 2px rgba(255,255,255,.45);
+  transition:background .8s ease;
+}
+.card-name{
+  margin:11px 0 2px;
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:30px;
+  line-height:1.05;
+}
+.card-name.swap{ animation:nameSwap .45s ease both; }
+@keyframes nameSwap{
+  0%{ opacity:0; transform:translateY(9px); }
+  100%{ opacity:1; transform:none; }
+}
+.card-note{
+  margin:0 0 13px;
+  font:italic 400 12.5px/1.5 var(--serif);
+  color:var(--ink-dim);
+}
+.swatches{ display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+.swatch{
+  width:30px; height:30px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.28);
+  padding:0; cursor:pointer; position:relative;
+  box-shadow:
+    inset 0 2px 6px rgba(255,255,255,.4),
+    inset 0 -5px 9px rgba(0,0,0,.3),
+    0 3px 10px rgba(0,0,0,.4);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.swatch::after{
+  content:""; position:absolute; left:5px; right:5px; top:3px; height:9px;
+  border-radius:50%;
+  background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+}
+@media (hover:hover){
+  .swatch:hover{ transform:translateY(-3px) scale(1.08); }
+}
+.swatch.pulse{ animation:swPulse .7s ease; }
+@keyframes swPulse{
+  35%{ box-shadow:0 0 0 7px rgba(255,255,255,.22), inset 0 2px 6px rgba(255,255,255,.4); }
+}
+.card-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; gap:7px;
+  min-height:36px;
+  padding:9px 13px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.05);
+  color:var(--ink);
+  font:600 10.5px/1 var(--sans);
+  letter-spacing:.16em; text-transform:uppercase;
+  cursor:pointer;
+  transition:background .18s ease, transform .18s ease, border-color .18s ease;
+}
+.btn svg{ width:11px; height:11px; flex:none; }
+@media (hover:hover){
+  .btn:hover{ background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.24); transform:translateY(-1px); }
+}
+.btn:active{ transform:scale(.97); }
+.btn[aria-pressed="true"]{
+  border-color:rgba(255,177,153,.55);
+  background:rgba(255,177,153,.13);
+}
+.btn[disabled]{ opacity:.38; cursor:not-allowed; }
+.btn-primary{
+  background:linear-gradient(140deg, #ffb199, #ff6a88);
+  border-color:transparent;
+  color:#2b0f18;
+  font-weight:700;
+}
+@media (hover:hover){
+  .btn-primary:hover{ background:linear-gradient(140deg, #ffb199, #ff6a88); filter:brightness(1.08); }
+}
+.card-hint{
+  margin:14px 0 0;
+  font:400 11px/1.7 var(--sans);
+  color:var(--ink-faint);
+}
+kbd{
+  font:600 9.5px/1 var(--mono);
+  color:var(--ink-dim);
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.18);
+  border-bottom-width:2px;
+  border-radius:4px;
+  padding:2px 4px;
+}
+
+/* ---------- recipe plaque ---------- */
+.plaque{
+  position:fixed; z-index:5;
+  left:50%; bottom:clamp(14px, 3vh, 30px);
+  transform:translateX(-50%);
+  display:flex; align-items:center; justify-content:center;
+  gap:8px 16px; flex-wrap:wrap;
+  max-width:calc(100vw - 26px);
+  padding:12px 18px;
+  border-radius:14px;
+  background:rgba(8,7,10,.55);
+  border:1px solid var(--glass-edge);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  font-family:var(--mono);
+  user-select:none;
+}
+.plaque-no{
+  font-size:9.5px; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.plaque-name{
+  font-size:12px; font-weight:700; letter-spacing:.42em; text-transform:uppercase;
+  color:var(--accent);
+}
+.plaque-hex{
+  display:flex; gap:11px; flex-wrap:wrap; justify-content:center;
+  font-size:10.5px; letter-spacing:.08em;
+  color:var(--ink-dim);
+}
+.hex-chip{
+  background:none; border:0; padding:2px 1px;
+  font:inherit; color:inherit; cursor:pointer;
+  border-bottom:1px dotted rgba(255,255,255,.28);
+  transition:color .15s ease, border-color .15s ease;
+}
+@media (hover:hover){
+  .hex-chip:hover{ color:var(--ink); border-color:var(--accent); }
+}
+.plaque-meta{
+  font-size:9.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; z-index:9;
+  left:50%; bottom:clamp(76px, 13vh, 116px);
+  transform:translate(-50%, 8px);
+  padding:11px 16px;
+  border-radius:999px;
+  background:rgba(10,9,12,.8);
+  border:1px solid var(--glass-edge);
+  backdrop-filter:blur(10px);
+  font:500 11px/1 var(--mono);
+  letter-spacing:.14em;
+  color:var(--ink);
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+}
+.toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+/* ---------- noscript ---------- */
+.no-js{
+  position:fixed; inset:0; z-index:20;
+  display:grid; place-items:center;
+  background:#140a14; color:var(--ink-dim);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+/* ---------- small screens ---------- */
+@media (max-width:680px){
+  .card{ width:min(258px, calc(100vw - 24px)); padding:14px 14px 12px; }
+  .card-name{ font-size:24px; }
+  .plaque{ gap:6px 10px; padding:10px 12px; }
+  .plaque-meta{ display:none; }
+  .mark-sub{ max-width:26ch; }
+}
+@media (max-height:560px){
+  .mark-sub, .card-hint{ display:none; }
+}
+/* ---------- calm mode ---------- */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<canvas id="mesh" role="img"
+  aria-label="A living mesh gradient of drifting pigment nodes on dark silk. Drag the pins to steer the blend; double-tap to sow or cull a pigment."></canvas>
+<canvas id="grain" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="mark">
+  <p class="mark-no">The Gallery of 100 · Work Nº 031</p>
+  <h1 class="mark-word">Gradient <em>Atelier</em></h1>
+  <p class="mark-sub">A mesh of living pigment. Drag the pins — the silk obeys.</p>
+  <div class="mark-rule" aria-hidden="true"></div>
+</header>
+
+<aside class="card" aria-label="Pigment controls">
+  <div class="card-head">
+    <span class="card-kicker"><span class="live-dot" id="liveDot"></span>Curated pigments</span>
+    <span id="nodeCount">05 nodes</span>
+  </div>
+  <h2 class="card-name" id="paletteName">Sunset</h2>
+  <p class="card-note" id="paletteNote">apricot · rose · honey</p>
+  <div class="swatches" id="swatches" role="group" aria-label="Pigment swatches of the current recipe"></div>
+  <div class="card-actions">
+    <button class="btn" id="prevPal" aria-label="Previous palette" title="Previous palette (P)">
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M8 2 4 6l4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+    <button class="btn btn-primary" id="nextPal" title="Next palette (N)">
+      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      Next pigment
+    </button>
+    <button class="btn" id="driftToggle" aria-pressed="true" title="Toggle idle drift (D)">Drift</button>
+    <button class="btn" id="grainToggle" aria-pressed="true" title="Toggle film grain (G)">Grain</button>
+    <button class="btn" id="soundToggle" aria-pressed="false" title="Toggle sound (M)" aria-label="Toggle sound">
+      <svg viewBox="0 0 14 12" aria-hidden="true">
+        <path d="M1 4.2h2.4L7 1v10L3.4 7.8H1z" fill="currentColor"></path>
+        <path d="M9.4 3.4c1.5 1.4 1.5 3.8 0 5.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"></path>
+      </svg>
+    </button>
+  </div>
+  <p class="card-hint">
+    Drag a pin to steer the blend. Double-tap the cloth to sow a pigment,
+    double-tap a pin to cull it. Keys <kbd>N</kbd> <kbd>P</kbd> cycle,
+    <kbd>D</kbd> drift, <kbd>G</kbd> grain, <kbd>M</kbd> sound, <kbd>1</kbd>–<kbd>4</kbd> recipes.
+  </p>
+</aside>
+
+<footer class="plaque" aria-label="Current recipe">
+  <span class="plaque-no" id="recipeNo">Recipe Nº 01</span>
+  <span class="plaque-name" id="recipeName">Sunset</span>
+  <span class="plaque-hex" id="recipeHex"></span>
+  <span class="plaque-meta" id="recipeMeta">05 nodes · drift on · grain fine</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript>
+  <p class="no-js">This atelier mixes its pigments with JavaScript — please let the loom run.</p>
+</noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgbCss = c => 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')';
+const rgba = (c, a) => 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')';
+const rgbHex = c => '#' + c.map(v => (v | 0).toString(16).padStart(2, '0')).join('').toUpperCase();
+const mixRgb = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const elasticOut = t => t <= 0 ? 0 : t >= 1 ? 1 :
+  Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI / 3)) + 1;
+const easeInBack = t => t * t * (2.70158 * t - 1.70158);
+
+/* ============================== pigments ============================= */
+const PALETTES = [
+  { name: 'Sunset', no: '01', note: 'apricot · rose · honey', root: 392.00,
+    base: hexRgb('#2b0f22'),
+    stops: ['#ff9a8b', '#ff6a88', '#ffb199', '#ffd3a8', '#6b2450'].map(hexRgb) },
+  { name: 'Ocean',  no: '02', note: 'abyss · tide · foam',    root: 329.63,
+    base: hexRgb('#05202f'),
+    stops: ['#05445e', '#189ab4', '#75e6da', '#d4f1f4', '#03324a'].map(hexRgb) },
+  { name: 'Orchid', no: '03', note: 'plum · violet · bloom',  root: 440.00,
+    base: hexRgb('#170528'),
+    stops: ['#3b0764', '#7b2cbf', '#c77dff', '#e0aaff', '#ff6ad5'].map(hexRgb) },
+  { name: 'Matcha', no: '04', note: 'leaf · moss · steam',    root: 261.63,
+    base: hexRgb('#0c1f14'),
+    stops: ['#1b4332', '#40916c', '#74c69d', '#b7e4c7', '#d8f3dc'].map(hexRgb) },
+];
+
+/* ============================== state ================================ */
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let pi = 0;                       // palette index
+let nodes = [];
+let hover = null, drag = null;
+let down = null, lastTap = null;
+let driftOn = !reduceMotion;
+let grainOn = true;
+let colorCursor = 0;
+let baseCol = PALETTES[0].base.slice();
+let baseTarget = PALETTES[0].base.slice();
+let W = 0, H = 0, dpr = 1, lw = 0, lh = 0;
+let tSec = 0;
+let last = performance.now();
+let running = true, raf = 0;
+let toastTimer = 0;
+const ripples = [];
+
+/* ============================== dom ================================== */
+const canvas = document.getElementById('mesh');
+const ctx = canvas.getContext('2d');
+const grainCanvas = document.getElementById('grain');
+const grainCtx = grainCanvas.getContext('2d');
+const low = document.createElement('canvas');
+const lctx = low.getContext('2d');
+const el = id => document.getElementById(id);
+const ui = {
+  name: el('paletteName'), note: el('paletteNote'), count: el('nodeCount'),
+  swatches: el('swatches'), dot: el('liveDot'),
+  no: el('recipeNo'), rname: el('recipeName'), hex: el('recipeHex'), meta: el('recipeMeta'),
+  toast: el('toast'),
+  prev: el('prevPal'), next: el('nextPal'),
+  drift: el('driftToggle'), grain: el('grainToggle'), sound: el('soundToggle'),
+};
+
+/* ============================== audio ================================ */
+let AC = null, master = null, soundOn = false;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.12;
+    master.connect(AC.destination);
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function pluck(freq, dur, type, vol){
+  if (!soundOn || !AC) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  const f = AC.createBiquadFilter();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  f.type = 'lowpass';
+  f.frequency.value = 2400;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.5 * (vol || 1), t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + (dur || 0.35));
+  o.connect(f); f.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + (dur || 0.35) + 0.05);
+}
+function chord(root){
+  if (!soundOn || !AC) return;
+  pluck(root, 0.7, 'sine', 0.9);
+  setTimeout(() => pluck(root * 1.5, 0.6, 'sine', 0.6), 70);
+  setTimeout(() => pluck(root * 2, 0.5, 'triangle', 0.4), 140);
+}
+
+/* ============================== grain ================================ */
+function paintGrain(){
+  const tile = document.createElement('canvas');
+  tile.width = tile.height = 140;
+  const tc = tile.getContext('2d');
+  const img = tc.createImageData(140, 140);
+  for (let i = 0; i < img.data.length; i += 4){
+    const v = (Math.random() * 255) | 0;
+    img.data[i] = v; img.data[i + 1] = v; img.data[i + 2] = v;
+    img.data[i + 3] = 34;
+  }
+  tc.putImageData(img, 0, 0);
+  grainCanvas.width = W; grainCanvas.height = H;
+  grainCtx.clearRect(0, 0, W, H);
+  grainCtx.fillStyle = grainCtx.createPattern(tile, 'repeat');
+  grainCtx.fillRect(0, 0, W, H);
+}
+
+/* ============================== nodes ================================ */
+const SEED = [
+  { x: .24, y: .30, r: .95, c: 0 },
+  { x: .74, y: .22, r: .78, c: 1 },
+  { x: .50, y: .62, r: .88, c: 2 },
+  { x: .86, y: .76, r: .64, c: 3 },
+  { x: .13, y: .80, r: .70, c: 4 },
+];
+function addNode(fx, fy, rF, ci, instant){
+  const P = PALETTES[pi];
+  nodes.push({
+    fx: clamp(fx, .03, .97), fy: clamp(fy, .06, .94), rF,
+    ci,
+    col: P.stops[ci % P.stops.length].slice(),
+    target: null,
+    amp: .018 + Math.random() * .026,
+    sp:  .10 + Math.random() * .16,
+    ph:  Math.random() * Math.PI * 2,
+    ph2: Math.random() * Math.PI * 2,
+    born: instant ? -1e5 : performance.now(),
+    die: 0,
+    pulse: 0,
+  });
+  syncCount();
+}
+function cullNode(n){
+  if (nodes.length <= 3){
+    toast('An atelier needs at least three pigments');
+    pluck(140, 0.14, 'square', 0.4);
+    return;
+  }
+  n.die = performance.now();
+  if (hover === n) hover = null;
+  if (drag && drag.n === n) drag = null;
+  pluck(196, 0.18, 'triangle', 0.8);
+  toast('Culled · ' + (nodes.length - 1) + ' remain');
+}
+
+/* geometry of a node at time t (CSS px space) */
+function geom(n, t, now){
+  const m = Math.min(W, H);
+  let s = 1;
+  const age = now - n.born;
+  if (n.born > 0){
+    if (reduceMotion) s = clamp(age / 240, 0, 1);
+    else if (age < 950) s = elasticOut(Math.max(0, age / 950));
+  }
+  if (n.die){
+    const u = clamp((now - n.die) / 420, 0, 1);
+    s *= Math.max(0, 1 - easeInBack(u));
+  }
+  if (n.pulse){
+    const u = (now - n.pulse) / 700;
+    if (u >= 1) n.pulse = 0;
+    else s *= 1 + Math.sin(u * Math.PI) * .22;
+  }
+  const free = !drag || drag.n !== n;
+  const dx = (driftOn && free) ? Math.sin(t * n.sp + n.ph) * n.amp : 0;
+  const dy = (driftOn && free) ? Math.cos(t * n.sp * .83 + n.ph2) * n.amp : 0;
+  return { x: (n.fx + dx) * W, y: (n.fy + dy) * H, R: n.rF * m * .78 * s };
+}
+
+/* ============================== palette ============================== */
+function setPalette(i, silent){
+  pi = ((i % PALETTES.length) + PALETTES.length) % PALETTES.length;
+  const P = PALETTES[pi];
+  baseTarget = P.base.slice();
+  for (const n of nodes) n.target = P.stops[n.ci % P.stops.length].slice();
+  /* chrome */
+  ui.name.textContent = P.name;
+  ui.note.textContent = P.note;
+  ui.name.classList.remove('swap');
+  void ui.name.offsetWidth;
+  ui.name.classList.add('swap');
+  ui.no.textContent = 'Recipe Nº ' + P.no;
+  ui.rname.textContent = P.name;
+  ui.dot.style.background =
+    'linear-gradient(135deg,' + rgbCss(P.stops[0]) + ',' + rgbCss(P.stops[2]) + ')';
+  ui.hex.innerHTML = '';
+  P.stops.forEach((c, j) => {
+    const b = document.createElement('button');
+    b.className = 'hex-chip';
+    b.type = 'button';
+    b.textContent = rgbHex(c);
+    b.setAttribute('aria-label', 'Taste pigment ' + rgbHex(c));
+    b.addEventListener('click', () => {
+      let hit = 0;
+      const now = performance.now();
+      for (const n of nodes){
+        if (n.ci % P.stops.length === j){ n.pulse = now; hit++; }
+      }
+      ui.swatches.childNodes[j] && pulseSwatch(j);
+      toast(hit ? 'Tasted ' + rgbHex(c) + ' · ' + hit + ' node' + (hit > 1 ? 's' : '')
+                : 'Tasted ' + rgbHex(c));
+      pluck(520 + j * 90, 0.22, 'sine', 0.7);
+    });
+    ui.hex.appendChild(b);
+  });
+  buildSwatches();
+  syncMeta();
+  canvas.setAttribute('aria-label',
+    'A living mesh gradient in ' + P.name + ' — ' + P.note +
+    ' tones drifting on dark silk. Drag the pins; double-tap to sow or cull.');
+  if (!silent){
+    chord(P.root);
+    toast('Crossed to ' + P.name);
+  }
+}
+function buildSwatches(){
+  ui.swatches.innerHTML = '';
+  PALETTES[pi].stops.forEach((c, j) => {
+    const b = document.createElement('button');
+    b.className = 'swatch';
+    b.type = 'button';
+    b.style.background = 'radial-gradient(circle at 32% 28%,' +
+      rgba(mixRgb(c, [255, 255, 255], .35), 1) + ',' + rgbCss(c) + ' 62%)';
+    b.title = rgbHex(c);
+    b.setAttribute('aria-label', 'Taste swatch ' + rgbHex(c));
+    b.addEventListener('click', () => {
+      const now = performance.now();
+      for (const n of nodes){
+        if (n.ci % PALETTES[pi].stops.length === j) n.pulse = now;
+      }
+      pulseSwatch(j);
+      pluck(560 + j * 90, 0.22, 'sine', 0.7);
+    });
+    ui.swatches.appendChild(b);
+  });
+}
+function pulseSwatch(j){
+  const s = ui.swatches.childNodes[j];
+  if (!s) return;
+  s.classList.remove('pulse');
+  void s.offsetWidth;
+  s.classList.add('pulse');
+}
+
+/* ============================== chrome text ========================== */
+function syncCount(){
+  ui.count.textContent = String(nodes.length).padStart(2, '0') + ' nodes';
+  syncMeta();
+}
+function syncMeta(){
+  ui.meta.textContent =
+    String(nodes.length).padStart(2, '0') + ' nodes · drift ' + (driftOn ? 'on' : 'off') +
+    ' · grain ' + (grainOn ? 'fine' : 'off');
+}
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => ui.toast.classList.remove('show'), 1900);
+}
+
+/* ============================== pointers ============================= */
+function pt(e){
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function pick(px, py){
+  const now = performance.now();
+  let best = null, bestD = 1e9;
+  for (const n of nodes){
+    if (n.die) continue;
+    const g = geom(n, tSec, now);
+    const d = Math.hypot(px - g.x, py - g.y);
+    if (d < Math.max(26, g.R * .28) && d < bestD){ best = n; bestD = d; }
+  }
+  return best;
+}
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const p = pt(e);
+  const n = pick(p.x, p.y);
+  down = { x: p.x, y: p.y, t: performance.now(), moved: false };
+  ripples.push({ x: p.x, y: p.y, t0: performance.now() });
+  if (n){
+    const g = geom(n, tSec, performance.now());
+    n.fx = g.x / W; n.fy = g.y / H;     /* absorb drift so the grab never pops */
+    drag = { n, dx: g.x - p.x, dy: g.y - p.y };
+    try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
+    pluck(330, 0.1, 'sine', 0.35);
+  }
+});
+canvas.addEventListener('pointermove', e => {
+  const p = pt(e);
+  if (down && Math.hypot(p.x - down.x, p.y - down.y) > 8) down.moved = true;
+  if (drag){
+    drag.n.fx = clamp((p.x + drag.dx) / W, .03, .97);
+    drag.n.fy = clamp((p.y + drag.dy) / H, .06, .94);
+    hover = drag.n;
+  } else {
+    hover = pick(p.x, p.y);
+  }
+  canvas.style.cursor = drag ? 'grabbing' : (hover ? 'grab' : 'crosshair');
+});
+function release(e){
+  const p = pt(e);
+  if (drag){
+    drag = null;
+    pluck(392, 0.12, 'sine', 0.4);
+  } else if (down && !down.moved && performance.now() - down.t < 400){
+    const now = performance.now();
+    if (lastTap && now - lastTap.t < 380 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 42){
+      doubleTap(p);
+      lastTap = null;
+    } else {
+      lastTap = { x: p.x, y: p.y, t: now };
+    }
+  }
+  down = null;
+}
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', () => { drag = null; down = null; });
+canvas.addEventListener('pointerleave', () => { hover = null; });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+/* double-tap / double-click: sow a pigment on empty cloth, cull a pin */
+function doubleTap(p){
+  const n = pick(p.x, p.y);
+  if (n){
+    cullNode(n);
+  } else if (nodes.length >= 9){
+    toast('The loom holds nine pigments at most');
+    pluck(140, 0.14, 'square', 0.4);
+  } else {
+    const ci = colorCursor++ % PALETTES[pi].stops.length;
+    addNode(p.x / W, p.y / H, .5 + Math.random() * .45, ci, false);
+    pluck(660, 0.28, 'sine', 0.9);
+    toast('Sown · ' + rgbHex(PALETTES[pi].stops[ci]));
+  }
+}
+
+/* ============================== controls ============================= */
+function cycle(dir){ setPalette(pi + dir, false); }
+ui.next.addEventListener('click', () => cycle(1));
+ui.prev.addEventListener('click', () => cycle(-1));
+function toggleDrift(){
+  if (reduceMotion){ toast('Calm mode holds the cloth still'); return; }
+  driftOn = !driftOn;
+  ui.drift.setAttribute('aria-pressed', String(driftOn));
+  syncMeta();
+  toast(driftOn ? 'The cloth breathes again' : 'The cloth holds still');
+}
+function toggleGrain(){
+  grainOn = !grainOn;
+  document.body.classList.toggle('grain-off', !grainOn);
+  ui.grain.setAttribute('aria-pressed', String(grainOn));
+  syncMeta();
+  toast(grainOn ? 'Grain laid fine' : 'Grain lifted');
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  if (soundOn) ensureAudio();
+  ui.sound.setAttribute('aria-pressed', String(soundOn));
+  toast(soundOn ? 'Sound on — the loom hums' : 'Sound off');
+  if (soundOn) pluck(523.25, 0.25, 'sine', 0.8);
+}
+ui.drift.addEventListener('click', toggleDrift);
+ui.grain.addEventListener('click', toggleGrain);
+ui.sound.addEventListener('click', toggleSound);
+if (reduceMotion){
+  driftOn = false;
+  ui.drift.setAttribute('aria-pressed', 'false');
+  ui.drift.title = 'Idle drift rests while reduced motion is on';
+}
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', ev => {
+  if (ev.matches){ driftOn = false; ui.drift.setAttribute('aria-pressed', 'false'); syncMeta(); }
+});
+
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'n' || k === 'arrowright') cycle(1);
+  else if (k === 'p' || k === 'arrowleft') cycle(-1);
+  else if (k === 'd') toggleDrift();
+  else if (k === 'g') toggleGrain();
+  else if (k === 'm') toggleSound();
+  else if (k >= '1' && k <= '4') setPalette(+k - 1, false);
+});
+
+/* ============================== render =============================== */
+function update(dt, now){
+  const kb = 1 - Math.exp(-dt * 3.2);
+  baseCol = mixRgb(baseCol, baseTarget, kb);
+  for (const n of nodes){
+    if (n.target){
+      n.col = mixRgb(n.col, n.target, kb);
+      if (Math.abs(n.col[0] - n.target[0]) < .6 &&
+          Math.abs(n.col[1] - n.target[1]) < .6 &&
+          Math.abs(n.col[2] - n.target[2]) < .6){
+        n.col = n.target; n.target = null;
+      }
+    }
+  }
+  nodes = nodes.filter(n => !n.die || now - n.die < 430);
+}
+
+function rr(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function draw(now){
+  /* low-res blend field */
+  lctx.setTransform(lw / W, 0, 0, lh / H, 0, 0);
+  lctx.globalCompositeOperation = 'source-over';
+  lctx.fillStyle = rgbCss(baseCol);
+  lctx.fillRect(0, 0, W, H);
+  for (const n of nodes){
+    const g = geom(n, tSec, now);
+    if (g.R < 1) continue;
+    const grd = lctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.R);
+    grd.addColorStop(0, rgba(n.col, .95));
+    grd.addColorStop(.55, rgba(n.col, .42));
+    grd.addColorStop(1, rgba(n.col, 0));
+    lctx.fillStyle = grd;
+    lctx.fillRect(g.x - g.R, g.y - g.R, g.R * 2, g.R * 2);
+  }
+  /* upscale — the silk */
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(low, 0, 0, W, H);
+
+  /* touch ripples */
+  for (let i = ripples.length - 1; i >= 0; i--){
+    const rp = ripples[i];
+    const u = (now - rp.t0) / 550;
+    if (u >= 1){ ripples.splice(i, 1); continue; }
+    ctx.beginPath();
+    ctx.arc(rp.x, rp.y, 6 + u * 44, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,' + ((1 - u) * .32).toFixed(3) + ')';
+    ctx.lineWidth = 1.25;
+    ctx.stroke();
+  }
+
+  /* atelier pins */
+  ctx.font = '600 10px ui-monospace, "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const n of nodes){
+    const g = geom(n, tSec, now);
+    if (g.R < 3) continue;
+    const strong = n === hover || (drag && drag.n === n);
+    const a = strong ? .95 : .38;
+    if (strong){
+      /* influence ring */
+      ctx.setLineDash([3, 6]);
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, Math.min(g.R * .5, 420), 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,.13)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, 10, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,' + a + ')';
+    ctx.lineWidth = 1.1;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(g.x, g.y, 2.3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,177,153,' + a + ')';
+    ctx.fill();
+    if (strong){
+      for (let q = 0; q < 4; q++){
+        const ang = q * Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(g.x + Math.cos(ang) * 12, g.y + Math.sin(ang) * 12);
+        ctx.lineTo(g.x + Math.cos(ang) * 17, g.y + Math.sin(ang) * 17);
+        ctx.strokeStyle = 'rgba(255,255,255,.8)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      const label = rgbHex(n.col);
+      const w = ctx.measureText(label).width + 18;
+      const bx = clamp(g.x - w / 2, 8, W - w - 8);
+      const by = clamp(g.y - 36, 8, H - 26);
+      rr(ctx, bx, by, w, 19, 9);
+      ctx.fillStyle = 'rgba(8,7,10,.74)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.16)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#f5f2ea';
+      ctx.fillText(label, bx + w / 2, by + 10);
+    }
+  }
+}
+
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const dt = Math.min(.05, (now - last) / 1000);
+  last = now;
+  tSec = now / 1000;
+  update(dt, now);
+  draw(now);
+}
+
+/* ============================== resize =============================== */
+let resizeQueued = false;
+function resize(){
+  W = innerWidth; H = innerHeight;
+  dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  lw = Math.max(2, Math.round(W / 6));
+  lh = Math.max(2, Math.round(H / 6));
+  low.width = lw; low.height = lh;
+  paintGrain();
+}
+addEventListener('resize', () => {
+  if (resizeQueued) return;
+  resizeQueued = true;
+  requestAnimationFrame(() => { resizeQueued = false; resize(); });
+});
+
+/* pause the loom when the room is dark */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+
+/* ============================== init ================================= */
+resize();
+for (const s of SEED){ addNode(s.x, s.y, s.r, s.c, true); colorCursor++; }
+setPalette(0, true);
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

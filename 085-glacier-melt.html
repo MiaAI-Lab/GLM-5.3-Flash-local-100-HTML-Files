@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICE MEMORY — A Glacier, 1900–2024</title>
+<meta name="description" content="A climate data story: scrub a year slider from 1900 to 2024 and watch a procedurally drawn glacier shrink while its meltwater lake grows. Temperature and mass-balance sparklines keep the record.">
+<style>
+/* ============================================================
+   ICE MEMORY — 085
+   A century of retreat, held under one thumb.
+   ============================================================ */
+
+:root {
+  --paper: #fbfaf6;
+  --paper-deep: #f0ede4;
+  --ice-a: #cfe8f5;
+  --ice-b: #8ecae6;
+  --crevasse: #2c5f8a;
+  --rock: #6b6560;
+  --rock-deep: #4a4541;
+  --coral: #e07a5f;
+  --ink: #2e3a45;
+  --ink-soft: rgba(46, 58, 69, 0.6);
+  --ink-faint: rgba(46, 58, 69, 0.36);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--ice-b);
+  color: #10314a;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--crevasse);
+  border-radius: 6px;
+  border: 2px solid var(--paper-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   MASTHEAD
+   ------------------------------------------------------------ */
+
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(14px, 3vh, 36px) clamp(14px, 3vw, 44px) clamp(30px, 5vh, 60px);
+}
+
+.mast {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 12px;
+}
+
+.mast h1 {
+  font-weight: 400;
+  font-size: clamp(2rem, 5.6vw, 3.8rem);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.mast h1 em {
+  font-style: italic;
+  color: var(--crevasse);
+}
+
+.mast .meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: right;
+  line-height: 1.9;
+}
+
+.mast .meta b {
+  color: var(--coral);
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------
+   SCENE
+   ------------------------------------------------------------ */
+
+.scene-panel {
+  margin-top: clamp(14px, 2.4vh, 26px);
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 rgba(46, 58, 69, 0.12);
+  background: #eaf4f9;
+  position: relative;
+  overflow: hidden;
+}
+
+#valley {
+  display: block;
+  width: 100%;
+  height: clamp(320px, 54vh, 560px);
+}
+
+/* decade caption, fading between eras */
+.era {
+  position: absolute;
+  left: clamp(14px, 3vw, 30px);
+  top: clamp(14px, 3vh, 28px);
+  max-width: min(420px, 62%);
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.era.fading {
+  opacity: 0;
+}
+
+.era .year-big {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.era .year-big .c {
+  color: var(--coral);
+}
+
+.era p {
+  margin-top: 8px;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.9vw, 1.18rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+/* readouts */
+.readouts {
+  position: absolute;
+  right: clamp(14px, 3vw, 30px);
+  top: clamp(14px, 3vh, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.readout {
+  background: rgba(251, 250, 246, 0.88);
+  border: 1px solid var(--ink);
+  box-shadow: 3px 3px 0 rgba(46, 58, 69, 0.15);
+  padding: 8px 12px;
+  min-width: 150px;
+}
+
+.readout .k {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.readout .v {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.readout .v small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.readout.warm .v {
+  color: var(--coral);
+}
+
+.readout.ice .v {
+  color: var(--crevasse);
+}
+
+/* ------------------------------------------------------------
+   TIME SCRUBBER
+   ------------------------------------------------------------ */
+
+.scrub {
+  margin-top: clamp(14px, 2.4vh, 24px);
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 rgba(46, 58, 69, 0.12);
+  background: var(--paper);
+  padding: clamp(14px, 2.2vw, 22px) clamp(16px, 2.6vw, 30px) 10px;
+}
+
+.scrub-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.scrub-top .y {
+  font-family: var(--font-mono);
+  font-size: clamp(1.3rem, 3.4vw, 2rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.scrub-top .y .c {
+  color: var(--coral);
+}
+
+.scrub-top .hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+#yearRange {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 34px;
+  background: transparent;
+  cursor: ew-resize;
+  display: block;
+}
+
+#yearRange::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #cfe8f5 0%, #8ecae6 38%, #e8c9a8 70%, #e07a5f 100%);
+  border: 1.5px solid var(--ink);
+}
+
+#yearRange::-moz-range-track {
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #cfe8f5 0%, #8ecae6 38%, #e8c9a8 70%, #e07a5f 100%);
+  border: 1.5px solid var(--ink);
+}
+
+#yearRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 26px;
+  margin-top: -9px;
+  border-radius: 4px;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(46, 58, 69, 0.4);
+  cursor: ew-resize;
+}
+
+#yearRange::-moz-range-thumb {
+  width: 22px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  box-shadow: 0 2px 6px rgba(46, 58, 69, 0.4);
+  cursor: ew-resize;
+}
+
+.decades {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faint);
+  padding-bottom: 6px;
+}
+
+/* ------------------------------------------------------------
+   SPARKLINES ROW
+   ------------------------------------------------------------ */
+
+.data-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(12px, 1.8vw, 22px);
+  margin-top: clamp(12px, 1.8vw, 20px);
+}
+
+.data-card {
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(46, 58, 69, 0.12);
+  background: var(--paper);
+  padding: 14px 16px 10px;
+}
+
+.data-card h2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.data-card h2 span {
+  color: var(--coral);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+.data-card canvas {
+  display: block;
+  width: 100%;
+  height: 74px;
+  margin-top: 8px;
+}
+
+.data-card .now {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.data-card .now b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   NARRATIVE
+   ------------------------------------------------------------ */
+
+.story {
+  margin-top: clamp(16px, 3vh, 30px);
+  max-width: 70ch;
+}
+
+.story p {
+  font-size: clamp(1rem, 1.9vw, 1.15rem);
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.story p + p {
+  margin-top: 12px;
+}
+
+.story p i {
+  color: var(--ink-soft);
+}
+
+.story p b {
+  color: var(--coral);
+  font-weight: 600;
+}
+
+.foot {
+  margin-top: clamp(20px, 4vh, 40px);
+  border-top: 1px solid rgba(46, 58, 69, 0.25);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE + MOTION
+   ------------------------------------------------------------ */
+
+@media (max-width: 640px) {
+  .readouts {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 10px 12px 0;
+  }
+  .readout {
+    min-width: 120px;
+  }
+  .era {
+    position: static;
+    max-width: none;
+    padding: 12px 14px 0;
+  }
+  .era .year-big {
+    font-size: 1.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .era {
+    transition: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="mast">
+    <h1>ICE <em>MEMORY</em></h1>
+    <div class="meta">
+      <p><b>Valley record</b> · 1900 – 2024</p>
+      <p>drag the century · the glacier answers</p>
+    </div>
+  </header>
+
+  <section class="scene-panel" aria-label="Glacier valley scene">
+    <canvas id="valley" aria-label="Procedural glacier valley — ice extent and meltwater lake respond to the year slider"></canvas>
+
+    <div class="era" id="eraBox" aria-live="polite">
+      <div class="year-big" id="eraYear">1900</div>
+      <p id="eraText">The ice fills the valley wall to wall. The village below measures
+        the year in hay, not degrees.</p>
+    </div>
+
+    <div class="readouts">
+      <div class="readout ice">
+        <p class="k">Ice extent</p>
+        <p class="v" id="roIce">100<small>% of 1900</small></p>
+      </div>
+      <div class="readout ice">
+        <p class="k">Glacier tongue</p>
+        <p class="v" id="roTongue">4.2<small> km</small></p>
+      </div>
+      <div class="readout">
+        <p class="k">Lake area</p>
+        <p class="v" id="roLake">0.0<small> ha</small></p>
+      </div>
+      <div class="readout warm">
+        <p class="k">Anomaly</p>
+        <p class="v" id="roTemp">+0.0<small> °C</small></p>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="scrub" aria-label="Year scrubber">
+    <div class="scrub-top">
+      <span class="y" id="yearBig">19<span class="c">00</span></span>
+      <span class="hint">drag slowly — or sweep a century</span>
+    </div>
+    <input id="yearRange" type="range" min="1900" max="2024" value="1900" step="1"
+           aria-label="Year — drag from 1900 to 2024">
+    <div class="decades" aria-hidden="true">
+      <span>1900</span><span>1920</span><span>1940</span><span>1960</span>
+      <span>1980</span><span>2000</span><span>2020</span>
+    </div>
+  </section>
+
+  <div class="data-row">
+
+    <section class="data-card">
+      <h2>Temperature anomaly <span>°C</span></h2>
+      <canvas id="tempSpark" aria-label="Temperature anomaly sparkline, 1900 to 2024"></canvas>
+      <p class="now">at <b id="tempNow">1900</b>: <b id="tempVal">+0.0 °C</b> vs the 1900 baseline</p>
+    </section>
+
+    <section class="data-card">
+      <h2>Mass balance <span>m w.e.</span></h2>
+      <canvas id="massSpark" aria-label="Annual glacier mass balance sparkline, 1900 to 2024"></canvas>
+      <p class="now">at <b id="massNow">1900</b>: <b id="massVal">−0.1 m</b> water equivalent</p>
+    </section>
+
+    <section class="data-card">
+      <h2>Lake growth <span>hectares</span></h2>
+      <canvas id="lakeSpark" aria-label="Proglacial lake area sparkline, 1900 to 2024"></canvas>
+      <p class="now">at <b id="lakeNow">1900</b>: <b id="lakeVal">0.0 ha</b> of meltwater</p>
+    </section>
+
+  </div>
+
+  <section class="story">
+    <p>The glacier kept the valley for four hundred years, and the valley kept
+      its records for one: a line of instruments, a line of photographs, a line
+      of painted rocks marking where the tongue reached each summer. <i>Scrubs
+      of the century show the rocks losing their post one by one.</i></p>
+    <p>Nothing here is dramatic if you watch it daily. It is dramatic the way
+      interest is dramatic — small percentages, patient arithmetic, a lake where
+      your grandmother's bridge stood. <b>Drag the slider slowly.</b> The ice
+      answers in decades, not afternoons.</p>
+  </section>
+
+  <footer class="foot">
+    <span>Ice Memory · the gallery of 100 · room 85</span>
+    <span>the lake swallows the valley where ice once stood</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     CLIMATE RECORD MODEL (fictional but plausible)
+     ============================================================ */
+  var Y0 = 1900, Y1 = 2024;
+
+  function anomalyAt(year) {
+    /* smooth warming curve with mid-century plateau */
+    var t = (year - Y0) / (Y1 - Y0);
+    var base = 1.35 * Math.pow(t, 1.9);
+    var plateau = -0.12 * Math.exp(-Math.pow((t - 0.42) * 5.2, 2));
+    var wiggle = 0.07 * Math.sin(year * 1.7) * (0.3 + t);
+    return base + plateau + wiggle - 0.02;
+  }
+
+  function meltFactor(year) {
+    /* 0..1 fraction of ice lost relative to 1900, accelerating */
+    var a = anomalyAt(year);
+    var f = Math.pow(Math.max(0, a + 0.1), 1.55) / Math.pow(1.45, 1.55) * 0.92;
+    return Math.min(0.92, Math.max(0, f));
+  }
+
+  function massBalanceAt(year) {
+    var a = anomalyAt(year);
+    var mb = -0.35 - a * 1.15 + 0.09 * Math.sin(year * 2.3);
+    return mb;
+  }
+
+  function lakeHectares(year) {
+    var m = meltFactor(year);
+    /* lake appears after ~1920 and grows with lost ice */
+    var start = Math.max(0, (m - 0.06) / 0.94);
+    return Math.pow(start, 1.8) * 46;
+  }
+
+  /* ============================================================
+     TERRAIN GEOMETRY (procedural valley cross-section)
+     ============================================================ */
+  var cv = document.getElementById("valley");
+  var ctx = cv.getContext("2d");
+  var vw = 0, vh = 0;
+
+  function sizeCanvas() {
+    var rect = cv.getBoundingClientRect();
+    vw = Math.max(1, rect.width);
+    vh = Math.max(1, rect.height);
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+
+  /* bedrock profile: x in 0..1 (source-left to mouth-right), y = valley floor height 0..1 (0 = top) */
+  var BED = [];
+  (function () {
+    var r = rng(8519);
+    var jag = [];
+    for (var i = 0; i < 24; i++) jag.push((r() - 0.5) * 0.028);
+    for (var k = 0; k <= 100; k++) {
+      var t = k / 100;
+      /* valley descends left to right with a rock step mid-way */
+      var y = 0.18 + 0.5 * Math.pow(t, 1.25);
+      y += 0.09 * Math.exp(-Math.pow((t - 0.62) * 7, 2));
+      y += jag[k % 24];
+      BED.push({ t: t, y: Math.min(0.86, Math.max(0.1, y)) });
+    }
+  })();
+
+  function bedAt(t) {
+    t = Math.max(0, Math.min(1, t));
+    var f = t * 100;
+    var i = Math.floor(f);
+    var fr = f - i;
+    var a = BED[Math.min(100, i)];
+    var b = BED[Math.min(100, i + 1)];
+    return a.y + (b.y - a.y) * fr;
+  }
+
+  function sideHeights(t) {
+    /* valley wall heights (fraction of scene height above floor) */
+    var wallL = 0.34 + 0.1 * Math.sin(t * 5.1) - 0.05 * Math.cos(t * 3.3);
+    var wallR = 0.3 + 0.12 * Math.sin(t * 4.3 + 1.4) - 0.04 * Math.sin(t * 6.1);
+    return { L: Math.max(0.18, wallL), R: Math.max(0.16, wallR) };
+  }
+
+  /* ============================================================
+     SCENE DRAW
+     ============================================================ */
+  function draw(year) {
+    var m = meltFactor(year);
+    var iceEnd = 0.94 - m * 0.78;         /* tongue tip x, 0..1 */
+    var thickness = (1 - m * 0.75);       /* relative ice thickness 0.25..1 */
+    var lake = lakeHectares(year);
+    var lakeLevel = Math.min(0.24, lake / 46 * 0.24);
+
+    ctx.clearRect(0, 0, vw, vh);
+
+    /* ---- sky, warming with the century ---- */
+    var warm = Math.min(1, Math.max(0, (anomalyAt(year) + 0.1) / 1.5));
+    var sky = ctx.createLinearGradient(0, 0, 0, vh);
+    sky.addColorStop(0, mix("#dcecf5", "#e8f0e2", warm * 0.5));
+    sky.addColorStop(0.65, mix("#e8f2f8", "#f6ecd8", warm * 0.75));
+    sky.addColorStop(1, mix("#f4f8fa", "#faf3e0", warm));
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, vw, vh);
+
+    /* faint sun */
+    var sunX = vw * 0.78, sunY = vh * 0.16;
+    var sunR = vh * 0.07;
+    var sunG = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, sunR);
+    sunG.addColorStop(0, "rgba(255,244,214," + (0.55 + warm * 0.4).toFixed(2) + ")");
+    sunG.addColorStop(1, "rgba(255,244,214,0)");
+    ctx.fillStyle = sunG;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 2.2, 0, 6.2832);
+    ctx.fill();
+
+    /* ---- far peaks ---- */
+    drawRidge(0.34, "#b9cdd8", 0.55, 0.0);
+    drawRidge(0.5, "#a3bccb", 0.72, 0.14);
+
+    /* ---- valley walls ---- */
+    var floorPx = function (t) { return bedAt(t) * vh; };
+    var t;
+    var i;
+
+    /* left wall */
+    ctx.fillStyle = mix("#7d7570", "#6b6560", 0.5);
+    ctx.beginPath();
+    ctx.moveTo(0, vh);
+    ctx.lineTo(0, 0);
+    for (t = 0; t <= 1.001; t += 0.05) {
+      var sh = sideHeights(t);
+      ctx.lineTo(t * vw, (bedAt(t) - sh.L) * vh);
+    }
+    /* down along the bed back to the left */
+    for (i = 20; i >= 0; i--) {
+      t = i / 20;
+      ctx.lineTo(t * vw, floorPx(t));
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    /* right wall */
+    ctx.fillStyle = "#5f5952";
+    ctx.beginPath();
+    ctx.moveTo(vw, vh);
+    ctx.lineTo(vw, 0);
+    for (t = 1; t >= -0.001; t -= 0.05) {
+      var sh2 = sideHeights(t);
+      ctx.lineTo(t * vw, (bedAt(t) - sh2.R) * vh);
+    }
+    for (i = 0; i <= 20; i++) {
+      t = i / 20;
+      ctx.lineTo(t * vw, floorPx(t));
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    /* rock texture on walls: scree strokes */
+    ctx.strokeStyle = "rgba(40,36,32,0.14)";
+    ctx.lineWidth = 1;
+    for (var sc = 0; sc < 46; sc++) {
+      var st = (sc * 0.0217) % 1;
+      var side = sc % 2 === 0;
+      var baseY = (bedAt(st) - (side ? sideHeights(st).L : sideHeights(st).R)) * vh;
+      var drop = 10 + (sc % 7) * 9;
+      ctx.beginPath();
+      ctx.moveTo(st * vw, baseY + drop);
+      ctx.lineTo(st * vw + (side ? 8 : -8), baseY + drop + 4);
+      ctx.stroke();
+    }
+
+    /* ---- glacier (drawn as a tongue from x=0 to iceEnd) ---- */
+    if (iceEnd > 0.02) {
+      /* ice body sits on the bed from 0 to iceEnd */
+      ctx.beginPath();
+      ctx.moveTo(0, (bedAt(0) - 0.3 * thickness) * vh);
+      /* top surface */
+      for (i = 0; i <= 32; i++) {
+        t = (i / 32) * iceEnd;
+        var th = 0.3 * thickness * (1 - Math.pow(t / Math.max(0.001, iceEnd), 1.6) * 0.72);
+        var yTop = (bedAt(t) - th) * vh;
+        /* crevassed surface bumps */
+        yTop += Math.sin(t * 34 + year * 0.13) * 0.006 * vh * thickness;
+        ctx.lineTo(t * vw, yTop);
+      }
+      /* tongue tip down to bed */
+      ctx.lineTo(iceEnd * vw, floorPx(iceEnd) - 2);
+      /* back along the bed */
+      for (i = 32; i >= 0; i--) {
+        t = (i / 32) * iceEnd;
+        ctx.lineTo(t * vw, floorPx(t));
+      }
+      ctx.closePath();
+
+      var iceGrad = ctx.createLinearGradient(0, vh * 0.1, 0, vh);
+      iceGrad.addColorStop(0, mix("#e8f4fb", "#f2f6f2", warm * 0.4));
+      iceGrad.addColorStop(0.55, mix("#bfe0f0", "#cfe8f5", 0.2));
+      iceGrad.addColorStop(1, mix("#8ecae6", "#a8c8d8", warm * 0.3));
+      ctx.fillStyle = iceGrad;
+      ctx.fill();
+
+      /* crevasse bands — transverse blue streaks, denser toward the tip */
+      ctx.save();
+      ctx.clip();
+      var bands = Math.round(8 + m * 10);
+      for (var bi = 0; bi < bands; bi++) {
+        var bt = 0.08 + (bi / bands) * 0.86;
+        var bx = bt * iceEnd;
+        var byTop = (bedAt(bx) - 0.3 * thickness * (1 - Math.pow(bt, 1.6) * 0.72)) * vh;
+        var byBot = floorPx(bx);
+        ctx.strokeStyle = "rgba(44,95,138," + (0.16 + 0.2 * (bi / bands)).toFixed(2) + ")";
+        ctx.lineWidth = 1.4 + (bi % 3);
+        ctx.beginPath();
+        ctx.moveTo(bx * vw, byTop + 4);
+        ctx.quadraticCurveTo(bx * vw + 6, (byTop + byBot) / 2, bx * vw - 3, byBot);
+        ctx.stroke();
+      }
+      /* surface meltwater sheen near the snout when warm */
+      if (warm > 0.5) {
+        var sheen = ctx.createLinearGradient(0, 0, vw, 0);
+        sheen.addColorStop(Math.max(0, iceEnd - 0.2), "rgba(255,255,255,0)");
+        sheen.addColorStop(iceEnd, "rgba(220,240,250,0.4)");
+        ctx.fillStyle = sheen;
+        ctx.fillRect((iceEnd - 0.25) * vw, 0, vw * 0.3, vh);
+      }
+      ctx.restore();
+
+      /* ice outline */
+      ctx.strokeStyle = "rgba(44,95,138,0.5)";
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
+
+    /* ---- meltwater lake (between tongue tip and mouth) ---- */
+    if (lakeLevel > 0.001) {
+      var lakeLeft = Math.min(iceEnd, 0.98);
+      var lakeRight = 1.0;
+      ctx.beginPath();
+      var lx0 = lakeLeft * vw;
+      ctx.moveTo(lx0, floorPx(lakeLeft));
+      for (i = 0; i <= 24; i++) {
+        t = lakeLeft + (lakeRight - lakeLeft) * (i / 24);
+        ctx.lineTo(t * vw, floorPx(t));
+      }
+      /* surface back at lakeLevel above the lowest bed point in span */
+      var minBed = 1;
+      for (i = 0; i <= 24; i++) {
+        t = lakeLeft + (lakeRight - lakeLeft) * (i / 24);
+        if (bedAt(t) < minBed) minBed = bedAt(t);
+      }
+      var surfY = (minBed - lakeLevel) * vh;
+      ctx.lineTo(lakeRight * vw, surfY);
+      ctx.lineTo(lx0, surfY);
+      ctx.closePath();
+      var lakeGrad = ctx.createLinearGradient(0, surfY, 0, vh);
+      lakeGrad.addColorStop(0, "rgba(142,202,230,0.92)");
+      lakeGrad.addColorStop(1, "rgba(44,95,138,0.9)");
+      ctx.fillStyle = lakeGrad;
+      ctx.fill();
+      /* glacial milk streaks */
+      ctx.strokeStyle = "rgba(230,244,250,0.35)";
+      ctx.lineWidth = 1.2;
+      for (var mk = 0; mk < 5; mk++) {
+        var my = surfY + 6 + mk * ((vh - surfY) / 7);
+        ctx.beginPath();
+        ctx.moveTo(lx0 + 6, my + Math.sin(mk) * 2);
+        ctx.lineTo(vw - 4, my + Math.sin(mk * 2) * 2);
+        ctx.stroke();
+      }
+      /* shoreline */
+      ctx.strokeStyle = "rgba(46,58,69,0.35)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(lx0, surfY);
+      ctx.lineTo(vw, surfY);
+      ctx.stroke();
+    }
+
+    /* ---- marker rocks: painted year posts along the floor ---- */
+    var marks = [1936, 1966, 1988, 2004, 2016];
+    for (var mi = 0; mi < marks.length; mi++) {
+      var my2 = marks[mi];
+      var mm = meltFactor(my2);
+      var mEnd = 0.94 - mm * 0.78;
+      var mx = (mEnd + 0.012) * vw;
+      var myy = floorPx(Math.min(1, mEnd + 0.012));
+      ctx.fillStyle = "#4a4541";
+      ctx.beginPath();
+      ctx.moveTo(mx - 5, myy);
+      ctx.lineTo(mx - 2, myy - 9);
+      ctx.lineTo(mx + 4, myy - 7);
+      ctx.lineTo(mx + 5, myy);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = year >= my2 ? "#e07a5f" : "rgba(46,58,69,0.45)";
+      ctx.font = "700 8.5px ui-monospace, 'Courier New', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(String(my2).slice(2), mx, myy + 12);
+      ctx.textAlign = "left";
+    }
+
+    /* ---- moraine rubble at the old tongue positions ---- */
+    for (var mr = 0; mr < marks.length; mr++) {
+      var mm2 = meltFactor(marks[mr]);
+      var mE2 = 0.94 - mm2 * 0.78;
+      var rx = mE2 * vw;
+      var ry = floorPx(Math.min(1, mE2));
+      ctx.fillStyle = "rgba(74,69,65,0.5)";
+      ctx.beginPath();
+      ctx.ellipse(rx, ry, 7, 3, 0, 0, 6.2832);
+      ctx.fill();
+    }
+  }
+
+  function drawRidge(baseFrac, color, amp, seedOff) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, vh);
+    ctx.lineTo(0, vh * baseFrac);
+    for (var x = 0; x <= 32; x++) {
+      var t = x / 32;
+      var y = baseFrac - amp * (0.4 + 0.6 * Math.abs(Math.sin(t * 7.3 + seedOff * 9.1)) * Math.sin(t * 2.1 + seedOff));
+      ctx.lineTo(t * vw, y * vh);
+    }
+    ctx.lineTo(vw, vh);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function mix(hexA, hexB, t) {
+    function p(h) {
+      return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    }
+    var a = p(hexA), b = p(hexB);
+    t = Math.max(0, Math.min(1, t));
+    var r = Math.round(a[0] + (b[0] - a[0]) * t);
+    var g = Math.round(a[1] + (b[1] - a[1]) * t);
+    var bl = Math.round(a[2] + (b[2] - a[2]) * t);
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
+
+  /* ============================================================
+     SPARKLINES
+     ============================================================ */
+  function sparkline(id, samples, year, color, baseline) {
+    var c = document.getElementById(id);
+    var cx2 = c.getContext("2d");
+    var w = c.clientWidth || 260;
+    var h = c.clientHeight || 74;
+    if (c.width !== Math.round(w * DPR)) {
+      c.width = Math.round(w * DPR);
+      c.height = Math.round(h * DPR);
+    }
+    cx2.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx2.clearRect(0, 0, w, h);
+
+    var lo = Infinity, hi = -Infinity;
+    for (var i = 0; i < samples.length; i++) {
+      if (samples[i] < lo) lo = samples[i];
+      if (samples[i] > hi) hi = samples[i];
+    }
+    var span = (hi - lo) || 1;
+    lo -= span * 0.1;
+    hi += span * 0.1;
+
+    var padL = 4, padR = 4, padT = 6, padB = 6;
+    var plotW = w - padL - padR;
+    var plotH = h - padT - padB;
+
+    function xy(i) {
+      var x = padL + (i / (samples.length - 1)) * plotW;
+      var y = padT + (1 - (samples[i] - lo) / (hi - lo)) * plotH;
+      return [x, y];
+    }
+
+    /* baseline */
+    if (baseline !== null && baseline >= lo && baseline <= hi) {
+      var by = padT + (1 - (baseline - lo) / (hi - lo)) * plotH;
+      cx2.strokeStyle = "rgba(46,58,69,0.3)";
+      cx2.setLineDash([3, 3]);
+      cx2.lineWidth = 1;
+      cx2.beginPath();
+      cx2.moveTo(padL, by);
+      cx2.lineTo(w - padR, by);
+      cx2.stroke();
+      cx2.setLineDash([]);
+    }
+
+    /* area up to current year */
+    var upTo = Math.max(1, Math.round((year - Y0) / (Y1 - Y0) * (samples.length - 1)));
+    cx2.beginPath();
+    cx2.moveTo(xy(0)[0], h - padB);
+    for (var s = 0; s <= upTo; s++) {
+      var pt = xy(s);
+      cx2.lineTo(pt[0], pt[1]);
+    }
+    cx2.lineTo(xy(upTo)[0], h - padB);
+    cx2.closePath();
+    cx2.fillStyle = color.replace("RGBPLACE", "0.18");
+    cx2.fillStyle = hexToRgba(color, 0.18);
+    cx2.fill();
+
+    cx2.beginPath();
+    for (var l = 0; l <= upTo; l++) {
+      var p2 = xy(l);
+      if (l === 0) cx2.moveTo(p2[0], p2[1]);
+      else cx2.lineTo(p2[0], p2[1]);
+    }
+    cx2.strokeStyle = color;
+    cx2.lineWidth = 1.8;
+    cx2.lineJoin = "round";
+    cx2.stroke();
+
+    /* future ghost */
+    if (upTo < samples.length - 1) {
+      cx2.beginPath();
+      for (var g = upTo; g < samples.length; g++) {
+        var p3 = xy(g);
+        if (g === upTo) cx2.moveTo(p3[0], p3[1]);
+        else cx2.lineTo(p3[0], p3[1]);
+      }
+      cx2.strokeStyle = hexToRgba(color, 0.28);
+      cx2.setLineDash([2, 4]);
+      cx2.lineWidth = 1.2;
+      cx2.stroke();
+      cx2.setLineDash([]);
+    }
+
+    /* present dot */
+    var cur = xy(upTo);
+    cx2.fillStyle = "#2e3a45";
+    cx2.beginPath();
+    cx2.arc(cur[0], cur[1], 3.2, 0, 6.2832);
+    cx2.fill();
+    cx2.strokeStyle = "#fbfaf6";
+    cx2.lineWidth = 1.4;
+    cx2.stroke();
+  }
+
+  function hexToRgba(hex, a) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+  }
+
+  /* precomputed series */
+  var N_S = 125;
+  var tempSeries = [], massSeries = [], lakeSeries = [];
+  for (var si = 0; si < N_S; si++) {
+    var yy = Y0 + (Y1 - Y0) * si / (N_S - 1);
+    tempSeries.push(anomalyAt(yy));
+    massSeries.push(massBalanceAt(yy));
+    lakeSeries.push(lakeHectares(yy));
+  }
+
+  /* ============================================================
+     READOUTS + ERA TEXT
+     ============================================================ */
+  var rangeEl = document.getElementById("yearRange");
+  var yearBig = document.getElementById("yearBig");
+  var eraYear = document.getElementById("eraYear");
+  var eraText = document.getElementById("eraText");
+  var eraBox = document.getElementById("eraBox");
+
+  var ERAS = [
+    { until: 1915, txt: "The ice fills the valley wall to wall. The village below measures the year in hay, not degrees." },
+    { until: 1938, txt: "First sketches of a grey lake at the snout. The men who paint it call it a puddle and laugh." },
+    { until: 1962, txt: "The tongue has loosened its grip on the rock step. Horses carry the mail where sledges ran." },
+    { until: 1984, txt: "The painted rocks lose their post one by one. Summer guests ask what the grey line on the wall is." },
+    { until: 2003, txt: "The bridge by the mouth is rebuilt twice. The lake now has a name, and the name is new." },
+    { until: 2016, txt: "School trips come to see the lake. The glacier is a story grandparents tell with their hands." },
+    { until: 2100, txt: "A thin white comb in a high notch. On quiet nights the valley hears water where it used to hear nothing." }
+  ];
+
+  var lastEra = -1;
+
+  function setYear(year, animateEra) {
+    var m = meltFactor(year);
+    var iceEnd = 0.94 - m * 0.78;
+    var lake = lakeHectares(year);
+    var an = anomalyAt(year);
+    var mb = massBalanceAt(year);
+
+    yearBig.innerHTML = String(year).slice(0, 2) + '<span class="c">' + String(year).slice(2) + "</span>";
+    eraYear.innerHTML = String(year).slice(0, 2) + '<span class="c">' + String(year).slice(2) + "</span>";
+
+    document.getElementById("roIce").innerHTML = Math.round((1 - m) * 100) + "<small>% of 1900</small>";
+    document.getElementById("roTongue").innerHTML = (iceEnd * 4.2).toFixed(1) + "<small> km</small>";
+    document.getElementById("roLake").innerHTML = lake.toFixed(1) + "<small> ha</small>";
+    document.getElementById("roTemp").innerHTML = (an >= 0 ? "+" : "−") + Math.abs(an).toFixed(1) + "<small> °C</small>";
+
+    document.getElementById("tempNow").textContent = year;
+    document.getElementById("tempVal").textContent = (an >= 0 ? "+" : "−") + Math.abs(an).toFixed(1) + " °C";
+    document.getElementById("massNow").textContent = year;
+    document.getElementById("massVal").textContent = (mb >= 0 ? "+" : "−") + Math.abs(mb).toFixed(1) + " m";
+    document.getElementById("lakeNow").textContent = year;
+    document.getElementById("lakeVal").textContent = lake.toFixed(1) + " ha";
+
+    sparkline("tempSpark", tempSeries, year, "#e07a5f", 0);
+    sparkline("massSpark", massSeries, year, "#2c5f8a", null);
+    sparkline("lakeSpark", lakeSeries, year, "#8ecae6", null);
+
+    /* era text */
+    var ei = 0;
+    while (ei < ERAS.length - 1 && year > ERAS[ei].until) ei++;
+    if (ei !== lastEra) {
+      lastEra = ei;
+      if (animateEra && !reduced) {
+        eraBox.classList.add("fading");
+        setTimeout(function () {
+          eraText.textContent = ERAS[ei].txt;
+          eraBox.classList.remove("fading");
+        }, 220);
+      } else {
+        eraText.textContent = ERAS[ei].txt;
+      }
+    }
+
+    draw(year);
+  }
+
+  var scrubTimer = 0;
+  rangeEl.addEventListener("input", function () {
+    var y = parseInt(rangeEl.value, 10);
+    clearTimeout(scrubTimer);
+    scrubTimer = setTimeout(function () {}, 30);
+    setYear(y, true);
+  });
+
+  /* keyboard fine control */
+  rangeEl.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowUp") { e.preventDefault(); rangeEl.value = Math.min(Y1, parseInt(rangeEl.value, 10) + 5); setYear(parseInt(rangeEl.value, 10), true); }
+    if (e.key === "ArrowDown") { e.preventDefault(); rangeEl.value = Math.max(Y0, parseInt(rangeEl.value, 10) - 5); setYear(parseInt(rangeEl.value, 10), true); }
+  });
+
+  window.addEventListener("resize", function () {
+    sizeCanvas();
+    setYear(parseInt(rangeEl.value, 10), false);
+  });
+
+  sizeCanvas();
+  setYear(1900, false);
+})();
+</script>
+</body>
+</html>

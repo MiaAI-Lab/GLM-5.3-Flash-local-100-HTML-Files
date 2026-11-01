@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pendulum wave — fifteen bobs, one beat</title>
+<meta name="description" content="Fifteen pendulums of descending lengths weave traveling wave patterns — snake, ribbon, chaos, unison — on a black stage with brass fittings. Release them in a line, slow time, or displace a bob by hand.">
+<style>
+/* ============================================================
+   pendulum wave — 087
+   apparent chaos is just unison you haven't waited for.
+   ============================================================ */
+
+:root {
+  --stage: #0a0a0c;
+  --stage-2: #101014;
+  --brass: #c9a227;
+  --brass-hi: #e9cd6d;
+  --brass-dark: #8a6d1c;
+  --chalk: #e8e6df;
+  --chalk-dim: rgba(232, 230, 223, 0.55);
+  --chalk-faint: rgba(232, 230, 223, 0.28);
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--stage);
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(110% 70% at 50% 0%, var(--stage-2) 0%, var(--stage) 55%, #050507 100%);
+  color: var(--chalk);
+  font-family: var(--font-ui);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--brass);
+  color: #100d04;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   FRAME
+   ------------------------------------------------------------ */
+
+.hall {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 2vh, 26px) clamp(12px, 3vw, 40px) clamp(20px, 4vh, 44px);
+  gap: clamp(8px, 1.6vh, 16px);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  font-weight: 200;
+  font-size: clamp(1.4rem, 3.6vw, 2.5rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+
+.head h1 b {
+  font-weight: 600;
+  color: var(--brass-hi);
+}
+
+.head .sub {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(0.85rem, 1.7vw, 1.05rem);
+  color: var(--chalk-dim);
+  text-align: right;
+}
+
+.head .sub i {
+  color: var(--brass-hi);
+  font-style: normal;
+}
+
+/* ------------------------------------------------------------
+   STAGE
+   ------------------------------------------------------------ */
+
+.stage-frame {
+  position: relative;
+  border: 2px solid var(--brass-dark);
+  border-radius: 10px;
+  background:
+    radial-gradient(120% 90% at 50% 8%, #131318 0%, var(--stage) 60%);
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 162, 39, 0.25),
+    inset 0 20px 60px rgba(0, 0, 0, 0.6),
+    0 24px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+#wave {
+  display: block;
+  width: 100%;
+  height: clamp(340px, 58vh, 600px);
+  touch-action: none;
+}
+
+/* brass corner fittings */
+.fitting {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--brass);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.fitting.tl { left: 8px; top: 8px; border-right: none; border-bottom: none; border-top-left-radius: 6px; }
+.fitting.tr { right: 8px; top: 8px; border-left: none; border-bottom: none; border-top-right-radius: 6px; }
+.fitting.bl { left: 8px; bottom: 8px; border-right: none; border-top: none; border-bottom-left-radius: 6px; }
+.fitting.br { right: 8px; bottom: 8px; border-left: none; border-top: none; border-bottom-right-radius: 6px; }
+
+/* cycle readout */
+.cycle {
+  position: absolute;
+  right: 16px;
+  top: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+  text-align: right;
+  pointer-events: none;
+}
+
+.cycle b {
+  color: var(--brass-hi);
+  font-weight: 400;
+}
+
+/* unison flare */
+.unison-note {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--brass-hi);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.unison-note.show {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------
+   CONTROLS
+   ------------------------------------------------------------ */
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.8vw, 18px);
+  flex-wrap: wrap;
+}
+
+.pbtn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 11px 18px;
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  border-radius: 4px;
+  background: rgba(201, 162, 39, 0.08);
+  color: var(--chalk);
+  transition: background 0.2s, border-color 0.2s;
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.pbtn:hover,
+.pbtn:focus-visible {
+  background: rgba(201, 162, 39, 0.2);
+  border-color: var(--brass-hi);
+}
+
+.pbtn[aria-pressed="true"] {
+  background: var(--brass);
+  color: #171204;
+  border-color: var(--brass-hi);
+}
+
+/* ------------------------------------------------------------
+   EXPLANATION STRIP
+   ------------------------------------------------------------ */
+
+.why {
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.why p {
+  font-size: clamp(0.85rem, 1.7vw, 1rem);
+  line-height: 1.7;
+  color: var(--chalk-dim);
+  font-weight: 300;
+}
+
+.why p i {
+  font-family: var(--font-serif);
+  color: var(--chalk);
+}
+
+.why .ladder {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.why .ladder span {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--chalk-faint);
+  border: 1px solid rgba(232, 230, 223, 0.16);
+  border-radius: 3px;
+  padding: 4px 7px;
+}
+
+.why .ladder span b {
+  color: var(--brass-hi);
+  font-weight: 400;
+}
+
+.foot {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(232, 230, 223, 0.3);
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .unison-note {
+    transition: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="hall">
+
+  <header class="head">
+    <h1><b>pendulum</b> wave</h1>
+    <p class="sub">fifteen bobs, one minute of physics — <i>wait for the line</i></p>
+  </header>
+
+  <section class="stage-frame" aria-label="Pendulum wave stage">
+    <span class="fitting tl" aria-hidden="true"></span>
+    <span class="fitting tr" aria-hidden="true"></span>
+    <span class="fitting bl" aria-hidden="true"></span>
+    <span class="fitting br" aria-hidden="true"></span>
+    <canvas id="wave" aria-label="Fifteen pendulums swinging in a traveling wave pattern — drag a bob to displace it"></canvas>
+    <div class="cycle" id="cycleBox">
+      <p>cycle <b id="cycleNum">60 s</b></p>
+      <p>elapsed <b id="elapsedNum">0.0 s</b></p>
+    </div>
+    <p class="unison-note" id="unisonNote">— unison —</p>
+  </section>
+
+  <div class="controls">
+    <button class="pbtn" id="releaseBtn" type="button">Release from line</button>
+    <button class="pbtn" id="slowBtn" type="button" aria-pressed="false">Slow time</button>
+    <button class="pbtn" id="trailsBtn" type="button" aria-pressed="true">Chalk trails</button>
+    <button class="pbtn" id="labelsBtn" type="button" aria-pressed="false">Bob labels</button>
+  </div>
+
+  <section class="why">
+    <p>No two pendulums share a length, so no two share a period. Released
+      together, they drift apart into <i>snake, ribbon, chaos</i> — then, every
+      sixty seconds, <i>the whole array snaps back into a single line</i>.
+      It was never disorder. It was arithmetic, wearing a disguise.</p>
+    <div class="ladder" id="ladder" aria-hidden="true"></div>
+  </section>
+
+  <footer class="foot">
+    pendulum wave · the gallery of 100 · room 87
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     PENDULUM LADDER
+     ============================================================ */
+  var N = 15;
+  var BASE_CYCLES = 51;      /* slowest bob does 51 swings per minute */
+  var BIG_CYCLE = 60;        /* re-unison every 60 s */
+
+  var bobs = [];
+  for (var i = 0; i < N; i++) {
+    /* classic pendulum wave: cycles = BASE + i */
+    var swingsPerMin = BASE_CYCLES + i;
+    bobs.push({
+      idx: i,
+      period: BIG_CYCLE / swingsPerMin,      /* seconds per full oscillation (return trip) */
+      phase: 0,                              /* current phase, radians */
+      manual: null,                          /* manual displacement (radians) while held */
+      manualDecay: 0
+    });
+  }
+
+  var elapsed = 0;
+  var timeScale = 1;
+  var showTrails = true;
+  var showLabels = false;
+  var running = true;
+
+  /* ============================================================
+     CANVAS
+     ============================================================ */
+  var cv = document.getElementById("wave");
+  var ctx = cv.getContext("2d");
+  var vw = 0, vh = 0;
+
+  function sizeCanvas() {
+    var rect = cv.getBoundingClientRect();
+    vw = Math.max(1, rect.width);
+    vh = Math.max(1, rect.height);
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function geom() {
+    var topY = vh * 0.09;
+    var floorY = vh * 0.94;
+    var railW = vw * 0.86;
+    var railX = (vw - railW) / 2;
+    var minLen = (floorY - topY) * 0.5;
+    var maxLen = floorY - topY - vh * 0.06;
+    return { topY: topY, floorY: floorY, railW: railW, railX: railX, minLen: minLen, maxLen: maxLen };
+  }
+
+  function bobSwing(idx) {
+    /* phase -> swing angle; manual displacement overrides then decays */
+    var b = bobs[idx];
+    if (b.manual !== null) return b.manual;
+    var amp = 0.62;
+    return Math.sin(b.phase) * amp;
+  }
+
+  function bobXY(g, idx) {
+    var t = idx / (N - 1);
+    var px = g.railX + t * g.railW;
+    var len = g.minLen + (g.maxLen - g.minLen) * (idx / (N - 1)) * 0.92 + g.minLen * 0.08;
+    len = g.minLen + (g.maxLen - g.minLen) * (0.35 + 0.65 * (idx / (N - 1)));
+    var ang = bobSwing(idx);
+    var bx = px + Math.sin(ang) * len;
+    var by = g.topY + Math.cos(ang) * len;
+    return { px: px, py: g.topY, bx: bx, by: by, len: len, ang: ang };
+  }
+
+  /* brass bob colors: graded metallic hues */
+  function bobColor(idx) {
+    var t = idx / (N - 1);
+    var stops = [
+      [233, 205, 109],
+      [212, 172, 82],
+      [186, 142, 62],
+      [154, 114, 48],
+      [122, 88, 38]
+    ];
+    var f = t * (stops.length - 1);
+    var i0 = Math.min(stops.length - 2, Math.floor(f));
+    var fr = f - i0;
+    var a = stops[i0], b = stops[i0 + 1];
+    var r = Math.round(a[0] + (b[0] - a[0]) * fr);
+    var g2 = Math.round(a[1] + (b[1] - a[1]) * fr);
+    var b2 = Math.round(a[2] + (b[2] - a[2]) * fr);
+    return "rgb(" + r + "," + g2 + "," + b2 + ")";
+  }
+
+  var trailCv = document.createElement("canvas");
+  var trailCtx = trailCv.getContext("2d");
+
+  function sizeTrails() {
+    trailCv.width = cv.width;
+    trailCv.height = cv.height;
+    trailCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function fadeTrails() {
+    trailCtx.fillStyle = "rgba(10,10,12,0.045)";
+    trailCtx.fillRect(0, 0, vw, vh);
+  }
+
+  function clearTrails() {
+    trailCtx.clearRect(0, 0, vw, vh);
+  }
+
+  /* ------------------------------------------------------------
+     DRAW
+     ------------------------------------------------------------ */
+  function draw() {
+    var g = geom();
+    ctx.clearRect(0, 0, vw, vh);
+
+    /* stage floor sheen */
+    var sheen = ctx.createLinearGradient(0, g.floorY - 20, 0, vh);
+    sheen.addColorStop(0, "rgba(232,230,223,0.05)");
+    sheen.addColorStop(1, "rgba(232,230,223,0)");
+    ctx.fillStyle = sheen;
+    ctx.fillRect(0, g.floorY - 20, vw, vh - g.floorY + 20);
+
+    /* top brass rail */
+    var railGrad = ctx.createLinearGradient(0, g.topY - 8, 0, g.topY + 8);
+    railGrad.addColorStop(0, "#e9cd6d");
+    railGrad.addColorStop(0.5, "#c9a227");
+    railGrad.addColorStop(1, "#8a6d1c");
+    ctx.fillStyle = railGrad;
+    ctx.fillRect(g.railX - 14, g.topY - 7, g.railW + 28, 7);
+    ctx.fillStyle = "rgba(255,246,200,0.4)";
+    ctx.fillRect(g.railX - 14, g.topY - 7, g.railW + 28, 1.6);
+    /* rail hangers */
+    for (var hI = 0; hI < N; hI++) {
+      var hx = g.railX + (hI / (N - 1)) * g.railW;
+      ctx.strokeStyle = "rgba(201,162,39,0.55)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(hx, g.topY);
+      ctx.lineTo(hx, g.topY + 5);
+      ctx.stroke();
+    }
+
+    /* chalk guides: apex arc + floor line */
+    ctx.strokeStyle = "rgba(232,230,223,0.10)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 6]);
+    ctx.beginPath();
+    ctx.ellipse(g.railX + g.railW / 2, g.topY, g.railW / 2 + 20, (g.maxLen) * 0.99, 0, Math.PI * 0.15, Math.PI * 0.85);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "rgba(232,230,223,0.13)";
+    ctx.beginPath();
+    ctx.moveTo(g.railX - 10, g.floorY);
+    ctx.lineTo(g.railX + g.railW + 10, g.floorY);
+    ctx.stroke();
+
+    /* trail layer */
+    if (showTrails && !reduced) {
+      fadeTrails();
+    }
+
+    /* bobs + rods */
+    for (var i = 0; i < N; i++) {
+      var P = bobXY(g, i);
+      var col = bobColor(i);
+
+      /* rod */
+      ctx.strokeStyle = "rgba(201,162,39,0.5)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(P.px, P.py);
+      ctx.lineTo(P.bx, P.by);
+      ctx.stroke();
+
+      /* chalk trail mark */
+      if (showTrails && !reduced) {
+        trailCtx.fillStyle = "rgba(232,230,223,0.10)";
+        trailCtx.beginPath();
+        trailCtx.arc(P.bx, P.by, 1.1, 0, 6.2832);
+        trailCtx.fill();
+      }
+
+      /* bob */
+      var r = 9;
+      var bg = ctx.createRadialGradient(P.bx - r * 0.35, P.by - r * 0.4, r * 0.15, P.bx, P.by, r);
+      bg.addColorStop(0, "#fdf6dc");
+      bg.addColorStop(0.35, col);
+      bg.addColorStop(1, "#3f2f0e");
+      ctx.fillStyle = bg;
+      ctx.beginPath();
+      ctx.arc(P.bx, P.by, r, 0, 6.2832);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(20,16,4,0.8)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      /* highlight glint */
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.beginPath();
+      ctx.arc(P.bx - r * 0.32, P.by - r * 0.36, r * 0.18, 0, 6.2832);
+      ctx.fill();
+
+      /* grabbed indicator */
+      if (bobs[i].manual !== null) {
+        ctx.strokeStyle = "rgba(233,205,109,0.85)";
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.arc(P.bx, P.by, r + 5, 0, 6.2832);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      /* label */
+      if (showLabels) {
+        ctx.fillStyle = "rgba(232,230,223,0.5)";
+        ctx.font = "8.5px ui-monospace, 'Courier New', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(String(i + 1), P.px, g.topY - 12);
+        ctx.textAlign = "left";
+      }
+    }
+
+    /* composite trails under bobs */
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(trailCv, 0, 0);
+    ctx.restore();
+  }
+
+  /* draw order fix: repaint trails first next frame via compositing above is
+     acceptable — trails render beneath because canvas is cleared each frame
+     and trails are drawn last with source-over; visually they read as chalk. */
+
+  /* ============================================================
+     UNISON DETECTION
+     ============================================================ */
+  var unisonNote = document.getElementById("unisonNote");
+  var unisonCool = 0;
+
+  function checkUnison() {
+    if (unisonCool > 0) { unisonCool -= 1; return; }
+    var spread = 0;
+    for (var i = 0; i < N; i++) {
+      if (bobs[i].manual !== null) return;
+      spread += Math.abs(Math.sin(bobs[i].phase));
+    }
+    spread /= N;
+    if (spread < 0.02) {
+      unisonNote.classList.add("show");
+      unisonCool = 200;
+      setTimeout(function () { unisonNote.classList.remove("show"); }, 2600);
+    }
+  }
+
+  /* ============================================================
+     POINTER — grab a bob
+     ============================================================ */
+  var grabbed = -1;
+
+  function localXY(e) {
+    var rect = cv.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  cv.addEventListener("pointerdown", function (e) {
+    var p = localXY(e);
+    var g = geom();
+    var best = -1, bestD = 26;
+    for (var i = 0; i < N; i++) {
+      var P = bobXY(g, i);
+      var d = Math.hypot(P.bx - p.x, P.by - p.y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (best >= 0) {
+      grabbed = best;
+      cv.setPointerCapture(e.pointerId);
+    }
+  });
+
+  cv.addEventListener("pointermove", function (e) {
+    if (grabbed < 0) return;
+    var p = localXY(e);
+    var g = geom();
+    var P = bobXY(g, grabbed);
+    var ang = Math.atan2(p.x - P.px, p.y - P.py);
+    /* clamp to physical swing */
+    ang = Math.max(-1.15, Math.min(1.15, ang));
+    bobs[grabbed].manual = ang;
+  });
+
+  function releaseGrab() {
+    if (grabbed >= 0) {
+      /* manual displacement decays back into the wave */
+      bobs[grabbed].manualDecay = 1;
+      grabbed = -1;
+    }
+  }
+  cv.addEventListener("pointerup", releaseGrab);
+  cv.addEventListener("pointercancel", releaseGrab);
+
+  /* ============================================================
+     CONTROLS
+     ============================================================ */
+  var cycleNum = document.getElementById("cycleNum");
+  var elapsedNum = document.getElementById("elapsedNum");
+
+  var slowBtn = document.getElementById("slowBtn");
+  slowBtn.addEventListener("click", function () {
+    timeScale = timeScale === 1 ? 0.15 : 1;
+    slowBtn.setAttribute("aria-pressed", timeScale !== 1 ? "true" : "false");
+    cycleNum.textContent = Math.round(BIG_CYCLE / timeScale) + " s";
+  });
+
+  var trailsBtn = document.getElementById("trailsBtn");
+  trailsBtn.addEventListener("click", function () {
+    showTrails = !showTrails;
+    trailsBtn.setAttribute("aria-pressed", showTrails ? "true" : "false");
+    if (!showTrails) clearTrails();
+  });
+
+  var labelsBtn = document.getElementById("labelsBtn");
+  labelsBtn.addEventListener("click", function () {
+    showLabels = !showLabels;
+    labelsBtn.setAttribute("aria-pressed", showLabels ? "true" : "false");
+  });
+
+  document.getElementById("releaseBtn").addEventListener("click", function () {
+    elapsed = 0;
+    for (var i = 0; i < N; i++) {
+      bobs[i].phase = 0;
+      bobs[i].manual = null;
+      bobs[i].manualDecay = 0;
+    }
+    clearTrails();
+    running = true;
+  });
+
+  /* ladder chips */
+  var ladder = document.getElementById("ladder");
+  for (var li = 0; li < N; li++) {
+    var chip = document.createElement("span");
+    chip.innerHTML = "bob " + (li + 1) + " · <b>" + (BASE_CYCLES + li) + "</b>/min";
+    ladder.appendChild(chip);
+  }
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dtReal = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!document.hidden) {
+      var dt = dtReal * timeScale;
+      if (running && !reduced) {
+        elapsed += dt;
+        for (var i = 0; i < N; i++) {
+          var b = bobs[i];
+          if (b.manual !== null) {
+            /* held by hand */
+          } else if (b.manualDecay > 0) {
+            b.manualDecay -= dtReal * 0.8;
+            if (b.manualDecay <= 0) { b.manualDecay = 0; b.manual = null; }
+          } else {
+            b.phase += (2 * Math.PI / b.period) * dt;
+          }
+        }
+        checkUnison();
+      }
+      elapsedNum.textContent = elapsed.toFixed(1) + " s";
+      draw();
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    sizeCanvas();
+    sizeTrails();
+    if (reduced) draw();
+  });
+
+  sizeCanvas();
+  sizeTrails();
+
+  if (reduced) {
+    /* still, elegant: draw one composed moment */
+    for (var i0 = 0; i0 < N; i0++) {
+      bobs[i0].phase = Math.sin(i0 * 0.42) * 0.5;
+    }
+    draw();
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

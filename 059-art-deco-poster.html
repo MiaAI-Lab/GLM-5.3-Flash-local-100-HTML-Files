@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gatsby Gala — An Art Deco Invitation</title>
+<style>
+  :root {
+    --black: #0c0b09;
+    --black-2: #14110c;
+    --gold: #d4af37;
+    --champagne: #f3e5ab;
+    --ivory: #f6f1e3;
+    --jade: #1f6f5c;
+    --gold-dim: rgba(212, 175, 55, 0.55);
+    --gold-faint: rgba(212, 175, 55, 0.22);
+    --hair: rgba(212, 175, 55, 0.35);
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--gold);
+    color: var(--black);
+  }
+
+  html {
+    scrollbar-color: #6b5a20 var(--black);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--black);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #6b5a20;
+    border: 2px solid var(--black);
+    border-radius: 5px;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #1a150c 0%, var(--black) 52%, #060505 100%);
+    color: var(--ivory);
+    font-family: var(--serif);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(10px, 2.2vw, 28px);
+    overflow-x: hidden;
+  }
+
+  /* ---------- stage + parallax layers ---------- */
+
+  .stage {
+    position: relative;
+    width: min(1060px, 100%);
+    min-height: clamp(620px, 92vh, 980px);
+    perspective: 1200px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.2, 0.6, 0.25, 1);
+    will-change: transform;
+  }
+
+  /* skyline: far + near */
+  .skyline {
+    z-index: 1;
+    opacity: 0.9;
+  }
+
+  .skyline svg {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1200px, 116vw);
+    height: 62%;
+  }
+
+  /* sunburst fans behind the card */
+  .burst {
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .burst svg {
+    width: min(880px, 96vw);
+    height: min(880px, 96vw);
+  }
+
+  .rayspin {
+    animation: rayturn 90s linear infinite;
+    transform-origin: 50% 50%;
+  }
+
+  @keyframes rayturn {
+    to { transform: rotate(360deg); }
+  }
+
+  /* the invitation card */
+  .card {
+    position: relative;
+    z-index: 5;
+    align-self: center;
+    width: min(560px, 88vw);
+    padding: clamp(26px, 5vw, 54px) clamp(20px, 4.4vw, 46px) clamp(22px, 4vw, 40px);
+    background:
+      linear-gradient(160deg, rgba(212, 175, 55, 0.1), transparent 38%),
+      linear-gradient(180deg, #14110c, #0c0b09 60%, #100d09);
+    border: 2px solid var(--gold);
+    outline: 1px solid var(--gold-faint);
+    outline-offset: 7px;
+    box-shadow:
+      0 34px 90px rgba(0, 0, 0, 0.72),
+      inset 0 0 60px rgba(0, 0, 0, 0.55);
+    text-align: center;
+    transform-style: preserve-3d;
+    transition: transform 0.25s cubic-bezier(0.2, 0.6, 0.25, 1);
+    will-change: transform;
+  }
+
+  .card::before,
+  .card::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .card::before { top: 10px; }
+  .card::after { bottom: 10px; }
+
+  .shimmer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 30%, rgba(243, 229, 171, 0.16) 46%, rgba(255, 250, 230, 0.3) 50%, rgba(243, 229, 171, 0.16) 54%, transparent 70%);
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    mix-blend-mode: screen;
+    animation: sweep 7.5s ease-in-out infinite;
+  }
+
+  @keyframes sweep {
+    0%, 55% { background-position: 130% 0; }
+    85%, 100% { background-position: -30% 0; }
+  }
+
+  .kicker {
+    font-size: clamp(9px, 1.4vw, 11px);
+    letter-spacing: 0.52em;
+    text-indent: 0.52em;
+    text-transform: uppercase;
+    color: var(--champagne);
+  }
+
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px auto;
+    width: min(320px, 84%);
+  }
+
+  .rule i {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim));
+  }
+
+  .rule i:last-child {
+    background: linear-gradient(90deg, var(--gold-dim), transparent);
+  }
+
+  .rule svg {
+    width: 26px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: clamp(40px, 8.6vw, 84px);
+    line-height: 0.98;
+    letter-spacing: 0.1em;
+    text-indent: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 34px rgba(212, 175, 55, 0.35);
+  }
+
+  h1 .thin {
+    display: block;
+    font-weight: 400;
+    font-size: 0.42em;
+    letter-spacing: 0.58em;
+    text-indent: 0.58em;
+    color: var(--ivory);
+    margin-top: 10px;
+  }
+
+  .where {
+    margin-top: 18px;
+    font-size: clamp(12px, 2vw, 16px);
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    text-transform: uppercase;
+    color: var(--ivory);
+  }
+
+  .where b {
+    color: var(--champagne);
+    font-weight: 400;
+  }
+
+  .when {
+    margin-top: 8px;
+    font-style: italic;
+    font-size: clamp(13px, 2vw, 17px);
+    color: var(--champagne);
+  }
+
+  .rsvp {
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: clamp(9px, 1.4vw, 11px);
+    letter-spacing: 0.34em;
+    text-indent: 0.34em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  .rsvp i {
+    width: 5px;
+    height: 5px;
+    transform: rotate(45deg);
+    background: var(--gold-dim);
+  }
+
+  .jadebar {
+    margin: 18px auto 0;
+    width: min(240px, 70%);
+    height: 5px;
+    background: repeating-linear-gradient(90deg, var(--jade) 0 14px, transparent 14px 22px);
+    opacity: 0.85;
+  }
+
+  /* ---------- coupe ---------- */
+
+  .coupe-zone {
+    position: relative;
+    z-index: 6;
+    margin-top: clamp(-30px, -3vw, -14px);
+    display: flex;
+    justify-content: center;
+  }
+
+  .coupe {
+    position: relative;
+    width: clamp(150px, 22vw, 210px);
+    height: clamp(170px, 25vw, 240px);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .coupe svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .bub {
+    position: absolute;
+    bottom: 34%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    border: 1px solid rgba(243, 229, 171, 0.85);
+    background: rgba(243, 229, 171, 0.25);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .coupe:hover .bub,
+  .coupe:focus-visible .bub,
+  .coupe.pour .bub {
+    animation: rise 2.4s ease-in infinite;
+  }
+
+  .coupe:focus-visible {
+    outline: none;
+  }
+
+  .coupe:focus-visible .glassline {
+    stroke: var(--champagne);
+  }
+
+  @keyframes rise {
+    0% {
+      opacity: 0;
+      transform: translateY(6px) translateX(0) scale(0.7);
+    }
+    12% {
+      opacity: 0.9;
+    }
+    70% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-64px) translateX(4px) scale(1.15);
+    }
+  }
+
+  .pourbtn {
+    margin-top: 14px;
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--champagne);
+    font-family: var(--serif);
+    font-size: clamp(9px, 1.4vw, 11px);
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    text-transform: uppercase;
+    padding: 11px 20px;
+    min-height: 42px;
+    cursor: pointer;
+    transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .pourbtn:hover,
+  .pourbtn:focus-visible {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 22px rgba(212, 175, 55, 0.22);
+    color: var(--ivory);
+  }
+
+  .pourbtn[aria-pressed="true"] {
+    border-color: var(--gold);
+    color: var(--ivory);
+    box-shadow: 0 0 26px rgba(212, 175, 55, 0.3);
+  }
+
+  /* ---------- program footer ---------- */
+
+  .program {
+    position: relative;
+    z-index: 4;
+    width: min(1060px, 100%);
+    margin-top: clamp(18px, 3.4vh, 34px);
+    border-top: 1px solid var(--hair);
+    padding-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 2.6vw, 30px);
+    text-align: center;
+  }
+
+  .program .item .h {
+    font-size: clamp(10px, 1.6vw, 12px);
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .program .item .b {
+    margin-top: 6px;
+    font-style: italic;
+    font-size: clamp(12px, 1.9vw, 15px);
+    color: var(--ivory);
+    line-height: 1.6;
+  }
+
+  .program .item .c {
+    margin-top: 4px;
+    font-size: clamp(9px, 1.3vw, 10.5px);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(246, 241, 227, 0.45);
+  }
+
+  .colophon {
+    position: relative;
+    z-index: 4;
+    margin-top: clamp(14px, 2.6vh, 26px);
+    font-size: clamp(8.5px, 1.2vw, 10px);
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    text-transform: uppercase;
+    color: rgba(246, 241, 227, 0.4);
+    text-align: center;
+  }
+
+  .noscript-note {
+    padding: 2rem;
+    text-align: center;
+    font-style: italic;
+    color: var(--champagne);
+  }
+
+  @media (max-width: 640px) {
+    .program {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .skyline svg {
+      height: 40%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rayspin,
+    .shimmer,
+    .coupe:hover .bub,
+    .coupe.pour .bub {
+      animation: none;
+    }
+    .coupe.pour .bub,
+    .coupe:hover .bub {
+      opacity: 0.6;
+    }
+    .layer,
+    .card {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="layer skyline" id="lySky" data-depth="6" aria-hidden="true">
+    <svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMax meet">
+      <g fill="none" stroke="rgba(212,175,55,0.5)" stroke-width="2">
+        <path d="M 60 420 L 60 300 L 120 300 L 120 420"></path>
+        <path d="M 80 300 L 80 250 L 100 250 L 100 300"></path>
+        <path d="M 180 420 L 180 220 L 240 220 L 240 420"></path>
+        <path d="M 195 220 L 195 160 L 225 160 L 225 420 M 205 160 L 205 120 L 215 120 L 215 160"></path>
+        <path d="M 290 420 L 290 340 L 350 340 L 350 420"></path>
+        <path d="M 310 340 L 310 290 L 330 290 L 330 340"></path>
+        <path d="M 820 420 L 820 240 L 900 240 L 900 420 M 835 240 L 835 170 L 885 170 L 885 420 M 850 170 L 850 110 L 870 110 L 870 420"></path>
+        <path d="M 940 420 L 940 320 L 1010 320 L 1010 420"></path>
+        <path d="M 960 320 L 960 260 L 990 260 L 990 420"></path>
+        <path d="M 1050 420 L 1050 280 L 1110 280 L 1110 420 M 1065 280 L 1065 220 L 1095 220 L 1095 420 M 1075 220 L 1075 170 L 1085 170 L 1085 420"></path>
+        <path d="M 560 420 L 560 300 L 640 300 L 640 420"></path>
+      </g>
+      <g fill="rgba(212,175,55,0.28)">
+        <rect x="70" y="315" width="8" height="5"></rect>
+        <rect x="94" y="315" width="8" height="5"></rect>
+        <rect x="70" y="335" width="8" height="5"></rect>
+        <rect x="196" y="240" width="8" height="5"></rect>
+        <rect x="220" y="240" width="8" height="5"></rect>
+        <rect x="208" y="180" width="8" height="5"></rect>
+        <rect x="838" y="260" width="8" height="5"></rect>
+        <rect x="866" y="260" width="8" height="5"></rect>
+        <rect x="852" y="190" width="8" height="5"></rect>
+        <rect x="1062" y="300" width="8" height="5"></rect>
+        <rect x="1090" y="300" width="8" height="5"></rect>
+        <rect x="1077" y="240" width="8" height="5"></rect>
+        <rect x="580" y="320" width="8" height="5"></rect>
+        <rect x="610" y="320" width="8" height="5"></rect>
+      </g>
+    </svg>
+  </div>
+
+  <div class="layer burst" id="lyBurst" data-depth="10" aria-hidden="true">
+    <svg viewBox="0 0 800 800" class="rayspin">
+      <g stroke="rgba(212,175,55,0.4)" stroke-width="2" fill="none">
+        <path d="M 400 400 L 400 40"></path>
+        <path d="M 400 400 L 524 76"></path>
+        <path d="M 400 400 L 632 168"></path>
+        <path d="M 400 400 L 724 276"></path>
+        <path d="M 400 400 L 760 400"></path>
+        <path d="M 400 400 L 400 760"></path>
+        <path d="M 400 400 L 276 724"></path>
+        <path d="M 400 400 L 168 632"></path>
+        <path d="M 400 400 L 76 524"></path>
+        <path d="M 400 400 L 40 400"></path>
+        <path d="M 400 400 L 76 276"></path>
+        <path d="M 400 400 L 168 168"></path>
+        <path d="M 400 400 L 276 76"></path>
+        <path d="M 400 400 L 524 724"></path>
+        <path d="M 400 400 L 632 632"></path>
+        <path d="M 400 400 L 724 524"></path>
+      </g>
+      <g fill="none" stroke="rgba(212,175,55,0.55)" stroke-width="2.5">
+        <circle cx="400" cy="400" r="300"></circle>
+        <circle cx="400" cy="400" r="255" stroke-dasharray="3 9"></circle>
+        <circle cx="400" cy="400" r="180"></circle>
+      </g>
+      <g fill="rgba(31,111,92,0.65)">
+        <path d="M 400 56 L 416 92 L 400 128 L 384 92 Z"></path>
+        <path d="M 744 400 L 708 416 L 672 400 L 708 384 Z"></path>
+        <path d="M 400 744 L 384 708 L 400 672 L 416 708 Z"></path>
+        <path d="M 56 400 L 92 384 L 128 400 L 92 416 Z"></path>
+      </g>
+    </svg>
+  </div>
+
+  <section class="card" id="card" aria-label="Invitation">
+    <div class="shimmer" aria-hidden="true"></div>
+    <p class="kicker">The Host Requests the Pleasure</p>
+    <div class="rule" aria-hidden="true">
+      <i></i>
+      <svg viewBox="0 0 26 16"><path d="M 13 1 L 25 8 L 13 15 L 1 8 Z" fill="none" stroke="#d4af37" stroke-width="1.4"></path><circle cx="13" cy="8" r="2" fill="#d4af37"></circle></svg>
+      <i></i>
+    </div>
+    <h1>Gatsby<span class="thin">Gala</span></h1>
+    <p class="where">One <b>Gatsby Mansion</b> · West Egg · Long Island</p>
+    <p class="when">Saturday, the ninth of July, nineteen twenty-two<br>at nine o'clock and ever after</p>
+    <div class="jadebar" aria-hidden="true"></div>
+    <p class="rsvp"><i></i> R.S.V.P. · Carriage Gate · Black Tie <i></i></p>
+  </section>
+</div>
+
+<div class="coupe-zone">
+  <div class="coupe" id="coupe" role="button" tabindex="0" aria-pressed="false" aria-label="Champagne coupe — hover or press to release the bubbles">
+    <svg viewBox="0 0 200 240" aria-hidden="true">
+      <defs>
+        <linearGradient id="drink" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgba(243,229,171,0.85)"></stop>
+          <stop offset="1" stop-color="rgba(212,175,55,0.55)"></stop>
+        </linearGradient>
+      </defs>
+      <path class="glassline" d="M 30 30 C 30 96 66 128 100 128 C 134 128 170 96 170 30 Z" fill="rgba(212,175,55,0.07)" stroke="#d4af37" stroke-width="2.4"></path>
+      <path d="M 37 44 C 40 94 70 118 100 118 C 130 118 160 94 163 44 L 152 44 C 150 88 128 108 100 108 C 72 108 50 88 48 44 Z" fill="url(#drink)" opacity="0.8"></path>
+      <path d="M 100 128 L 100 196" stroke="#d4af37" stroke-width="2.6"></path>
+      <path d="M 58 216 C 76 206 124 206 142 216 C 124 226 76 226 58 216 Z" fill="none" stroke="#d4af37" stroke-width="2.4"></path>
+      <path d="M 30 30 L 170 30" stroke="#f3e5ab" stroke-width="2"></path>
+      <circle cx="30" cy="30" r="3" fill="#f3e5ab"></circle>
+      <circle cx="170" cy="30" r="3" fill="#f3e5ab"></circle>
+    </svg>
+    <span class="bub" style="left: 44%; animation-delay: 0s;"></span>
+    <span class="bub" style="left: 50%; width: 7px; height: 7px; animation-delay: 0.7s;"></span>
+    <span class="bub" style="left: 56%; animation-delay: 1.3s;"></span>
+    <span class="bub" style="left: 47%; width: 4px; height: 4px; animation-delay: 1.9s;"></span>
+    <span class="bub" style="left: 53%; animation-delay: 0.35s;"></span>
+    <span class="bub" style="left: 41%; width: 6px; height: 6px; animation-delay: 1.6s;"></span>
+  </div>
+  <button class="pourbtn" id="pourBtn" type="button" aria-pressed="false">Pour the bubbles</button>
+</div>
+
+<section class="program" aria-label="Evening programme">
+  <div class="item">
+    <p class="h">Nine O'Clock</p>
+    <p class="b">The orchestra tunes in the gold salon; the doors open on the garden.</p>
+    <p class="c">Black tie · masks optional</p>
+  </div>
+  <div class="item">
+    <p class="h">Eleven O'Clock</p>
+    <p class="b">Champagne at the pool, fireworks over the sound, dancing until the stars fade.</p>
+    <p class="c">The band knows no last song</p>
+  </div>
+  <div class="item">
+    <p class="h">Ever After</p>
+    <p class="b">Cars wait at the carriage gate for those who wish the night to end.</p>
+    <p class="c">Few do</p>
+  </div>
+</section>
+
+<p class="colophon">Printed in gold and jade on the occasion of the season's most excessive evening</p>
+
+<noscript>
+  <div class="noscript-note">The gala proceeds even without JavaScript — though the architecture will hold very still.</div>
+</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const stage = document.getElementById('stage');
+  const card = document.getElementById('card');
+  const lySky = document.getElementById('lySky');
+  const lyBurst = document.getElementById('lyBurst');
+  const coupe = document.getElementById('coupe');
+  const pourBtn = document.getElementById('pourBtn');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- pointer parallax ---------- */
+
+  const cur = { x: 0, y: 0 };
+  const target = { x: 0, y: 0 };
+  let rafId = 0;
+
+  function onMove(e) {
+    const r = stage.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width - 0.5;
+    const ny = (e.clientY - r.top) / r.height - 0.5;
+    target.x = Math.max(-0.62, Math.min(0.62, nx * 2));
+    target.y = Math.max(-0.62, Math.min(0.62, ny * 2));
+  }
+
+  stage.addEventListener('pointermove', onMove);
+
+  stage.addEventListener('pointerleave', () => {
+    target.x = 0;
+    target.y = 0;
+  });
+
+  function tick() {
+    rafId = requestAnimationFrame(tick);
+    cur.x += (target.x - cur.x) * 0.07;
+    cur.y += (target.y - cur.y) * 0.07;
+
+    const dSky = parseFloat(lySky.getAttribute('data-depth'));
+    const dBurst = parseFloat(lyBurst.getAttribute('data-depth'));
+    lySky.style.transform = 'translate3d(' + (-cur.x * dSky) + 'px, ' + (-cur.y * dSky * 0.5) + 'px, 0)';
+    lyBurst.style.transform = 'translate3d(' + (cur.x * dBurst) + 'px, ' + (cur.y * dBurst * 0.5) + 'px, 0)';
+    card.style.transform = 'rotateY(' + (cur.x * 5).toFixed(2) + 'deg) rotateX(' + (-cur.y * 4).toFixed(2) + 'deg)';
+  }
+
+  if (!reduceMotion) {
+    rafId = requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('pagehide', () => cancelAnimationFrame(rafId));
+
+  /* ---------- bubbles on the coupe ---------- */
+
+  function togglePour(force) {
+    const on = typeof force === 'boolean' ? force : !coupe.classList.contains('pour');
+    coupe.classList.toggle('pour', on);
+    pourBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    pourBtn.textContent = on ? 'Stop the pour' : 'Pour the bubbles';
+  }
+
+  coupe.addEventListener('click', () => togglePour());
+  coupe.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      togglePour();
+    }
+  });
+  pourBtn.addEventListener('click', () => togglePour());
+})();
+</script>
+</body>
+</html>

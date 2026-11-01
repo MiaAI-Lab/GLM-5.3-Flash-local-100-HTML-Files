@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Night Train — Sleeper Car Window</title>
+<style>
+  :root{
+    --night-a:#0b1526;
+    --night-b:#1d2a44;
+    --lamp:#ffc46b;
+    --lamp-deep:#b87723;
+    --cabin-a:#3d2b1f;
+    --cabin-b:#2a1d14;
+    --wood-hi:#5d4426;
+    --wood-lo:#3a2a16;
+    --brass:#a9832c;
+    --moon:#dfe7f2;
+    --silhouette:#0e1b30;
+    --teal-sil:#12314a;
+    --ticket:#f0e8d2;
+    --ticket-lo:#e2d6b4;
+    --ink:#2e2317;
+    --serif:Georgia,"Times New Roman",ui-serif,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    --caps:system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#05080f;
+    color:#e8e2d2;
+    font-family:var(--serif);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--lamp);color:#2e2317}
+
+  .compartment{
+    height:100%;display:flex;flex-direction:column;
+    background:
+      radial-gradient(120% 80% at 50% -10%,#141d33,#05080f 70%);
+  }
+
+  /* ============ header strip ============ */
+  .strip{
+    flex:0 0 auto;display:flex;align-items:baseline;gap:clamp(10px,2.2vw,26px);flex-wrap:wrap;
+    padding:clamp(10px,2vh,18px) clamp(14px,3vw,40px) clamp(8px,1.4vh,12px);
+    border-bottom:1px solid rgba(255,196,107,.14);
+    background:linear-gradient(180deg,rgba(61,43,31,.55),rgba(20,26,40,.35));
+  }
+  .strip .kick{
+    font-family:var(--mono);font-size:9px;letter-spacing:.32em;text-transform:uppercase;
+    color:rgba(232,226,210,.55);
+  }
+  .strip h1{font-weight:400;font-size:clamp(1.4rem,3.4vw,2.3rem);letter-spacing:.03em}
+  .strip h1 em{font-style:italic;color:var(--lamp)}
+  .strip .svc{
+    margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.22em;
+    text-transform:uppercase;color:rgba(232,226,210,.55);text-align:right;
+  }
+  .strip .svc b{
+    display:block;font-family:var(--serif);font-weight:400;font-size:13px;
+    letter-spacing:.05em;color:#f0e8d2;text-transform:none;
+  }
+
+  /* ============ cabin ============ */
+  .cabin{
+    flex:1;min-height:0;position:relative;
+    display:flex;align-items:stretch;justify-content:center;gap:clamp(10px,2vw,30px);
+    padding:clamp(10px,2vh,22px) clamp(14px,3vw,40px);
+    background:
+      linear-gradient(160deg,var(--cabin-a),var(--cabin-b) 60%,#1d140d);
+    box-shadow:inset 0 0 90px rgba(0,0,0,.55);
+  }
+  /* wall paneling */
+  .cabin::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,220,160,.03) 0 3px,#0000 3px 110px),
+      repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,#0000 2px 64px);
+  }
+  .cabinside{
+    position:relative;z-index:2;width:clamp(150px,17vw,230px);
+    display:flex;flex-direction:column;gap:clamp(8px,1.6vh,14px);
+    justify-content:center;min-width:0;
+  }
+
+  /* ---- window ---- */
+  .windowbay{
+    position:relative;z-index:2;flex:1;min-width:0;max-width:980px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .window{
+    position:relative;width:100%;height:100%;max-height:640px;
+    border-radius:14px;
+    background:var(--night-a);
+    box-shadow:
+      inset 0 0 0 10px #241708,
+      inset 0 0 0 12px #6d5738,
+      inset 0 0 0 13px #1a1006,
+      0 24px 60px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  canvas#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+  /* night-glass reflection + frame vignette */
+  .window::after{
+    content:"";position:absolute;inset:0;pointer-events:none;border-radius:10px;
+    background:
+      linear-gradient(115deg,rgba(255,255,255,.05) 0 16%,#0000 30%),
+      radial-gradient(120% 90% at 50% 50%,#0000 62%,rgba(2,4,8,.5) 100%);
+  }
+  /* curtain */
+  .curtain{
+    position:absolute;top:-2%;bottom:-2%;width:22%;min-width:70px;
+    z-index:4;pointer-events:none;
+    background:
+      repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 8px,#0000 8px 22px),
+      linear-gradient(90deg,#5a3325,#7d4a2e 45%,#4a2a1c);
+    box-shadow:inset 0 0 26px rgba(0,0,0,.5),8px 0 18px rgba(0,0,0,.35);
+    border-radius:6px 0 0 6px;
+    transition:transform .9s cubic-bezier(.3,1,.3,1);
+  }
+  .curtain.left{left:-2%;transform-origin:left center;transform:translateX(0) rotate(0.4deg)}
+  .curtain.right{right:-2%;transform-origin:right center;transform:translateX(0) rotate(-0.4deg);
+    border-radius:0 6px 6px 0;
+    background:
+      repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 8px,#0000 8px 22px),
+      linear-gradient(270deg,#5a3325,#7d4a2e 45%,#4a2a1c);
+  }
+  .window.open-curtains .curtain.left{transform:translateX(-38%) rotate(3deg)}
+  .window.open-curtains .curtain.right{transform:translateX(38%) rotate(-3deg)}
+
+  /* rail */
+  .windowrail{
+    position:absolute;left:6%;right:6%;top:calc(50% - 3px);height:5px;z-index:3;
+    background:linear-gradient(180deg,#3a2a16,#241708);
+    border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,.5);
+    pointer-events:none;
+  }
+  /* reading lamp over the window */
+  .lamp{
+    position:absolute;top:clamp(2px,1.4vh,10px);left:50%;transform:translateX(-50%);
+    z-index:5;width:64px;height:30px;pointer-events:none;
+  }
+  .lamp .shade{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,#6d5738,#3a2a16);
+    clip-path:polygon(26% 0,74% 0,100% 100%,0 100%);
+    border-radius:0 0 4px 4px;
+  }
+  .lamp .glowlamp{
+    position:absolute;left:-90px;top:24px;width:244px;height:200px;
+    background:radial-gradient(closest-side,rgba(255,196,107,.32),rgba(255,196,107,.08) 55%,#0000 75%);
+    filter:blur(2px);
+    opacity:.45;transition:opacity .8s ease;
+  }
+  .cabin.lit .lamp .glowlamp{opacity:1}
+  .lamp .cord{
+    position:absolute;left:58px;top:0;width:2px;height:26px;background:#241708;
+  }
+  .cabin.lit .window{box-shadow:
+      inset 0 0 0 10px #241708,
+      inset 0 0 0 12px #6d5738,
+      inset 0 0 0 13px #1a1006,
+      0 24px 60px rgba(0,0,0,.6),
+      inset 0 0 120px rgba(255,196,107,.06)}
+
+  /* ============ side console ============ */
+  .ticketcard{
+    background:linear-gradient(178deg,var(--ticket),var(--ticket-lo));
+    color:var(--ink);border-radius:4px;
+    padding:12px 13px 10px;
+    box-shadow:0 10px 26px rgba(0,0,0,.45),inset 0 0 0 1px rgba(46,35,23,.14);
+    position:relative;
+  }
+  .ticketcard::before,.ticketcard::after{
+    content:"";position:absolute;left:0;right:0;height:8px;
+    background:radial-gradient(circle at 6px 4px,#0000 5px,var(--ticket-lo) 5px);
+    background-size:14px 8px;opacity:.9;
+  }
+  .ticketcard::before{top:-6px}
+  .ticketcard::after{bottom:-6px;transform:scaleY(-1)}
+  .ticketcard .trow{
+    display:flex;justify-content:space-between;gap:8px;align-items:baseline;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:#7d6a4e;
+  }
+  .ticketcard .troute{
+    display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    margin:5px 0 2px;
+  }
+  .ticketcard .troute b{
+    font-family:var(--serif);font-weight:400;font-size:clamp(15px,1.8vw,19px);letter-spacing:.02em;
+  }
+  .ticketcard .troute i{
+    font-style:normal;font-family:var(--mono);font-size:8px;letter-spacing:.14em;color:#987c4c;
+  }
+  .ticketcard .tdash{
+    height:1px;margin:4px 0 6px;
+    background:repeating-linear-gradient(90deg,#a08a5c 0 7px,#0000 7px 12px);
+  }
+  .ticketcard .stub{
+    display:flex;justify-content:space-between;gap:8px;
+    font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#7d6a4e;
+  }
+
+  /* throttle */
+  .throttlebox{display:flex;flex-direction:column;gap:8px}
+  .throtlabel{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;
+    color:rgba(232,226,210,.55);
+  }
+  .throtlabel output{
+    color:var(--lamp);font-size:11px;letter-spacing:.1em;
+    text-shadow:0 0 10px rgba(255,196,107,.4);
+  }
+  input#throttle{
+    -webkit-appearance:none;appearance:none;width:100%;height:34px;
+    background:#0000;cursor:grab;
+  }
+  input#throttle:active{cursor:grabbing}
+  input#throttle::-webkit-slider-runnable-track{
+    height:10px;border-radius:5px;
+    background:linear-gradient(180deg,#241708,#3a2a16);
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.7);
+  }
+  input#throttle::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:30px;height:22px;border-radius:4px;
+    margin-top:-6px;
+    background:linear-gradient(180deg,#8a6a3c,#5d4426);
+    border:1.5px solid #241708;
+    box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,160,.35);
+  }
+  input#throttle::-moz-range-track{
+    height:10px;border-radius:5px;background:#241708;
+  }
+  input#throttle::-moz-range-thumb{
+    width:30px;height:22px;border-radius:4px;
+    background:linear-gradient(180deg,#8a6a3c,#5d4426);
+    border:1.5px solid #241708;
+  }
+  input#throttle:focus-visible{outline:2px dashed var(--lamp);outline-offset:4px}
+  .throtscale{
+    display:flex;justify-content:space-between;
+    font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(232,226,210,.4);
+  }
+
+  /* switch bank */
+  .switches{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .swbtn{
+    font-family:var(--caps);font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+    color:#e8e2d2;cursor:pointer;
+    background:linear-gradient(180deg,#2f2a22,#26221c);
+    border:1px solid rgba(255,196,107,.28);border-radius:7px;
+    padding:11px 8px;min-height:44px;
+    box-shadow:0 3px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,160,.12);
+    transition:transform .07s,box-shadow .07s,background .25s,color .25s;
+  }
+  .swbtn:hover{background:linear-gradient(180deg,#3a332a,#2c2720)}
+  .swbtn:focus-visible{outline:2px dashed var(--lamp);outline-offset:2px}
+  .swbtn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.5)}
+  .swbtn[aria-pressed="true"]{color:var(--lamp);border-color:var(--lamp);
+    background:linear-gradient(180deg,#4a3a22,#33281a)}
+
+  /* HUD */
+  .hud{
+    font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+    color:rgba(232,226,210,.6);display:grid;gap:4px;
+  }
+  .hud b{
+    color:#f0e8d2;font-family:var(--serif);font-weight:400;font-size:13px;
+    letter-spacing:.04em;text-transform:none;
+  }
+  .hud .warnrow{color:var(--lamp)}
+  .hud .warnrow.dark{color:rgba(232,226,210,.35)}
+
+  /* ============ tunnel blackout ============ */
+  .blackout{
+    position:absolute;inset:0;z-index:6;pointer-events:none;
+    background:#020306;opacity:0;transition:opacity .5s ease;
+  }
+  .blackout.on{opacity:1}
+
+  /* ============ responsive ============ */
+  @media (max-width:900px){
+    body{overflow:auto}
+    .compartment{height:auto;min-height:100%}
+    .cabin{flex-direction:column;align-items:stretch}
+    .windowbay{order:-1;height:min(88vw,520px);flex:none}
+    .window{max-height:none}
+    .cabinside{width:100%;max-width:520px;margin:0 auto}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .curtain{transition:none}
+    .blackout{transition:opacity .15s ease}
+    .swbtn{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="compartment">
+
+  <header class="strip">
+    <span class="kick">Gallery of 100 &middot; Hall IV &middot; Berth 7, Car 9</span>
+    <h1>The Night <em>Train</em></h1>
+    <div class="svc">Overnight service
+      <b>Sleeper 14 &mdash; window seat</b>
+    </div>
+  </header>
+
+  <main class="cabin lit" id="cabin">
+
+    <!-- ============ side console ============ -->
+    <aside class="cabinside" aria-label="Sleeper controls">
+
+      <div class="ticketcard">
+        <div class="trow"><span>One way</span><span>Car 9 &middot; Berth 7</span></div>
+        <div class="troute"><b>Vienna</b><i>&mdash; night express &mdash;</i><b>Trieste</b></div>
+        <div class="tdash"></div>
+        <div class="stub"><span>Dep 23:05</span><span>Arr 06:40</span><span>N&deg; 0147</span></div>
+      </div>
+
+      <div class="throttlebox">
+        <div class="throtlabel">
+          <span><label for="throttle">Throttle</label></span>
+          <output id="speedOut">62 km/h</output>
+        </div>
+        <input type="range" id="throttle" min="0" max="160" step="1" value="62"
+               aria-label="Train speed in kilometres per hour">
+        <div class="throtscale"><span>stop</span><span>drift</span><span>night express</span></div>
+      </div>
+
+      <div class="switches">
+        <button class="swbtn" id="lampBtn" type="button" aria-pressed="true">Lamp &middot; on</button>
+        <button class="swbtn" id="curtainBtn" type="button" aria-pressed="false">Curtains open</button>
+        <button class="swbtn" id="soundBtn" type="button" aria-pressed="false">Ride &middot; off</button>
+        <button class="swbtn" id="tunnelBtn" type="button">Enter tunnel</button>
+      </div>
+
+      <div class="hud">
+        <div><b id="distVal">128.4</b> km &middot; distance run</div>
+        <div>next stop <b id="nextStop">Maribor</b></div>
+        <div class="warnrow" id="tunnelRow">open line</div>
+      </div>
+
+    </aside>
+
+    <!-- ============ the window ============ -->
+    <section class="windowbay" aria-label="View from the sleeper window">
+      <div class="window" id="window">
+        <canvas id="view" aria-label="Layered night landscape passing the train window"></canvas>
+        <div class="windowrail" aria-hidden="true"></div>
+        <div class="curtain left" aria-hidden="true"></div>
+        <div class="curtain right" aria-hidden="true"></div>
+        <div class="lamp" aria-hidden="true">
+          <div class="glowlamp"></div>
+          <div class="shade"></div>
+          <div class="cord"></div>
+        </div>
+        <div class="blackout" id="blackout" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+var TAU=Math.PI*2;
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var canvas=document.getElementById("view");
+var ctx=canvas.getContext("2d");
+var winEl=document.getElementById("window");
+var cabinEl=document.getElementById("cabin");
+var blackout=document.getElementById("blackout");
+var throttle=document.getElementById("throttle");
+var speedOut=document.getElementById("speedOut");
+var distVal=document.getElementById("distVal");
+var nextStop=document.getElementById("nextStop");
+var tunnelRow=document.getElementById("tunnelRow");
+var lampBtn=document.getElementById("lampBtn");
+var curtainBtn=document.getElementById("curtainBtn");
+var soundBtn=document.getElementById("soundBtn");
+var tunnelBtn=document.getElementById("tunnelBtn");
+
+var W=0,H=0,dpr=1,horizon=0;
+var speed=62;            /* km/h */
+var dist=128.4;
+var t=0,last=0;
+var lit=true;
+var tunnel=0,tunnelTarget=0;   /* 0..1 darkness of tunnel */
+var nextTunnelAt=26+Math.random()*20;
+var tunnelEndsAt=0;
+var STOPS=["Maribor","Ljubljana","Villach","Klagenfurt","Tarvisio","Trieste"];
+var stopIdx=0;
+
+function px(kmPerH){return kmPerH*0.021;} /* world units per frame-ish */
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+/* ============================================================
+   WORLD LAYERS
+   ============================================================ */
+var stars=[];
+function buildStars(){
+  stars=[];
+  var n=Math.round(W*H/9000);
+  for(var i=0;i<n;i++){
+    stars.push({x:Math.random(),y:Math.random()*0.5,r:rnd(0.4,1.3),tw:rnd(0.4,2.4),ph:rnd(0,TAU)});
+  }
+}
+var hillsFar=[],hillsNear=[],pines=[],poles=[],lakes=[];
+function ridge(fn){
+  var pts=[];
+  for(var x=0;x<=1.001;x+=0.02)pts.push(fn(x));
+  return pts;
+}
+function buildWorld(){
+  hillsFar=ridge(function(x){
+    return 0.52+0.06*Math.sin(x*9.4+1.3)+0.03*Math.sin(x*23+4);
+  });
+  hillsNear=ridge(function(x){
+    return 0.60+0.05*Math.sin(x*13+2)+0.025*Math.sin(x*31+5.2);
+  });
+  pines=[];
+  var n=Math.round(W/26);
+  for(var i=0;i<n;i++){
+    pines.push({u:Math.random(),h:rnd(0.10,0.22),w:rnd(0.010,0.02),layer:Math.random()<0.5?0:1});
+  }
+  poles=[];
+  for(var k=0;k<14;k++)poles.push({u:k/14,h:0.16});
+  buildStars();
+}
+function offset(u,speedWorld){
+  var v=u-speedWorld;
+  v-=Math.floor(v);
+  return v;
+}
+
+/* ---------- painting helpers ---------- */
+function drawSky(){
+  var g=ctx.createLinearGradient(0,0,0,horizon);
+  g.addColorStop(0,"#0b1526");
+  g.addColorStop(0.55,"#16223c");
+  g.addColorStop(1,"#24304f");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,horizon+2);
+  /* stars */
+  ctx.fillStyle="#cfd9ea";
+  for(var i=0;i<stars.length;i++){
+    var s=stars[i];
+    var a=0.25+0.5*Math.abs(Math.sin(t*s.tw+s.ph));
+    ctx.globalAlpha=a*(1-tunnel*0.9);
+    ctx.beginPath();
+    ctx.arc(s.x*W,s.y*horizon,s.r,0,TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+function drawMoon(){
+  var mx=W*0.68,my=horizon*0.34;
+  var mr=Math.min(W,H)*0.052;
+  /* halo */
+  var hg=ctx.createRadialGradient(mx,my,mr*0.6,mx,my,mr*4.4);
+  hg.addColorStop(0,"rgba(223,231,242,0.30)");
+  hg.addColorStop(0.4,"rgba(223,231,242,0.10)");
+  hg.addColorStop(1,"rgba(223,231,242,0)");
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  ctx.fillStyle=hg;ctx.fillRect(mx-mr*5,my-mr*5,mr*10,mr*10);
+  ctx.restore();
+  /* disc with craters */
+  ctx.fillStyle="#dfe7f2";
+  ctx.beginPath();ctx.arc(mx,my,mr,0,TAU);ctx.fill();
+  ctx.fillStyle="rgba(180,195,215,0.55)";
+  ctx.beginPath();ctx.arc(mx-mr*0.3,my-mr*0.2,mr*0.22,0,TAU);ctx.fill();
+  ctx.beginPath();ctx.arc(mx+mr*0.28,my+mr*0.32,mr*0.15,0,TAU);ctx.fill();
+  ctx.beginPath();ctx.arc(mx+mr*0.05,my-mr*0.42,mr*0.10,0,TAU);ctx.fill();
+}
+function drawRidgeLayer(pts,col,u0,wrapSpeed,yScale){
+  var off=offset(u0,wrapSpeed);
+  ctx.fillStyle=col;
+  ctx.beginPath();
+  ctx.moveTo(-4,horizon+2);
+  var n=pts.length-1;
+  for(var i=0;i<=n;i++){
+    var x=(i/n)*W*1.2-W*0.1-off*W*1.2;
+    var wrapped=((x%W)+W)%W;
+    ctx.lineTo(wrapped,pts[i]*horizon*yScale);
+  }
+  ctx.lineTo(W+4,horizon+2);
+  ctx.closePath();
+  ctx.fill();
+}
+function drawLake(){
+  /* moon path shimmer on a still lake band */
+  var lakeY=horizon*0.955;
+  var lakeH=Math.max(14,H*0.05);
+  var g=ctx.createLinearGradient(0,lakeY,0,lakeY+lakeH);
+  g.addColorStop(0,"rgba(24,40,64,0.9)");
+  g.addColorStop(1,"rgba(12,22,38,0.95)");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,lakeY,W,lakeH);
+  var mx=W*0.68;
+  ctx.save();ctx.globalCompositeOperation="lighter";
+  for(var i=0;i<12;i++){
+    var yy=lakeY+3+i*(lakeH-6)/12;
+    var w=(0.4+i*0.16)*W*0.05*(0.5+0.5*Math.sin(t*2.1+i*1.7));
+    var alpha=0.20*(1-i/13)*(1-tunnel*0.8);
+    ctx.fillStyle="rgba(223,231,242,"+alpha.toFixed(3)+")";
+    ctx.fillRect(mx-w,yy,w*2,1.6);
+  }
+  ctx.restore();
+  /* near shore grass */
+  ctx.strokeStyle="rgba(10,20,34,0.9)";
+  ctx.lineWidth=1.4;
+  for(var k=0;k<40;k++){
+    var x=(k/40)*W+((k*97)%23);
+    var sway=Math.sin(t*1.4+k)*1.6;
+    ctx.beginPath();
+    ctx.moveTo(x,lakeY+lakeH);
+    ctx.quadraticCurveTo(x+sway,lakeY+lakeH-4,x+sway*2.2,lakeY+lakeH-9-rnd(0,4));
+    ctx.stroke();
+  }
+}
+function drawPines(layer){
+  var wrapSpeed=layer===0?0.55:1.05;
+  var base=layer===0?horizon*1.02:horizon*1.06;
+  var scale=layer===0?0.8:1.15;
+  ctx.fillStyle=layer===0?"#12314a":"#0e1b30";
+  for(var i=0;i<pines.length;i++){
+    var p=pines[i];
+    if(p.layer!==layer)continue;
+    var u=offset(p.u,wrapSpeed);
+    var x=u*W*1.24-W*0.12;
+    var h=p.h*H*scale;
+    var w=p.w*W*scale;
+    ctx.beginPath();
+    ctx.moveTo(x,base-h);
+    ctx.lineTo(x+w,base);
+    ctx.lineTo(x-w,base);
+    ctx.closePath();ctx.fill();
+    ctx.fillRect(x-w*0.14,base,Math.max(1,w*0.28),h*0.08);
+  }
+}
+function drawPoles(){
+  var wrapSpeed=2.1;
+  var base=horizon*1.085;
+  ctx.strokeStyle="#0a1420";
+  ctx.lineWidth=Math.max(1.5,W*0.004);
+  for(var i=0;i<poles.length;i++){
+    var u=offset(poles[i].u,wrapSpeed);
+    var x=u*W*1.3-W*0.15;
+    var h=poles[i].h*H;
+    ctx.beginPath();
+    ctx.moveTo(x,base);
+    ctx.lineTo(x,base-h);
+    ctx.stroke();
+    /* crossarm */
+    ctx.beginPath();
+    ctx.moveTo(x-W*0.012,base-h*0.86);
+    ctx.lineTo(x+W*0.012,base-h*0.86);
+    ctx.stroke();
+    /* wire to previous pole */
+    var up=offset(poles[i].u+1/14,wrapSpeed);
+    var xp=up*W*1.3-W*0.15;
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(x,base-h*0.86);
+    ctx.quadraticCurveTo((x+xp)/2,base-h*0.8-4,xp,base-h*0.86);
+    ctx.stroke();
+    ctx.lineWidth=Math.max(1.5,W*0.004);
+  }
+}
+function drawGround(){
+  var g=ctx.createLinearGradient(0,horizon,0,H);
+  g.addColorStop(0,"#101c30");
+  g.addColorStop(0.4,"#0d1626");
+  g.addColorStop(1,"#080d18");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,horizon,W,H-horizon);
+}
+
+/* ---------- window frame glow when lit ---------- */
+function drawCabinGlow(){
+  if(!lit||tunnel>0.6)return;
+  var g=ctx.createRadialGradient(W*0.5,H*0.6,10,W*0.5,H*0.6,W*0.75);
+  g.addColorStop(0,"rgba(255,196,107,0.05)");
+  g.addColorStop(1,"rgba(255,196,107,0)");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+}
+
+/* ============================================================
+   MOTION
+   ============================================================ */
+var uFar=0,uNear=0,uLake=0;
+function advance(dt){
+  var v=speed*0.021;      /* world units per second */
+  uFar+=v*0.10*dt;
+  uNear+=v*0.26*dt;
+  uLake+=v*0.5*dt;
+  dist+=speed*dt/3600*100; /* display km */
+  distVal.textContent=dist.toFixed(1);
+  /* stations flash past occasionally */
+  if(dist>nextTunnelAt&&tunnelTarget===0&&speed>8){
+    tunnelTarget=1;
+    tunnelEndsAt=t+rnd(2.2,4);
+    tunnelBtnPressed=true;
+    tunnelRow.textContent="tunnel \u2014 hold on";
+  }
+}
+var tunnelBtnPressed=false;
+function updateTunnel(dt){
+  if(tunnelTarget===1&&t>=tunnelEndsAt){
+    tunnelTarget=0;
+    nextTunnelAt=t+rnd(24,50);
+    tunnelBtnPressed=false;
+    tunnelRow.textContent="open line";
+    tunnelRow.classList.add("dark");
+    window.setTimeout(function(){tunnelRow.classList.remove("dark");},1200);
+  }
+  tunnel+=(tunnelTarget-tunnel)*(1-Math.exp(-dt*(tunnelTarget?3.2:2.2)));
+  blackout.classList.toggle("on",tunnel>0.55);
+}
+function manualTunnel(){
+  if(tunnelTarget===1)return;
+  tunnelTarget=1;
+  tunnelEndsAt=t+rnd(2.6,4.4);
+  tunnelRow.textContent="tunnel \u2014 hold on";
+}
+
+/* ============================================================
+   FRAME
+   ============================================================ */
+function frame(ts){
+  var dt=Math.min((ts-last)/1000,0.05);last=ts;
+  t+=dt;
+  if(!RM)advance(dt);
+  updateTunnel(dt);
+  ctx.clearRect(0,0,W,H);
+  drawSky();
+  drawMoon();
+  drawRidgeLayer(hillsFar,"#1a2740",uFar,0,1);
+  drawLake();
+  drawRidgeLayer(hillsNear,"#152238",uNear,0,1);
+  drawPines(0);
+  drawGround();
+  drawPines(1);
+  drawPoles();
+  drawCabinGlow();
+  /* tunnel darkening over the view (before DOM blackout kicks fully) */
+  if(tunnel>0.01){
+    ctx.fillStyle="rgba(2,3,6,"+(tunnel*0.85).toFixed(3)+")";
+    ctx.fillRect(0,0,W,H);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+function applySpeed(){
+  speedOut.textContent=Math.round(speed)+" km/h";
+}
+throttle.addEventListener("input",function(){
+  speed=parseFloat(throttle.value);
+  applySpeed();
+});
+function toggleLamp(){
+  lit=!lit;
+  lampBtn.setAttribute("aria-pressed",lit?"true":"false");
+  lampBtn.textContent=lit?"Lamp \u00b7 on":"Lamp \u00b7 off";
+  cabinEl.classList.toggle("lit",lit);
+}
+lampBtn.addEventListener("click",toggleLamp);
+function toggleCurtains(){
+  var open=curtainBtn.getAttribute("aria-pressed")!=="true";
+  curtainBtn.setAttribute("aria-pressed",open?"true":"false");
+  curtainBtn.textContent=open?"Curtains shut":"Curtains open";
+  winEl.classList.toggle("open-curtains",open);
+}
+curtainBtn.addEventListener("click",toggleCurtains);
+tunnelBtn.addEventListener("click",manualTunnel);
+
+/* ============================================================
+   AUDIO — rail rhythm synthesized
+   ============================================================ */
+var ac=null,master=null,soundOn=false,nextClack=0;
+function startAudio(){
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!ac){
+    ac=new AC();
+    master=ac.createGain();master.gain.value=0.8;master.connect(ac.destination);
+    var len=ac.sampleRate*2;
+    var buf=ac.createBuffer(1,len,ac.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<len;i++)d[i]=Math.random()*2-1;
+    var src=ac.createBufferSource();src.buffer=buf;src.loop=true;
+    var lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=260;
+    var g=ac.createGain();g.gain.value=0.05;
+    src.connect(lp);lp.connect(g);g.connect(master);
+    src.start();
+  }
+  ac.resume();
+}
+function clack(){
+  if(!soundOn||!ac||ac.state!=="running")return;
+  var now=ac.currentTime;
+  [140,190].forEach(function(f,i){
+    var o=ac.createOscillator();o.type="triangle";o.frequency.value=f;
+    var g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,now+i*0.055);
+    g.gain.exponentialRampToValueAtTime(0.055,now+i*0.055+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+i*0.055+0.09);
+    var bp=ac.createBiquadFilter();bp.type="bandpass";bp.frequency.value=f*2;bp.Q.value=1.4;
+    o.connect(bp);bp.connect(g);g.connect(master);
+    o.start(now+i*0.055);o.stop(now+i*0.055+0.12);
+  });
+}
+soundBtn.addEventListener("click",function(){
+  soundOn=!soundOn;
+  soundBtn.setAttribute("aria-pressed",soundOn?"true":"false");
+  soundBtn.textContent=soundOn?"Ride \u00b7 on":"Ride \u00b7 off";
+  if(soundOn){startAudio();nextClack=t+0.2;}
+  else if(ac)ac.suspend();
+});
+
+/* ============================================================
+   RESIZE + BOOT
+   ============================================================ */
+function resize(){
+  var r=winEl.getBoundingClientRect();
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  W=Math.max(120,r.width);H=Math.max(120,r.height);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  horizon=H*0.72;
+  buildWorld();
+}
+window.addEventListener("resize",resize);
+resize();
+applySpeed();
+last=performance.now();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

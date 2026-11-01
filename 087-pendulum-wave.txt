@@ -1,0 +1,26 @@
+TITLE: Pendulum Wave
+DESCRIPTION: Fifteen pendulums of descending length hang from a brass rail on a black stage and swing in a traveling wave — snake, ribbon, chaos — before snapping back into a single line every sixty seconds. Chalk trails trace each bob's path, a mono timer counts elapsed time against the 60-second grand cycle, and a "— UNISON —" note appears at the moment of re-alignment. Controls release the array from a perfect line, slow time to 0.15×, toggle the chalk trails and bob labels; any bob can be grabbed and displaced by hand, then eases back into the arithmetic.
+TECHNIQUES:
+- Pendulum wave math: bob i completes 51+i swings per minute, phase integrated as 2π/period × elapsed, each rendered as a rod + radial-gradient metallic bob over a brass top rail with hangers
+- Chalk trails: an offscreen canvas accumulates per-frame bob dots and is faded with a translucent stage-colored fill, composited under the redrawn bobs
+- Unison detection: average |sin(phase)| across all fifteen bobs below 0.02 triggers the re-unison note with a cooldown
+- Pointer physics: grabbing a bob converts pointer angle to a clamped swing displacement (±1.15 rad) with a dashed grab ring; release decays the manual override back into the wave
+- Brass fittings, apex-arc and floor chalk guides via dashed ellipses and lines; graded metallic bob palette from pale gold to deep bronze
+- Reduced-motion fallback renders one composed snake-shaped still
+INTERACTION:
+- RELEASE FROM LINE zeroes the clock and phases so all fifteen start in a perfect row; the wave then unwinds into patterns and re-unites on the 60-second beat
+- SLOW TIME toggles 0.15× playback for studying the mechanism (cycle timer rescales); CHALK TRAILS toggle the accumulating path layer; BOB LABELS shows hanging positions 1–15
+- Grab any bob with the pointer to displace it — it holds your angle while held, then decays back into phase after release
+- The unison note and cycle/elapsed readouts keep the beat legible; ladder chips list each bob's swings-per-minute
+PROMPT:
+Build a single-file HTML pendulum-wave instrument titled "PENDULUM WAVE". Stage: near-black #0a0a0c with a subtle top glow (#101014) and a faint floor sheen; brass frame #c9a227 with highlight #e9cd6d and dark #8a6d1c; chalk-white text #e8e6df with dim/faint tiers. Type: thin uppercase tracking title ("PENDULUM WAVE", 0.34em letter-spacing, weight 200 with the word PENDULUM in brass); italic serif for the physics aphorism; ui-monospace for all timers, labels and ladder chips.
+
+Stage: a brass-fitted frame (2px dark-brass border, corner L-fittings, inset glow shadow) holding a canvas (clamp 340–600px tall). A brass rail spans 86% of the width near the top with tiny hangers; fifteen pendulums hang from it at equal spacing, bob i having period 60/(51+i) seconds (so the array re-unites every 60 s). Rods are thin brass lines; bobs are 9px spheres with graded metallic radial gradients (pale gold → deep bronze down the row), glints, and dark outlines. Chalk guides: a dashed apex arc and a floor line. An offscreen trail canvas collects a small chalk dot at each bob per frame and is faded ~4.5% per frame for luminous chalk streaks; composite the trails beneath the rods.
+
+Header: title left, italic serif sub right — "fifteen bobs, one minute of physics — wait for the line" (the last phrase in brass). Overlaid on the stage top-right: a mono readout "CYCLE 60 S / ELAPSED 0.0 S". Bottom-center: a brass "— UNISON —" note that fades in when the average |sin(phase)| across all bobs drops below 0.02 (with a long cooldown), celebrating the moment of re-unison after apparent chaos.
+
+Controls: four mono uppercase buttons with brass-tinted borders — RELEASE FROM LINE (zero clock + phases, clear trails), SLOW TIME (toggle 0.15× and rescale the cycle readout), CHALK TRAILS (on by default), BOB LABELS (numbers 1–15 at the rail). Below, a serif paragraph explaining that no two lengths share a period, and a ladder of fifteen tiny mono chips ("bob 1 · 51/min" … "bob 15 · 65/min").
+
+Signature interaction: grab any bob with the pointer — a dashed ring marks it while your hand sets its swing angle (clamped to ±1.15 rad); on release the displacement decays and the bob eases back into the wave's arithmetic. The signature visual: released from a straight line, the array blooms into snake/ribbon/chaos patterns (chalk trails drawing loops in the dark), then snaps back into a single line exactly on the minute.
+
+Footer: "PENDULUM WAVE · THE GALLERY OF 100 · ROOM 87". Responsive: canvas and rail recompute on resize; controls wrap. Reduced motion: one elegant still of the snake pattern instead of animation. No network, no images, no audio — pure canvas mechanics.

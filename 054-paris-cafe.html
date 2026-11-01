@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Café de Flore — Menu &amp; l'Addition</title>
+<style>
+  :root {
+    --cream: #f4ead6;
+    --cream-deep: #ece0c8;
+    --noir: #1d1a16;
+    --oxblood: #6e1423;
+    --chalk: #f2efe9;
+    --gold: #c9a227;
+    --gold-soft: rgba(201, 162, 39, 0.55);
+    --mono: "Courier New", ui-monospace, "Cascadia Mono", monospace;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --script: "Segoe Script", "Bradley Hand", "Brush Script MT", "Savoye LET", cursive;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: var(--oxblood);
+    color: var(--cream);
+  }
+
+  html {
+    scrollbar-color: #b8944e var(--cream-deep);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--cream-deep);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #b8944e;
+    border: 2px solid var(--cream-deep);
+    border-radius: 5px;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      repeating-linear-gradient(0deg, rgba(29, 26, 22, 0.022) 0 2px, transparent 2px 4px),
+      radial-gradient(120% 90% at 50% 0%, #f6eedd 0%, var(--cream) 55%, var(--cream-deep) 100%);
+    color: var(--noir);
+    font-family: var(--serif);
+    padding: clamp(12px, 2.4vw, 32px);
+  }
+
+  .frame {
+    max-width: 1240px;
+    margin: 0 auto;
+    border: 1px solid var(--gold-soft);
+    outline: 3px double rgba(201, 162, 39, 0.45);
+    outline-offset: 5px;
+    padding: clamp(14px, 2.6vw, 34px);
+    background:
+      radial-gradient(140% 100% at 50% 0%, rgba(255, 252, 244, 0.7), transparent 60%),
+      transparent;
+  }
+
+  /* ---------- header ---------- */
+
+  .marque {
+    text-align: center;
+    margin-bottom: clamp(14px, 2.4vw, 26px);
+  }
+
+  .marque .fleuron-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2vw, 22px);
+  }
+
+  .marque .fleuron-row svg {
+    width: clamp(70px, 12vw, 170px);
+    height: auto;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .marque h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(26px, 5.4vw, 58px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--noir);
+    white-space: nowrap;
+  }
+
+  .marque h1 .de {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.62em;
+    letter-spacing: 0.06em;
+    color: var(--oxblood);
+    margin: 0 0.18em;
+  }
+
+  .marque .adr {
+    margin-top: 7px;
+    font-size: clamp(9px, 1.2vw, 11.5px);
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: rgba(29, 26, 22, 0.66);
+  }
+
+  .marque .adr b {
+    color: var(--oxblood);
+    font-weight: 400;
+  }
+
+  /* ---------- columns ---------- */
+
+  .salle {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.9fr);
+    gap: clamp(16px, 2.6vw, 30px);
+    align-items: start;
+  }
+
+  /* ---------- menu card ---------- */
+
+  .menu {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 244, 0.85), rgba(248, 240, 224, 0.92));
+    border: 1px solid var(--gold-soft);
+    box-shadow: 0 18px 44px rgba(29, 26, 22, 0.16);
+    padding: clamp(16px, 2.6vw, 30px) clamp(14px, 2.8vw, 34px) clamp(18px, 2.6vw, 30px);
+  }
+
+  .coin {
+    position: absolute;
+    width: clamp(44px, 6vw, 74px);
+    height: auto;
+    color: var(--gold);
+    opacity: 0.9;
+  }
+
+  .coin.tl { top: 7px; left: 7px; }
+  .coin.tr { top: 7px; right: 7px; transform: scaleX(-1); }
+  .coin.bl { bottom: 7px; left: 7px; transform: scaleY(-1); }
+  .coin.br { bottom: 7px; right: 7px; transform: scale(-1, -1); }
+
+  .menu .rubric {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .menu .rubric h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(17px, 2.2vw, 24px);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+
+  .menu .rubric .rule {
+    width: 120px;
+    height: 7px;
+    margin: 8px auto 0;
+    background: radial-gradient(circle at 50% 50%, var(--gold) 0 1.6px, transparent 1.7px) center / 14px 7px repeat-x;
+  }
+
+  .cat {
+    margin-top: clamp(14px, 2vw, 22px);
+  }
+
+  .cat h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(12px, 1.5vw, 15px);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--noir);
+    margin-bottom: 4px;
+  }
+
+  .cat h3::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(29, 26, 22, 0.4), transparent);
+  }
+
+  .cat h3 .num {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+  }
+
+  .item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px dotted rgba(29, 26, 22, 0.22);
+    font-family: var(--serif);
+    color: var(--noir);
+    text-align: left;
+    padding: 9px 6px;
+    cursor: pointer;
+    transition: background 0.2s ease, padding-left 0.2s ease;
+  }
+
+  .item:hover,
+  .item:focus-visible {
+    outline: none;
+    background: rgba(201, 162, 39, 0.12);
+    padding-left: 12px;
+  }
+
+  .item:active .nom {
+    color: var(--oxblood);
+  }
+
+  .item .nom {
+    font-size: clamp(14px, 1.7vw, 17.5px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .item .nom i {
+    font-style: italic;
+    font-weight: 400;
+    color: rgba(29, 26, 22, 0.62);
+  }
+
+  .item .dots {
+    flex: 1;
+    border-bottom: 1.5px dotted rgba(29, 26, 22, 0.4);
+    transform: translateY(-4px);
+    min-width: 16px;
+  }
+
+  .item .prix {
+    font-size: clamp(13px, 1.6vw, 16px);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .item.added .nom::after {
+    content: " ✓";
+    color: var(--oxblood);
+    font-size: 0.85em;
+  }
+
+  .shake-denied {
+    animation: deny 0.3s ease;
+  }
+
+  @keyframes deny {
+    0%, 100% { transform: translateX(0); }
+    30% { transform: translateX(-4px); }
+    60% { transform: translateX(3px); }
+  }
+
+  /* ---------- chalkboard ---------- */
+
+  .ardoise {
+    background:
+      linear-gradient(160deg, #2a2d28 0%, #21241f 55%, #1a1d18 100%);
+    border: 7px solid #3d3427;
+    box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.55), 0 12px 30px rgba(29, 26, 22, 0.3);
+    padding: clamp(14px, 2vw, 22px) clamp(14px, 2.2vw, 26px);
+    color: var(--chalk);
+    position: relative;
+  }
+
+  .ardoise::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: rgba(242, 239, 233, 0.14);
+  }
+
+  .ardoise h3 {
+    font-family: var(--script);
+    font-weight: 400;
+    font-size: clamp(17px, 2vw, 22px);
+    color: rgba(242, 239, 233, 0.92);
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px rgba(242, 239, 233, 0.18);
+  }
+
+  .ardoise .sp {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    color: var(--chalk);
+    font-family: var(--script);
+    text-align: left;
+    padding: 7px 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ardoise .sp:hover,
+  .ardoise .sp:focus-visible {
+    outline: none;
+    background: rgba(242, 239, 233, 0.09);
+    box-shadow: 0 0 0 1px rgba(242, 239, 233, 0.16);
+  }
+
+  .ardoise .sp .nom {
+    font-size: clamp(14px, 1.8vw, 18px);
+    letter-spacing: 0.01em;
+  }
+
+  .ardoise .sp .dots {
+    flex: 1;
+    border-bottom: 1px dashed rgba(242, 239, 233, 0.35);
+    transform: translateY(-4px);
+    min-width: 14px;
+  }
+
+  .ardoise .sp .prix {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: rgba(242, 239, 233, 0.85);
+    white-space: nowrap;
+  }
+
+  .ardoise .note {
+    margin-top: 10px;
+    font-family: var(--script);
+    font-size: 12.5px;
+    font-style: italic;
+    color: rgba(242, 239, 233, 0.55);
+    text-align: center;
+  }
+
+  /* ---------- espresso steam ---------- */
+
+  .espresso {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 14px;
+    padding: 6px 0 0;
+  }
+
+  .espresso .saying {
+    font-family: var(--script);
+    font-style: italic;
+    font-size: clamp(12px, 1.5vw, 14.5px);
+    color: rgba(29, 26, 22, 0.6);
+  }
+
+  .cupsvg {
+    width: 54px;
+    height: 58px;
+    overflow: visible;
+  }
+
+  .cupsvg .cup {
+    fill: #fbf7ec;
+    stroke: var(--noir);
+    stroke-width: 1.6;
+  }
+
+  .cupsvg .coffee {
+    fill: #4a2c18;
+  }
+
+  .cupsvg .handle {
+    fill: none;
+    stroke: var(--noir);
+    stroke-width: 1.6;
+  }
+
+  .cupsvg .saucer {
+    fill: none;
+    stroke: var(--noir);
+    stroke-width: 1.6;
+  }
+
+  .steam path {
+    fill: none;
+    stroke: rgba(29, 26, 22, 0.42);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    opacity: 0;
+    transform-origin: 50% 100%;
+    animation: rise 2.8s ease-in-out infinite;
+  }
+
+  .steam path:nth-child(2) { animation-delay: 0.9s; }
+  .steam path:nth-child(3) { animation-delay: 1.8s; }
+
+  @keyframes rise {
+    0% {
+      opacity: 0;
+      transform: translateY(6px) scaleX(1);
+    }
+    25% {
+      opacity: 0.75;
+    }
+    60% {
+      opacity: 0.5;
+      transform: translateY(-9px) scaleX(0.92);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-17px) scaleX(1.06) translateX(2px);
+    }
+  }
+
+  /* ---------- receipt ---------- */
+
+  .addition {
+    position: sticky;
+    top: clamp(10px, 2vw, 24px);
+    background: #fbf7ec;
+    box-shadow: 0 18px 40px rgba(29, 26, 22, 0.22);
+    font-family: var(--mono);
+    color: var(--noir);
+    padding: 0 0 14px;
+  }
+
+  .addition .perf {
+    height: 12px;
+    background:
+      radial-gradient(6px 6px at 9px -2px, var(--cream) 97%, transparent),
+      radial-gradient(6px 6px at 27px -2px, var(--cream) 97%, transparent),
+      radial-gradient(6px 6px at 45px -2px, var(--cream) 97%, transparent);
+    background-size: 36px 12px;
+    background-repeat: repeat-x;
+  }
+
+  .addition .head {
+    text-align: center;
+    padding: 12px 18px 10px;
+    border-bottom: 1px dashed rgba(29, 26, 22, 0.4);
+  }
+
+  .addition .head .r1 {
+    font-size: 13px;
+    letter-spacing: 0.34em;
+    font-weight: 700;
+  }
+
+  .addition .head .r2 {
+    margin-top: 4px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(29, 26, 22, 0.62);
+  }
+
+  .addition .meta {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 18px 0;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: rgba(29, 26, 22, 0.7);
+  }
+
+  .lignes {
+    list-style: none;
+    min-height: 96px;
+    padding: 10px 18px 4px;
+  }
+
+  .lignes .vide {
+    font-size: 11px;
+    font-style: italic;
+    letter-spacing: 0.08em;
+    color: rgba(29, 26, 22, 0.5);
+    text-align: center;
+    padding-top: 26px;
+  }
+
+  .ligne {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4.5px 0;
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+  }
+
+  .ligne:hover .lnom {
+    color: var(--oxblood);
+    text-decoration: line-through;
+  }
+
+  .ligne .lnom {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 58%;
+  }
+
+  .ligne .lqty {
+    font-size: 10.5px;
+    color: rgba(29, 26, 22, 0.6);
+    white-space: nowrap;
+  }
+
+  .ligne .ldots {
+    flex: 1;
+    border-bottom: 2px dotted rgba(29, 26, 22, 0.45);
+    transform: translateY(-3px);
+    animation: tabin 0.45s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    min-width: 10px;
+  }
+
+  @keyframes tabin {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  .ligne .lprix {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .totaux {
+    margin: 6px 18px 0;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(29, 26, 22, 0.4);
+    font-size: 12px;
+  }
+
+  .totaux .trow {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    letter-spacing: 0.08em;
+    color: rgba(29, 26, 22, 0.78);
+  }
+
+  .totaux .trow.grand {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 2px solid var(--noir);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.16em;
+    color: var(--noir);
+  }
+
+  .pay {
+    display: block;
+    margin: 12px auto 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--oxblood);
+    border: 1px solid #4f0e19;
+    padding: 13px 26px;
+    cursor: pointer;
+    min-height: 44px;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .pay:hover:not(:disabled),
+  .pay:focus-visible:not(:disabled) {
+    outline: none;
+    background: #83192c;
+    box-shadow: 0 6px 18px rgba(110, 20, 35, 0.4);
+  }
+
+  .pay:active:not(:disabled) {
+    transform: translateY(2px);
+  }
+
+  .pay:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .addition .siret {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+    color: rgba(29, 26, 22, 0.5);
+    line-height: 1.7;
+  }
+
+  .stamp {
+    position: absolute;
+    left: 50%;
+    top: 44%;
+    z-index: 4;
+    transform: translate(-50%, -50%) rotate(-14deg) scale(2.6);
+    padding: 10px 26px;
+    border: 4px solid var(--oxblood);
+    border-radius: 6px;
+    color: var(--oxblood);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(26px, 4vw, 40px);
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    opacity: 0;
+    pointer-events: none;
+    background: rgba(251, 247, 236, 0.12);
+  }
+
+  .stamp::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--oxblood);
+    border-radius: 4px;
+  }
+
+  .stamp.show {
+    animation: thunk 0.5s cubic-bezier(0.16, 1.2, 0.3, 1) forwards;
+  }
+
+  @keyframes thunk {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) rotate(-4deg) scale(2.6);
+    }
+    62% {
+      opacity: 1;
+      transform: translate(-50%, -50%) rotate(-14deg) scale(0.96);
+    }
+    78% {
+      transform: translate(-50%, -50%) rotate(-14deg) scale(1.04);
+    }
+    100% {
+      opacity: 0.92;
+      transform: translate(-50%, -50%) rotate(-14deg) scale(1);
+    }
+  }
+
+  .footer {
+    margin-top: clamp(14px, 2.2vw, 24px);
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: rgba(29, 26, 22, 0.55);
+  }
+
+  .footer .heure {
+    color: var(--oxblood);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 940px) {
+    .salle {
+      grid-template-columns: 1fr;
+    }
+    .addition {
+      position: static;
+    }
+    .marque h1 {
+      white-space: normal;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .steam path {
+      animation: none;
+      opacity: 0.4;
+    }
+    .ligne .ldots,
+    .stamp.show,
+    .shake-denied {
+      animation: none;
+      clip-path: none;
+      opacity: 0.92;
+      transform: translate(-50%, -50%) rotate(-14deg) scale(1);
+    }
+    .item,
+    .sp,
+    .pay {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <header class="marque">
+    <div class="fleuron-row">
+      <svg viewBox="0 0 170 60" aria-hidden="true" class="fleuron-left">
+        <g fill="none" stroke="#c9a227" stroke-width="1.6" stroke-linecap="round">
+          <path d="M 4 34 C 30 10 52 12 62 30 C 70 44 60 56 48 52 C 38 49 38 36 48 34 C 58 32 66 40 78 40"></path>
+          <path d="M 20 22 C 34 18 44 22 50 30"></path>
+          <path d="M 96 40 C 106 40 114 32 124 34 C 134 36 134 49 124 52 C 112 56 100 44 108 30 C 118 12 140 10 166 34"></path>
+          <circle cx="88" cy="40" r="2.4" fill="#c9a227" stroke="none"></circle>
+        </g>
+      </svg>
+      <h1>Café <span class="de">de</span> Flore</h1>
+      <svg viewBox="0 0 170 60" aria-hidden="true" class="fleuron-right" style="transform: scaleX(-1);">
+        <g fill="none" stroke="#c9a227" stroke-width="1.6" stroke-linecap="round">
+          <path d="M 4 34 C 30 10 52 12 62 30 C 70 44 60 56 48 52 C 38 49 38 36 48 34 C 58 32 66 40 78 40"></path>
+          <path d="M 20 22 C 34 18 44 22 50 30"></path>
+          <path d="M 96 40 C 106 40 114 32 124 34 C 134 36 134 49 124 52 C 112 56 100 44 108 30 C 118 12 140 10 166 34"></path>
+          <circle cx="88" cy="40" r="2.4" fill="#c9a227" stroke="none"></circle>
+        </g>
+      </svg>
+    </div>
+    <p class="adr">172 Boulevard Saint-Germain · Paris VI<sup>e</sup> · <b>Depuis 1887</b></p>
+  </header>
+
+  <main class="salle">
+    <section class="menu" aria-label="Carte">
+      <svg class="coin tl" viewBox="0 0 74 74" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M 6 68 C 6 34 22 10 68 6"></path>
+          <path d="M 14 68 C 14 40 28 20 60 13 C 44 22 36 34 34 50 C 42 40 52 36 62 38 C 52 42 44 50 42 62"></path>
+          <circle cx="68" cy="6" r="2.2" fill="currentColor" stroke="none"></circle>
+        </g>
+      </svg>
+      <svg class="coin tr" viewBox="0 0 74 74" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M 6 68 C 6 34 22 10 68 6"></path>
+          <path d="M 14 68 C 14 40 28 20 60 13 C 44 22 36 34 34 50 C 42 40 52 36 62 38 C 52 42 44 50 42 62"></path>
+          <circle cx="68" cy="6" r="2.2" fill="currentColor" stroke="none"></circle>
+        </g>
+      </svg>
+      <svg class="coin bl" viewBox="0 0 74 74" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M 6 68 C 6 34 22 10 68 6"></path>
+          <path d="M 14 68 C 14 40 28 20 60 13 C 44 22 36 34 34 50 C 42 40 52 36 62 38 C 52 42 44 50 42 62"></path>
+          <circle cx="68" cy="6" r="2.2" fill="currentColor" stroke="none"></circle>
+        </g>
+      </svg>
+      <svg class="coin br" viewBox="0 0 74 74" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M 6 68 C 6 34 22 10 68 6"></path>
+          <path d="M 14 68 C 14 40 28 20 60 13 C 44 22 36 34 34 50 C 42 40 52 36 62 38 C 52 42 44 50 42 62"></path>
+          <circle cx="68" cy="6" r="2.2" fill="currentColor" stroke="none"></circle>
+        </g>
+      </svg>
+
+      <div class="rubric">
+        <h2>La Carte</h2>
+        <div class="rule" aria-hidden="true"></div>
+      </div>
+
+      <div class="cat">
+        <h3><span class="num">I.</span> À Manger</h3>
+        <button class="item" type="button" data-nom="Croque-Monsieur" data-prix="1400">
+          <span class="nom">Croque-Monsieur <i>gruyère, jambon blanc</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">14,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Salade de saison" data-prix="1200">
+          <span class="nom">Salade de saison <i>noix, comté</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">12,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Quiche lorraine" data-prix="1100">
+          <span class="nom">Quiche lorraine <i>pâte brisée</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">11,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Soupe à l'oignon" data-prix="1000">
+          <span class="nom">Soupe à l'oignon <i>gratinée</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">10,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Plateau de fromages" data-prix="1600">
+          <span class="nom">Plateau de fromages <i>cinq affinages</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">16,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Tartine de figues" data-prix="850">
+          <span class="nom">Tartine de figues <i>miel de châtaignier</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">8,50 €</span>
+        </button>
+      </div>
+
+      <div class="cat">
+        <h3><span class="num">II.</span> À Boire</h3>
+        <button class="item" type="button" data-nom="Café crème" data-prix="450">
+          <span class="nom">Café crème <i>servi au comptoir ou en salle</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">4,50 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Noisette" data-prix="380">
+          <span class="nom">Noisette <i>un nuage de lait</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">3,80 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Chocolat chaud" data-prix="600">
+          <span class="nom">Chocolat chaud <i>à l'ancienne</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">6,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Citron pressé" data-prix="550">
+          <span class="nom">Citron pressé <i>sucre à part</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">5,50 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Vin chaud" data-prix="700">
+          <span class="nom">Vin chaud <i>épicé, de novembre</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">7,00 €</span>
+        </button>
+        <button class="item" type="button" data-nom="Eau de Seltz" data-prix="300">
+          <span class="nom">Eau de Seltz <i>carafe, siphon 1952</i></span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">3,00 €</span>
+        </button>
+      </div>
+
+      <div class="espresso">
+        <svg class="cupsvg" viewBox="0 0 54 58" role="img" aria-label="A cup of espresso with rising steam">
+          <g class="steam">
+            <path d="M 20 22 C 16 16 24 12 20 6"></path>
+            <path d="M 27 24 C 23 17 31 13 27 5"></path>
+            <path d="M 34 22 C 30 16 38 12 34 6"></path>
+          </g>
+          <ellipse class="saucer" cx="27" cy="52" rx="19" ry="3.6"></ellipse>
+          <path class="cup" d="M 12 30 L 42 30 L 40 46 C 39 50 35 51 27 51 C 19 51 15 50 14 46 Z"></path>
+          <ellipse class="coffee" cx="27" cy="30.5" rx="14.5" ry="3"></ellipse>
+          <path class="handle" d="M 42 33 C 49 33 50 42 41 44"></path>
+        </svg>
+        <p class="saying">« Un café, un carnet, et le matin qui passe. »</p>
+      </div>
+    </section>
+
+    <aside class="addition-col">
+      <section class="ardoise" aria-label="L'ardoise — les suggestions du jour">
+        <h3>Aujourd'hui…</h3>
+        <button class="sp" type="button" data-nom="Potiron velouté" data-prix="950">
+          <span class="nom">Velouté de potiron</span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">9,50</span>
+        </button>
+        <button class="sp" type="button" data-nom="Terrine de campagne" data-prix="1050">
+          <span class="nom">Terrine de campagne</span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">10,50</span>
+        </button>
+        <button class="sp" type="button" data-nom="Tarte fine aux pommes" data-prix="800">
+          <span class="nom">Tarte fine aux pommes</span>
+          <span class="dots" aria-hidden="true"></span>
+          <span class="prix">8,00</span>
+        </button>
+        <p class="note">— écrit à la craie chaque matin par Marcel —</p>
+      </section>
+
+      <section class="addition" aria-label="L'addition">
+        <div class="perf" aria-hidden="true"></div>
+        <div class="head">
+          <div class="r1">L'ADDITION</div>
+          <div class="r2">CAFFÈ · TABAC · STATIONNEMENT INTERDIT</div>
+        </div>
+        <div class="meta">
+          <span>TABLE N°7</span>
+          <span id="clock">—</span>
+        </div>
+        <ul class="lignes" id="lignes" aria-live="polite">
+          <li class="vide" id="vide">— la table est vide, choisissez dans la carte —</li>
+        </ul>
+        <div class="totaux">
+          <div class="trow"><span>SOUS-TOTAL</span><span id="sousTotal">0,00 €</span></div>
+          <div class="trow"><span>SERVICE 15%</span><span id="service">compris</span></div>
+          <div class="trow grand"><span>TOTAL</span><span id="total">0,00 €</span></div>
+        </div>
+        <button class="pay" id="payBtn" type="button" disabled>Payer l'addition</button>
+        <p class="siret">SIRET 787 654 321 · TVA FR 42 787654321<br>12 % TVA INCLUSE DANS LES PRIX · POURBOIRE À L'APPRECIATION</p>
+        <div class="stamp" id="stamp" aria-hidden="true">PAYÉ</div>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    Ouvert du mardi au dimanche · <span class="heure" id="footerClock">—</span> · Terrasse chauffée, les chats ne dérangent pas
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const lignes = document.getElementById('lignes');
+  const vide = document.getElementById('vide');
+  const sousTotalEl = document.getElementById('sousTotal');
+  const serviceEl = document.getElementById('service');
+  const totalEl = document.getElementById('total');
+  const payBtn = document.getElementById('payBtn');
+  const stamp = document.getElementById('stamp');
+  const clockEl = document.getElementById('clock');
+  const footerClockEl = document.getElementById('footerClock');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let paid = false;
+  let order = new Map();
+
+  /* ---------- sound: cup tick + stamp thunk ---------- */
+
+  const audio = {
+    ctx: null,
+    ensure() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      return !!this.ctx;
+    },
+    tick() {
+      if (!this.ensure()) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(1320, t);
+      o.frequency.exponentialRampToValueAtTime(880, t + 0.07);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      o.connect(g);
+      g.connect(this.ctx.destination);
+      o.start(t);
+      o.stop(t + 0.1);
+    },
+    thunk() {
+      if (!this.ensure()) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(120, t);
+      o.frequency.exponentialRampToValueAtTime(52, t + 0.16);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.5, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+      o.connect(g);
+      g.connect(this.ctx.destination);
+      o.start(t);
+      o.stop(t + 0.26);
+      const len = Math.floor(this.ctx.sampleRate * 0.06);
+      const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+      }
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      const g2 = this.ctx.createGain();
+      g2.gain.value = 0.22;
+      src.connect(g2);
+      g2.connect(this.ctx.destination);
+      src.start(t);
+    }
+  };
+
+  /* ---------- clock ---------- */
+
+  function tickClock() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    clockEl.textContent = h + 'H' + m;
+    footerClockEl.textContent = 'IL EST ' + h + 'H' + m + ' À PARIS';
+  }
+
+  tickClock();
+  window.setInterval(tickClock, 30000);
+
+  /* ---------- totals ---------- */
+
+  function fmt(cents) {
+    const sign = cents < 0 ? '−' : '';
+    const abs = Math.abs(cents);
+    const e = Math.floor(abs / 100);
+    const c = abs % 100;
+    return sign + e + ',' + String(c).padStart(2, '0') + ' €';
+  }
+
+  function renderTotals() {
+    let sous = 0;
+    order.forEach((qty, cents) => {
+      sous += qty * cents;
+    });
+    const service = Math.round(sous * 0.15);
+    sousTotalEl.textContent = fmt(sous);
+    serviceEl.textContent = order.size ? fmt(service) + ' compris' : 'compris';
+    totalEl.textContent = fmt(sous);
+    payBtn.disabled = paid || sous === 0;
+  }
+
+  /* ---------- receipt lines ---------- */
+
+  function makeLigne(nom, qty, prix) {
+    const li = document.createElement('li');
+    li.className = 'ligne';
+    li.title = 'Cliquer pour retirer';
+    li.setAttribute('aria-label', nom + ', quantité ' + qty + ', cliquer pour retirer');
+
+    const nomEl = document.createElement('span');
+    nomEl.className = 'lnom';
+    nomEl.textContent = nom.toUpperCase();
+
+    const qtyEl = document.createElement('span');
+    qtyEl.className = 'lqty';
+    qtyEl.textContent = qty > 1 ? '× ' + qty : '';
+
+    const dots = document.createElement('span');
+    dots.className = 'ldots';
+    dots.setAttribute('aria-hidden', 'true');
+
+    const prixEl = document.createElement('span');
+    prixEl.className = 'lprix';
+    prixEl.textContent = fmt(prix * qty);
+
+    li.appendChild(nomEl);
+    li.appendChild(qtyEl);
+    li.appendChild(dots);
+    li.appendChild(prixEl);
+
+    li.addEventListener('click', () => {
+      if (paid) return;
+      const items = lignes.querySelectorAll('.ligne');
+      items.forEach((el) => {
+        if (el.getAttribute('data-nom') === nom) el.remove();
+      });
+      const it = menuByName.get(nom);
+      if (it) it.classList.remove('added');
+      audio.tick();
+      refreshVide();
+      renderTotals();
+    });
+
+    return li;
+  }
+
+  function refreshVide() {
+    vide.style.display = order.size ? 'none' : '';
+  }
+
+  /* ---------- menu wiring ---------- */
+
+  const menuByName = new Map();
+
+  document.querySelectorAll('.item, .sp').forEach((it) => {
+    const nom = it.getAttribute('data-nom');
+    const prix = parseInt(it.getAttribute('data-prix'), 10);
+    menuByName.set(nom, it);
+
+    it.addEventListener('click', () => {
+      if (paid) {
+        it.classList.add('shake-denied');
+        window.setTimeout(() => it.classList.remove('shake-denied'), 300);
+        return;
+      }
+      order.set(nom, (order.get(nom) || 0) + 1);
+      it.classList.add('added');
+      audio.tick();
+
+      const existing = lignes.querySelector('.ligne[data-nom="' + nom.replace(/"/g, '\\"') + '"]');
+      if (existing) {
+        const qty = order.get(nom);
+        existing.querySelector('.lqty').textContent = '× ' + qty;
+        existing.querySelector('.lprix').textContent = fmt(prix * qty);
+      } else {
+        const li = makeLigne(nom, order.get(nom), prix);
+        li.setAttribute('data-nom', nom);
+        lignes.appendChild(li);
+      }
+      refreshVide();
+      renderTotals();
+    });
+  });
+
+  /* ---------- pay + stamp ---------- */
+
+  payBtn.addEventListener('click', () => {
+    if (payBtn.disabled) return;
+    if (!paid) {
+      paid = true;
+      payBtn.textContent = 'Nouvelle table';
+      stamp.classList.add('show');
+      audio.thunk();
+    } else {
+      paid = false;
+      order = new Map();
+      lignes.querySelectorAll('.ligne').forEach((li) => li.remove());
+      menuByName.forEach((it) => it.classList.remove('added'));
+      stamp.classList.remove('show');
+      payBtn.textContent = "Payer l'addition";
+      audio.tick();
+      refreshVide();
+      renderTotals();
+    }
+  });
+
+  renderTotals();
+})();
+</script>
+</body>
+</html>

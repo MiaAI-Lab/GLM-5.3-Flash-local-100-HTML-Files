@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEON DISTRICT 2099 — Wear Your Nervous System</title>
+<meta name="description" content="Cyberpunk landing page for a fictional streetwear and implant brand. Neon signage, CRT scanlines, glitch headline, rain that follows your cursor, a wireframe sneaker spinning in canvas.">
+<style>
+/* ============================================================
+   NEON DISTRICT 2099 — 002
+   Black glass city. Magenta and cyan signage. Rain obeys the mouse.
+   ============================================================ */
+
+:root {
+  --void: #000000;
+  --ink: #e8e8e8;
+  --ink-dim: rgba(232, 232, 232, 0.60);
+  --ink-faint: rgba(232, 232, 232, 0.34);
+  --mag: #ff2d95;
+  --cyn: #00e5ff;
+  --vio: #b537f2;
+  --font-head: system-ui, -apple-system, "Segoe UI", Roboto, "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--void);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font-head);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--mag);
+  color: #000;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--mag), var(--vio));
+  border-radius: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyn);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* ------------------------------------------------------------
+   SKY / CITY BACKDROP
+   ------------------------------------------------------------ */
+
+.city {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 55% at 50% 112%, rgba(181, 55, 242, 0.20), transparent 62%),
+    radial-gradient(60% 40% at 12% 0%, rgba(255, 45, 149, 0.10), transparent 60%),
+    radial-gradient(55% 35% at 88% 4%, rgba(0, 229, 255, 0.08), transparent 65%),
+    #000;
+}
+
+#rain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42vh;
+  min-height: 260px;
+  background-image:
+    linear-gradient(#070707, #070707);
+  -webkit-mask-image:
+    linear-gradient(180deg, transparent 0%, #000 26%);
+  mask-image:
+    linear-gradient(180deg, transparent 0%, #000 26%);
+  pointer-events: none;
+}
+
+/* building silhouettes as pure gradients */
+.skyline::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 78%;
+  background:
+    linear-gradient(90deg,
+      #050505 0 6%, transparent 6%),
+    linear-gradient(90deg,
+      transparent 0 7.5%, #080808 7.5% 13%, transparent 13%),
+    linear-gradient(90deg,
+      transparent 0 20%, #040404 20% 30%, transparent 30%),
+    linear-gradient(90deg,
+      transparent 0 37%, #090909 37% 44%, transparent 44%),
+    linear-gradient(90deg,
+      transparent 0 55%, #060606 55% 66%, transparent 66%),
+    linear-gradient(90deg,
+      transparent 0 72%, #0a0a0a 72% 80%, transparent 80%),
+    linear-gradient(90deg,
+      transparent 0 87%, #050505 87% 94%, transparent 94%);
+  opacity: 0.9;
+}
+
+/* window lights — tiny repeating gradient grid, masked to towers */
+.skyline::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 66%;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 45, 149, 0.10) 1px, transparent 1px),
+    linear-gradient(rgba(255, 45, 149, 0.12) 1px, transparent 1px);
+  background-size: 46px 64px, 34px 28px, 26px 90px;
+  background-position: 0 12px, 9px 0, 17px 30px;
+  -webkit-mask-image:
+    repeating-linear-gradient(90deg, #000 0 60px, transparent 60px 84px),
+    linear-gradient(180deg, transparent 0%, #000 40%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    repeating-linear-gradient(90deg, #000 0 60px, transparent 60px 84px),
+    linear-gradient(180deg, transparent 0%, #000 40%);
+  mask-composite: intersect;
+  opacity: 0.5;
+}
+
+.haze {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 60% at 50% 100%, rgba(255, 45, 149, 0.07), transparent 55%),
+    radial-gradient(90% 45% at 50% 0%, rgba(0, 229, 255, 0.05), transparent 60%);
+  animation: haze-breathe 9s ease-in-out infinite alternate;
+}
+
+@keyframes haze-breathe {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
+}
+
+/* CRT overlay: scanlines + flicker, sits above everything */
+.crt {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg,
+    rgba(255, 255, 255, 0.028) 0 1px,
+    transparent 1px 3px);
+  mix-blend-mode: overlay;
+  animation: crt-flicker 4s steps(60) infinite;
+}
+
+.crt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(115% 100% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+@keyframes crt-flicker {
+  0%, 100% { opacity: 1; }
+  48%  { opacity: 0.96; }
+  50%  { opacity: 1; }
+  52%  { opacity: 0.92; }
+  54%  { opacity: 1; }
+}
+
+.sweep {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: -12%;
+  height: 12%;
+  z-index: 61;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(0, 229, 255, 0.05), transparent);
+  animation: sweep-down 7s linear infinite;
+}
+
+@keyframes sweep-down {
+  from { transform: translateY(-10vh); }
+  to   { transform: translateY(120vh); }
+}
+
+/* ------------------------------------------------------------
+   SHELL
+   ------------------------------------------------------------ */
+
+.shell {
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px clamp(16px, 4vw, 48px);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 45, 149, 0.25);
+}
+
+.brandmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  font-stretch: condensed;
+  letter-spacing: 0.18em;
+  font-size: 14px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.brandmark .sigil {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--cyn);
+  color: var(--cyn);
+  font-size: 12px;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5), inset 0 0 6px rgba(0, 229, 255, 0.35);
+}
+
+.nav-links {
+  display: flex;
+  gap: clamp(10px, 2vw, 26px);
+}
+
+.nav-links a {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  text-decoration: none;
+  padding: 8px 2px;
+  transition: color 0.2s;
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 4px;
+  height: 1px;
+  background: var(--mag);
+  box-shadow: 0 0 8px var(--mag);
+  transition: right 0.25s;
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: var(--ink);
+}
+
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after {
+  right: 0;
+}
+
+.cta-top {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border: 1px solid var(--mag);
+  color: var(--mag);
+  text-shadow: 0 0 8px rgba(255, 45, 149, 0.8);
+  box-shadow: 0 0 14px rgba(255, 45, 149, 0.25), inset 0 0 10px rgba(255, 45, 149, 0.12);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.cta-top:hover,
+.cta-top:focus-visible {
+  background: var(--mag);
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 26px rgba(255, 45, 149, 0.7);
+}
+
+/* ------------------------------------------------------------
+   HERO — glitch headline (signature #1)
+   ------------------------------------------------------------ */
+
+.hero {
+  position: relative;
+  min-height: calc(92dvh - 54px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(48px, 9vh, 110px) clamp(16px, 5vw, 72px) clamp(56px, 10vh, 120px);
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 1.2vw, 12px);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--cyn);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
+  margin-bottom: clamp(18px, 3vh, 34px);
+}
+
+.kicker::before {
+  content: "";
+  width: 42px;
+  height: 1px;
+  background: var(--cyn);
+  box-shadow: 0 0 8px var(--cyn);
+}
+
+.glitch {
+  position: relative;
+  display: inline-block;
+  max-width: 14ch;
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: clamp(3.2rem, 12.5vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow:
+    0 0 18px rgba(232, 232, 232, 0.22),
+    0 0 60px rgba(181, 55, 242, 0.30);
+  cursor: default;
+  user-select: none;
+}
+
+.glitch .layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.glitch .l-cyan {
+  color: var(--cyn);
+  z-index: -1;
+}
+
+.glitch .l-mag {
+  color: var(--mag);
+  z-index: -2;
+}
+
+.glitch:hover .l-cyan,
+.glitch:focus-visible .l-cyan {
+  opacity: 0.85;
+  animation: rgb-cyan 1.4s steps(14) infinite;
+}
+
+.glitch:hover .l-mag,
+.glitch:focus-visible .l-mag {
+  opacity: 0.85;
+  animation: rgb-mag 1.4s steps(14) infinite reverse;
+}
+
+@keyframes rgb-cyan {
+  0%   { transform: translate(-6px, 2px); clip-path: inset(0 0 78% 0); }
+  20%  { transform: translate(5px, -3px); clip-path: inset(28% 0 40% 0); }
+  40%  { transform: translate(-8px, 1px); clip-path: inset(62% 0 8% 0); }
+  60%  { transform: translate(4px, 3px);  clip-path: inset(10% 0 66% 0); }
+  80%  { transform: translate(-3px, -2px); clip-path: inset(46% 0 30% 0); }
+  100% { transform: translate(6px, 0);   clip-path: inset(80% 0 2% 0); }
+}
+
+@keyframes rgb-mag {
+  0%   { transform: translate(7px, -2px); clip-path: inset(64% 0 12% 0); }
+  20%  { transform: translate(-5px, 3px); clip-path: inset(8% 0 70% 0); }
+  40%  { transform: translate(6px, 2px);  clip-path: inset(38% 0 34% 0); }
+  60%  { transform: translate(-7px, -1px); clip-path: inset(76% 0 4% 0); }
+  80%  { transform: translate(3px, 2px);  clip-path: inset(18% 0 58% 0); }
+  100% { transform: translate(-4px, 0);   clip-path: inset(0 0 82% 0); }
+}
+
+/* idle occasional twitch */
+.glitch:not(:hover) {
+  animation: idle-twitch 6s steps(1) infinite;
+}
+
+@keyframes idle-twitch {
+  0%, 92%, 100% { transform: translate(0, 0); }
+  93% { transform: translate(2px, -1px) skewX(0.6deg); }
+  95% { transform: translate(-2px, 1px) skewX(-0.4deg); }
+  97% { transform: translate(0, 0); }
+}
+
+.subline {
+  margin-top: clamp(20px, 3.4vh, 36px);
+  max-width: 52ch;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.5vw, 14.5px);
+  line-height: 1.8;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+}
+
+.subline b {
+  color: var(--cyn);
+  font-weight: 400;
+}
+
+.subline i {
+  color: var(--mag);
+  font-style: normal;
+}
+
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: clamp(26px, 4vh, 44px);
+}
+
+.btn-hero {
+  position: relative;
+  font-weight: 800;
+  font-stretch: condensed;
+  font-size: 14px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 16px 30px;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s, color 0.2s;
+}
+
+.btn-hero:active {
+  transform: translateY(2px);
+}
+
+.btn-mag {
+  color: #000;
+  background: var(--mag);
+  box-shadow: 0 0 24px rgba(255, 45, 149, 0.55), 0 0 60px rgba(255, 45, 149, 0.2);
+}
+
+.btn-mag:hover,
+.btn-mag:focus-visible {
+  box-shadow: 0 0 44px rgba(255, 45, 149, 0.9), 0 0 110px rgba(255, 45, 149, 0.35);
+}
+
+.btn-ghost {
+  color: var(--cyn);
+  border: 1px solid rgba(0, 229, 255, 0.6);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+  background: rgba(0, 229, 255, 0.14);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.35);
+}
+
+/* ticker strip */
+.ticker {
+  overflow: hidden;
+  border-block: 1px solid rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.03);
+  padding: 10px 0;
+}
+
+.ticker-inner {
+  display: flex;
+  gap: 48px;
+  width: max-content;
+  animation: ticker-run 26s linear infinite;
+}
+
+.ticker span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.ticker span b {
+  color: var(--mag);
+  font-weight: 400;
+}
+
+@keyframes ticker-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ------------------------------------------------------------
+   PRODUCT — holo card + wireframe sneaker (signature #2)
+   ------------------------------------------------------------ */
+
+.drop {
+  padding: clamp(60px, 10vh, 130px) clamp(16px, 5vw, 72px);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(28px, 5vh, 52px);
+}
+
+.section-head h2 {
+  font-weight: 900;
+  font-stretch: condensed;
+  font-size: clamp(1.7rem, 4.5vw, 3.2rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 0 24px rgba(181, 55, 242, 0.35);
+}
+
+.section-head .code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.holo-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: stretch;
+}
+
+.holo-card {
+  position: relative;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  background:
+    linear-gradient(160deg, rgba(0, 229, 255, 0.07), rgba(181, 55, 242, 0.05) 55%, rgba(255, 45, 149, 0.06));
+  box-shadow:
+    0 0 40px rgba(0, 229, 255, 0.12),
+    inset 0 0 40px rgba(0, 229, 255, 0.05);
+  padding: clamp(20px, 3vw, 36px);
+  overflow: hidden;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* holographic sheen sweep */
+.holo-card::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: linear-gradient(115deg,
+    transparent 42%,
+    rgba(0, 229, 255, 0.10) 48%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 45, 149, 0.10) 52%,
+    transparent 58%);
+  transform: translateX(-40%);
+  animation: holo-sheen 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes holo-sheen {
+  0%, 100% { transform: translateX(-45%); }
+  50%      { transform: translateX(45%); }
+}
+
+/* corner brackets */
+.holo-card::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--cyn), var(--cyn)) top left / 22px 1px,
+    linear-gradient(var(--cyn), var(--cyn)) top left / 1px 22px,
+    linear-gradient(var(--cyn), var(--cyn)) top right / 22px 1px,
+    linear-gradient(var(--cyn), var(--cyn)) top right / 1px 22px,
+    linear-gradient(var(--mag), var(--mag)) bottom left / 22px 1px,
+    linear-gradient(var(--mag), var(--mag)) bottom left / 1px 22px,
+    linear-gradient(var(--mag), var(--mag)) bottom right / 22px 1px,
+    linear-gradient(var(--mag), var(--mag)) bottom right / 1px 22px;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+}
+
+#shoe {
+  width: 100%;
+  flex: 1;
+  min-height: 280px;
+  display: block;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+#shoe:active {
+  cursor: grabbing;
+}
+
+.holo-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0, 229, 255, 0.2);
+  padding-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.holo-meta b {
+  display: block;
+  color: var(--cyn);
+  font-weight: 400;
+  font-size: 13px;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+
+.holo-meta .price b {
+  color: var(--mag);
+}
+
+/* spec panel */
+.spec-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(181, 55, 242, 0.4);
+  background: rgba(10, 4, 18, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.spec-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(181, 55, 242, 0.35);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--vio);
+  text-shadow: 0 0 10px rgba(181, 55, 242, 0.8);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spec-head .dot-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mag);
+  box-shadow: 0 0 8px var(--mag);
+  animation: blip 1.2s steps(2) infinite;
+}
+
+@keyframes blip {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.spec-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgba(181, 55, 242, 0.16);
+  transition: background 0.2s;
+}
+
+.spec-row:hover {
+  background: rgba(181, 55, 242, 0.08);
+}
+
+.spec-row dt {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.spec-row dd {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-align: right;
+}
+
+.spec-row dd b {
+  color: var(--cyn);
+  font-weight: 400;
+}
+
+.meter {
+  grid-column: 1 / -1;
+  height: 4px;
+  background: rgba(181, 55, 242, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--v);
+  background: linear-gradient(90deg, var(--cyn), var(--vio));
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+.spec-foot {
+  margin-top: auto;
+  padding: 20px 22px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-buy {
+  flex: 1;
+  min-width: 160px;
+  text-align: center;
+  font-weight: 900;
+  font-stretch: condensed;
+  font-size: 13px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  padding: 15px 20px;
+  background: var(--cyn);
+  color: #000;
+  box-shadow: 0 0 26px rgba(0, 229, 255, 0.5);
+  transition: box-shadow 0.2s, transform 0.15s;
+  text-decoration: none;
+}
+
+.btn-buy:hover,
+.btn-buy:focus-visible {
+  box-shadow: 0 0 50px rgba(0, 229, 255, 0.85);
+}
+
+.btn-buy:active {
+  transform: translateY(2px);
+}
+
+/* ------------------------------------------------------------
+   MANIFESTO STRIP
+   ------------------------------------------------------------ */
+
+.manifesto {
+  padding: clamp(60px, 10vh, 130px) clamp(16px, 5vw, 72px);
+  border-top: 1px solid rgba(255, 45, 149, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 45, 149, 0.035), transparent 30%);
+}
+
+.manifesto p.big {
+  max-width: 26ch;
+  font-weight: 900;
+  font-stretch: condensed;
+  font-size: clamp(1.9rem, 5.4vw, 4rem);
+  line-height: 1.04;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.manifesto p.big em {
+  font-style: normal;
+  color: var(--mag);
+  text-shadow: 0 0 20px rgba(255, 45, 149, 0.8);
+}
+
+.manifesto p.big u {
+  text-decoration: none;
+  color: var(--cyn);
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+}
+
+.manifesto-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: clamp(20px, 3vw, 40px);
+  margin-top: clamp(30px, 5vh, 56px);
+}
+
+.m-col {
+  border-top: 1px solid rgba(232, 232, 232, 0.18);
+  padding-top: 18px;
+}
+
+.m-col h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--mag);
+  margin-bottom: 12px;
+}
+
+.m-col p {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.85;
+  color: var(--ink-dim);
+}
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+
+footer {
+  border-top: 1px solid rgba(0, 229, 255, 0.2);
+  padding: 34px clamp(16px, 5vw, 72px) 44px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+footer p {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+footer p b {
+  color: var(--cyn);
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 980px) {
+  .holo-grid {
+    grid-template-columns: 1fr;
+  }
+  .spec-panel {
+    order: -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .nav-links {
+    display: none;
+  }
+  .hero {
+    min-height: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt, .sweep, .holo-card::before, .ticker-inner,
+  .glitch:not(:hover), .spec-head .dot-live, .haze {
+    animation: none;
+  }
+  .glitch .layer {
+    opacity: 0 !important;
+  }
+  .glitch:hover .layer {
+    opacity: 0.5;
+    transform: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="city" aria-hidden="true">
+  <canvas id="rain"></canvas>
+  <div class="skyline"></div>
+  <div class="haze"></div>
+</div>
+<div class="crt" aria-hidden="true"></div>
+<div class="sweep" aria-hidden="true"></div>
+
+<div class="shell">
+
+  <header class="topbar">
+    <a class="brandmark" href="#top">
+      <span class="sigil" aria-hidden="true">ND</span>
+      Neon District
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#drop">Drops</a>
+      <a href="#drop">Implants</a>
+      <a href="#manifesto">Manifesto</a>
+      <a href="#footer">Contact</a>
+    </nav>
+    <button class="cta-top" type="button">Reserve Drop 09</button>
+  </header>
+
+  <main id="top">
+
+    <section class="hero">
+      <p class="kicker">Night market · Sector 7 · Open till the lights die</p>
+      <h1 class="glitch" id="glitchHead" tabindex="0">Wear<br>your<br>nervous system</h1>
+      <p class="subline">Neon District builds streetwear with a pulse and implants with a
+        warranty. Every seam <b>conducts light</b>. Every stitch carries
+        <i>current</i>. We do not make clothing. We issue skin.</p>
+      <div class="hero-ctas">
+        <a class="btn-hero btn-mag" href="#drop">Enter the drop</a>
+        <a class="btn-hero btn-ghost" href="#manifesto">Read the manifesto</a>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-inner">
+        <span>Drop 09 — chrome weep jacket <b>//</b> 400 units <b>//</b> bio-led thread</span>
+        <span>Implant: dermal lace v3 <b>//</b> subcutaneous <b>//</b> 9-day battery</span>
+        <span>Rain policy: the city is wet, the product is not <b>//</b> IP67 skin</span>
+        <span>Drop 09 — chrome weep jacket <b>//</b> 400 units <b>//</b> bio-led thread</span>
+        <span>Implant: dermal lace v3 <b>//</b> subcutaneous <b>//</b> 9-day battery</span>
+        <span>Rain policy: the city is wet, the product is not <b>//</b> IP67 skin</span>
+      </div>
+    </div>
+
+    <section class="drop" id="drop">
+      <div class="section-head">
+        <h2>Drop 09 — CHROME WEEP</h2>
+        <span class="code">SKU ND-2099-009 / holo preview live</span>
+      </div>
+
+      <div class="holo-grid">
+
+        <article class="holo-card" aria-label="Product hologram">
+          <canvas id="shoe" aria-label="Rotating wireframe sneaker — drag to spin"></canvas>
+          <div class="holo-meta">
+            <div>Model<b>WEEP-01 hi-top</b></div>
+            <div>Frame<b>knit titanium</b></div>
+            <div>Run<b>400 pairs</b></div>
+            <div class="price">Price<b>Ξ 0.42</b></div>
+          </div>
+        </article>
+
+        <aside class="spec-panel" aria-label="Specifications">
+          <div class="spec-head">
+            Spec sheet
+            <span class="dot-live" aria-hidden="true"></span>
+          </div>
+          <dl>
+            <div class="spec-row">
+              <dt>Signal weave</dt>
+              <dd><b>Thread-LED</b> 144 addr</dd>
+              <div class="meter" style="--v:72%"><i></i></div>
+            </div>
+            <div class="spec-row">
+              <dt>Sole</dt>
+              <dd>Mag-lev cell, <b>4 cm</b></dd>
+              <div class="meter" style="--v:58%"><i></i></div>
+            </div>
+            <div class="spec-row">
+              <dt>Water rating</dt>
+              <dd><b>IP67</b> monsoon-proof</dd>
+              <div class="meter" style="--v:88%"><i></i></div>
+            </div>
+            <div class="spec-row">
+              <dt>Power</dt>
+              <dd>Kinetic coil, <b>18 h</b></dd>
+              <div class="meter" style="--v:64%"><i></i></div>
+            </div>
+            <div class="spec-row">
+              <dt>Warranty</dt>
+              <dd><b>5 yrs</b> incl. riots*</dd>
+              <div class="meter" style="--v:96%"><i></i></div>
+            </div>
+          </dl>
+          <div class="spec-foot">
+            <a class="btn-buy" href="#top">Claim pair 137</a>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <section class="manifesto" id="manifesto">
+      <p class="big">The city sold you <em>surveillance</em>.
+        We sell you <u>signal</u>.</p>
+      <div class="manifesto-cols">
+        <div class="m-col">
+          <h3>01 / Skin</h3>
+          <p>Fabric is the first interface. Our thread conducts data and light from
+            collar to sole, so your jacket reports weather, crowd heat and your own
+            heartbeat — to you, and no one else.</p>
+        </div>
+        <div class="m-col">
+          <h3>02 / Street</h3>
+          <p>Every drop is mapped to a district and priced in the currency it drinks.
+            Sector 7 units carry sector 7 firmware: night vision, transit grafts,
+            and a mute switch for the city's noise.</p>
+        </div>
+        <div class="m-col">
+          <h3>03 / Warranty</h3>
+          <p>We repair what the rain ruins and what the riots burn. Five years,
+            no questions, parts printed same-day at any of our night kiosks.
+            <br>*Riot clause void above Sector 12.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="footer">
+    <p>Neon District 2099 <b>//</b> Sector 7 night market, kiosk 13</p>
+    <p>Signal only <b>//</b> no cloud, no trace, no masters</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     RAIN — streaks whose angle follows the pointer's x
+     ============================================================ */
+  var rainCv = document.getElementById("rain");
+  var rctx = rainCv.getContext("2d");
+  var rw = 0, rh = 0;
+  var drops = [];
+  var smoothT = 0.5;      /* eased pointer x, 0..1 */
+  var smoothTarget = 0.5;
+  var DROP_COUNT = 170;
+
+  function sizeRain() {
+    rw = window.innerWidth;
+    rh = window.innerHeight;
+    rainCv.width = Math.round(rw * DPR);
+    rainCv.height = Math.round(rh * DPR);
+    rctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function seedRain() {
+    drops = [];
+    for (var i = 0; i < DROP_COUNT; i++) {
+      drops.push({
+        x: Math.random() * (rw * 1.4) - rw * 0.2,
+        y: Math.random() * rh,
+        len: 9 + Math.random() * 22,
+        speed: 320 + Math.random() * 480,
+        w: Math.random() < 0.85 ? 1 : 1.6,
+        tint: Math.random() < 0.12
+      });
+    }
+  }
+
+  /* smooth-follow for rain angle */
+  function angle() {
+    smoothT += (smoothTarget - smoothT) * 0.06;
+    return (smoothT - 0.5) * 0.56;
+  }
+
+  function drawRain(dt) {
+    rctx.clearRect(0, 0, rw, rh);
+    var a = angle();
+    var tanA = Math.tan(a);
+    for (var i = 0; i < drops.length; i++) {
+      var d = drops[i];
+      d.y += d.speed * dt;
+      d.x += d.speed * dt * tanA;
+      if (d.y > rh + 30) {
+        d.y = -30 - Math.random() * 60;
+        d.x = Math.random() * (rw * 1.4) - rw * 0.2;
+      }
+      if (d.x < -rw * 0.25) d.x += rw * 1.4;
+      if (d.x > rw * 1.2) d.x -= rw * 1.4;
+      var x2 = d.x - d.len * tanA;
+      var y2 = d.y - d.len;
+      rctx.strokeStyle = d.tint
+        ? "rgba(255,45,149,0.34)"
+        : "rgba(160,220,255,0.22)";
+      rctx.lineWidth = d.w;
+      rctx.beginPath();
+      rctx.moveTo(d.x, d.y);
+      rctx.lineTo(x2, y2);
+      rctx.stroke();
+    }
+  }
+
+  window.addEventListener("pointermove", function (e) {
+    smoothTarget = Math.min(1, Math.max(0, e.clientX / window.innerWidth));
+  }, { passive: true });
+
+  /* ============================================================
+     WIREFRAME SNEAKER — rotating canvas line model, drag to spin
+     ============================================================ */
+  var shoeCv = document.getElementById("shoe");
+  var sctx = shoeCv.getContext("2d");
+  var spin = 0.55;             /* current yaw */
+  var autoSpin = reduced ? 0 : 0.55;   /* rad/s */
+  var dragging = false;
+  var lastPX = 0;
+  var velY = 0;
+  var cw = 0, chh = 0;
+
+  function sizeShoe() {
+    var rect = shoeCv.getBoundingClientRect();
+    cw = Math.max(1, rect.width);
+    chh = Math.max(1, rect.height);
+    shoeCv.width = Math.round(cw * DPR);
+    shoeCv.height = Math.round(chh * DPR);
+    sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  /* --- model: a stylized hi-top built from polylines in 3D ---
+     Units roughly -1..1; y up; z depth.                       */
+  var LINES = [];
+  function pt(x, y, z) { return { x: x, y: y, z: z }; }
+
+  function buildSneaker() {
+    LINES = [];
+    function poly(pts) { LINES.push(pts); }
+
+    /* outsole: rounded slab footprint (two mirrored rails) */
+    var soleTop = [];
+    var i, t;
+    for (i = 0; i <= 24; i++) {
+      t = i / 24;
+      soleTop.push(pt(Math.cos(t * Math.PI * 0.86) * 0.78 - 0.1, -0.62, Math.sin(t * Math.PI * 0.86) * 0.42));
+    }
+    poly(soleTop);
+    poly(soleTop.map(function (p) { return pt(p.x, p.y + 0.16, p.z); }));
+    /* connect the two sole rails */
+    for (i = 0; i <= 24; i += 3) {
+      var p = soleTop[i];
+      poly([p, pt(p.x, p.y + 0.16, p.z)]);
+    }
+
+    /* upper silhouette side walls (heel to toe) */
+    function wall(sign) {
+      var pts = [];
+      /* heel up */
+      pts.push(pt(-0.82 * sign, -0.46, 0.0));
+      pts.push(pt(-0.86 * sign, -0.10, 0.0));
+      pts.push(pt(-0.80 * sign, 0.34, 0.0));
+      pts.push(pt(-0.55 * sign, 0.52, 0.0));
+      /* collar dip */
+      pts.push(pt(-0.18 * sign, 0.44, 0.0));
+      pts.push(pt(0.18 * sign, 0.46, 0.0));
+      /* tongue rise */
+      pts.push(pt(0.42 * sign, 0.62, 0.0));
+      pts.push(pt(0.66 * sign, 0.40, 0.0));
+      /* toe slope */
+      pts.push(pt(0.88 * sign, 0.10, 0.0));
+      pts.push(pt(0.92 * sign, -0.30, 0.0));
+      return pts;
+    }
+    var w1 = wall(1), w2 = wall(-1);
+    /* map walls from the x-plane onto a 3D upper: use them as profile curves
+       swept across z with x as the across-width axis */
+    function sweep(profile) {
+      var out = [];
+      for (var k = 0; k < profile.length; k++) {
+        var p = profile[k];
+        /* profile x acts as left-right, y as height, z fixed by depth curve */
+        var depth = 0.34 * Math.sin((p.x + 0.9) / 1.84 * Math.PI) * (p.y > 0 ? 1 : 0.55);
+        out.push(pt(p.x, p.y, depth));
+      }
+      return out;
+    }
+    var sideA = sweep(w1);
+    var sideB = sweep(w2);
+    poly(sideA);
+    poly(sideB);
+    /* rungs across the upper */
+    for (i = 0; i < sideA.length; i += 2) {
+      poly([sideA[i], sideB[sideB.length - 1 - i]].map(function (p, idx) {
+        return idx === 0 ? p : pt(p.x, p.y, p.z);
+      }));
+    }
+
+    /* lacing: zigzag across the throat */
+    var lacePts = [];
+    for (i = 0; i <= 5; i++) {
+      t = i / 5;
+      var lx = 0.10 + t * 0.42;
+      var ly = 0.44 + Math.sin(t * 2.2) * 0.03 + t * 0.10;
+      lacePts.push(lx, ly);
+    }
+    for (i = 0; i < 5; i++) {
+      var x1 = lacePts[i * 2], y1 = lacePts[i * 2 + 1];
+      var x2 = lacePts[(i + 1) * 2], y2 = lacePts[(i + 1) * 2 + 1];
+      poly([pt(x1, y1, 0.20), pt(x2, y2, -0.20)]);
+      poly([pt(x1, y1, -0.20), pt(x2, y2, 0.20)]);
+    }
+
+    /* collar pad ellipse hint */
+    poly([
+      pt(-0.42, 0.50, 0.16), pt(-0.10, 0.56, 0.22),
+      pt(0.22, 0.54, 0.16), pt(0.34, 0.44, 0.06)
+    ]);
+
+    /* sole glow strip */
+    poly([
+      pt(-0.85, -0.54, 0.0), pt(0.85, -0.54, 0.0)
+    ]);
+
+    /* heel tab */
+    poly([pt(-0.86, 0.10, 0.0), pt(-0.98, 0.22, 0.0), pt(-0.86, 0.34, 0.0)]);
+  }
+  buildSneaker();
+
+  function project(p, yaw, w, h, scale) {
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var x = p.x * cy - p.z * sy;
+    var z = p.x * sy + p.z * cy;
+    var persp = 1 / (1 + (z + 1.4) * 0.16);
+    return {
+      x: w / 2 + x * scale * persp,
+      y: h / 2 - p.y * scale * persp + 6,
+      z: z
+    };
+  }
+
+  function drawShoe(dt) {
+    sctx.clearRect(0, 0, cw, chh);
+    if (!dragging && !reduced) {
+      spin += (autoSpin + velY) * dt;
+      velY *= 0.94;
+    }
+
+    var scale = Math.min(cw, chh) * 0.34;
+
+    /* holographic platform ellipse */
+    sctx.strokeStyle = "rgba(0,229,255,0.18)";
+    sctx.lineWidth = 1;
+    sctx.beginPath();
+    sctx.ellipse(cw / 2, chh / 2 + scale * 0.78, scale * 1.05, scale * 0.16, 0, 0, 6.2832);
+    sctx.stroke();
+    sctx.beginPath();
+    sctx.ellipse(cw / 2, chh / 2 + scale * 0.78, scale * 0.7, scale * 0.1, 0, 0, 6.2832);
+    sctx.strokeStyle = "rgba(255,45,149,0.16)";
+    sctx.stroke();
+
+    /* draw lines back-to-front-ish: sort by midpoint z */
+    var order = [];
+    for (var i = 0; i < LINES.length; i++) {
+      var line = LINES[i];
+      var mz = 0;
+      for (var k = 0; k < line.length; k++) {
+        var cy2 = Math.cos(spin), sy2 = Math.sin(spin);
+        mz += line[k].x * sy2 + line[k].z * cy2;
+      }
+      order.push({ i: i, z: mz / line.length });
+    }
+    order.sort(function (a, b) { return b.z - a.z; });
+
+    for (var n = 0; n < order.length; n++) {
+      var pts = LINES[order[n].i];
+      var depth = (order[n].z + 1.2) / 2.4;   /* 0 back .. 1 front */
+      var alpha = 0.16 + depth * 0.5;
+      sctx.beginPath();
+      for (var j = 0; j < pts.length; j++) {
+        var pr = project(pts[j], spin, cw, chh, scale);
+        if (j === 0) sctx.moveTo(pr.x, pr.y);
+        else sctx.lineTo(pr.x, pr.y);
+      }
+      /* alternate neon tints per line */
+      var mag = (order[n].i % 5 === 0);
+      sctx.strokeStyle = mag
+        ? "rgba(255,45,149," + alpha.toFixed(3) + ")"
+        : "rgba(0,229,255," + alpha.toFixed(3) + ")";
+      sctx.lineWidth = mag ? 1.4 : 1.1;
+      sctx.shadowColor = mag ? "rgba(255,45,149,0.8)" : "rgba(0,229,255,0.8)";
+      sctx.shadowBlur = 6;
+      sctx.stroke();
+    }
+    sctx.shadowBlur = 0;
+  }
+
+  shoeCv.addEventListener("pointerdown", function (e) {
+    dragging = true;
+    lastPX = e.clientX;
+    shoeCv.setPointerCapture(e.pointerId);
+  });
+  shoeCv.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - lastPX;
+    lastPX = e.clientX;
+    spin += dx * 0.012;
+    velY = dx * 0.0035;
+  });
+  function endDrag() { dragging = false; }
+  shoeCv.addEventListener("pointerup", endDrag);
+  shoeCv.addEventListener("pointercancel", endDrag);
+
+  /* ============================================================
+     GLITCH HEADLINE — build RGB layers + shatter slices on hover
+     ============================================================ */
+  var head = document.getElementById("glitchHead");
+  var baseHTML = head.innerHTML;
+  head.innerHTML =
+    '<span class="layer l-cyan" aria-hidden="true">' + baseHTML + '</span>' +
+    '<span class="layer l-mag" aria-hidden="true">' + baseHTML + '</span>' +
+    '<span class="base">' + baseHTML + '</span>';
+
+  /* shatter: momentarily split the base into horizontal slices */
+  var shatterTimer = 0;
+  function shatter() {
+    if (reduced) return;
+    var text = head.querySelector(".base");
+    if (!text || text.dataset.shattered) return;
+    text.dataset.shattered = "1";
+    var html = text.innerHTML;
+    var slices = "";
+    var N = 7;
+    for (var i = 0; i < N; i++) {
+      var off = (Math.random() * 22 - 11).toFixed(1);
+      var clipTop = (i * 100 / N).toFixed(1);
+      var clipBottom = (100 - (i + 1) * 100 / N).toFixed(1);
+      var delay = (Math.random() * 0.12).toFixed(2);
+      slices += '<span class="slice" style="animation-delay:' + delay +
+        's;--sx:' + off + 'px;clip-path:inset(' + clipTop + '% -8% ' + clipBottom + '% -8%)">' +
+        html + "</span>";
+    }
+    text.innerHTML = slices;
+    shatterTimer = setTimeout(function () {
+      text.innerHTML = html;
+      delete text.dataset.shattered;
+    }, 420);
+  }
+  head.addEventListener("mouseenter", shatter);
+  head.addEventListener("focus", shatter);
+  head.addEventListener("click", shatter);
+
+  /* injected slice styles */
+  var sliceStyle = document.createElement("style");
+  sliceStyle.textContent =
+    ".glitch .base{position:relative;display:block}" +
+    ".glitch .slice{position:absolute;inset:0;display:block;color:inherit;" +
+    "animation:slice-jitter .42s cubic-bezier(.2,.9,.2,1) both;pointer-events:none}" +
+    "@keyframes slice-jitter{0%{transform:translateX(var(--sx)) skewX(4deg)}" +
+    "60%{transform:translateX(calc(var(--sx) * -0.4)) skewX(-2deg)}" +
+    "100%{transform:none}}";
+  document.head.appendChild(sliceStyle);
+
+  /* ============================================================
+     BOOT + MAIN LOOP
+     ============================================================ */
+  sizeRain();
+  seedRain();
+  sizeShoe();
+
+  window.addEventListener("resize", function () {
+    sizeRain();
+    seedRain();
+    sizeShoe();
+  });
+
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!document.hidden && !reduced) {
+      drawRain(dt);
+      drawShoe(dt);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  if (reduced) {
+    drawRain(0.016);
+    drawShoe(0);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+    if (shatterTimer) clearTimeout(shatterTimer);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="THE GRAND CARNIVAL — an 1899 circus spectacular poster with living act vignettes, a calliope arpeggio, and a tear-off ticket.">
+<meta name="theme-color" content="#17130f">
+<title>The Grand Carnival — An 1899 Circus Spectacular</title>
+<style>
+  :root{
+    --paper:#e8d5ae;
+    --paper-deep:#dcc79a;
+    --red:#b3402a;
+    --red-deep:#8e2f1d;
+    --navy:#1d3557;
+    --navy-deep:#162842;
+    --gold:#c9a227;
+    --gold-soft:#dbb84a;
+    --cream:#f4e9cf;
+    --ink-shadow:rgba(46,28,12,.55);
+    --wood:"Haettenschweiler","Arial Narrow","Impact","Franklin Gothic Medium",system-ui,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"Courier New",Courier,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 800px at 50% 18%, #2a221a, #17130f 68%, #0d0a08 100%);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:clamp(14px,3vh,44px) clamp(10px,2vw,30px) clamp(60px,10vh,90px);
+    font-family:var(--serif);
+  }
+  ::selection{background:var(--red);color:var(--cream)}
+
+  /* ————————————— The poster sheet ————————————— */
+  .poster{
+    width:min(660px, 96vw);
+    position:relative;
+    background:
+      radial-gradient(140% 90% at 50% 0%, rgba(255,244,214,.35), transparent 55%),
+      radial-gradient(120% 120% at 50% 108%, rgba(90,60,25,.28), transparent 55%),
+      var(--paper);
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.65),
+      0 4px 14px rgba(0,0,0,.5),
+      inset 0 0 0 1px rgba(120,90,40,.35);
+    padding:0 clamp(16px,4vw,40px) clamp(18px,3.4vw,30px);
+  }
+  /* fold creases */
+  .poster::before{
+    content:"";
+    position:absolute;inset:0;pointer-events:none;z-index:4;
+    background:
+      linear-gradient(90deg, transparent 30.8%, rgba(70,45,15,.16) 33.2%, rgba(255,246,220,.34) 33.9%, transparent 36.4%),
+      linear-gradient(90deg, transparent 63.6%, rgba(70,45,15,.16) 66%, rgba(255,246,220,.3) 66.7%, transparent 69.2%),
+      linear-gradient(0deg, transparent 47.6%, rgba(70,45,15,.13) 50%, rgba(255,246,220,.26) 50.7%, transparent 53%),
+      radial-gradient(90% 60% at 3% 2%, rgba(90,60,25,.2), transparent 30%),
+      radial-gradient(90% 60% at 97% 3%, rgba(90,60,25,.18), transparent 28%),
+      radial-gradient(70% 50% at 4% 98%, rgba(90,60,25,.22), transparent 30%),
+      radial-gradient(70% 50% at 96% 97%, rgba(90,60,25,.2), transparent 30%);
+  }
+  /* paper grain */
+  .poster::after{
+    content:"";
+    position:absolute;inset:0;pointer-events:none;z-index:5;opacity:.5;mix-blend-mode:multiply;
+    background-image:
+      radial-gradient(rgba(90,60,25,.09) 1px, transparent 1.3px),
+      radial-gradient(rgba(90,60,25,.06) 1px, transparent 1.3px);
+    background-size:6px 6px, 9px 9px;
+    background-position:0 0, 3px 4px;
+  }
+  .inner{
+    position:relative;z-index:6;
+    display:flex;flex-direction:column;
+  }
+
+  /* ————————————— bunting ————————————— */
+  .bunting{
+    display:block;
+    width:calc(100% + 2 * clamp(16px,4vw,40px));
+    margin:0 calc(-1 * clamp(16px,4vw,40px));
+    height:auto;
+  }
+
+  /* ————————————— wood type stack ————————————— */
+  .head{
+    text-align:center;
+    padding-top:clamp(8px,1.6vw,14px);
+  }
+  .present{
+    font-family:var(--serif);
+    font-size:clamp(10px,1.7vw,14px);
+    letter-spacing:.42em;
+    text-indent:.42em;
+    text-transform:uppercase;
+    color:var(--navy);
+    font-weight:600;
+  }
+  .present .amp{color:var(--red)}
+  .grand{
+    font-family:var(--wood);
+    font-size:clamp(40px,9.2vw,74px);
+    line-height:.92;
+    color:var(--navy);
+    letter-spacing:.045em;
+    text-transform:uppercase;
+    margin-top:.08em;
+    text-shadow:
+      2px 2px 0 var(--gold-soft),
+      4px 4px 0 rgba(46,28,12,.28);
+  }
+  .carnival{
+    font-family:var(--wood);
+    font-size:clamp(64px,15.4vw,124px);
+    line-height:.86;
+    color:var(--red);
+    letter-spacing:.01em;
+    text-transform:uppercase;
+    transform:scaleY(1.16);
+    transform-origin:50% 100%;
+    margin-top:.02em;
+    text-shadow:
+      3px 3px 0 var(--cream),
+      6px 6px 0 rgba(46,28,12,.3);
+  }
+  .yearband{
+    margin-top:clamp(8px,2vw,14px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+  }
+  .yearband .rule{
+    flex:1 1 auto;height:3px;
+    background:repeating-linear-gradient(90deg, var(--navy) 0 14px, transparent 14px 22px);
+  }
+  .yearband .y{
+    font-family:var(--wood);
+    font-size:clamp(20px,4.4vw,34px);
+    color:var(--navy);
+    letter-spacing:.12em;
+  }
+  .star{
+    color:var(--red);
+    display:inline-flex;
+  }
+  .star svg{width:1em;height:1em;display:block;fill:currentColor}
+
+  .claim{
+    margin-top:clamp(6px,1.4vw,10px);
+    text-align:center;
+  }
+  .claim .big{
+    font-family:var(--wood);
+    font-size:clamp(15px,3vw,24px);
+    letter-spacing:.14em;
+    color:var(--cream);
+    background:var(--navy);
+    display:inline-block;
+    padding:clamp(5px,1.1vw,8px) clamp(12px,2.6vw,20px) clamp(4px,1vw,7px);
+    box-shadow:3px 3px 0 var(--gold);
+    text-transform:uppercase;
+    line-height:1.2;
+  }
+  .claim .big em{
+    font-style:normal;color:var(--gold-soft);
+  }
+  .claim .small{
+    margin-top:clamp(6px,1.2vw,9px);
+    font-style:italic;
+    font-size:clamp(11px,1.9vw,15px);
+    color:var(--navy);
+    letter-spacing:.05em;
+  }
+
+  /* ————————————— starburst ————————————— */
+  .burst-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(10px,2.4vw,20px);
+    margin:clamp(10px,2.2vw,16px) 0 clamp(6px,1.4vw,10px);
+  }
+  .burst{
+    width:clamp(86px,17vw,120px);
+    height:clamp(86px,17vw,120px);
+    position:relative;
+    flex:0 0 auto;
+  }
+  .burst svg{width:100%;height:100%;display:block}
+  .burst .tag{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+    color:var(--cream);
+    font-family:var(--wood);
+    line-height:1;
+  }
+  .burst .tag b{
+    font-weight:400;
+    font-size:clamp(15px,3.4vw,23px);
+    letter-spacing:.05em;
+    display:block;
+  }
+  .burst .tag span{
+    font-size:clamp(8px,1.5vw,11px);
+    letter-spacing:.3em;
+    display:block;
+    margin-top:3px;
+  }
+  .burst-notes{
+    font-style:italic;
+    font-size:clamp(11px,1.9vw,14.5px);
+    line-height:1.65;
+    color:var(--navy);
+    max-width:34ch;
+  }
+  .burst-notes b{
+    font-style:normal;
+    font-family:var(--wood);
+    font-weight:400;
+    letter-spacing:.08em;
+    color:var(--red);
+    text-transform:uppercase;
+    font-size:1.12em;
+  }
+
+  /* ————————————— acts ————————————— */
+  .acts{
+    margin-top:clamp(8px,2vw,14px);
+    border-top:3px double var(--navy);
+    border-bottom:3px double var(--navy);
+    padding:clamp(6px,1.4vw,10px) 0;
+  }
+  .act{
+    position:relative;
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    align-items:center;
+    gap:clamp(8px,2vw,16px);
+    padding:clamp(8px,1.8vw,13px) clamp(4px,1vw,10px);
+    cursor:pointer;
+    transition:background .22s ease;
+    outline:none;
+  }
+  .act + .act{border-top:1px dashed rgba(29,53,87,.4)}
+  .act:hover,.act:focus-visible{background:rgba(201,162,39,.16)}
+  .act:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+  .act .no{
+    font-family:var(--wood);
+    font-size:clamp(17px,3.4vw,26px);
+    color:var(--cream);
+    background:var(--red);
+    width:1.7em;height:1.7em;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:2px 2px 0 var(--navy);
+    transform:rotate(-4deg);
+  }
+  .act:nth-child(2) .no{transform:rotate(3deg);background:var(--navy);box-shadow:2px 2px 0 var(--red)}
+  .act:nth-child(3) .no{transform:rotate(-2deg)}
+  .act .who{min-width:0}
+  .act .name{
+    font-family:var(--wood);
+    font-size:clamp(21px,4.6vw,34px);
+    line-height:1;
+    color:var(--navy);
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .act .name i{
+    font-style:normal;
+    color:var(--red);
+  }
+  .act .epithet{
+    font-style:italic;
+    font-size:clamp(10.5px,1.8vw,14px);
+    color:rgba(29,53,87,.78);
+    letter-spacing:.04em;
+    margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .vignette{
+    width:clamp(84px,16vw,118px);
+    aspect-ratio:4 / 3;
+    position:relative;
+    flex:0 0 auto;
+    background:
+      radial-gradient(85% 90% at 50% 42%, rgba(201,162,39,.4), rgba(201,162,39,.08) 62%, transparent 75%);
+    border:1px solid rgba(29,53,87,.35);
+    box-shadow:inset 0 0 0 3px rgba(232,213,174,.8), inset 0 0 12px rgba(29,53,87,.15);
+    overflow:hidden;
+    transition:box-shadow .25s ease;
+  }
+  .act:hover .vignette,.act:focus-visible .vignette{
+    box-shadow:inset 0 0 0 3px var(--gold-soft), 0 0 16px rgba(201,162,39,.45), inset 0 0 14px rgba(201,162,39,.3);
+  }
+  .vignette canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .act .spot{
+    position:absolute;
+    left:clamp(4px,1vw,10px);
+    bottom:clamp(2px,.6vw,4px);
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:rgba(29,53,87,.5);
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .act:hover .spot,.act:focus-visible .spot{opacity:1}
+
+  /* ————————————— particulars ————————————— */
+  .particulars{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:clamp(8px,2vw,16px);
+    margin-top:clamp(10px,2.2vw,16px);
+    text-align:center;
+  }
+  .particulars .when{
+    font-family:var(--wood);
+    font-size:clamp(13px,2.6vw,19px);
+    color:var(--navy);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    line-height:1.3;
+  }
+  .particulars .where{
+    font-style:italic;
+    font-size:clamp(10px,1.7vw,13.5px);
+    color:rgba(29,53,87,.75);
+    margin-top:2px;
+  }
+  .particulars .prices{
+    font-family:var(--mono);
+    font-size:clamp(9.5px,1.6vw,12px);
+    letter-spacing:.12em;
+    color:var(--red);
+    line-height:1.7;
+  }
+  .particulars .midstar{color:var(--red)}
+
+  /* ————————————— plaque controls ————————————— */
+  .controls{
+    margin-top:clamp(12px,2.6vw,18px);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+  }
+  .brass{
+    -webkit-appearance:none;appearance:none;
+    font-family:var(--wood);
+    font-size:clamp(12px,2.2vw,16px);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:#3a2a10;
+    background:linear-gradient(180deg, #e3c766, var(--gold) 55%, #a5831d);
+    border:1px solid #8a6c15;
+    border-radius:3px;
+    padding:clamp(9px,1.8vw,12px) clamp(14px,3vw,22px) clamp(8px,1.6vw,11px);
+    cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,244,200,.8), 0 3px 0 #6d5410, 0 6px 12px rgba(0,0,0,.35);
+    transition:transform .12s ease, box-shadow .12s ease, filter .2s ease;
+  }
+  .brass:hover,.brass:focus-visible{filter:brightness(1.07)}
+  .brass:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,244,200,.8), 0 1px 0 #6d5410}
+  .brass:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+  .brass[aria-pressed="true"]{
+    background:linear-gradient(180deg, #d8b04a, var(--gold) 55%, #8a6c15);
+    box-shadow:inset 0 2px 6px rgba(60,40,5,.55), 0 1px 0 #6d5410;
+  }
+  .keynote{
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:rgba(29,53,87,.55);
+  }
+
+  /* ————————————— tear-off ticket ————————————— */
+  .ticketzone{
+    margin-top:clamp(14px,3vw,22px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .perf{
+    width:100%;
+    border-top:3px dashed rgba(29,53,87,.45);
+    position:relative;
+    margin-bottom:clamp(10px,2.2vw,14px);
+  }
+  .perf::before,.perf::after{
+    content:"";
+    position:absolute;top:-9px;
+    width:18px;height:18px;border-radius:50%;
+    background:#221a10;
+    box-shadow:inset 0 0 6px rgba(0,0,0,.8);
+  }
+  .perf::before{left:-9px}
+  .perf::after{right:-9px}
+  .tearhint{
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    color:rgba(29,53,87,.5);
+    margin-bottom:8px;
+  }
+  .ticket{
+    width:min(420px,100%);
+    display:flex;
+    position:relative;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    transition:transform .25s ease;
+  }
+  .ticket:hover{transform:rotate(-.6deg)}
+  .ticket .stub{
+    flex:0 0 22%;
+    background:var(--red);
+    color:var(--cream);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:4px;
+    padding:12px 6px;
+    border:1px solid var(--red-deep);
+    border-right:2px dashed rgba(244,233,207,.7);
+  }
+  .stub .s1{
+    font-family:var(--wood);
+    font-size:clamp(11px,2vw,15px);
+    letter-spacing:.18em;
+    text-align:center;
+    line-height:1.25;
+  }
+  .stub .s2{
+    font-family:var(--mono);
+    font-size:clamp(8px,1.4vw,10px);
+    letter-spacing:.08em;
+    opacity:.85;
+  }
+  .ticket .body{
+    flex:1 1 auto;
+    background:var(--cream);
+    border:1px solid var(--gold);
+    border-left:none;
+    padding:clamp(10px,2vw,16px) clamp(12px,2.4vw,18px);
+    position:relative;
+    overflow:hidden;
+  }
+  .ticket .body::before{
+    content:"";
+    position:absolute;inset:0;
+    background:repeating-linear-gradient(-45deg, transparent 0 12px, rgba(201,162,39,.12) 12px 14px);
+  }
+  .ticket .row1{
+    position:relative;
+    display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  }
+  .admit{
+    font-family:var(--wood);
+    font-size:clamp(20px,4.4vw,30px);
+    color:var(--navy);
+    letter-spacing:.1em;
+    line-height:1;
+  }
+  .admit i{font-style:normal;color:var(--red)}
+  .no{
+    font-family:var(--mono);
+    font-size:clamp(9px,1.5vw,11px);
+    letter-spacing:.14em;
+    color:var(--red);
+  }
+  .ticket .row2{
+    position:relative;
+    margin-top:6px;
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+  }
+  .ticket .terms{
+    font-style:italic;
+    font-size:clamp(9px,1.5vw,11.5px);
+    color:rgba(29,53,87,.72);
+    line-height:1.45;
+  }
+  .ticket .tstar{color:var(--gold);flex:0 0 auto}
+  .ticket .tstar svg{width:16px;height:16px;display:block;fill:currentColor}
+
+  .ticket.torn{animation:tearfall .9s cubic-bezier(.3,.6,.4,1) forwards}
+  .ticket.torn .body{
+    animation:bodyrip .9s cubic-bezier(.3,.6,.4,1) forwards;
+  }
+  .ticket.torn .stub{
+    animation:stubrip .9s cubic-bezier(.3,.6,.4,1) forwards;
+  }
+  @keyframes bodyrip{
+    0%{transform:rotate(0) translate(0,0);opacity:1}
+    30%{transform:rotate(2deg) translate(2px,-6px)}
+    100%{transform:rotate(10deg) translate(40px,140px);opacity:0}
+  }
+  @keyframes stubrip{
+    0%{transform:rotate(0)}
+    100%{transform:rotate(-7deg) translate(-8px,10px)}
+  }
+  @keyframes tearfall{
+    0%{filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+    100%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+  }
+  .reprint{
+    margin-top:4px;
+    -webkit-appearance:none;appearance:none;
+    background:none;border:none;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--red);
+    cursor:pointer;
+    padding:8px 10px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .4s ease .5s;
+  }
+  .reprint.show{opacity:1;pointer-events:auto}
+  .reprint:hover,.reprint:focus-visible{text-decoration:underline}
+  .reprint:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+  .noscript{
+    max-width:420px;margin:60px auto;text-align:center;
+    font-family:var(--mono);font-size:12px;color:rgba(244,233,207,.7);
+    letter-spacing:.1em;
+  }
+
+  @media (max-width:560px){
+    .act{grid-template-columns:auto minmax(0,1fr)}
+    .vignette{grid-column:1 / -1;justify-self:end;width:min(46vw,180px)}
+    .act .spot{position:static;margin-top:2px}
+    .burst-row{flex-direction:column}
+    .particulars{grid-template-columns:1fr;gap:6px}
+    .particulars .midstar{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticket,.brass,.act{transition:none}
+    .ticket.torn .body,.ticket.torn .stub,.ticket.torn{animation:none}
+    .ticket.torn{opacity:.4}
+    .ticket.torn .body{opacity:0}
+  }
+</style>
+</head>
+<body>
+
+<article class="poster" id="poster">
+  <div class="inner">
+
+    <svg class="bunting" viewBox="0 0 660 46" aria-hidden="true">
+      <path d="M0 4 Q165 22 330 4 T660 4" fill="none" stroke="#1d3557" stroke-width="3"/>
+      <g id="flags"></g>
+    </svg>
+
+    <header class="head">
+      <p class="present">Morris <span class="amp">&amp;</span> Field&rsquo;s Unrivalled</p>
+      <h1 class="grand">The Grand</h1>
+      <p class="carnival">Carnival</p>
+      <div class="yearband" aria-hidden="true">
+        <span class="rule"></span>
+        <span class="star"><svg viewBox="0 0 20 20"><path d="M10 0l2.4 6.6L19 7.4l-5 4.4 1.6 6.7L10 14.9l-5.6 3.6L6 11.8 1 7.4l6.6-.8z"/></svg></span>
+        <span class="y">1899</span>
+        <span class="star"><svg viewBox="0 0 20 20"><path d="M10 0l2.4 6.6L19 7.4l-5 4.4 1.6 6.7L10 14.9l-5.6 3.6L6 11.8 1 7.4l6.6-.8z"/></svg></span>
+        <span class="rule"></span>
+      </div>
+      <div class="claim">
+        <span class="big">A Spectacular <em>&amp;</em> Colossal Entertainment</span>
+        <p class="small">Under the celebrated thirteen-pole canvas &mdash; rain or shine &mdash; three rings, two stages, one wonder after another</p>
+      </div>
+    </header>
+
+    <div class="burst-row">
+      <div class="burst" aria-hidden="true">
+        <svg viewBox="0 0 120 120">
+          <g fill="#b3402a">
+            <path id="rb" d="M60 4l7 22 20-12-8 22 23 2-19 13 19 13-23 2 8 22-20-12-7 22-7-22-20 12 8-22-23-2 19-13-19-13 23-2-8-22 20 12z"/>
+          </g>
+          <circle cx="60" cy="60" r="30" fill="#1d3557"/>
+        </svg>
+        <span class="tag"><b>3</b><span>Rings</span></span>
+      </div>
+      <p class="burst-notes">
+        <b>New this season</b> &mdash; Herr Brutus bears a battery of 1,400 pounds; Madame Serpentina walks the high wire without a net; little Volta folds himself into a hatbox. <b>Twice nightly.</b>
+      </p>
+    </div>
+
+    <section class="acts" aria-label="The acts of the Grand Carnival">
+
+      <div class="act" tabindex="0" role="button" aria-label="Act one: Herr Brutus, the Iron Atlas. Focus or hover to spotlight the vignette." data-act="strongman">
+        <span class="no" aria-hidden="true">1</span>
+        <span class="who">
+          <span class="name">Herr <i>Brutus</i></span>
+          <span class="epithet">The Iron Atlas &mdash; bearing the weight of the world, one paw at a time</span>
+        </span>
+        <span class="vignette" aria-hidden="true"><canvas id="vStrong" width="240" height="180"></canvas></span>
+        <span class="spot">Hover &mdash; the act plays</span>
+      </div>
+
+      <div class="act" tabindex="0" role="button" aria-label="Act two: Madame Serpentina, wire-walker supreme. Focus or hover to spotlight the vignette." data-act="wire">
+        <span class="no" aria-hidden="true">2</span>
+        <span class="who">
+          <span class="name">Madame <i>Serpentina</i></span>
+          <span class="epithet">Wire-Walker Supreme &mdash; seventy feet above the sawdust, serene as Sunday</span>
+        </span>
+        <span class="vignette" aria-hidden="true"><canvas id="vWire" width="240" height="180"></canvas></span>
+        <span class="spot">Hover &mdash; the act plays</span>
+      </div>
+
+      <div class="act" tabindex="0" role="button" aria-label="Act three: The Amazing Volta, contortionist. Focus or hover to spotlight the vignette." data-act="contort">
+        <span class="no" aria-hidden="true">3</span>
+        <span class="who">
+          <span class="name">Amazing <i>Volta</i></span>
+          <span class="epithet">The Human Comet &mdash; folding where no skeleton should, smiling all the while</span>
+        </span>
+        <span class="vignette" aria-hidden="true"><canvas id="vContort" width="240" height="180"></canvas></span>
+        <span class="spot">Hover &mdash; the act plays</span>
+      </div>
+
+    </section>
+
+    <section class="particulars">
+      <div>
+        <p class="when">Saturday June 3rd<br>Matinee 2 &middot; Night 8</p>
+        <p class="where">The Great Hippodrome Fields, Boerum Place</p>
+      </div>
+      <span class="midstar" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 20 20"><path d="M10 0l2.4 6.6L19 7.4l-5 4.4 1.6 6.7L10 14.9l-5.6 3.6L6 11.8 1 7.4l6.6-.8z" fill="currentColor"/></svg></span>
+      <div>
+        <p class="prices">ADULTS 25&cent;<br>CHILDREN 10&cent;<br>UNDER THE CANVAS &mdash; FREE</p>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button class="brass" id="btnMusic" type="button" aria-pressed="false">Calliope &#9834;</button>
+      <span class="keynote">Wind the organ &middot; press again to still it</span>
+    </div>
+
+    <div class="ticketzone">
+      <div class="perf" aria-hidden="true"></div>
+      <p class="tearhint" id="tearhint">Tear along the perforation</p>
+      <div class="ticket" id="ticket" tabindex="0" role="button" aria-label="Admit one ticket. Press to tear along the perforation.">
+        <div class="stub">
+          <span class="s1">Admit<br>One</span>
+          <span class="s2">N&ordm; 008 177</span>
+        </div>
+        <div class="body">
+          <div class="row1">
+            <span class="admit">The Grand <i>Carnival</i></span>
+            <span class="no">SEAT &mdash; ANY</span>
+          </div>
+          <div class="row2">
+            <span class="terms">Good for one admission, any ring, any seat the usher shall grant. Lost tickets laughed at. Rain or shine &mdash; the show must go on.</span>
+            <span class="tstar" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M10 0l2.4 6.6L19 7.4l-5 4.4 1.6 6.7L10 14.9l-5.6 3.6L6 11.8 1 7.4l6.6-.8z"/></svg></span>
+          </div>
+        </div>
+      </div>
+      <button class="reprint" id="btnReprint" type="button">Print another ticket</button>
+    </div>
+
+  </div>
+</article>
+
+<div class="noscript" id="noscript" hidden>
+  The carnival poster plays its vignettes on canvas &mdash; JavaScript required at the gate.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   THE GRAND CARNIVAL — bunting flags, act vignettes on canvas,
+   a calliope arpeggio, and a tear-off ticket.
+   ============================================================ */
+
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var NAVY = "#1d3557";
+var RED = "#b3402a";
+var GOLD = "#c9a227";
+var CREAM = "#f4e9cf";
+var PAPER = "#e8d5ae";
+
+/* ————————————————— Bunting flags ————————————————— */
+
+(function buildFlags(){
+  var g = document.getElementById("flags");
+  var cols = [RED, NAVY, GOLD, NAVY, RED, GOLD];
+  var n = 22;
+  var html = "";
+  for (var i = 0; i < n; i++){
+    var x = 8 + i * (644 / (n - 1));
+    var curveY = 4 + Math.sin(i / (n - 1) * Math.PI) * 16;
+    var cx = x + 6;
+    html += '<path d="M' + x.toFixed(1) + ' ' + curveY.toFixed(1) +
+      ' L' + (cx - 7).toFixed(1) + ' ' + (curveY + 20).toFixed(1) +
+      ' L' + (cx + 7).toFixed(1) + ' ' + (curveY + 20).toFixed(1) + ' Z"' +
+      ' fill="' + cols[i % cols.length] + '" opacity="0.92"/>';
+  }
+  g.innerHTML = html;
+})();
+
+/* ————————————————— Vignette engine ————————————————— */
+
+function makeVig(id, draw){
+  var cv = document.getElementById(id);
+  var ctx = cv.getContext("2d");
+  var raf = null;
+  var t0 = performance.now();
+  function frame(now){
+    var t = (now - t0) / 1000;
+    draw(ctx, cv.width, cv.height, t);
+    raf = requestAnimationFrame(frame);
+  }
+  function start(){
+    if (raf || REDUCED) { if (REDUCED) draw(ctx, cv.width, cv.height, 1.2); return; }
+    t0 = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+  function stop(){
+    if (raf){ cancelAnimationFrame(raf); raf = null; }
+  }
+  return { cv: cv, start: start, stop: stop, drawOnce: function(){ draw(ctx, cv.width, cv.height, 1.2); } };
+}
+
+function spotlight(ctx, w, h, t){
+  var g = ctx.createRadialGradient(w / 2, h * 0.42, 6, w / 2, h * 0.42, w * 0.62);
+  var p = 0.5 + 0.08 * Math.sin(t * 5.3);
+  g.addColorStop(0, "rgba(226,190,90," + (0.5 * p + 0.25).toFixed(3) + ")");
+  g.addColorStop(0.7, "rgba(201,162,39,.16)");
+  g.addColorStop(1, "rgba(201,162,39,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  /* sawdust floor */
+  ctx.fillStyle = "rgba(140,105,45,.35)";
+  ctx.beginPath();
+  ctx.ellipse(w / 2, h * 0.88, w * 0.42, h * 0.09, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/* — strongman: presses the barbell overhead and back down — */
+var vStrong = makeVig("vStrong", function(ctx, w, h, t){
+  ctx.clearRect(0, 0, w, h);
+  spotlight(ctx, w, h, t);
+  var cx = w / 2;
+  var floor = h * 0.86;
+  var press = Math.sin(t * 2.2) * 0.5 + 0.5;         /* 0 down, 1 up */
+  var lift = Math.pow(press, 1.4);
+  var armLen = 14 + lift * 20;
+  var shoulderY = floor - 66;
+  var barY = shoulderY - armLen;
+
+  /* legs */
+  ctx.strokeStyle = NAVY;
+  ctx.lineCap = "round";
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(cx - 6, floor - 30); ctx.lineTo(cx - 15, floor - 4);
+  ctx.moveTo(cx + 6, floor - 30); ctx.lineTo(cx + 15, floor - 4);
+  ctx.stroke();
+  /* torso */
+  ctx.fillStyle = NAVY;
+  ctx.beginPath();
+  ctx.moveTo(cx - 15, floor - 28);
+  ctx.lineTo(cx - 13, shoulderY - 6);
+  ctx.lineTo(cx + 13, shoulderY - 6);
+  ctx.lineTo(cx + 15, floor - 28);
+  ctx.closePath();
+  ctx.fill();
+  /* belt */
+  ctx.fillStyle = RED;
+  ctx.fillRect(cx - 16, floor - 34, 32, 6);
+  /* head */
+  ctx.beginPath();
+  ctx.arc(cx, shoulderY - 14, 9, 0, Math.PI * 2);
+  ctx.fill();
+  /* handlebar moustache */
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, shoulderY - 11);
+  ctx.quadraticCurveTo(cx - 9, shoulderY - 13, cx - 11, shoulderY - 10);
+  ctx.moveTo(cx + 5, shoulderY - 11);
+  ctx.quadraticCurveTo(cx + 9, shoulderY - 13, cx + 11, shoulderY - 10);
+  ctx.stroke();
+
+  /* barbell */
+  var bend = lift * 6;
+  ctx.strokeStyle = "#3d3d3d";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 52, barY + (lift > 0.05 ? bend : 0));
+  ctx.quadraticCurveTo(cx, barY - 8, cx + 52, barY + (lift > 0.05 ? bend : 0));
+  ctx.stroke();
+  /* plates */
+  ctx.fillStyle = NAVY;
+  ctx.fillRect(cx - 56, barY - 20 + bend * 0.2, 9, 40);
+  ctx.fillRect(cx + 47, barY - 20 + bend * 0.2, 9, 40);
+  ctx.fillStyle = RED;
+  ctx.fillRect(cx - 49, barY - 14 + bend * 0.4, 6, 28);
+  ctx.fillRect(cx + 43, barY - 14 + bend * 0.4, 6, 28);
+
+  /* arms */
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(cx - 12, shoulderY);
+  ctx.quadraticCurveTo(cx - 34, shoulderY - armLen * 0.5, cx - 30, barY + 10);
+  ctx.moveTo(cx + 12, shoulderY);
+  ctx.quadraticCurveTo(cx + 34, shoulderY - armLen * 0.5, cx + 30, barY + 10);
+  ctx.stroke();
+
+  /* effort stars when lifting high */
+  if (lift > 0.72){
+    ctx.fillStyle = RED;
+    var sx = [cx - 62, cx + 60, cx, cx - 44, cx + 46];
+    var sy = [barY - 30, barY - 34, barY - 44, shoulderY - 30, shoulderY - 34];
+    for (var i = 0; i < sx.length; i++){
+      var r = 3 + 1.6 * Math.sin(t * 9 + i * 2);
+      ctx.beginPath();
+      ctx.arc(sx[i], sy[i], Math.max(0.8, r), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+});
+
+/* — wire-walker: balances across the rope with parasol — */
+var vWire = makeVig("vWire", function(ctx, w, h, t){
+  ctx.clearRect(0, 0, w, h);
+  spotlight(ctx, w, h, t);
+  var ropeY = h * 0.36;
+  var sway = Math.sin(t * 1.6);
+  var cx = w / 2 + sway * 12;
+  var bob = Math.sin(t * 3.1) * 2;
+
+  /* rope */
+  ctx.strokeStyle = "#5c4526";
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(0, ropeY + 4);
+  ctx.quadraticCurveTo(w / 2, ropeY + 12 + sway * 3, w, ropeY + 2);
+  ctx.stroke();
+  /* poles */
+  ctx.strokeStyle = "#5c4526";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(10, ropeY - 30); ctx.lineTo(10, h * 0.9);
+  ctx.moveTo(w - 10, ropeY - 30); ctx.lineTo(w - 10, h * 0.9);
+  ctx.stroke();
+  /* safety net */
+  ctx.strokeStyle = "rgba(29,53,87,.45)";
+  ctx.lineWidth = 1.2;
+  for (var i = 0; i < 5; i++){
+    ctx.beginPath();
+    ctx.moveTo(16, h * 0.68 + i * 9);
+    ctx.quadraticCurveTo(w / 2, h * 0.6 + i * 9, w - 16, h * 0.68 + i * 9);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  for (var j = 0; j <= 6; j++){
+    var x0 = 16 + j * (w - 32) / 6;
+    ctx.moveTo(x0, h * 0.66);
+    ctx.quadraticCurveTo(w / 2 + (j - 3) * 6, h * 0.78, w / 2 + (j - 3) * 10, h * 0.92);
+  }
+  ctx.stroke();
+
+  /* figure */
+  var hipY = ropeY - 22 + bob;
+  ctx.strokeStyle = NAVY;
+  ctx.lineCap = "round";
+  ctx.lineWidth = 6;
+  /* legs */
+  ctx.beginPath();
+  ctx.moveTo(cx - 2, hipY);
+  ctx.lineTo(cx - 7, ropeY + 6);
+  ctx.moveTo(cx + 2, hipY);
+  ctx.lineTo(cx + 8, ropeY + 8);
+  ctx.stroke();
+  /* skirt */
+  ctx.fillStyle = RED;
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, hipY + 2);
+  ctx.lineTo(cx + 5, hipY + 2);
+  ctx.lineTo(cx + 11, hipY + 20);
+  ctx.lineTo(cx - 11, hipY + 20);
+  ctx.closePath();
+  ctx.fill();
+  /* torso */
+  ctx.fillStyle = NAVY;
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, hipY);
+  ctx.lineTo(cx - 3, hipY - 22);
+  ctx.lineTo(cx + 3, hipY - 22);
+  ctx.lineTo(cx + 5, hipY);
+  ctx.closePath();
+  ctx.fill();
+  /* head */
+  ctx.beginPath();
+  ctx.arc(cx, hipY - 29, 6.4, 0, Math.PI * 2);
+  ctx.fill();
+  /* parasol */
+  var tilt = -sway * 0.5;
+  ctx.save();
+  ctx.translate(cx, hipY - 16);
+  ctx.rotate(tilt);
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -26); ctx.stroke();
+  ctx.fillStyle = RED;
+  ctx.beginPath();
+  ctx.arc(0, -26, 15, Math.PI, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = GOLD;
+  ctx.fillRect(-16, -28, 32, 2.4);
+  ctx.restore();
+  /* free arm */
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 4.4;
+  ctx.beginPath();
+  ctx.moveTo(cx - 3, hipY - 18);
+  ctx.quadraticCurveTo(cx - 14, hipY - 24 + tilt * 8, cx - 22, hipY - 20 + tilt * 12);
+  ctx.stroke();
+});
+
+/* — contortionist: arches into a bridge and folds into a box — */
+var vContort = makeVig("vContort", function(ctx, w, h, t){
+  ctx.clearRect(0, 0, w, h);
+  spotlight(ctx, w, h, t);
+  var floor = h * 0.88;
+  var cx = w / 2;
+  var phase = (Math.sin(t * 1.4) + 1) / 2;    /* 0 bridge, 1 fold */
+
+  /* bridge arc */
+  var arch = Math.sin(phase * Math.PI);
+  var apexY = floor - 8 - arch * (h * 0.42);
+  var halfW = w * 0.3 - arch * w * 0.06;
+
+  ctx.fillStyle = NAVY;
+  /* body as a filled ribbon between two bezier curves */
+  ctx.beginPath();
+  ctx.moveTo(cx - halfW, floor);
+  ctx.quadraticCurveTo(cx - halfW * 0.5, apexY, cx, apexY - 6);
+  ctx.quadraticCurveTo(cx + halfW * 0.5, apexY, cx + halfW, floor);
+  ctx.lineTo(cx + halfW - 9, floor);
+  ctx.quadraticCurveTo(cx + halfW * 0.5, apexY + 13, cx, apexY + 8);
+  ctx.quadraticCurveTo(cx - halfW * 0.5, apexY + 13, cx - halfW + 9, floor);
+  ctx.closePath();
+  ctx.fill();
+
+  /* head: at the near foot when bridging, tucked on top when folded */
+  var headX = cx + halfW * (1 - phase * 0.55) - (1 - arch) * 6;
+  var headY = arch > 0.35 ? apexY - 10 : apexY - 2;
+  ctx.beginPath();
+  ctx.arc(headX, headY, 7.4, 0, Math.PI * 2);
+  ctx.fill();
+  /* little cap */
+  ctx.fillStyle = RED;
+  ctx.beginPath();
+  ctx.arc(headX, headY - 1.5, 7.4, Math.PI * 1.05, Math.PI * 1.95);
+  ctx.closePath();
+  ctx.fill();
+
+  /* arms reaching up (bridge) or hugging shins (fold) */
+  ctx.strokeStyle = NAVY;
+  ctx.lineWidth = 5.4;
+  ctx.lineCap = "round";
+  if (arch > 0.35){
+    ctx.beginPath();
+    ctx.moveTo(cx - halfW * 0.35, apexY + 6);
+    ctx.quadraticCurveTo(cx - halfW * 0.2, apexY - 22 - arch * 8, cx - 4, apexY - 26 - arch * 6);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(cx - halfW * 0.3, apexY + 4);
+    ctx.quadraticCurveTo(cx - 10, apexY + 2, cx - 2, apexY - 6);
+    ctx.stroke();
+  }
+
+  /* folded box outline when fully folded */
+  if (phase > 0.86){
+    ctx.strokeStyle = RED;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 4]);
+    ctx.strokeRect(cx - w * 0.19, apexY - 14, w * 0.38, floor - apexY + 14);
+    ctx.setLineDash([]);
+  }
+
+  /* bow on the floor: applause stars */
+  if (arch > 0.9){
+    ctx.fillStyle = GOLD;
+    for (var i = 0; i < 5; i++){
+      var a = t * 3 + i * 1.25;
+      var sx = cx + Math.cos(a) * (w * 0.3 + i * 5);
+      var sy = floor - 10 - Math.abs(Math.sin(a)) * 18;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+});
+
+/* ————————————————— Act hover wiring ————————————————— */
+
+var VIGS = {
+  strongman: vStrong,
+  wire: vWire,
+  contort: vContort
+};
+var acts = document.querySelectorAll(".act");
+for (var i = 0; i < acts.length; i++){
+  (function(el){
+    var v = VIGS[el.dataset.act];
+    el.addEventListener("pointerenter", function(){ v.start(); });
+    el.addEventListener("pointerleave", function(){ v.stop(); });
+    el.addEventListener("focus", function(){ v.start(); });
+    el.addEventListener("blur", function(){ v.stop(); });
+    el.addEventListener("click", function(){ v.start(); setTimeout(function(){ v.stop(); }, 2600); });
+  })(acts[i]);
+}
+if (REDUCED){
+  vStrong.drawOnce();
+  vWire.drawOnce();
+  vContort.drawOnce();
+}
+
+/* ————————————————— Calliope ————————————————— */
+
+var musicOn = false;
+var actx = null;
+var schedTimer = null;
+var noteIdx = 0;
+var nextNoteTime = 0;
+var bpm = 152;
+var btnMusic = document.getElementById("btnMusic");
+
+/* a jaunty tune in C major — two bars, then round she goes */
+var MELODY = [
+  0, 4, 7, 12, 7, 4, 0, 4,
+  2, 5, 9, 14, 9, 5, 2, 5,
+  4, 7, 12, 16, 12, 7, 4, 7,
+  5, 2, 7, 4, 0, -5, 0, null
+];
+
+function ensureAudio(){
+  if (actx) return;
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  actx = new AC();
+}
+
+function playNote(freq, when, dur, vol, type){
+  var osc = actx.createOscillator();
+  var osc2 = actx.createOscillator();
+  var g = actx.createGain();
+  osc.type = type || "square";
+  osc2.type = "triangle";
+  osc.frequency.value = freq;
+  osc2.frequency.value = freq * 2.002;   /* slight chorus, calliope-ish */
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(vol, when + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+  osc.connect(g); osc2.connect(g);
+  g.connect(actx.destination);
+  osc.start(when); osc2.start(when);
+  osc.stop(when + dur + 0.03); osc2.stop(when + dur + 0.03);
+}
+
+function semitone(base, n){ return base * Math.pow(2, n / 12); }
+
+function schedule(){
+  if (!musicOn) return;
+  var beat = 60 / bpm;
+  while (nextNoteTime < actx.currentTime + 0.18){
+    var n = MELODY[noteIdx % MELODY.length];
+    if (n !== null){
+      playNote(semitone(261.63, n), nextNoteTime, beat * 0.82, 0.055);
+      /* oom-pah bass on the beat */
+      if (noteIdx % 4 === 0) playNote(semitone(130.81, 0), nextNoteTime, beat * 0.6, 0.07, "sawtooth");
+      if (noteIdx % 4 === 2) playNote(semitone(164.81, 0), nextNoteTime, beat * 0.6, 0.06, "sawtooth");
+    }
+    nextNoteTime += beat / 2;
+    noteIdx++;
+  }
+  schedTimer = setTimeout(schedule, 60);
+}
+
+btnMusic.addEventListener("click", function(){
+  ensureAudio();
+  if (!actx){ btnMusic.disabled = true; return; }
+  if (!musicOn){
+    if (actx.state === "suspended") actx.resume();
+    musicOn = true;
+    nextNoteTime = actx.currentTime + 0.08;
+    noteIdx = 0;
+    schedule();
+    btnMusic.setAttribute("aria-pressed", "true");
+  } else {
+    musicOn = false;
+    clearTimeout(schedTimer);
+    btnMusic.setAttribute("aria-pressed", "false");
+    actx.suspend();
+  }
+});
+
+/* ————————————————— Ticket tear-off ————————————————— */
+
+var ticket = document.getElementById("ticket");
+var btnReprint = document.getElementById("btnReprint");
+var tearhint = document.getElementById("tearhint");
+
+function tear(){
+  if (ticket.classList.contains("torn")) return;
+  ticket.classList.add("torn");
+  tearhint.textContent = "Torn clean — the usher tips his hat";
+  btnReprint.classList.add("show");
+}
+ticket.addEventListener("click", tear);
+ticket.addEventListener("keydown", function(e){
+  if (e.key === "Enter" || e.key === " "){ e.preventDefault(); tear(); }
+});
+btnReprint.addEventListener("click", function(e){
+  e.stopPropagation();
+  ticket.classList.remove("torn");
+  tearhint.textContent = "Tear along the perforation";
+  btnReprint.classList.remove("show");
+});
+
+/* ————————————————— Nudge the vignettes once on load ————————————————— */
+
+setTimeout(function(){
+  vStrong.start();
+  setTimeout(function(){ if (!vStrong.cv.closest(".act:hover") && !vStrong.cv.closest(".act:focus-within")) vStrong.stop(); }, 1500);
+}, 600);
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Magnetic Fridge — a fridge door of magnetic word tiles. Compose a poem, listen to the hum, and print your verse as a polaroid.">
+<title>Magnetic Fridge — Words Held by Small Magnets</title>
+<style>
+  :root{
+    --steel:#e9e9e6;
+    --steel-2:#dcdcD8;
+    --steel-brush:#d3d3ce;
+    --kitchen:#2a1f16;
+    --kitchen-2:#1b130c;
+    --warm:#ffe8c9;
+    --warm-2:#f4d3a4;
+    --tile-cream:#f7f4ec;
+    --tile-ink:#33302b;
+    --magnet-red:#b03a2e;
+    --magnet-teal:#2e6e6a;
+    --magnet-gold:#c99a3a;
+    --magnet-cobalt:#2b44ff;
+    --frame:#3a2d20;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--warm); color:#4a3115; }
+  html{ scrollbar-color:#6b5a44 var(--kitchen-2); }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:var(--kitchen-2); }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(#7a6a52, #4a3d2c); border-radius:6px; border:2px solid var(--kitchen-2); }
+
+  body{
+    min-height:100vh;
+    font-family:system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color:#f2ede2;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #3a2c1e 0%, var(--kitchen) 46%, var(--kitchen-2) 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  body::before{ /* warm kitchen glow */
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(44% 30% at 16% -6%, rgba(255,232,201,.14), transparent 70%),
+      radial-gradient(40% 28% at 88% -4%, rgba(255,232,201,.1), transparent 70%);
+  }
+  header.porch, main, footer.foot{ position:relative; z-index:1; }
+
+  header.porch{
+    text-align:center;
+    padding:clamp(20px, 3.6vw, 46px) 16px 0;
+  }
+  .porch-eyebrow{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.6rem, 1.4vw, .7rem);
+    letter-spacing:.44em; text-indent:.44em; text-transform:uppercase;
+    color:var(--warm-2);
+  }
+  h1{
+    margin-top:10px;
+    font-size:clamp(2rem, 6vw, 4rem);
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#f2ede2;
+    text-shadow:0 2px 0 rgba(0,0,0,.5), 0 0 40px rgba(255,232,201,.14);
+    line-height:1.08;
+  }
+  .porch-sub{
+    margin-top:12px;
+    font-style:italic;
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    font-size:clamp(.86rem, 2vw, 1.04rem);
+    color:rgba(242,237,226,.72);
+    max-width:60ch; margin-left:auto; margin-right:auto; line-height:1.7;
+  }
+
+  main{
+    max-width:1280px; margin:0 auto;
+    padding:clamp(16px, 2.6vw, 36px) clamp(10px, 2vw, 24px) clamp(40px, 6vw, 70px);
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(280px, 360px);
+    gap:clamp(16px, 2.6vw, 36px);
+    align-items:start;
+  }
+
+  /* ============ THE FRIDGE ============ */
+  .fridge{
+    position:relative;
+    border-radius:18px;
+    background:linear-gradient(165deg, #f4f4f0 0%, var(--steel) 38%, var(--steel-brush) 78%, #c8c8c2 100%);
+    box-shadow:
+      0 40px 90px rgba(0,0,0,.65),
+      inset 0 2px 0 rgba(255,255,255,.85),
+      inset 0 -3px 8px rgba(0,0,0,.18),
+      inset 3px 0 6px rgba(255,255,255,.4),
+      inset -3px 0 10px rgba(0,0,0,.14);
+    padding:clamp(14px, 2.4vw, 30px);
+    min-height:clamp(520px, 70vw, 700px);
+    overflow:hidden;
+  }
+  .fridge.brushed::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.6;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 3px);
+  }
+  .fridge::after{ /* door seam + hinges */
+    content:"";
+    position:absolute; left:0; right:0; top:64px; height:2px;
+    background:linear-gradient(90deg, transparent, rgba(0,0,0,.18) 8%, rgba(0,0,0,.18) 92%, transparent);
+    pointer-events:none;
+  }
+  .fridge-controls{
+    display:flex; justify-content:flex-end; gap:8px;
+    padding-bottom:10px;
+    position:relative; z-index:5;
+  }
+  .fridge-chip{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.6rem; letter-spacing:.18em; text-transform:uppercase;
+    color:#5c584f;
+    background:rgba(255,255,255,.5);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:999px;
+    padding:8px 14px;
+    cursor:pointer;
+    box-shadow:0 2px 5px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.7);
+    transition:transform .18s ease, filter .18s ease;
+    min-height:34px; touch-action:manipulation;
+  }
+  .fridge-chip:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+  .fridge-chip:focus-visible{ outline:2px dashed var(--magnet-cobalt); outline-offset:3px; }
+  .fridge-chip[aria-pressed="true"]{
+    background:linear-gradient(180deg, #fff, #e8e4da);
+    box-shadow:0 2px 5px rgba(0,0,0,.18), inset 0 0 0 2px var(--magnet-teal);
+  }
+
+  .door-area{
+    position:relative;
+    height:calc(100% - 60px);
+    min-height:440px;
+    border-radius:10px;
+    overflow:hidden;
+  }
+  /* faint shadow of things reflected */
+  .door-area::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(60% 40% at 70% 20%, rgba(255,255,255,.35), transparent 60%),
+      radial-gradient(50% 36% at 20% 85%, rgba(0,0,0,.05), transparent 60%);
+  }
+
+  .word{
+    position:absolute;
+    padding:7px 11px 9px;
+    border-radius:3px;
+    background:
+      linear-gradient(178deg, #ffffff 0%, var(--tile-cream) 55%, #ece8dc 100%);
+    color:var(--tile-ink);
+    font-weight:700;
+    font-size:clamp(.8rem, 2vw, 1.02rem);
+    letter-spacing:.02em;
+    line-height:1;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+    white-space:nowrap;
+    box-shadow:
+      0 4px 9px rgba(30,24,16,.3),
+      0 1px 2px rgba(30,24,16,.25),
+      inset 0 1px 0 rgba(255,255,255,.9);
+    transition:box-shadow .2s ease;
+    will-change:transform;
+  }
+  .word.serif{ font-family:Georgia, "Times New Roman", ui-serif, serif; font-weight:700; }
+  .word.mono{ font-family:ui-monospace, "Courier New", monospace; font-weight:700; font-size:clamp(.72rem, 1.8vw, .92rem); }
+  .word .edge{
+    position:absolute; inset:0;
+    border-radius:3px;
+    pointer-events:none;
+    border:2px solid var(--edge-c, var(--magnet-red));
+    opacity:.85;
+  }
+  .word::after{ /* the magnet */
+    content:"";
+    position:absolute; left:50%; bottom:-5px;
+    width:10px; height:10px; margin-left:-5px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--edge-c, var(--magnet-red)) 62%, rgba(0,0,0,.35));
+    box-shadow:0 2px 4px rgba(0,0,0,.35);
+  }
+  .word:hover{ box-shadow:0 7px 14px rgba(30,24,16,.36), 0 2px 3px rgba(30,24,16,.28), inset 0 1px 0 rgba(255,255,255,.9); }
+  .word:focus-visible{ outline:2px dashed var(--magnet-cobalt); outline-offset:3px; }
+  .word.dragging{ cursor:grabbing; box-shadow:0 14px 26px rgba(30,24,16,.42), 0 4px 8px rgba(30,24,16,.3), inset 0 1px 0 rgba(255,255,255,.9); }
+  .word.ink-a{ transform:rotate(-.8deg); }
+  .word.ink-b{ letter-spacing:.045em; }
+  .word.ink-c{ font-size:clamp(.84rem, 2.1vw, 1.06rem); }
+
+  /* ============ SIDE PANEL ============ */
+  .side{ display:flex; flex-direction:column; gap:14px; position:sticky; top:16px; }
+  .polaroid-slot{
+    background:linear-gradient(170deg, #32271a, #221a11);
+    border:1px solid rgba(255,232,201,.22);
+    border-radius:14px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,232,201,.16);
+    padding:clamp(14px, 2.2vw, 22px);
+  }
+  .polaroid-slot h2{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.7rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--warm-2);
+    padding-bottom:9px; margin-bottom:12px;
+    border-bottom:1px dashed rgba(255,232,201,.28);
+  }
+  .snap-btn{
+    width:100%;
+    font-family:Georgia, ui-serif, serif;
+    font-variant:small-caps; letter-spacing:.24em; text-indent:.1em;
+    font-size:clamp(.9rem, 2vw, 1.05rem);
+    color:#4a3115;
+    background:linear-gradient(180deg, #ffe9c4, var(--warm) 62%, #e2b47c);
+    border:1px solid #b98a52;
+    border-radius:10px;
+    padding:13px 16px;
+    cursor:pointer;
+    box-shadow:0 6px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.6);
+    transition:transform .18s ease, filter .18s ease;
+    touch-action:manipulation;
+    min-height:48px;
+  }
+  .snap-btn:hover{ transform:translateY(-2px); filter:brightness(1.06); }
+  .snap-btn:focus-visible{ outline:2px dashed var(--warm); outline-offset:3px; }
+  .slot-note{
+    margin-top:10px;
+    font-style:italic;
+    font-family:Georgia, ui-serif, serif;
+    font-size:.75rem; line-height:1.6;
+    color:rgba(242,237,226,.6);
+  }
+
+  .panel{
+    background:linear-gradient(170deg, rgba(58,45,32,.75), rgba(34,26,17,.85));
+    border:1px solid rgba(255,232,201,.2);
+    border-radius:14px;
+    box-shadow:0 18px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,232,201,.14);
+    padding:clamp(14px, 2.2vw, 22px);
+  }
+  .panel h2{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.7rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--warm-2);
+    padding-bottom:9px; margin-bottom:12px;
+    border-bottom:1px dashed rgba(255,232,201,.28);
+  }
+  .panel p{
+    font-style:italic;
+    font-family:Georgia, ui-serif, serif;
+    font-size:.78rem; line-height:1.7;
+    color:rgba(242,237,226,.66);
+  }
+  .panel .kbd{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-style:normal; font-size:.66rem;
+    border:1px solid rgba(255,232,201,.35);
+    border-bottom-width:2px;
+    border-radius:4px;
+    padding:1px 6px;
+    color:var(--warm-2);
+  }
+
+  footer.foot{
+    max-width:1280px; margin:0 auto;
+    padding:0 clamp(10px, 2vw, 24px) clamp(30px, 5vw, 56px);
+    text-align:center;
+    font-style:italic;
+    font-family:Georgia, ui-serif, serif;
+    font-size:.84rem;
+    color:rgba(242,237,226,.55);
+  }
+  footer.foot .sig{
+    display:block; margin-top:8px;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-style:normal; font-size:.6rem; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(255,232,201,.4);
+  }
+
+  /* ============ POLAROID OVERLAY ============ */
+  .snap-overlay{
+    position:fixed; inset:0; z-index:900;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    background:rgba(16,10,5,.82);
+    opacity:0; pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .snap-overlay.open{ opacity:1; pointer-events:auto; }
+  .snap-overlay::before{ /* flash */
+    content:""; position:absolute; inset:0; background:#fff;
+    opacity:0; pointer-events:none;
+  }
+  .snap-overlay.flash::before{ animation:flash .5s ease-out; }
+  @keyframes flash{ 0%{ opacity:0; } 12%{ opacity:.92; } 100%{ opacity:0; } }
+  .polaroid{
+    position:relative;
+    background:linear-gradient(180deg, #fbf8ee, #efe9d8);
+    padding:16px 16px 64px;
+    border-radius:3px;
+    box-shadow:0 30px 80px rgba(0,0,0,.75), 0 4px 14px rgba(0,0,0,.5);
+    transform:rotate(-1.6deg) translateY(14px) scale(.96);
+    transition:transform .5s cubic-bezier(.3,.8,.3,1.1);
+    max-width:min(92vw, 560px);
+  }
+  .snap-overlay.open .polaroid{ transform:rotate(-1.6deg) translateY(0) scale(1); }
+  .polaroid .shot{
+    position:relative;
+    background:
+      linear-gradient(180deg, var(--steel) 0%, #e2e2dd 70%, #d6d6d0 100%);
+    border:1px solid rgba(0,0,0,.14);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5), inset 0 2px 8px rgba(0,0,0,.1);
+    min-height:220px;
+    overflow:hidden;
+  }
+  .polaroid .shot .inner{
+    position:absolute; inset:0;
+  }
+  .polaroid .caption-line{
+    position:absolute; left:0; right:0; bottom:14px;
+    text-align:center;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.78rem; color:#4a4438;
+    letter-spacing:.04em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    padding:0 10px;
+  }
+  .polaroid .tape{
+    position:absolute; top:-14px; left:50%; transform:translateX(-50%) rotate(-2deg);
+    width:110px; height:26px;
+    background:linear-gradient(180deg, rgba(239,232,200,.94), rgba(226,216,180,.85));
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+    clip-path:polygon(0 14%, 4% 0, 100% 4%, 98% 90%, 94% 100%, 0 96%);
+  }
+  .print-btn{
+    margin-top:14px;
+    display:block; margin-left:auto; margin-right:auto;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.66rem; letter-spacing:.22em; text-transform:uppercase;
+    color:#f2ede2;
+    background:rgba(255,232,201,.12);
+    border:1px solid rgba(255,232,201,.4);
+    border-radius:8px;
+    padding:10px 22px;
+    cursor:pointer;
+    min-height:40px;
+    transition:filter .18s ease, transform .18s ease;
+  }
+  .print-btn:hover{ filter:brightness(1.3); transform:translateY(-1px); }
+  .print-btn:focus-visible{ outline:2px dashed var(--warm); outline-offset:3px; }
+
+  @media (max-width:960px){
+    main{ grid-template-columns:1fr; }
+    .side{ position:static; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .snap-overlay, .polaroid, .word, .fridge-chip, .snap-btn{ transition:none; }
+    .snap-overlay.flash::before{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="porch">
+  <p class="porch-eyebrow">Kitchen · Third Magnet From the Left · Est. Whenever</p>
+  <h1>Magnetic Fridge</h1>
+  <p class="porch-sub">Someone bought a bag of words at a flea market in 1994 and the door has never been the same. Drag the words into lines — the magnets will hold them, more or less where you meant.</p>
+</header>
+
+<main>
+  <section class="fridge" id="fridge" aria-label="Fridge door with magnetic words">
+    <div class="fridge-controls">
+      <button class="fridge-chip" id="humBtn" type="button" aria-pressed="false">Fridge Hum: Off</button>
+      <button class="fridge-chip" id="steelBtn" type="button" aria-pressed="false">Brushed Steel</button>
+      <button class="fridge-chip" id="scatterBtn" type="button">Scatter</button>
+      <button class="fridge-chip" id="supplyBtn" type="button">More Words</button>
+    </div>
+    <div class="door-area" id="doorArea"></div>
+  </section>
+
+  <aside class="side">
+    <div class="polaroid-slot">
+      <h2>Snapshot</h2>
+      <button class="snap-btn" id="snapBtn" type="button">Frame the Poem</button>
+      <p class="slot-note">The camera flashes, then your poem prints in a polaroid frame — caption and all. Keep it on the fridge of your mind.</p>
+    </div>
+    <div class="panel">
+      <h2>House Rules</h2>
+      <p>Drag any word anywhere; near an implicit baseline (within 14px) it will snap gently so your lines read true. <span class="kbd">D</span> scatters the door, <span class="kbd">F</span> frames the poem, <span class="kbd">M</span> toggles the hum. A few extra words live in the supply drawer — <span class="kbd">S</span> spills a handful.</p>
+    </div>
+    <div class="panel">
+      <h2>Care &amp; Feeding</h2>
+      <p>The hum is synthesized, not recorded, and only runs while you ask. Defrosting is unnecessary; poetry is self-preserving.</p>
+    </div>
+  </aside>
+</main>
+
+<footer class="foot">
+  Magnet inventory: forty-one words, four colors, one vowel missing since the move.
+  <span class="sig">No photographs were harmed · the flash is hypothetical · the fridge is imaginary</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var doorArea = document.getElementById("doorArea");
+
+  /* ---------- word bank ---------- */
+  var WORDS = [
+    { t: "the", f: "serif" }, { t: "a", f: "sans" }, { t: "and", f: "sans" },
+    { t: "moon", f: "serif" }, { t: "kitchen", f: "sans" }, { t: "light", f: "sans" },
+    { t: "we", f: "mono" }, { t: "held", f: "serif" }, { t: "small", f: "sans" },
+    { t: "magnets", f: "mono" }, { t: "of", f: "sans" }, { t: "every", f: "serif" },
+    { t: "winter", f: "serif" }, { t: "in", f: "sans" }, { t: "our", f: "sans" },
+    { t: "waited", f: "serif" }, { t: "for", f: "sans" }, { t: "hum", f: "mono" },
+    { t: "morning", f: "serif" }, { t: "quietly", f: "mono" }, { t: "bread", f: "sans" },
+    { t: "warms", f: "serif" }, { t: "still", f: "mono" }, { t: "life", f: "serif" },
+    { t: "door", f: "sans" }, { t: "opens", f: "sans" }, { t: "both", f: "mono" },
+    { t: "ways", f: "mono" }, { t: "butter", f: "sans" }, { t: "melts", f: "serif" },
+    { t: "into", f: "sans" }, { t: "gold", f: "serif" }, { t: "says", f: "mono" },
+    { t: "nothing", f: "serif" }, { t: "beautifully", f: "serif" }, { t: "cold", f: "sans" },
+    { t: "keeps", f: "sans" }, { t: "its", f: "mono" }, { t: "promise", f: "serif" },
+    { t: "again", f: "mono" }, { t: "night", f: "serif" }
+  ];
+  var EXTRA = [
+    { t: "anyway", f: "mono" }, { t: "orange", f: "sans" }, { t: "marmalade", f: "serif" },
+    { t: "spoon", f: "sans" }, { t: "listens", f: "serif" }, { t: "thunder", f: "serif" },
+    { t: "under", f: "sans" }, { t: "hums", f: "mono" }, { t: "forgives", f: "serif" },
+    { t: "windows", f: "sans" }, { t: "steam", f: "mono" }, { t: "almost", f: "sans" }
+  ];
+  var EDGE_COLORS = ["#b03a2e", "#2e6e6a", "#c99a3a", "#2b44ff"];
+
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var seed = 94;
+  var r = mulberry32(seed);
+
+  /* ---------- hum ---------- */
+  var AC = null, humNodes = null;
+  var humBtn = document.getElementById("humBtn");
+  function ensureCtx() {
+    if (!AC) {
+      var Ctor = window.AudioContext || window.webkitAudioContext;
+      if (!Ctor) { return false; }
+      AC = new Ctor();
+    }
+    if (AC.state === "suspended") { AC.resume(); }
+    return true;
+  }
+  function startHum() {
+    if (!ensureCtx()) { return; }
+    var g = AC.createGain();
+    g.gain.setValueAtTime(0.0001, AC.currentTime);
+    g.gain.linearRampToValueAtTime(0.028, AC.currentTime + 1.2);
+    var o1 = AC.createOscillator(); o1.type = "sine"; o1.frequency.value = 60;
+    var o2 = AC.createOscillator(); o2.type = "sine"; o2.frequency.value = 120;
+    var o3 = AC.createOscillator(); o3.type = "triangle"; o3.frequency.value = 179.8;
+    var g3 = AC.createGain(); g3.gain.value = 0.16;
+    var lp = AC.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
+    o1.connect(g); o2.connect(g); o3.connect(g3); g3.connect(lp); lp.connect(g);
+    g.connect(AC.destination);
+    o1.start(); o2.start(); o3.start();
+    humNodes = { g: g, stop: function () { o1.stop(); o2.stop(); o3.stop(); } };
+  }
+  function stopHum() {
+    if (!humNodes) { return; }
+    var t = AC.currentTime;
+    humNodes.g.gain.cancelScheduledValues(t);
+    humNodes.g.gain.setValueAtTime(humNodes.g.gain.value, t);
+    humNodes.g.gain.linearRampToValueAtTime(0.0001, t + 0.4);
+    var dead = humNodes;
+    window.setTimeout(function () { dead.stop(); }, 460);
+    humNodes = null;
+  }
+  humBtn.addEventListener("click", function () {
+    var on = humBtn.getAttribute("aria-pressed") === "true";
+    if (on) { stopHum(); humBtn.setAttribute("aria-pressed", "false"); humBtn.textContent = "Fridge Hum: Off"; }
+    else { startHum(); humBtn.setAttribute("aria-pressed", "true"); humBtn.textContent = "Fridge Hum: On"; }
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (!AC) { return; }
+    if (document.hidden) { AC.suspend(); } else if (humNodes) { AC.resume(); }
+  });
+  function clickSound() {
+    if (!ensureCtx()) { return; }
+    var t = AC.currentTime;
+    var o = AC.createOscillator();
+    var g = AC.createGain();
+    o.type = "square";
+    o.frequency.setValueAtTime(1400, t);
+    o.frequency.exponentialRampToValueAtTime(700, t + 0.02);
+    g.gain.setValueAtTime(0.03, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(g); g.connect(AC.destination);
+    o.start(t); o.stop(t + 0.06);
+  }
+  function shutterSound() {
+    if (!ensureCtx()) { return; }
+    var t = AC.currentTime;
+    [0, 0.07].forEach(function (d) {
+      var o = AC.createOscillator();
+      var g = AC.createGain();
+      o.type = "square";
+      o.frequency.value = d ? 320 : 520;
+      g.gain.setValueAtTime(0.05, t + d);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.05);
+      o.connect(g); g.connect(AC.destination);
+      o.start(t + d); o.stop(t + d + 0.07);
+    });
+  }
+
+  /* ---------- tiles ---------- */
+  var tiles = [];
+  var zTop = 100;
+  var snapLines = [];
+
+  function makeTile(word, x, y) {
+    var el = document.createElement("div");
+    el.className = "word " + word.f + " ink-" + "abc"[r() * 3 | 0];
+    el.textContent = word.t;
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-label", "Word tile: " + word.t.trim() + ". Arrow keys move, Enter lifts.");
+    var color = EDGE_COLORS[r() * EDGE_COLORS.length | 0];
+    el.style.setProperty("--edge-c", color);
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.zIndex = String(10 + (zTop++ % 40));
+    var edge = document.createElement("span");
+    edge.className = "edge";
+    el.appendChild(edge);
+    doorArea.appendChild(el);
+    var tile = { el: el, x: x, y: y, word: word };
+    tiles.push(tile);
+    bindTile(tile);
+    return tile;
+  }
+
+  function bindTile(tile) {
+    tile.el.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      var rect = doorArea.getBoundingClientRect();
+      var offX = e.clientX - rect.left - tile.x;
+      var offY = e.clientY - rect.top - tile.y;
+      zTop += 1;
+      tile.el.style.zIndex = String(zTop);
+      tile.el.classList.add("dragging");
+      clickSound();
+      var startRect = doorArea.getBoundingClientRect();
+      function move(ev) {
+        var nx = ev.clientX - startRect.left - offX;
+        var ny = ev.clientY - startRect.top - offY;
+        nx = Math.max(-8, Math.min(doorArea.clientWidth - tile.el.offsetWidth + 8, nx));
+        ny = Math.max(-8, Math.min(doorArea.clientHeight - 30, ny));
+        /* magnetic snap to implicit baselines */
+        var snapped = ny;
+        var best = 14;
+        snapLines.forEach(function (ly) {
+          var d = Math.abs(ny - ly);
+          if (d < best) { best = d; snapped = ly; }
+        });
+        tile.x = nx; tile.y = snapped;
+        tile.el.style.left = tile.x + "px";
+        tile.el.style.top = tile.y + "px";
+      }
+      function up() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        tile.el.classList.remove("dragging");
+      }
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      tile.el.setPointerCapture(e.pointerId);
+    });
+    tile.el.addEventListener("keydown", function (e) {
+      var step = e.shiftKey ? 22 : 5;
+      if (e.key === "ArrowLeft") { tile.x -= step; place(tile); e.preventDefault(); }
+      if (e.key === "ArrowRight") { tile.x += step; place(tile); e.preventDefault(); }
+      if (e.key === "ArrowUp") { tile.y -= step; place(tile); e.preventDefault(); }
+      if (e.key === "ArrowDown") { tile.y += step; place(tile); e.preventDefault(); }
+    });
+  }
+  function place(tile) {
+    tile.el.style.left = tile.x + "px";
+    tile.el.style.top = tile.y + "px";
+  }
+
+  function computeSnapLines() {
+    snapLines = [];
+    var h = doorArea.clientHeight;
+    for (var y = 44; y < h - 30; y += 56) { snapLines.push(y); }
+  }
+
+  function scatter(all) {
+    var W = doorArea.clientWidth, H = doorArea.clientHeight;
+    var list = all ? tiles : tiles.slice(0, Math.ceil(tiles.length * 0.7));
+    list.forEach(function (tile) {
+      tile.x = 8 + r() * Math.max(20, W - tile.el.offsetWidth - 16);
+      tile.y = 10 + r() * Math.max(20, H - 44);
+      /* snap initial scatter to nearest baseline sometimes */
+      if (r() < 0.4) {
+        var best = null, bd = 1e9;
+        snapLines.forEach(function (ly) {
+          var d = Math.abs(tile.y - ly);
+          if (d < bd) { bd = d; best = ly; }
+        });
+        if (bd < 20) { tile.y = best; }
+      }
+      place(tile);
+    });
+  }
+
+  function seedDoor() {
+    doorArea.querySelectorAll(".word").forEach(function (w) { w.remove(); });
+    tiles = [];
+    computeSnapLines();
+    var W = doorArea.clientWidth;
+    var used = {};
+    WORDS.forEach(function (word) {
+      var w = 90;
+      var x = 14 + r() * Math.max(20, W - w - 28);
+      var y = 12 + r() * Math.max(20, doorArea.clientHeight - 46);
+      /* gently cluster near baselines */
+      var best = y, bd = 1e9;
+      snapLines.forEach(function (ly) {
+        var d = Math.abs(y - ly);
+        if (d < bd) { bd = d; best = ly; }
+      });
+      if (bd < 26) { y = best; }
+      makeTile(word, x, y);
+    });
+  }
+
+  /* ---------- extra words drawer ---------- */
+  var supplyBtn = document.getElementById("supplyBtn");
+  supplyBtn.addEventListener("click", function () {
+    var picks = [];
+    for (var i = 0; i < 4; i++) {
+      var w = EXTRA[Math.floor(r() * EXTRA.length)];
+      picks.push(w);
+    }
+    var W = doorArea.clientWidth;
+    picks.forEach(function (word, i) {
+      var tile = makeTile(word, W * 0.6 + i * 30, doorArea.clientHeight - 60);
+      tile.x = W * 0.55 + r() * W * 0.3;
+      tile.y = 20 + r() * (doorArea.clientHeight - 60);
+      place(tile);
+    });
+    clickSound();
+  });
+
+  /* ---------- controls ---------- */
+  var scatterBtn = document.getElementById("scatterBtn");
+  scatterBtn.addEventListener("click", function () { scatter(true); clickSound(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) { return; }
+    if (e.key === "d" || e.key === "D") { scatter(true); }
+    if (e.key === "s" || e.key === "S") { supplyBtn.click(); }
+    if (e.key === "m" || e.key === "M") { humBtn.click(); }
+    if (e.key === "f" || e.key === "F") { snapBtn.click(); }
+  });
+
+  var steelBtn = document.getElementById("steelBtn");
+  steelBtn.addEventListener("click", function () {
+    var on = steelBtn.getAttribute("aria-pressed") === "true";
+    steelBtn.setAttribute("aria-pressed", String(!on));
+    steelBtn.innerHTML = on ? "Brushed Steel" : "Brushed Steel";
+    document.getElementById("fridge").classList.toggle("brushed", !on);
+  });
+
+  /* ---------- snapshot / polaroid ---------- */
+  var overlay = null;
+  function buildOverlay() {
+    overlay = document.createElement("div");
+    overlay.className = "snap-overlay";
+    overlay.innerHTML =
+      "<div class='polaroid' role='dialog' aria-label='Polaroid snapshot of your poem'>" +
+      "<span class='tape' aria-hidden='true'></span>" +
+      "<div class='shot'><div class='inner' id='shotInner'></div></div>" +
+      "<div class='caption-line' id='shotCaption'></div>" +
+      "</div>" +
+      "<button class='print-btn' id='printBtn2' type='button'>Keep It</button>";
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) { closeSnap(); }
+    });
+    document.getElementById("printBtn2").addEventListener("click", closeSnap);
+  }
+  function cloneTilesIntoShot(inner) {
+    /* render tiles into a mini fridge face */
+    var mini = document.createElement("div");
+    mini.style.position = "absolute";
+    mini.style.inset = "0";
+    var W = doorArea.clientWidth, H = doorArea.clientHeight;
+    tiles.forEach(function (tile) {
+      if (tile.el.offsetWidth < 4) { return; }
+      var clone = tile.el.cloneNode(true);
+      clone.classList.remove("dragging");
+      clone.style.left = (tile.x / W * 100) + "%";
+      clone.style.top = (tile.y / H * 100) + "%";
+      clone.style.fontSize = "clamp(.5rem, 1.6vw, .8rem)";
+      clone.style.padding = "5px 8px 6px";
+      clone.style.cursor = "default";
+      var edge = clone.querySelector(".edge");
+      if (edge) { edge.remove(); }
+      var mag = clone.querySelector("::after");
+      clone.style.setProperty("box-shadow", "0 3px 6px rgba(30,24,16,.3)");
+      mini.appendChild(clone);
+    });
+    inner.appendChild(mini);
+  }
+  function poemCaption() {
+    /* read tiles left-to-right, top-to-bottom, grouping into lines */
+    var lines = [];
+    var sorted = tiles.slice().sort(function (a, b) {
+      return (a.y - b.y) || (a.x - b.x);
+    });
+    var current = null;
+    sorted.forEach(function (tile) {
+      var y = tile.y;
+      if (current === null || Math.abs(y - current.y) > 26) {
+        current = { y: y, words: [] };
+        lines.push(current);
+      }
+      current.words.push(tile);
+    });
+    lines.forEach(function (ln) { ln.words.sort(function (a, b) { return a.x - b.x; }); });
+    return lines.map(function (ln) {
+      return ln.words.map(function (t) { return t.word.t.trim(); }).join(" ");
+    }).join(" / ").slice(0, 110);
+  }
+  var snapBtn = document.getElementById("snapBtn");
+  snapBtn.addEventListener("click", function () {
+    if (!overlay) { buildOverlay(); }
+    var inner = document.getElementById("shotInner");
+    inner.innerHTML = "";
+    cloneTilesIntoShot(inner);
+    var cap = document.getElementById("shotCaption");
+    var poem = poemCaption();
+    cap.textContent = poem || "( an empty poem is still a poem )";
+    overlay.classList.add("open");
+    overlay.classList.add("flash");
+    shutterSound();
+    window.setTimeout(function () { overlay.classList.remove("flash"); }, 520);
+  });
+  function closeSnap() {
+    if (overlay) { overlay.classList.remove("open"); }
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlay && overlay.classList.contains("open")) { closeSnap(); }
+  });
+
+  window.addEventListener("resize", function () {
+    computeSnapLines();
+  });
+
+  seedDoor();
+})();
+</script>
+</body>
+</html>

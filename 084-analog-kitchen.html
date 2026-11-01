@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUNDAY KITCHEN — Pancakes, Slowly</title>
+<meta name="description" content="A slow-morning recipe scene: check off pancake steps to drive the stove animation — batter pour, bubbles, flip — then stack the plate and pour the syrup. The sizzle is synthesized and stops when you lift the pan.">
+<style>
+/* ============================================================
+   SUNDAY KITCHEN — 084
+   Warm light, a hot pan, and no reason to hurry.
+   ============================================================ */
+
+:root {
+  --cream: #f7efe0;
+  --cream-deep: #efe4cf;
+  --tile: #d9e2dc;
+  --tile-line: rgba(107, 143, 113, 0.35);
+  --wood: #b98a55;
+  --wood-dark: #8a6540;
+  --sage: #6b8f71;
+  --sage-deep: #517457;
+  --jam: #a63a3a;
+  --ink: #4a3d30;
+  --ink-soft: rgba(74, 61, 48, 0.62);
+  --ink-faint: rgba(74, 61, 48, 0.38);
+  --batter: #e8c882;
+  --batter-cook: #c99a55;
+  --batter-done: #a9763c;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--cream);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--sage);
+  color: var(--cream);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wood);
+  border-radius: 6px;
+  border: 2px solid var(--cream-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   WINDOW LIGHT WASH
+   ------------------------------------------------------------ */
+
+.room {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.window-light {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg,
+      rgba(255, 240, 200, 0.55) 0%,
+      rgba(255, 240, 200, 0.18) 22%,
+      transparent 46%),
+    linear-gradient(180deg, rgba(255, 250, 235, 0.35), transparent 40%);
+  z-index: 0;
+}
+
+/* soft light stripes like a paned window */
+.window-light::after {
+  content: "";
+  position: absolute;
+  inset: -10%;
+  background: repeating-linear-gradient(115deg,
+    transparent 0 70px,
+    rgba(120, 100, 70, 0.05) 70px 78px);
+  transform: skewX(-6deg);
+}
+
+/* ------------------------------------------------------------
+   LAYOUT — counter scene + recipe card
+   ------------------------------------------------------------ */
+
+.kitchen {
+  position: relative;
+  z-index: 1;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(14px, 3vh, 34px) clamp(14px, 3vw, 40px) clamp(30px, 5vh, 60px);
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(300px, 5fr);
+  gap: clamp(16px, 2.6vw, 34px);
+  align-items: start;
+}
+
+/* ------------------------------------------------------------
+   STOVE SCENE
+   ------------------------------------------------------------ */
+
+.scene-panel {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 22px 50px rgba(74, 61, 48, 0.22);
+  border: 1px solid rgba(74, 61, 48, 0.16);
+  background: var(--tile);
+  position: relative;
+}
+
+#stove {
+  display: block;
+  width: 100%;
+  height: clamp(320px, 52vh, 520px);
+}
+
+.scene-caption {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(74, 61, 48, 0.55);
+  background: rgba(247, 239, 224, 0.82);
+  padding: 6px 10px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* stove knobs strip */
+.knobs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 30px);
+  padding: 12px;
+  background:
+    linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+}
+
+.knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.knob .dial {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 32%, #f4e8cf, #cbb08a 55%, #7d5c39 100%);
+  border: 3px solid #4a3d30;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.3, 1.3, 0.4, 1);
+}
+
+.knob .dial::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 4px;
+  height: 12px;
+  margin-left: -2px;
+  border-radius: 3px;
+  background: #4a3d30;
+}
+
+.knob.on .dial {
+  transform: rotate(75deg);
+}
+
+.knob .lbl {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(247, 239, 224, 0.85);
+}
+
+/* ------------------------------------------------------------
+   RECIPE CARD
+   ------------------------------------------------------------ */
+
+.card-stack {
+  position: relative;
+}
+
+.recipe-card {
+  background:
+    linear-gradient(178deg, #fdf8ec 0%, var(--cream) 70%);
+  border: 1px solid rgba(74, 61, 48, 0.2);
+  box-shadow:
+    0 16px 36px rgba(74, 61, 48, 0.18),
+    0 3px 0 rgba(74, 61, 48, 0.06);
+  border-radius: 6px;
+  padding: clamp(18px, 2.6vw, 30px);
+  transform: rotate(-0.7deg);
+  position: relative;
+}
+
+/* ruled paper lines */
+.recipe-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(180deg,
+      transparent 0 26px,
+      rgba(107, 143, 113, 0.12) 26px 27px);
+  pointer-events: none;
+}
+
+/* red margin line */
+.recipe-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(34px, 5vw, 48px);
+  width: 1.5px;
+  background: rgba(166, 58, 58, 0.4);
+  pointer-events: none;
+}
+
+.recipe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  padding-left: clamp(6px, 1vw, 10px);
+}
+
+.recipe-head h1 {
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.stamp {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--jam);
+  border: 1.5px solid var(--jam);
+  border-radius: 3px;
+  padding: 4px 8px;
+  transform: rotate(2deg);
+  opacity: 0.85;
+}
+
+.recipe-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 14px;
+  padding-left: clamp(6px, 1vw, 10px);
+}
+
+.steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 9px 6px 9px clamp(38px, 6vw, 52px);
+  border-radius: 6px;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.step:hover {
+  background: rgba(107, 143, 113, 0.08);
+}
+
+.step .box {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--ink-soft);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s, background 0.2s;
+  margin-top: 2px;
+}
+
+.step .box:hover {
+  border-color: var(--sage-deep);
+}
+
+.step.done .box {
+  background: var(--sage);
+  border-color: var(--sage-deep);
+}
+
+.step.done .box::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 8px;
+  height: 13px;
+  border: solid #fdf8ec;
+  border-width: 0 3px 3px 0;
+  transform: rotate(42deg);
+}
+
+.step .txt {
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.8vw, 1.08rem);
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.step.done .txt {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  text-decoration-color: rgba(107, 143, 113, 0.55);
+  text-decoration-thickness: 1.5px;
+}
+
+.step .time {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--jam);
+  border: 1px solid rgba(166, 58, 58, 0.5);
+  padding: 2px 6px;
+  border-radius: 3px;
+  vertical-align: 2px;
+}
+
+/* egg timer */
+.timer-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1.5px dashed rgba(74, 61, 48, 0.35);
+  border-radius: 8px;
+  background: rgba(217, 226, 220, 0.4);
+}
+
+.timer-face {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, #fdf8ec, #e8ddc4 58%, #c9b48a 100%);
+  border: 3px solid var(--ink);
+  box-shadow: 0 4px 10px rgba(74, 61, 48, 0.25), inset 0 -2px 4px rgba(74, 61, 48, 0.15);
+  position: relative;
+  flex: 0 0 auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.timer-face:active {
+  cursor: grabbing;
+}
+
+.timer-face::before {
+  content: "MAGNETIC";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 5.5px;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+}
+
+#timerNeedle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 27px;
+  margin-left: -1.5px;
+  margin-top: -27px;
+  border-radius: 3px;
+  background: var(--jam);
+  transform-origin: 50% 100%;
+  transform: rotate(0deg);
+}
+
+.timer-face::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.timer-info {
+  min-width: 0;
+}
+
+.timer-info .big {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.timer-info .hint {
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.ding {
+  animation: dingjump 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes dingjump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.14) rotate(4deg); }
+  100% { transform: scale(1); }
+}
+
+/* ------------------------------------------------------------
+   MISE EN PLACE
+   ------------------------------------------------------------ */
+
+.mise {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-left: clamp(6px, 1vw, 10px);
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border: 1px solid rgba(74, 61, 48, 0.3);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+
+.kitchen-foot {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  line-height: 2;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 920px) {
+  .kitchen {
+    grid-template-columns: 1fr;
+  }
+  .card-stack {
+    order: -1;
+  }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .knob .dial,
+  .timer-face,
+  .step,
+  .ding {
+    transition: none;
+    animation: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="window-light" aria-hidden="true"></div>
+
+<div class="room">
+  <main class="kitchen">
+
+    <!-- ===================== STOVE SCENE ===================== -->
+    <section class="scene-panel" aria-label="Stove scene — animated by the recipe steps">
+      <canvas id="stove" aria-label="A pan on the stove — batter pours, bubbles, flips and stacks as you complete the recipe"></canvas>
+      <p class="scene-caption" id="sceneCaption">morning · burner off</p>
+      <div class="knobs">
+        <div class="knob" id="knobStove">
+          <span class="dial" aria-hidden="true"></span>
+          <span class="lbl">Burner</span>
+        </div>
+        <div class="knob" id="knobSyrup">
+          <span class="dial" aria-hidden="true"></span>
+          <span class="lbl">Syrup</span>
+        </div>
+        <div class="knob" id="knobPlate">
+          <span class="dial" aria-hidden="true"></span>
+          <span class="lbl">Plate</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== RECIPE CARD ===================== -->
+    <div class="card-stack">
+      <article class="recipe-card" aria-label="Recipe card">
+        <header class="recipe-head">
+          <h1>Sunday Pancakes</h1>
+          <span class="stamp">Serves 2 · patiently</span>
+        </header>
+        <p class="recipe-sub">card № 12 · written in the margin of a cookbook</p>
+
+        <ol class="steps" id="steps">
+          <li class="step" data-step="1">
+            <button class="box" type="button" aria-label="Mark step one done: warm the pan" aria-pressed="false"></button>
+            <span class="txt">Warm the pan — low flame, patient butter <span class="time">2 min</span></span>
+          </li>
+          <li class="step" data-step="2">
+            <button class="box" type="button" aria-label="Mark step two done: pour the batter" aria-pressed="false"></button>
+            <span class="txt">Ladle the batter in one slow pour <span class="time">30 s</span></span>
+          </li>
+          <li class="step" data-step="3">
+            <button class="box" type="button" aria-label="Mark step three done: wait for the bubbles" aria-pressed="false"></button>
+            <span class="txt">Wait for the bubbles to open and stay open <span class="time">3 min</span></span>
+          </li>
+          <li class="step" data-step="4">
+            <button class="box" type="button" aria-label="Mark step four done: flip once" aria-pressed="false"></button>
+            <span class="txt">Flip once — only once — with conviction <span class="time">10 s</span></span>
+          </li>
+          <li class="step" data-step="5">
+            <button class="box" type="button" aria-label="Mark step five done: rest the pancake" aria-pressed="false"></button>
+            <span class="txt">Rest it a moment; it has earned that <span class="time">1 min</span></span>
+          </li>
+          <li class="step" data-step="6">
+            <button class="box" type="button" aria-label="Mark step six done: plate and pour syrup" aria-pressed="false"></button>
+            <span class="txt">Plate it. Pour the syrup like you mean it <span class="time">20 s</span></span>
+          </li>
+        </ol>
+
+        <div class="timer-row">
+          <div class="timer-face" id="timerFace" role="slider" tabindex="0"
+               aria-label="Magnetic egg timer — drag around the face to set minutes"
+               aria-valuemin="0" aria-valuemax="10" aria-valuenow="3">
+            <span id="timerNeedle" aria-hidden="true"></span>
+          </div>
+          <div class="timer-info">
+            <p class="big" id="timerRead">03:00</p>
+            <p class="hint">Drag the needle to set. Click to start; it <b>dings</b> when the minute hand returns to twelve.</p>
+            <button class="rsvp-btn" id="timerBtn" type="button"
+                    style="margin-top:8px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;border:1.5px solid var(--ink);padding:9px 16px;border-radius:999px;background:rgba(255,255,255,0.5);min-height:38px">
+              Start timer
+            </button>
+          </div>
+        </div>
+
+        <div class="mise" aria-hidden="true">
+          <span class="chip">Flour · 2 cups</span>
+          <span class="chip">Buttermilk · 1½</span>
+          <span class="chip">Eggs · 2</span>
+          <span class="chip">Butter · generous</span>
+          <span class="chip">Maple · the good bottle</span>
+        </div>
+
+      </article>
+    </div>
+
+    <footer class="kitchen-foot">
+      Sunday Kitchen · the gallery of 100 · room 84<br>
+      the sizzle stops the moment you lift the pan
+    </footer>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var stepsDone = [false, false, false, false, false, false];
+  var pancakes = [];          /* stacked: {flip:0..1, brown:0..1} */
+  var pourT = 0;              /* 0..1 batter pour animation */
+  var bubbleT = 0;
+  var flipT = 0;
+  var syrupT = 0;
+  var steam = [];
+  var burnerOn = false;
+  var panLifted = false;
+  var sizzleOn = false;
+  var plateGlow = 0;
+
+  /* ============================================================
+     AUDIO — butter sizzle (user-initiated via steps)
+     ============================================================ */
+  var AC = null;
+  var sizzleNodes = null;
+
+  function ensureAudio() {
+    if (!AC) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      AC = new Ctx();
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+
+  function noiseBuffer(ac, seconds) {
+    var buf = ac.createBuffer(1, ac.sampleRate * seconds, ac.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  function startSizzle() {
+    if (sizzleNodes || !burnerOn) return;
+    var ac = ensureAudio();
+    if (!ac) return;
+    var src = ac.createBufferSource();
+    src.buffer = noiseBuffer(ac, 2);
+    src.loop = true;
+    var hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 3400;
+    var bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 6200;
+    bp.Q.value = 0.7;
+    var gn = ac.createGain();
+    gn.gain.value = 0;
+    gn.gain.linearRampToValueAtTime(0.05, ac.currentTime + 0.6);
+    src.connect(hp).connect(bp).connect(gn).connect(ac.destination);
+    src.start();
+    /* crackle LFO on gain */
+    var lfo = ac.createOscillator();
+    var lg = ac.createGain();
+    lfo.frequency.value = 13;
+    lg.gain.value = 0.012;
+    lfo.connect(lg).connect(gn.gain);
+    lfo.start();
+    sizzleNodes = { src: src, lfo: lfo, gn: gn };
+    sizzleOn = true;
+  }
+
+  function stopSizzle(fast) {
+    if (!sizzleNodes) return;
+    var n = sizzleNodes;
+    sizzleNodes = null;
+    sizzleOn = false;
+    var ac = AC;
+    if (!ac) return;
+    n.gn.gain.cancelScheduledValues(ac.currentTime);
+    n.gn.gain.setValueAtTime(n.gn.gain.value, ac.currentTime);
+    n.gn.gain.linearRampToValueAtTime(0, ac.currentTime + (fast ? 0.12 : 0.5));
+    setTimeout(function () {
+      try { n.src.stop(); n.lfo.stop(); } catch (e1) {}
+    }, fast ? 200 : 600);
+  }
+
+  function dingSound() {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+    [1760, 2340].forEach(function (f, i) {
+      var o = ac.createOscillator();
+      var g = ac.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      g.gain.setValueAtTime(i ? 0.05 : 0.09, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+      o.connect(g).connect(ac.destination);
+      o.start(t0);
+      o.stop(t0 + 1.15);
+    });
+  }
+
+  function pourSound() {
+    var ac = ensureAudio();
+    if (!ac) return;
+    var t0 = ac.currentTime;
+    var src = ac.createBufferSource();
+    src.buffer = noiseBuffer(ac, 0.7);
+    var lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(500, t0);
+    lp.frequency.linearRampToValueAtTime(1400, t0 + 0.5);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(0.06, t0 + 0.15);
+    g.gain.linearRampToValueAtTime(0.0001, t0 + 0.7);
+    src.connect(lp).connect(g).connect(ac.destination);
+    src.start(t0);
+    src.stop(t0 + 0.75);
+  }
+
+  /* ============================================================
+     STOVE CANVAS
+     ============================================================ */
+  var cv = document.getElementById("stove");
+  var ctx = cv.getContext("2d");
+  var cw = 0, chh = 0;
+
+  function sizeCanvas() {
+    var rect = cv.getBoundingClientRect();
+    cw = Math.max(1, rect.width);
+    chh = Math.max(1, rect.height);
+    cv.width = Math.round(cw * DPR);
+    cv.height = Math.round(chh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function sceneGeom() {
+    var counterY = chh - Math.max(86, chh * 0.2);
+    return {
+      counterY: counterY,
+      panX: cw * 0.42,
+      panY: counterY - 26,
+      plateX: cw * 0.82,
+      plateY: counterY - 8,
+      panR: Math.min(cw, chh) * 0.16
+    };
+  }
+
+  function drawScene(now, dt) {
+    var g = sceneGeom();
+    ctx.clearRect(0, 0, cw, chh);
+
+    /* ---- tiled wall ---- */
+    var tw = 54;
+    for (var ty = 0; ty < chh; ty += tw) {
+      for (var tx = ((ty / tw) % 2) * (tw / 2) - tw; tx < cw; tx += tw) {
+        ctx.fillStyle = (tx + ty) % (tw * 2) < tw ? "#dde6e0" : "#d3ded6";
+        ctx.fillRect(tx, ty, tw - 2, tw - 2);
+      }
+    }
+    /* grout lines */
+    ctx.strokeStyle = "rgba(107,143,113,0.30)";
+    ctx.lineWidth = 1.4;
+    for (var gy = 0; gy <= chh; gy += tw) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(cw, gy); ctx.stroke();
+    }
+    for (var gx = 0; gx <= cw; gx += tw) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, chh); ctx.stroke();
+    }
+    /* window light from upper left */
+    var wl = ctx.createLinearGradient(0, 0, cw * 0.7, chh);
+    wl.addColorStop(0, "rgba(255,242,205,0.5)");
+    wl.addColorStop(0.4, "rgba(255,242,205,0.14)");
+    wl.addColorStop(1, "rgba(255,242,205,0)");
+    ctx.fillStyle = wl;
+    ctx.fillRect(0, 0, cw, chh);
+
+    /* ---- wooden counter ---- */
+    var cg = ctx.createLinearGradient(0, g.counterY, 0, chh);
+    cg.addColorStop(0, "#c99a63");
+    cg.addColorStop(0.25, "#b98a55");
+    cg.addColorStop(1, "#8a6540");
+    ctx.fillStyle = cg;
+    ctx.fillRect(0, g.counterY, cw, chh - g.counterY);
+    /* grain */
+    ctx.strokeStyle = "rgba(74,61,48,0.18)";
+    ctx.lineWidth = 1;
+    for (var ln = 0; ln < 7; ln++) {
+      var ly = g.counterY + 8 + ln * ((chh - g.counterY) / 7);
+      ctx.beginPath();
+      ctx.moveTo(0, ly);
+      for (var lx = 0; lx < cw; lx += 40) {
+        ctx.lineTo(lx, ly + Math.sin(lx * 0.03 + ln) * 2);
+      }
+      ctx.stroke();
+    }
+    /* counter edge */
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, g.counterY, cw, 5);
+
+    /* ---- burner ring + heat ---- */
+    var br = g.panR * 0.9;
+    ctx.strokeStyle = burnerOn ? "rgba(224,110,60,0.85)" : "rgba(74,61,48,0.35)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(g.panX, g.counterY - 4, br, br * 0.32, 0, 0, 6.2832);
+    ctx.stroke();
+    if (burnerOn) {
+      var flame = ctx.createRadialGradient(g.panX, g.counterY - 2, 2, g.panX, g.counterY - 2, br);
+      flame.addColorStop(0, "rgba(255,170,90,0.4)");
+      flame.addColorStop(1, "rgba(255,120,50,0)");
+      ctx.fillStyle = flame;
+      ctx.beginPath();
+      ctx.ellipse(g.panX, g.counterY - 6, br * 1.25, br * 0.6, 0, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* ---- pan ---- */
+    var lift = panLifted ? -14 : 0;
+    var panX = g.panX, panY = g.panY + lift;
+    var R = g.panR;
+
+    /* shadow */
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.beginPath();
+    ctx.ellipse(panX + 6, g.counterY + 2, R * 1.02, R * 0.24, 0, 0, 6.2832);
+    ctx.fill();
+
+    /* pan body */
+    ctx.fillStyle = "#2e2a26";
+    ctx.beginPath();
+    ctx.ellipse(panX, panY, R, R * 0.34, 0, 0, 6.2832);
+    ctx.fill();
+    ctx.fillStyle = "#4a4440";
+    ctx.beginPath();
+    ctx.ellipse(panX, panY - 4, R, R * 0.32, 0, 0, 6.2832);
+    ctx.fill();
+    /* inner cooking surface */
+    var surf = ctx.createRadialGradient(panX - R * 0.2, panY - 8, R * 0.1, panX, panY - 4, R);
+    surf.addColorStop(0, "#5a524a");
+    surf.addColorStop(1, "#3a352f");
+    ctx.fillStyle = surf;
+    ctx.beginPath();
+    ctx.ellipse(panX, panY - 4, R * 0.86, R * 0.26, 0, 0, 6.2832);
+    ctx.fill();
+    /* handle */
+    ctx.strokeStyle = "#1d1a17";
+    ctx.lineWidth = 9;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(panX - R * 0.98, panY - 2);
+    ctx.lineTo(panX - R * 1.7, panY - 8 + (panLifted ? -6 : 0));
+    ctx.stroke();
+
+    /* ---- batter in the pan ---- */
+    var hasBatter = pourT > 0;
+    if (hasBatter) {
+      var br2 = R * 0.78 * Math.min(1, pourT * 1.4);
+      var batterCol;
+      var cook = bubbleT;
+      if (flipT > 0.5) {
+        batterCol = "#a9763c";
+      } else {
+        var c1 = [232, 200, 130], c2 = [201, 154, 85], c3 = [169, 118, 60];
+        var t2 = Math.min(1, cook * 1.1);
+        var cc = t2 < 0.5
+          ? [c1[0] + (c2[0] - c1[0]) * t2 * 2, c1[1] + (c2[1] - c1[1]) * t2 * 2, c1[2] + (c2[2] - c1[2]) * t2 * 2]
+          : [c2[0] + (c3[0] - c2[0]) * (t2 - 0.5) * 2, c2[1] + (c3[1] - c2[1]) * (t2 - 0.5) * 2, c2[2] + (c3[2] - c2[2]) * (t2 - 0.5) * 2];
+        batterCol = "rgb(" + (cc[0] | 0) + "," + (cc[1] | 0) + "," + (cc[2] | 0) + ")";
+      }
+      ctx.fillStyle = batterCol;
+      ctx.beginPath();
+      ctx.ellipse(panX, panY - 6, br2, br2 * 0.34, 0, 0, 6.2832);
+      ctx.fill();
+
+      /* bubbles */
+      if (bubbleT > 0 && flipT < 0.5 && !panLifted) {
+        var nb = Math.floor(bubbleT * 16);
+        for (var bI = 0; bI < nb; bI++) {
+          var ba = (bI * 2.399) % 6.2832;
+          var br3 = (bI % 5) / 5;
+          var bx2 = panX + Math.cos(ba) * br2 * 0.62 * br3;
+          var by2 = panY - 6 + Math.sin(ba) * br2 * 0.2 * br3;
+          var bs = 1.6 + (bI % 3) * 0.9 + Math.sin(now * 0.004 + bI) * 0.5;
+          ctx.fillStyle = "rgba(247,239,224,0.75)";
+          ctx.beginPath();
+          ctx.arc(bx2, by2, bs, 0, 6.2832);
+          ctx.fill();
+          ctx.fillStyle = "rgba(169,118,60,0.4)";
+          ctx.beginPath();
+          ctx.arc(bx2, by2 + 1, bs * 0.8, 0, 6.2832);
+          ctx.fill();
+        }
+      }
+    }
+
+    /* ---- pour stream from the ladle (while pouring) ---- */
+    if (pouring) {
+      var px2 = panX + R * 0.4;
+      ctx.strokeStyle = "#e8c882";
+      ctx.lineWidth = 7;
+      ctx.beginPath();
+      ctx.moveTo(px2 + 26, panY - 74);
+      ctx.quadraticCurveTo(px2 + 12, panY - 40, px2, panY - 8);
+      ctx.stroke();
+      ctx.fillStyle = "#f4e3ae";
+      ctx.beginPath();
+      ctx.ellipse(px2 + 26, panY - 78, 12, 8, 0.3, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* ---- flip arc: pancake airborne ---- */
+    if (flipping) {
+      var ft = flipT;
+      var fx = panX - R * 0.2 + ft * R * 0.5;
+      var fy = panY - 10 - Math.sin(ft * Math.PI) * R * 1.05;
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.rotate(ft * Math.PI * 2 * 0.5);
+      ctx.fillStyle = ft < 0.5 ? "#c99a55" : "#a9763c";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, R * 0.72, R * 0.72 * 0.36, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.fillStyle = "rgba(247,239,224,0.25)";
+      ctx.beginPath();
+      ctx.ellipse(-R * 0.15, -R * 0.06, R * 0.3, R * 0.12, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    /* ---- plate + stack ---- */
+    var plateR = R * 1.05;
+    ctx.fillStyle = "#fdf8ec";
+    ctx.beginPath();
+    ctx.ellipse(g.plateX, g.plateY, plateR, plateR * 0.3, 0, 0, 6.2832);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(74,61,48,0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(g.plateX, g.plateY - 2, plateR * 0.8, plateR * 0.22, 0, 0, 6.2832);
+    ctx.stroke();
+
+    var stackH = 0;
+    for (var s2 = 0; s2 < pancakes.length; s2++) {
+      var pc = pancakes[s2];
+      var ph2 = 11;
+      var yy = g.plateY - 4 - stackH - ph2 / 2;
+      ctx.fillStyle = pc.top ? "#b9803f" : "#c99a55";
+      ctx.beginPath();
+      ctx.ellipse(g.plateX, yy, R * 0.74, ph2, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.fillStyle = "#a9763c";
+      ctx.beginPath();
+      ctx.ellipse(g.plateX, yy + ph2 * 0.55, R * 0.74, ph2 * 0.6, 0, 0, 6.2832);
+      ctx.fill();
+      /* butter pat on top pancake */
+      if (s2 === pancakes.length - 1) {
+        ctx.fillStyle = "#f4e3ae";
+        ctx.fillRect(g.plateX - 8, yy - 4, 16, 5);
+      }
+      stackH += ph2;
+    }
+
+    /* syrup pour */
+    if (syrupT > 0 && pancakes.length) {
+      var sy2 = g.plateY - 8 - stackH;
+      ctx.strokeStyle = "rgba(122,58,20,0.9)";
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      var sx2 = g.plateX + 14 - syrupT * 28;
+      ctx.beginPath();
+      ctx.moveTo(sx2 + 20, sy2 - 56);
+      ctx.quadraticCurveTo(sx2 + 6, sy2 - 30, sx2, sy2 + 2);
+      ctx.stroke();
+      /* glossy pool */
+      ctx.fillStyle = "rgba(140,70,22,0.85)";
+      ctx.beginPath();
+      ctx.ellipse(g.plateX - 6, g.plateY - 2, R * 0.5 * syrupT, R * 0.12 * syrupT, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.fillStyle = "rgba(230,150,70,0.5)";
+      ctx.beginPath();
+      ctx.ellipse(g.plateX - 10, g.plateY - 4, R * 0.22 * syrupT, R * 0.05 * syrupT, 0, 0, 6.2832);
+      ctx.fill();
+    }
+
+    /* ---- steam ---- */
+    if (!reduced) {
+      for (var st = steam.length - 1; st >= 0; st--) {
+        var sv = steam[st];
+        sv.age += dt;
+        sv.y -= 22 * dt;
+        sv.x += Math.sin(sv.age * 2.4 + sv.seed) * 0.5;
+        var sa = Math.max(0, 0.3 - sv.age / 5);
+        if (sa <= 0) { steam.splice(st, 1); continue; }
+        var sg = ctx.createRadialGradient(sv.x, sv.y, 1, sv.x, sv.y, 16 + sv.age * 6);
+        sg.addColorStop(0, "rgba(255,255,255," + (sa * 0.5).toFixed(3) + ")");
+        sg.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = sg;
+        ctx.beginPath();
+        ctx.arc(sv.x, sv.y, 16 + sv.age * 6, 0, 6.2832);
+        ctx.fill();
+      }
+      /* steam spawn */
+      if (burnerOn && pancakes.length + (pourT > 0 ? 1 : 0) > 0 && Math.random() < 0.3) {
+        steam.push({ x: panX + (Math.random() - 0.5) * R, y: panY - 16, age: 0, seed: Math.random() * 6.28 });
+        if (steam.length > 18) steam.shift();
+      }
+    }
+  }
+
+  /* ============================================================
+     STEPS → SCENE WIRING
+     ============================================================ */
+  var pouring = false;
+  var flipping = false;
+  var stepEls = document.querySelectorAll(".step");
+
+  function setStep(i, done) {
+    stepsDone[i] = done;
+    stepEls[i].classList.toggle("done", done);
+    var box = stepEls[i].querySelector(".box");
+    box.setAttribute("aria-pressed", done ? "true" : "false");
+    updateKnobs();
+    if (reduced) { drawScene(performance.now(), 0.016); }
+  }
+
+  function updateKnobs() {
+    document.getElementById("knobStove").classList.toggle("on", stepsDone[0]);
+    document.getElementById("knobPlate").classList.toggle("on", stepsDone[3] || stepsDone[5]);
+    document.getElementById("knobSyrup").classList.toggle("on", stepsDone[5]);
+  }
+
+  function stepChanged(i, done) {
+    if (done) {
+      switch (i) {
+        case 0:
+          burnerOn = true;
+          startSizzle();
+          setCaption("burner on · butter humming");
+          break;
+        case 1:
+          pouring = true;
+          pourT = 0;
+          pourSound();
+          setCaption("pouring… one slow circle");
+          break;
+        case 2:
+          setCaption("bubbles opening · the pan decides");
+          break;
+        case 3:
+          flipping = true;
+          flipT = 0;
+          setCaption("flip — conviction");
+          break;
+        case 4:
+          setCaption("resting · steam doing its work");
+          break;
+        case 5:
+          syrupT = 0.001;
+          setCaption("plated · syrup with intent");
+          break;
+      }
+    } else {
+      if (i === 0) { burnerOn = false; stopSizzle(true); setCaption("burner off"); }
+    }
+  }
+
+  stepEls.forEach(function (el, i) {
+    el.querySelector(".box").addEventListener("click", function () {
+      var nowDone = !stepsDone[i];
+      setStep(i, nowDone);
+      stepChanged(i, nowDone);
+    });
+    el.querySelector(".txt").addEventListener("click", function () {
+      el.querySelector(".box").click();
+    });
+  });
+
+  var captionEl = document.getElementById("sceneCaption");
+  function setCaption(t) {
+    captionEl.textContent = "morning · " + t;
+  }
+
+  /* pan lift: pointerdown on canvas near pan toggles lift, stopping sizzle */
+  cv.addEventListener("pointerdown", function (e) {
+    var rect = cv.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    var g = sceneGeom();
+    if (Math.hypot(x - g.panX, y - (g.panY - 10)) < g.panR * 1.6) {
+      panLifted = !panLifted;
+      if (panLifted) {
+        stopSizzle(true);
+        setCaption("pan lifted · the sizzle holds its breath");
+      } else if (burnerOn && stepsDone[0]) {
+        startSizzle();
+        setCaption("pan down · sizzle returns");
+      }
+    }
+  });
+
+  /* ============================================================
+     EGG TIMER
+     ============================================================ */
+  var timerFace = document.getElementById("timerFace");
+  var timerNeedle = document.getElementById("timerNeedle");
+  var timerRead = document.getElementById("timerRead");
+  var timerBtn = document.getElementById("timerBtn");
+  var timerMin = 3;
+  var timerRunning = false;
+  var timerLeft = 180;
+
+  function setNeedle() {
+    var deg = (timerMin / 10) * 360;
+    timerNeedle.style.transform = "rotate(" + deg + "deg)";
+    timerFace.setAttribute("aria-valuenow", String(timerMin));
+  }
+
+  function fmt(sec) {
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  function timerAngle(e) {
+    var rect = timerFace.getBoundingClientRect();
+    var dx = e.clientX - (rect.left + rect.width / 2);
+    var dy = e.clientY - (rect.top + rect.height / 2);
+    var a = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    if (a < 0) a += 360;
+    return a;
+  }
+
+  var draggingTimer = false;
+  timerFace.addEventListener("pointerdown", function (e) {
+    draggingTimer = true;
+    timerFace.setPointerCapture(e.pointerId);
+    timerMin = Math.max(1, Math.min(10, Math.round(timerAngle(e) / 36)));
+    timerLeft = timerMin * 60;
+    timerRead.textContent = fmt(timerLeft);
+    setNeedle();
+    e.preventDefault();
+  });
+  timerFace.addEventListener("pointermove", function (e) {
+    if (!draggingTimer) return;
+    timerMin = Math.max(1, Math.min(10, Math.round(timerAngle(e) / 36)));
+    timerLeft = timerMin * 60;
+    timerRead.textContent = fmt(timerLeft);
+    setNeedle();
+  });
+  function endTimerDrag() { draggingTimer = false; }
+  timerFace.addEventListener("pointerup", endTimerDrag);
+  timerFace.addEventListener("pointercancel", endTimerDrag);
+
+  timerFace.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+      e.preventDefault();
+      timerMin = Math.min(10, timerMin + 1);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      timerMin = Math.max(1, timerMin - 1);
+    } else return;
+    timerLeft = timerMin * 60;
+    timerRead.textContent = fmt(timerLeft);
+    setNeedle();
+  });
+
+  timerBtn.addEventListener("click", function () {
+    if (timerRunning) {
+      timerRunning = false;
+      timerBtn.textContent = "Start timer";
+      return;
+    }
+    timerLeft = timerMin * 60;
+    timerRunning = true;
+    timerBtn.textContent = "Stop";
+    ensureAudio();
+  });
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+  var lastSec = -1;
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (!document.hidden) {
+      /* pour */
+      if (pouring) {
+        pourT += dt / 1.1;
+        if (pourT >= 1) { pourT = 1; pouring = false; }
+      }
+      /* bubbles / cooking */
+      if (burnerOn && pourT > 0 && !flipping && flipT === 0) {
+        bubbleT = Math.min(1, bubbleT + dt / 2.6);
+      }
+      /* flip */
+      if (flipping) {
+        flipT += dt / 0.9;
+        if (flipT >= 1) {
+          flipping = false;
+          flipT = 1;
+          /* land: pancake into the pan done state -> move to plate */
+          pancakes.push({ top: true });
+          pourT = 0;
+          bubbleT = 0;
+          flipT = 0;
+          setCaption("landed · golden side down");
+        }
+      }
+      /* syrup */
+      if (syrupT > 0 && syrupT < 1) {
+        syrupT = Math.min(1, syrupT + dt / 1.6);
+      }
+      /* timer */
+      if (timerRunning) {
+        timerLeft -= dt;
+        var sec = Math.ceil(Math.max(0, timerLeft));
+        if (sec !== lastSec) {
+          lastSec = sec;
+          timerRead.textContent = fmt(sec);
+        }
+        if (timerLeft <= 0) {
+          timerRunning = false;
+          timerBtn.textContent = "Start timer";
+          timerRead.textContent = fmt(0);
+          dingSound();
+          timerFace.classList.remove("ding");
+          void timerFace.offsetWidth;
+          timerFace.classList.add("ding");
+        }
+      }
+      drawScene(now, dt);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    sizeCanvas();
+    if (reduced) drawScene(performance.now(), 0.016);
+  });
+
+  sizeCanvas();
+  setNeedle();
+  timerRead.textContent = fmt(timerLeft);
+
+  if (reduced) {
+    drawScene(performance.now(), 0.016);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+    stopSizzle(true);
+  });
+})();
+</script>
+</body>
+</html>

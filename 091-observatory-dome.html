@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOME 5 · №091 — Observatory Night Shift · The Gallery of 100</title>
+<style>
+:root{
+  --dome:      #14161d;
+  --dome-2:    #0e1016;
+  --instrument:#1f232b;
+  --instrument-2:#181c23;
+  --line:      rgba(170,182,198,.16);
+  --txt:       #b7c1cf;
+  --txt-dim:   #6d7889;
+  --amber:     #ffd166;
+  --green:     #9fd8a8;
+  --red:       #ff5c5c;
+  --paper:     #e8e4da;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+}
+body.redmode{
+  --instrument:#1c0f0f;
+  --instrument-2:#150b0b;
+  --line:rgba(255,120,110,.18);
+  --txt:#ffb9b2;
+  --txt-dim:#a05a55;
+  --amber:#ff6b5e;
+  --green:#ff8078;
+  --paper:#ffcfc9;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--mono);
+  background:var(--dome-2);
+  color:var(--txt);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background .6s ease;
+}
+::selection{ background:var(--amber); color:#10131a; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed var(--amber); outline-offset:3px; }
+button{ font-family:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+.bay{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 348px;
+  height:100vh;
+  height:100dvh;
+}
+@media (max-width:920px){
+  .bay{ grid-template-columns:minmax(0,1fr); grid-template-rows:54vh minmax(0,1fr); }
+}
+
+/* ---------- viewport ---------- */
+.viewport{ position:relative; min-width:0; min-height:0; overflow:hidden; }
+.viewport canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:grab; }
+.viewport.slewing canvas{ cursor:grabbing; }
+
+.plaque{
+  position:absolute; top:18px; left:22px; z-index:5; pointer-events:none;
+  font-family:var(--serif);
+}
+.plaque h1{
+  font-size:clamp(1.5rem, 3vw, 2.2rem);
+  font-weight:500; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--paper);
+  text-shadow:0 2px 14px rgba(0,0,0,.8);
+}
+.plaque p{
+  margin-top:6px;
+  font-size:.78rem; font-style:italic; letter-spacing:.06em;
+  color:var(--txt-dim);
+}
+.readout{
+  position:absolute; left:22px; bottom:18px; z-index:5; pointer-events:none;
+  font-size:.64rem; letter-spacing:.16em; line-height:2;
+  color:var(--txt-dim);
+  text-shadow:0 1px 6px rgba(0,0,0,.9);
+}
+.readout b{ color:var(--txt); font-weight:400; font-variant-numeric:tabular-nums; }
+.readout .lock{ color:var(--amber); min-height:1.3em; }
+.targetinfo{
+  position:absolute; right:22px; top:18px; z-index:5; pointer-events:none;
+  text-align:right; font-size:.62rem; letter-spacing:.18em; line-height:2;
+  color:var(--txt-dim);
+  text-shadow:0 1px 6px rgba(0,0,0,.9);
+}
+.targetinfo b{ color:var(--amber); font-weight:400; }
+
+/* ---------- eyepiece overlay ---------- */
+.eyepiece{
+  position:absolute; inset:0; z-index:8; display:none;
+  background:#050810;
+}
+.eyepiece.open{ display:block; }
+.eyepiece canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.eye-hud{
+  position:absolute; inset:0; pointer-events:none; z-index:2;
+  font-size:.62rem; letter-spacing:.2em; line-height:2; color:rgba(183,193,207,.85);
+  text-shadow:0 1px 6px rgba(0,0,0,.9);
+}
+.eye-hud .tl{ position:absolute; top:18px; left:22px; }
+.eye-hud .tr{ position:absolute; top:18px; right:22px; text-align:right; }
+.eye-hud .bl{ position:absolute; bottom:18px; left:22px; }
+.eye-hud b{ color:var(--amber); font-weight:400; font-variant-numeric:tabular-nums; }
+.eye-hud .frame{
+  position:absolute; inset:12px;
+  border:1px solid rgba(183,193,207,.22);
+  box-shadow:0 0 40px rgba(0,0,0,.7) inset;
+}
+.eye-hud .frame::before, .eye-hud .frame::after{
+  content:""; position:absolute; width:26px; height:26px;
+  border:1px solid rgba(255,209,102,.6);
+}
+.eye-hud .frame::before{ top:-1px; left:-1px; border-right:0; border-bottom:0; }
+.eye-hud .frame::after{ bottom:-1px; right:-1px; border-left:0; border-top:0; }
+.retract{
+  position:absolute; right:22px; bottom:18px; z-index:3;
+  font-size:.6rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--txt);
+  border:1px solid rgba(183,193,207,.4);
+  padding:10px 18px;
+  background:rgba(10,14,24,.6);
+  transition:border-color .3s ease, color .3s ease;
+}
+.retract:hover{ border-color:var(--amber); color:var(--amber); }
+
+/* ---------- instrument panel ---------- */
+.panel{
+  position:relative; z-index:6;
+  background:linear-gradient(180deg, var(--instrument), var(--instrument-2));
+  border-left:1px solid var(--line);
+  display:flex; flex-direction:column;
+  min-height:0;
+  transition:background .6s ease;
+}
+@media (max-width:920px){
+  .panel{ border-left:0; border-top:1px solid var(--line); }
+}
+.p-head{
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+}
+.p-head h2{
+  font-family:var(--serif); font-weight:500;
+  font-size:.95rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--paper);
+}
+.p-head .clock{ font-size:.6rem; letter-spacing:.18em; color:var(--txt-dim); font-variant-numeric:tabular-nums; }
+
+.p-controls{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+}
+.tog{
+  font-size:.58rem; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--txt-dim);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:10px 8px;
+  text-align:center;
+  transition:color .3s ease, border-color .3s ease, background .3s ease;
+  touch-action:manipulation;
+}
+.tog:hover{ color:var(--txt); border-color:var(--txt-dim); }
+.tog[aria-pressed="true"]{ color:#10131a; background:var(--amber); border-color:var(--amber); }
+body.redmode .tog[aria-pressed="true"]{ color:#1a0808; background:var(--red); border-color:var(--red); }
+.enter{
+  grid-column:1 / -1;
+  font-size:.64rem; letter-spacing:.3em; text-transform:uppercase;
+  padding:13px 8px;
+  border:1px solid var(--amber);
+  color:var(--amber);
+  border-radius:4px;
+  transition:background .3s ease, color .3s ease, opacity .3s ease;
+  touch-action:manipulation;
+}
+.enter:hover:not(:disabled){ background:var(--amber); color:#10131a; }
+.enter:disabled{ opacity:.35; cursor:not-allowed; }
+
+.p-section{
+  padding:12px 18px 8px;
+  font-size:.56rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between;
+}
+.targets{
+  flex:1.35; min-height:0; overflow-y:auto;
+  border-bottom:1px solid var(--line);
+  scrollbar-width:thin;
+  scrollbar-color:var(--txt-dim) transparent;
+}
+.targets::-webkit-scrollbar{ width:8px; }
+.targets::-webkit-scrollbar-thumb{ background:rgba(170,182,198,.2); border-radius:4px; }
+.t-row{
+  width:100%;
+  display:grid; grid-template-columns:52px 1fr auto; gap:10px; align-items:baseline;
+  padding:9px 18px;
+  text-align:left;
+  border-bottom:1px solid rgba(170,182,198,.07);
+  transition:background .25s ease;
+  touch-action:manipulation;
+}
+.t-row:hover{ background:rgba(255,209,102,.06); }
+.t-row .code{ font-size:.68rem; letter-spacing:.12em; color:var(--amber); }
+.t-row .nm{ font-size:.72rem; letter-spacing:.08em; color:var(--txt); }
+.t-row .nm i{ display:block; font-style:normal; font-size:.56rem; letter-spacing:.2em; color:var(--txt-dim); margin-top:2px; text-transform:uppercase; }
+.t-row .mg{ font-size:.6rem; color:var(--txt-dim); font-variant-numeric:tabular-nums; }
+.t-row.seen .nm{ color:var(--green); }
+.t-row.seen .nm i::after{ content:" · logged"; }
+
+.loglist{
+  flex:1; min-height:0; overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:var(--txt-dim) transparent;
+}
+.loglist::-webkit-scrollbar{ width:8px; }
+.loglist::-webkit-scrollbar-thumb{ background:rgba(170,182,198,.2); border-radius:4px; }
+.log-row{
+  display:flex; gap:12px; align-items:baseline;
+  padding:7px 18px;
+  font-size:.62rem; letter-spacing:.14em;
+  color:var(--txt-dim);
+  border-bottom:1px solid rgba(170,182,198,.06);
+  animation:login .5s ease both;
+}
+@keyframes login{
+  from{ opacity:0; transform:translateX(-8px); }
+  to{ opacity:1; transform:none; }
+}
+.log-row .tm{ color:var(--green); font-variant-numeric:tabular-nums; }
+.log-row .ob{ color:var(--txt); }
+.log-empty{ padding:14px 18px; font-size:.62rem; font-style:italic; letter-spacing:.08em; color:var(--txt-dim); }
+
+.p-foot{
+  padding:10px 18px 12px;
+  border-top:1px solid var(--line);
+  font-size:.56rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between; gap:10px;
+}
+.p-foot b{ color:var(--txt); font-weight:400; }
+
+@media (prefers-reduced-motion: reduce){
+  .log-row{ animation:none; }
+  .viewport canvas{ cursor:default; }
+}
+</style>
+</head>
+<body>
+
+<div class="bay">
+
+  <!-- ================= viewport ================= -->
+  <div class="viewport" id="viewport">
+    <canvas id="dome" role="img" aria-label="Observatory dome interior with a draggable telescope"></canvas>
+
+    <div class="plaque">
+      <h1>Dome 5</h1>
+      <p>night shift — the sky is a list, the list is a sky</p>
+    </div>
+
+    <div class="readout" aria-hidden="true">
+      <div>AZ <b id="roAz">000.0°</b>&nbsp;&nbsp;ALT <b id="roAlt">+45.0°</b>&nbsp;&nbsp;RATE <b id="roRate">0.00°/s</b></div>
+      <div class="lock" id="roLock">SEARCHING…</div>
+    </div>
+
+    <div class="targetinfo" aria-hidden="true">
+      <div id="tiName">—</div>
+      <div id="tiMeta">SLEW TO A CATALOGUED TARGET</div>
+    </div>
+
+    <!-- eyepiece -->
+    <div class="eyepiece" id="eyepiece" aria-hidden="true">
+      <canvas id="eyeCanvas"></canvas>
+      <div class="eye-hud">
+        <div class="frame"></div>
+        <div class="tl">
+          EYEPIECE · PLÖSSL 25MM<br>
+          FOV <b>1.1°</b> · EXP <b id="eyeExp">000S</b>
+        </div>
+        <div class="tr" id="eyeObj">—</div>
+        <div class="bl" id="eyeNote">—</div>
+      </div>
+      <button class="retract" id="retractBtn" type="button">Retract · Esc</button>
+    </div>
+  </div>
+
+  <!-- ================= panel ================= -->
+  <aside class="panel" aria-label="Instrument panel">
+    <div class="p-head">
+      <h2>Dome Control</h2>
+      <span class="clock" id="panelClock">--:--:--</span>
+    </div>
+
+    <div class="p-controls">
+      <button class="tog" id="nightBtn" type="button" aria-pressed="false">Night vision</button>
+      <button class="tog" id="soundBtn" type="button" aria-pressed="false">Servo sound</button>
+      <button class="enter" id="enterBtn" type="button" disabled>Enter eyepiece · ⏎</button>
+    </div>
+
+    <div class="p-section"><span>Messier queue</span><span id="seenCount">0 / 12</span></div>
+    <nav class="targets" id="targetList" aria-label="Messier target list"></nav>
+
+    <div class="p-section"><span>Session log</span><span id="logCount">0 obs</span></div>
+    <div class="loglist" id="logList">
+      <p class="log-empty">No observations yet. The dome is patient.</p>
+    </div>
+
+    <div class="p-foot">
+      <span>DOME <b>5</b> · 0.6M NEWTONIAN</span>
+      <span>№091 OF 100</span>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var els = {
+  viewport: document.getElementById("viewport"),
+  dome: document.getElementById("dome"),
+  eye: document.getElementById("eyepiece"),
+  eyeCv: document.getElementById("eyeCanvas"),
+  roAz: document.getElementById("roAz"),
+  roAlt: document.getElementById("roAlt"),
+  roRate: document.getElementById("roRate"),
+  roLock: document.getElementById("roLock"),
+  tiName: document.getElementById("tiName"),
+  tiMeta: document.getElementById("tiMeta"),
+  eyeObj: document.getElementById("eyeObj"),
+  eyeNote: document.getElementById("eyeNote"),
+  eyeExp: document.getElementById("eyeExp"),
+  nightBtn: document.getElementById("nightBtn"),
+  soundBtn: document.getElementById("soundBtn"),
+  enterBtn: document.getElementById("enterBtn"),
+  retractBtn: document.getElementById("retractBtn"),
+  targetList: document.getElementById("targetList"),
+  logList: document.getElementById("logList"),
+  logCount: document.getElementById("logCount"),
+  seenCount: document.getElementById("seenCount"),
+  panelClock: document.getElementById("panelClock")
+};
+var ctx = els.dome.getContext("2d");
+var ectx = els.eyeCv.getContext("2d");
+
+/* ================= state ================= */
+var W = 0, H = 0, EW = 0, EH = 0, DPR = 1;
+var az = 128, alt = 34;            /* telescope aim */
+var slitAz = az, slitTilt = 0;     /* dome follows with lag */
+var slewRate = 0;
+var dragging = false, lastX = 0, lastY = 0;
+var locked = null;                 /* target object */
+var tween = null;                  /* auto-slew {az,alt} */
+var redmode = false;
+var audioOn = false;
+var log = [];
+var seen = {};
+var raf = 0, running = true, frame = 0, lastT = 0;
+var eye = null;                    /* {obj, t, phase, logged, expStart} */
+
+/* ================= targets ================= */
+var TARGETS = [
+  { code:"M31", name:"Andromeda Galaxy", type:"galaxy", mag:3.4, az:40,  alt:38, note:"A spill of light beyond counting — our nearest great neighbour." },
+  { code:"M42", name:"Orion Nebula",     type:"nebula", mag:4.0, az:95,  alt:22, note:"A cradle of suns, lit by four young stars at its heart." },
+  { code:"M45", name:"The Pleiades",     type:"open",   mag:1.6, az:130, alt:41, note:"Seven sisters in blue haze; every culture kept their names." },
+  { code:"M13", name:"Hercules Cluster", type:"glob",   mag:5.8, az:190, alt:55, note:"Three hundred thousand suns older than the Earth." },
+  { code:"M51", name:"Whirlpool Galaxy", type:"spiral", mag:8.4, az:215, alt:47, note:"Two cities of stars, one reaching into the other." },
+  { code:"M57", name:"Ring Nebula",      type:"ring",   mag:8.8, az:250, alt:36, note:"A sun's last breath, exhaled into a perfect smoke ring." },
+  { code:"M27", name:"Dumbbell Nebula",  type:"dumb",   mag:7.4, az:285, alt:28, note:"The hourglass of a dying star, glowing by its own farewell." },
+  { code:"M104",name:"Sombrero Galaxy",  type:"sombrero",mag:8.0,az:320, alt:18, note:"A hat of stars seen exactly edge-on, dust for a brim." },
+  { code:"M81", name:"Bode's Galaxy",    type:"galaxy", mag:6.9, az:60,  alt:50, note:"A grand-design spiral, quiet and enormous." },
+  { code:"M8",  name:"Lagoon Nebula",    type:"nebula", mag:6.0, az:160, alt:15, note:"A lagoon of hydrogen where the tide never leaves." },
+  { code:"M11", name:"Wild Duck Cluster",type:"open",   mag:6.3, az:235, alt:44, note:"A flock of stars frozen mid-migration." },
+  { code:"M33", name:"Triangulum Galaxy",type:"galaxy", mag:5.7, az:75,  alt:43, note:"The third wheel of the Local Group, shy and diffuse." }
+];
+
+/* ================= stars ================= */
+var stars = [];
+function seedStars(){
+  stars = [];
+  for (var i = 0; i < 170; i++){
+    stars.push({
+      az: Math.random() * 360,
+      alt: 8 + Math.random() * 78,
+      m: 0.4 + Math.random() * Math.random() * 2.6,
+      ph: Math.random() * 6.283
+    });
+  }
+}
+function wrapDiff(a){
+  a = ((a % 360) + 360) % 360;
+  return a > 180 ? a - 360 : a;
+}
+function angDist(az1, al1, az2, al2){
+  var daz = wrapDiff(az2 - az1);
+  var dal = al2 - al1;
+  return Math.sqrt(daz * daz + dal * dal);
+}
+
+/* ================= sizing ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var r = els.viewport.getBoundingClientRect();
+  W = Math.max(80, Math.round(r.width));
+  H = Math.max(80, Math.round(r.height));
+  els.dome.width = Math.round(W * DPR);
+  els.dome.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  var er = els.eyeCv.getBoundingClientRect();
+  EW = Math.max(80, Math.round(er.width));
+  EH = Math.max(80, Math.round(er.height));
+  els.eyeCv.width = Math.round(EW * DPR);
+  els.eyeCv.height = Math.round(EH * DPR);
+  ectx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+/* ================= audio ================= */
+var AC = null, servo = null, servoGain = null, hum = null, humGain = null;
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  servo = AC.createOscillator();
+  servo.type = "sawtooth";
+  servo.frequency.value = 68;
+  var lp = AC.createBiquadFilter();
+  lp.type = "lowpass"; lp.frequency.value = 260; lp.Q.value = 0.6;
+  servoGain = AC.createGain();
+  servoGain.gain.value = 0.0001;
+  servo.connect(lp); lp.connect(servoGain); servoGain.connect(AC.destination);
+  servo.start();
+  hum = AC.createOscillator();
+  hum.type = "sine";
+  hum.frequency.value = 54;
+  humGain = AC.createGain();
+  humGain.gain.value = 0.0001;
+  hum.connect(humGain); humGain.connect(AC.destination);
+  hum.start();
+  return true;
+}
+function blip(freq, dur, vol){
+  if (!audioOn || !AC) return;
+  var o = AC.createOscillator();
+  o.type = "sine";
+  o.frequency.value = freq;
+  var g = AC.createGain();
+  g.gain.value = 0.0001;
+  var t = AC.currentTime;
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+
+/* ================= panel ui ================= */
+function buildTargets(){
+  TARGETS.forEach(function(t){
+    var b = document.createElement("button");
+    b.className = "t-row";
+    b.type = "button";
+    b.setAttribute("data-code", t.code);
+    b.innerHTML = '<span class="code">' + t.code + '</span>' +
+      '<span class="nm">' + t.name + '<i>' + t.type + ' · slew to</i></span>' +
+      '<span class="mg">m' + t.mag.toFixed(1) + '</span>';
+    b.addEventListener("click", function(){
+      tween = { az: t.az, alt: t.alt };
+      blip(520, 0.08, 0.05);
+    });
+    els.targetList.appendChild(b);
+    t.rowEl = b;
+  });
+}
+function addLog(t){
+  var now = new Date();
+  var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+  var tm = pad(now.getHours()) + ":" + pad(now.getMinutes());
+  var empty = els.logList.querySelector(".log-empty");
+  if (empty) empty.remove();
+  var row = document.createElement("div");
+  row.className = "log-row";
+  row.innerHTML = '<span class="tm">' + tm + '</span><span class="ob">' + t.code + '</span><span>' + t.name + '</span>';
+  els.logList.insertBefore(row, els.logList.firstChild);
+  log.push({ tm: tm, code: t.code });
+  els.logCount.textContent = log.length + " obs";
+  var seenN = Object.keys(seen).length;
+  els.seenCount.textContent = seenN + " / " + TARGETS.length;
+  t.rowEl.classList.add("seen");
+}
+
+/* ================= eyepiece ================= */
+function openEyepiece(t){
+  if (!locked || locked !== t) return;
+  eye = { obj: t, t: 0, logged: false, expStart: frame, phase: "zoom" };
+  els.eye.classList.add("open");
+  els.eye.setAttribute("aria-hidden", "false");
+  els.eyeObj.innerHTML = t.code + " · " + t.name.toUpperCase() + "<br>m " + t.mag.toFixed(1) + " · " + t.type.toUpperCase();
+  els.eyeNote.textContent = t.note;
+  if (audioOn && AC) humGain.gain.setTargetAtTime(0.045, AC.currentTime, 0.8);
+  blip(660, 0.12, 0.06);
+}
+function closeEyepiece(){
+  if (!eye) return;
+  eye.phase = "exit";
+  if (audioOn && AC) humGain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.4);
+}
+
+/* ================= drawing : dome view ================= */
+function drawDome(now){
+  var cx = W / 2, cy = H * 0.46;
+  /* interior wall */
+  var wall = ctx.createRadialGradient(cx, cy, H * 0.1, cx, cy, Math.max(W, H) * 0.75);
+  wall.addColorStop(0, "#171a22");
+  wall.addColorStop(1, redmode ? "#120b0b" : "#0d0f15");
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, W, H);
+
+  /* --- slit + sky --- */
+  var lag = wrapDiff(slitAz - az);
+  slitTilt = lerp(slitTilt, clamp(lag * 0.55, -26, 26), 0.08);
+  var sw = W * 0.46, sh = H * 0.60;
+  var sx = cx + clamp(lag * 2.2, -W * 0.12, W * 0.12);
+  var sy = cy - H * 0.10;
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(slitTilt * Math.PI / 180);
+  var slitPath = function(){
+    ctx.beginPath();
+    var rr = 14;
+    ctx.moveTo(-sw/2 + rr, -sh/2);
+    ctx.lineTo(sw/2 - rr, -sh/2);
+    ctx.quadraticCurveTo(sw/2, -sh/2, sw/2, -sh/2 + rr);
+    ctx.lineTo(sw/2, sh/2 - rr);
+    ctx.quadraticCurveTo(sw/2, sh/2, sw/2 - rr, sh/2);
+    ctx.lineTo(-sw/2 + rr, sh/2);
+    ctx.quadraticCurveTo(-sw/2, sh/2, -sw/2, sh/2 - rr);
+    ctx.lineTo(-sw/2, -sh/2 + rr);
+    ctx.quadraticCurveTo(-sw/2, -sh/2, -sw/2 + rr, -sh/2);
+    ctx.closePath();
+  };
+  slitPath();
+  ctx.clip();
+  /* sky gradient */
+  var sky = ctx.createLinearGradient(0, -sh/2, 0, sh/2);
+  sky.addColorStop(0, "#060912");
+  sky.addColorStop(1, "#0a0e1a");
+  ctx.fillStyle = sky;
+  ctx.fillRect(-sw/2, -sh/2, sw, sh);
+  /* milky band */
+  var mb = ctx.createLinearGradient(-sw/2, -sh/4, sw/2, sh/3);
+  mb.addColorStop(0, "rgba(120,130,160,0)");
+  mb.addColorStop(0.5, "rgba(130,140,168,0.07)");
+  mb.addColorStop(1, "rgba(120,130,160,0)");
+  ctx.fillStyle = mb;
+  ctx.fillRect(-sw/2, -sh/2, sw, sh);
+  /* stars through slit */
+  var viewHalf = 26;
+  for (var i = 0; i < stars.length; i++){
+    var st = stars[i];
+    var daz = wrapDiff(st.az - az);
+    if (Math.abs(daz) > viewHalf) continue;
+    var dal = st.alt - alt;
+    if (Math.abs(dal) > 24) continue;
+    var x = (daz / viewHalf) * (sw/2);
+    var y = (0.5 - dal / 48) * sh;
+    var tw = reduced.matches ? 1 : (0.7 + 0.3 * Math.sin(now * 0.0016 + st.ph));
+    var rr = st.m * 0.9 + 0.35;
+    var alpha = clamp(1.15 - st.m * 0.28, 0.15, 1) * tw;
+    if (redmode) alpha *= 0.55;
+    ctx.fillStyle = "rgba(" + (redmode ? "255,190,180" : "220,230,246") + "," + alpha.toFixed(3) + ")";
+    ctx.beginPath();
+    ctx.arc(x, y, rr, 0, 6.283);
+    ctx.fill();
+    if (st.m < 1.1){
+      ctx.fillStyle = "rgba(220,230,246," + (alpha * 0.25).toFixed(3) + ")";
+      ctx.fillRect(x - rr * 3, y - 0.4, rr * 6, 0.8);
+      ctx.fillRect(x - 0.4, y - rr * 3, 0.8, rr * 6);
+    }
+  }
+  /* target blobs */
+  for (var t = 0; t < TARGETS.length; t++){
+    var tg = TARGETS[t];
+    var daz2 = wrapDiff(tg.az - az);
+    if (Math.abs(daz2) > viewHalf - 2) continue;
+    var dal2 = tg.alt - alt;
+    if (Math.abs(dal2) > 22) continue;
+    var x2 = (daz2 / viewHalf) * (sw/2);
+    var y2 = (0.5 - dal2 / 48) * sh;
+    var isLocked = locked === tg;
+    var glowR = isLocked ? 10 : 6;
+    var gg = ctx.createRadialGradient(x2, y2, 0, x2, y2, glowR * 2.4);
+    var col = isLocked ? "255,209,102" : (redmode ? "255,150,140" : "158,178,204");
+    gg.addColorStop(0, "rgba(" + col + ",.55)");
+    gg.addColorStop(1, "rgba(" + col + ",0)");
+    ctx.fillStyle = gg;
+    ctx.beginPath();
+    ctx.arc(x2, y2, glowR * 2.4, 0, 6.283);
+    ctx.fill();
+    ctx.fillStyle = "rgba(" + col + ",.9)";
+    ctx.font = "9px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(tg.code + " " + (Math.round(angDist(az, alt, tg.az, tg.alt) * 10) / 10) + "°", x2 + glowR + 3, y2 + 3);
+  }
+  ctx.restore();
+  /* slit frame */
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(slitTilt * Math.PI / 180);
+  slitPath();
+  ctx.strokeStyle = redmode ? "rgba(255,110,100,.35)" : "rgba(170,182,198,.28)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  /* --- dome structure over sky --- */
+  var shade = ctx.createLinearGradient(0, 0, W, 0);
+  shade.addColorStop(0, "rgba(10,12,17,.88)");
+  shade.addColorStop(0.18, "rgba(10,12,17,0)");
+  shade.addColorStop(0.82, "rgba(10,12,17,0)");
+  shade.addColorStop(1, "rgba(10,12,17,.88)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, 0, W, H);
+  /* ribs */
+  ctx.strokeStyle = redmode ? "rgba(255,110,100,.10)" : "rgba(170,182,198,.10)";
+  ctx.lineWidth = 1;
+  for (var rb = 1; rb <= 5; rb++){
+    ctx.beginPath();
+    ctx.ellipse(cx, H * 1.62, W * (0.22 + rb * 0.19), H * (0.9 + rb * 0.26), 0, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+  }
+  /* floor + platform */
+  var fl = ctx.createLinearGradient(0, H * 0.78, 0, H);
+  fl.addColorStop(0, "rgba(8,10,14,0)");
+  fl.addColorStop(0.45, redmode ? "rgba(26,13,13,.92)" : "rgba(10,12,16,.92)");
+  fl.addColorStop(1, redmode ? "#170c0c" : "#0b0d12");
+  ctx.fillStyle = fl;
+  ctx.fillRect(0, H * 0.74, W, H * 0.26);
+  ctx.strokeStyle = redmode ? "rgba(255,110,100,.25)" : "rgba(170,182,198,.22)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, H * 0.845);
+  ctx.lineTo(W, H * 0.845);
+  ctx.stroke();
+  ctx.lineWidth = 1.4;
+  for (var p = 0; p <= 10; p++){
+    var px = (W / 10) * p;
+    ctx.beginPath();
+    ctx.moveTo(px, H * 0.845);
+    ctx.lineTo(px, H * 0.915);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, H * 0.915);
+  ctx.lineTo(W, H * 0.915);
+  ctx.stroke();
+
+  /* --- telescope --- */
+  var tubeBaseY = H * 0.88;
+  var tubeW0 = Math.max(60, W * 0.11), tubeW1 = 26;
+  ctx.fillStyle = redmode ? "#241212" : "#1f232b";
+  ctx.beginPath();
+  ctx.moveTo(cx - tubeW0/2, tubeBaseY);
+  ctx.lineTo(cx - tubeW1/2, cy + 8);
+  ctx.lineTo(cx + tubeW1/2, cy + 8);
+  ctx.lineTo(cx + tubeW0/2, tubeBaseY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = redmode ? "rgba(255,110,100,.3)" : "rgba(170,182,198,.3)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  /* tube rings */
+  ctx.strokeStyle = redmode ? "rgba(255,110,100,.2)" : "rgba(170,182,198,.16)";
+  for (var rgt = 1; rgt <= 3; rgt++){
+    var f = rgt / 4;
+    var yl = lerp(tubeBaseY, cy + 8, f);
+    var wl = lerp(tubeW0, tubeW1, f);
+    ctx.beginPath();
+    ctx.moveTo(cx - wl/2, yl);
+    ctx.lineTo(cx + wl/2, yl);
+    ctx.stroke();
+  }
+  /* finder + leds */
+  ctx.fillStyle = "#151920";
+  ctx.fillRect(cx + tubeW0 * 0.22, lerp(tubeBaseY, cy + 8, 0.45), 16, 7);
+  var ledCol = (slewRate > 0.05) ? "#ff5c5c" : "#68d391";
+  if (redmode) ledCol = "#ff5c5c";
+  ctx.fillStyle = ledCol;
+  ctx.shadowColor = ledCol;
+  ctx.shadowBlur = 7;
+  ctx.fillRect(cx - tubeW0 * 0.30, lerp(tubeBaseY, cy + 8, 0.45), 4, 4);
+  ctx.shadowBlur = 0;
+  /* mount base */
+  ctx.fillStyle = "#181c23";
+  ctx.beginPath();
+  ctx.ellipse(cx, tubeBaseY + 6, tubeW0 * 0.72, 10, 0, 0, 6.283);
+  ctx.fill();
+
+  /* --- reticle --- */
+  var rc = redmode ? "255,92,92" : (locked ? "255,209,102" : "170,182,198");
+  ctx.strokeStyle = "rgba(" + rc + ",.9)";
+  ctx.lineWidth = 1.2;
+  var g = 14, L = 26, R = 34;
+  ctx.beginPath();
+  ctx.moveTo(cx - R, cy); ctx.lineTo(cx - g, cy);
+  ctx.moveTo(cx + g, cy); ctx.lineTo(cx + R, cy);
+  ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy - g);
+  ctx.moveTo(cx, cy + g); ctx.lineTo(cx, cy + R);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, R + 7, 0, 6.283);
+  ctx.strokeStyle = "rgba(" + rc + ",.35)";
+  ctx.stroke();
+  if (locked){
+    var puls = reduced.matches ? 0 : Math.sin(now * 0.004) * 2;
+    ctx.strokeStyle = "rgba(255,209,102,.9)";
+    ctx.lineWidth = 2;
+    var b = R + 15 + puls;
+    var c2 = 9;
+    ctx.beginPath();
+    ctx.moveTo(cx - b, cy - b + c2); ctx.lineTo(cx - b, cy - b); ctx.lineTo(cx - b + c2, cy - b);
+    ctx.moveTo(cx + b - c2, cy - b); ctx.lineTo(cx + b, cy - b); ctx.lineTo(cx + b, cy - b + c2);
+    ctx.moveTo(cx + b, cy + b - c2); ctx.lineTo(cx + b, cy + b); ctx.lineTo(cx + b - c2, cy + b);
+    ctx.moveTo(cx - b + c2, cy + b); ctx.lineTo(cx - b, cy + b); ctx.lineTo(cx - b, cy + b - c2);
+    ctx.stroke();
+  }
+}
+
+/* ================= drawing : eyepiece ================= */
+function drawEyepiece(now){
+  ectx.fillStyle = "#050810";
+  ectx.fillRect(0, 0, EW, EH);
+  if (!eye) return;
+  var t = eye.t;
+  var cx = EW / 2, cy = EH / 2;
+  var minDim = Math.min(EW, EH);
+
+  if (eye.phase === "exit"){
+    eye.t -= 0.055;
+    if (eye.t <= 0){
+      eye = null;
+      els.eye.classList.remove("open");
+      els.eye.setAttribute("aria-hidden", "true");
+      return;
+    }
+  } else if (t < 1){
+    eye.t = Math.min(1, t + (reduced.matches ? 0.08 : 0.012));
+  }
+
+  var z = t * t * (3 - 2 * t);            /* smoothstep */
+  var scale = 1 + z * 13;
+  var drift = reduced.matches ? 0 : now * 0.00002;
+
+  if (z < 1 || eye.phase === "exit"){
+    /* zooming starfield: radial streaks */
+    var n = 90;
+    for (var i = 0; i < n; i++){
+      var a = (i * 137.508) * Math.PI / 180 + drift;
+      var rr = ((i * 61.7) % 100) / 100;
+      var d = Math.pow(rr, 0.6) * minDim * 0.75;
+      var sx = cx + Math.cos(a) * d * (0.3 + z * 0.9);
+      var sy = cy + Math.sin(a) * d * (0.3 + z * 0.9);
+      var sz = Math.max(0.4, (1.6 - rr) * (0.6 + z * 2.2));
+      var al = clamp(0.25 + z * 0.5, 0, 0.85);
+      ectx.strokeStyle = "rgba(215,225,245," + al.toFixed(3) + ")";
+      ectx.lineWidth = sz;
+      ectx.beginPath();
+      ectx.moveTo(sx, sy);
+      ectx.lineTo(sx + Math.cos(a) * z * 16, sy + Math.sin(a) * z * 16);
+      ectx.stroke();
+    }
+    /* growing glow of the object */
+    var gr = ctx.createRadialGradient(cx, cy, 0, cx, cy, minDim * 0.2 * (0.2 + z));
+    gr.addColorStop(0, "rgba(255,235,190," + (z * 0.35).toFixed(3) + ")");
+    gr.addColorStop(1, "rgba(255,235,190,0)");
+    ectx.fillStyle = gr;
+    ectx.fillRect(0, 0, EW, EH);
+  } else {
+    renderObject(eye.obj, cx, cy, minDim, drift, now);
+  }
+
+  /* exposure counter */
+  if (eye.phase !== "exit" && z >= 1){
+    var s = Math.floor((frame - eye.expStart) / 60);
+    els.eyeExp.textContent = String(Math.min(999, s)).padStart(3, "0") + "S";
+    if (!eye.logged){
+      eye.logged = true;
+      addLog(eye.obj);
+      seen[eye.obj.code] = true;
+      blip(880, 0.1, 0.05);
+      setTimeout(function(){ blip(1174, 0.14, 0.05); }, 110);
+    }
+  } else {
+    els.eyeExp.textContent = "000S";
+  }
+}
+
+/* the deep-sky objects, procedurally rendered */
+function renderObject(obj, cx, cy, md, drift, now){
+  var R = md * 0.30;
+  var expose = Math.min(1, ((frame - eye.expStart) / 90));
+  var breathe = reduced.matches ? 1 : 1 + Math.sin(now * 0.0011) * 0.012;
+  var rot = drift * 6;
+
+  function glintStar(x, y, r, col){
+    var g = ectx.createRadialGradient(x, y, 0, x, y, r * 5);
+    g.addColorStop(0, "rgba(" + col + "," + (0.9 * expose).toFixed(3) + ")");
+    g.addColorStop(0.3, "rgba(" + col + "," + (0.25 * expose).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(" + col + ",0)");
+    ectx.fillStyle = g;
+    ectx.beginPath();
+    ectx.arc(x, y, r * 5, 0, 6.283);
+    ectx.fill();
+    ectx.fillStyle = "rgba(255,255,255," + expose.toFixed(3) + ")";
+    ectx.beginPath();
+    ectx.arc(x, y, r, 0, 6.283);
+    ectx.fill();
+  }
+
+  ectx.save();
+  ectx.translate(cx, cy);
+  ectx.rotate(rot * 0.2);
+  ectx.scale(breathe, breathe);
+  var type = obj.type;
+
+  if (type === "galaxy"){
+    var g = ectx.createRadialGradient(0, 0, 0, 0, 0, R * 1.5);
+    g.addColorStop(0, "rgba(255,240,214," + (0.8 * expose).toFixed(3) + ")");
+    g.addColorStop(0.25, "rgba(230,215,190," + (0.4 * expose).toFixed(3) + ")");
+    g.addColorStop(0.6, "rgba(180,190,215," + (0.16 * expose).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(150,165,200,0)");
+    ectx.save();
+    ectx.rotate(-0.5);
+    ectx.scale(1, 0.42);
+    ectx.fillStyle = g;
+    ectx.beginPath();
+    ectx.arc(0, 0, R * 1.5, 0, 6.283);
+    ectx.fill();
+    /* dust lane */
+    ectx.strokeStyle = "rgba(20,16,24," + (0.5 * expose).toFixed(3) + ")";
+    ectx.lineWidth = R * 0.16;
+    ectx.beginPath();
+    ectx.ellipse(0, R * 0.12, R * 1.2, R * 0.34, 0, Math.PI * 0.15, Math.PI * 0.95);
+    ectx.stroke();
+    ectx.restore();
+    for (var i = 0; i < 26; i++){
+      var a = i * 2.399, rr2 = R * (0.5 + ((i * 37) % 90) / 130);
+      glintStar(Math.cos(a) * rr2 * 1.5, Math.sin(a) * rr2 * 0.6, 0.7, "220,228,244");
+    }
+  } else if (type === "nebula"){
+    var cols = ["56,178,172", "255,140,160", "120,150,255"];
+    for (var k = 0; k < 3; k++){
+      var ng = ectx.createRadialGradient(k * 10 - 8, k * 6 - 5, 0, 0, 0, R * (1.15 - k * 0.18));
+      ng.addColorStop(0, "rgba(" + cols[k] + "," + (0.22 * expose).toFixed(3) + ")");
+      ng.addColorStop(1, "rgba(" + cols[k] + ",0)");
+      ectx.fillStyle = ng;
+      ectx.beginPath();
+      ectx.arc(0, 0, R * (1.15 - k * 0.18), 0, 6.283);
+      ectx.fill();
+    }
+    /* wisps */
+    ectx.strokeStyle = "rgba(140,170,210," + (0.14 * expose).toFixed(3) + ")";
+    for (var w2 = 0; w2 < 7; w2++){
+      ectx.lineWidth = 1 + (w2 % 3);
+      ectx.beginPath();
+      ectx.arc((w2 - 3) * 8, (w2 % 3) * 6 - 4, R * (0.4 + w2 * 0.09), 0.4 + w2, 1.8 + w2 * 0.7);
+      ectx.stroke();
+    }
+    /* trapezium */
+    glintStar(-4, -3, 1.4, "255,244,214");
+    glintStar(5, 1, 1.1, "255,244,214");
+    glintStar(-1, 6, 1.0, "220,232,255");
+    glintStar(3, -6, 0.9, "220,232,255");
+  } else if (type === "glob"){
+    for (var s2 = 0; s2 < 300; s2++){
+      var ang = Math.random() * 6.283;
+      var rad = Math.pow(Math.random(), 2.4) * R;
+      var al2 = clamp(0.9 - rad / R, 0.08, 0.9) * expose;
+      ectx.fillStyle = "rgba(" + (Math.random() < 0.3 ? "255,236,200" : "224,232,248") + "," + al2.toFixed(3) + ")";
+      ectx.fillRect(Math.cos(ang) * rad, Math.sin(ang) * rad, 1.3, 1.3);
+    }
+    var core = ectx.createRadialGradient(0, 0, 0, 0, 0, R * 0.3);
+    core.addColorStop(0, "rgba(255,244,220," + (0.85 * expose).toFixed(3) + ")");
+    core.addColorStop(1, "rgba(255,244,220,0)");
+    ectx.fillStyle = core;
+    ectx.beginPath();
+    ectx.arc(0, 0, R * 0.3, 0, 6.283);
+    ectx.fill();
+  } else if (type === "open"){
+    var pleiades = [[-30,-14,2.2],[8,-26,1.8],[26,6,1.9],[-12,14,1.6],[44,-18,1.4],[-40,22,1.2],[16,30,1.5],[60,10,1.0],[-58,-6,1.0]];
+    for (var pp = 0; pp < pleiades.length; pp++){
+      var p3 = pleiades[pp];
+      var halo = ectx.createRadialGradient(p3[0], p3[1], 0, p3[0], p3[1], R * 0.5);
+      halo.addColorStop(0, "rgba(150,180,255," + (0.16 * expose).toFixed(3) + ")");
+      halo.addColorStop(1, "rgba(150,180,255,0)");
+      ectx.fillStyle = halo;
+      ectx.beginPath();
+      ectx.arc(p3[0], p3[1], R * 0.5, 0, 6.283);
+      ectx.fill();
+      glintStar(p3[0], p3[1], p3[2], "226,236,255");
+      /* diffraction cross */
+      ectx.strokeStyle = "rgba(226,236,255," + (0.5 * expose).toFixed(3) + ")";
+      ectx.lineWidth = 0.8;
+      ectx.beginPath();
+      ectx.moveTo(p3[0] - p3[2] * 6, p3[1]);
+      ectx.lineTo(p3[0] + p3[2] * 6, p3[1]);
+      ectx.moveTo(p3[0], p3[1] - p3[2] * 6);
+      ectx.lineTo(p3[0], p3[1] + p3[2] * 6);
+      ectx.stroke();
+    }
+  } else if (type === "ring"){
+    var ring = ectx.createRadialGradient(0, 0, R * 0.45, 0, 0, R);
+    ring.addColorStop(0, "rgba(110,220,190,0)");
+    ring.addColorStop(0.55, "rgba(110,220,190," + (0.55 * expose).toFixed(3) + ")");
+    ring.addColorStop(0.8, "rgba(190,235,220," + (0.7 * expose).toFixed(3) + ")");
+    ring.addColorStop(1, "rgba(150,200,190,0)");
+    ectx.fillStyle = ring;
+    ectx.beginPath();
+    ectx.arc(0, 0, R, 0, 6.283);
+    ectx.fill();
+    glintStar(0, 0, 0.9, "255,250,235");
+  } else if (type === "dumb"){
+    ectx.save();
+    ectx.rotate(0.5);
+    for (var dside = -1; dside <= 1; dside += 2){
+      var dg = ectx.createLinearGradient(0, 0, 0, dside * R);
+      dg.addColorStop(0, "rgba(140,220,200," + (0.4 * expose).toFixed(3) + ")");
+      dg.addColorStop(1, "rgba(140,220,200,0)");
+      ectx.fillStyle = dg;
+      ectx.beginPath();
+      ectx.moveTo(-R * 0.22, 0);
+      ectx.lineTo(R * 0.22, 0);
+      ectx.lineTo(R * 0.7, dside * R);
+      ectx.lineTo(-R * 0.7, dside * R);
+      ectx.closePath();
+      ectx.fill();
+    }
+    ectx.restore();
+    glintStar(0, 0, 1.1, "235,250,240");
+  } else if (type === "spiral"){
+    for (var arm = 0; arm < 2; arm++){
+      for (var s3 = 0; s3 < 90; s3++){
+        var f = s3 / 90;
+        var a3 = arm * Math.PI + f * 3.6 + rot * 0.2;
+        var r3 = f * R * 1.25;
+        var x3 = Math.cos(a3) * r3, y3 = Math.sin(a3) * r3 * 0.8;
+        ectx.fillStyle = "rgba(" + (s3 % 5 === 0 ? "255,220,180" : "205,215,240") + "," + (0.75 * (1 - f) * expose).toFixed(3) + ")";
+        ectx.fillRect(x3 + (Math.random() - 0.5) * 4, y3 + (Math.random() - 0.5) * 4, 1.3, 1.3);
+      }
+    }
+    var sc = ectx.createRadialGradient(0, 0, 0, 0, 0, R * 0.34);
+    sc.addColorStop(0, "rgba(255,238,205," + (0.8 * expose).toFixed(3) + ")");
+    sc.addColorStop(1, "rgba(255,238,205,0)");
+    ectx.fillStyle = sc;
+    ectx.beginPath();
+    ectx.arc(0, 0, R * 0.34, 0, 6.283);
+    ectx.fill();
+  } else { /* sombrero */
+    ectx.save();
+    ectx.rotate(-0.18);
+    var bul = ectx.createRadialGradient(0, 0, 0, 0, 0, R * 0.5);
+    bul.addColorStop(0, "rgba(255,240,210," + (0.85 * expose).toFixed(3) + ")");
+    bul.addColorStop(1, "rgba(220,205,180," + (0.1 * expose).toFixed(3) + ")");
+    ectx.fillStyle = bul;
+    ectx.beginPath();
+    ectx.ellipse(0, 0, R * 1.25, R * 0.32, 0, 0, 6.283);
+    ectx.fill();
+    ectx.strokeStyle = "rgba(16,12,18," + (0.65 * expose).toFixed(3) + ")";
+    ectx.lineWidth = R * 0.09;
+    ectx.beginPath();
+    ectx.moveTo(-R * 1.35, 0);
+    ectx.lineTo(R * 1.35, 0);
+    ectx.stroke();
+    ectx.restore();
+  }
+  ectx.restore();
+
+  /* faint background field stars around object */
+  for (var fs = 0; fs < 40; fs++){
+    var fa = fs * 2.399;
+    var fr2 = R * (1.6 + ((fs * 53) % 120) / 90);
+    ectx.fillStyle = "rgba(210,220,240," + (0.5 * expose).toFixed(3) + ")";
+    ectx.fillRect(cx + Math.cos(fa) * fr2 * 1.6, cy + Math.sin(fa) * fr2, 1.1, 1.1);
+  }
+}
+
+/* ================= update ================= */
+function update(dt){
+  if (tween){
+    var daz = wrapDiff(tween.az - az);
+    var dal = tween.alt - alt;
+    var step = 14 * dt;
+    if (Math.abs(daz) < step && Math.abs(dal) < step){
+      az = tween.az; alt = tween.alt; tween = null;
+    } else {
+      az += clamp(daz, -step, step);
+      alt += clamp(dal, -step, step);
+    }
+  }
+  alt = clamp(alt, 10, 82);
+  az = ((az % 360) + 360) % 360;
+  slitAz = az + wrapDiff(slitAz - az) * Math.pow(0.02, dt);  /* dome lags behind */
+
+  /* lock */
+  var best = null, bd = 2.4;
+  for (var i = 0; i < TARGETS.length; i++){
+    var d = angDist(az, alt, TARGETS[i].az, TARGETS[i].alt);
+    if (d < bd){ bd = d; best = TARGETS[i]; }
+  }
+  if (best !== locked){
+    locked = best;
+    if (locked) blip(740, 0.09, 0.06);
+    els.enterBtn.disabled = !locked;
+  }
+  els.roLock.textContent = locked
+    ? "TARGET LOCK — " + locked.code + " · " + locked.name.toUpperCase() + " (READY)"
+    : "SEARCHING… SLEW WITHIN 2.4° OF A TARGET";
+  els.roLock.style.color = locked ? "var(--amber)" : "";
+  if (locked){
+    els.tiName.innerHTML = "<b>" + locked.code + "</b> " + locked.name.toUpperCase();
+    els.tiMeta.textContent = locked.type.toUpperCase() + " · MAG " + locked.mag.toFixed(1) + " · DIST " + bd.toFixed(2) + "°";
+  } else {
+    els.tiName.textContent = "—";
+    els.tiMeta.textContent = "NO CATALOGUED TARGET IN RETICLE";
+  }
+  if (audioOn && AC && servoGain){
+    var g = clamp(slewRate * 0.12, 0.0001, 0.06);
+    servoGain.gain.setTargetAtTime(g, AC.currentTime, 0.08);
+    servo.frequency.setTargetAtTime(60 + slewRate * 9, AC.currentTime, 0.1);
+  }
+}
+
+/* ================= loop ================= */
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  frame++;
+  var dt = clamp((now - lastT) / 1000, 0, 0.08);
+  lastT = now;
+  slewRate = slewRate * Math.pow(0.0001, dt);
+  update(dt);
+  drawDome(now);
+  if (eye) drawEyepiece(now);
+  if (frame % 15 === 0){
+    var pad = function(n){ return (n < 10 ? "0" : "") + n; };
+    var d = now2date();
+    els.panelClock.textContent = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+    els.roAz.textContent = az.toFixed(1).padStart(5, "0") + "°";
+    els.roAlt.textContent = (alt >= 0 ? "+" : "−") + Math.abs(alt).toFixed(1) + "°";
+    els.roRate.textContent = slewRate.toFixed(2) + "°/s";
+  }
+}
+function now2date(){ return new Date(); }
+
+/* ================= input ================= */
+els.dome.addEventListener("pointerdown", function(e){
+  dragging = true;
+  tween = null;
+  els.viewport.classList.add("slewing");
+  try { els.dome.setPointerCapture(e.pointerId); } catch(err){}
+  lastX = e.clientX; lastY = e.clientY;
+});
+els.dome.addEventListener("pointermove", function(e){
+  if (!dragging) return;
+  var dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  az += dx * 0.085;
+  alt -= dy * 0.07;
+  slewRate = Math.min(30, slewRate + Math.abs(dx) * 0.09 + Math.abs(dy) * 0.09);
+});
+var endSlew = function(e){
+  if (!dragging) return;
+  dragging = false;
+  els.viewport.classList.remove("slewing");
+  try { els.dome.releasePointerCapture(e.pointerId); } catch(err){}
+};
+els.dome.addEventListener("pointerup", endSlew);
+els.dome.addEventListener("pointercancel", endSlew);
+
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  var fine = e.shiftKey ? 0.2 : 1;
+  if (e.key === "ArrowLeft"){ az -= 1.2 * fine; tween = null; slewRate += 2; }
+  else if (e.key === "ArrowRight"){ az += 1.2 * fine; tween = null; slewRate += 2; }
+  else if (e.key === "ArrowUp"){ alt += 0.8 * fine; tween = null; slewRate += 2; }
+  else if (e.key === "ArrowDown"){ alt -= 0.8 * fine; tween = null; slewRate += 2; }
+  else if (e.key === "Enter"){ if (locked && !eye) openEyepiece(locked); }
+  else if (e.key === "Escape"){ if (eye) closeEyepiece(); }
+});
+
+els.enterBtn.addEventListener("click", function(){ if (locked && !eye) openEyepiece(locked); });
+els.retractBtn.addEventListener("click", closeEyepiece);
+els.nightBtn.addEventListener("click", function(){
+  redmode = !redmode;
+  document.body.classList.toggle("redmode", redmode);
+  els.nightBtn.setAttribute("aria-pressed", redmode ? "true" : "false");
+});
+els.soundBtn.addEventListener("click", function(){
+  audioOn = !audioOn;
+  els.soundBtn.setAttribute("aria-pressed", audioOn ? "true" : "false");
+  if (audioOn){
+    if (!ensureAudio()){ els.soundBtn.setAttribute("aria-pressed", "false"); audioOn = false; return; }
+    if (AC.state === "suspended") AC.resume();
+  } else if (AC){
+    servoGain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.2);
+    humGain.gain.setTargetAtTime(0.0001, AC.currentTime, 0.2);
+  }
+});
+
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(fit, 140);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+seedStars();
+buildTargets();
+fit();
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+TITLE: Ice Memory
+DESCRIPTION: A climate data story told in one draggable century. A procedurally drawn glacier valley — far ridges, scree-textured rock walls, a crevassed ice tongue with transverse blue bands — shrinks as a year slider (1900–2024) sweeps forward, while a milky proglacial lake grows from the snout and eventually swallows the valley where the ice stood. Painted marker rocks record where the tongue reached in 1936, 1966, 1988, 2004 and 2016, turning vermilion as the tongue retreats past them. Live readouts track ice extent, tongue length, lake area and temperature anomaly; three sparkline cards (temperature, mass balance, lake growth) draw themselves up to the chosen year with dashed futures ahead; and era captions fade between decades of quiet narrative.
+TECHNIQUES:
+- Procedural valley: a bedrock height profile with mid-valley rock step and seeded jitter, two valley-wall polygons with scree stroke texture, and layered parallax ridges
+- Glaciology-as-math: melt fraction driven by a smoothed warming-anomaly curve (with mid-century plateau), tongue length and thickness derived from it, crevasse band density scaling with melt, and lake level rising on the lowest bed point of the span
+- Sky and palette warm continuously with the anomaly via a hex-mix interpolation function — the whole scene's mood shifts from ice-blue to pale amber
+- Canvas sparklines with area fill up to the present year, dashed "future" segment, baseline rule, and a present-day dot; re-rendered per scrub position
+- Gradient-styled range scrubber whose track maps ice-blue to coral across the century; decade tick row; era captions cross-fade on decade change
+- Somber editorial furniture: 2px ink borders with offset shadows, mono data readouts, serif narrative columns, small roman year stamps on canvas rocks
+INTERACTION:
+- Drag the year slider (or ArrowUp/Down for 5-year jumps) and the valley redraws instantly: ice retreats, lake rises, sky warms, markers recolor, readouts and sparklines advance — a century in seconds
+- Slow scrubbing fades in new era captions — seven passages of narrative from hay-field years to school trips and a thin white comb in a high notch
+- All four readout cards and three sparkline cards update in lockstep; sparklines show the record to date plus a dashed ghost of what comes after
+- Fully keyboard-reachable slider with aria labels; reduced motion removes caption cross-fades (text swaps instantly)
+PROMPT:
+Build a single-file HTML climate data story titled "ICE MEMORY — A Glacier, 1900–2024". Palette: paper white #fbfaf6 with #f0ede4 depth; ice tones #cfe8f5/#8ecae6; crevasse blue #2c5f8a; rock #6b6560/#4a4541; warming coral #e07a5f; ink #2e3a45 with soft/faint tiers. Type: quiet serif for narrative (with an italic voice for captions), ui-monospace uppercase for all data readouts and labels with 0.22em tracking.
+
+Header: 2px ink rule under "ICE MEMORY" (huge serif, "MEMORY" italic in crevasse blue) and a right meta block ("VALLEY RECORD · 1900–2024", "drag the century · the glacier answers").
+
+Scene: a bordered canvas (clamp 320–560px tall) drawing a procedurally generated U-valley — far ridges in desaturated blue-grays, two rock walls with scree stroke texture, and a bedrock floor that descends left-to-right over a mid-valley rock step. A glacier tongue flows from the left: gradient ice body with a bumping crevassed surface, transverse crevasse streaks that denser toward the snout as melt increases, and a bright sheen near the tongue tip in warm years. Downstream, a milky proglacial lake (glacial-milk streaks on a #8ecae6→#2c5f8a gradient) fills the valley up to a level computed from the lowest bed point, growing from the tongue's retreat. Five painted marker rocks along the floor are labeled '36, '66, '88, '04, '16 — each turns coral once the tongue has retreated past its year. The sky gradient warms from ice-blue to pale amber as the anomaly climbs, and the sun brightens.
+
+Overlaid furniture: top-left an era caption (big mono year with coral last-two-digits, italic serif paragraph) that cross-fades on decade changes through seven written passages ("The ice fills the valley wall to wall…" → "A thin white comb in a high notch…"); top-right four stacked readout cards (Ice extent % of 1900, Tongue km, Lake hectares, Anomaly °C) in bordered cream chips with hard offset shadows.
+
+Below the scene: the scrubber card — a large mono year (19|00 with the last two digits coral), a hint "DRAG SLOWLY — OR SWEEP A CENTURY", and a custom range slider whose track is a gradient from #cfe8f5 through #8ecae6 to #e07a5f across 1900–2024, with decade ticks beneath.
+
+Data row: three bordered cards with mono headers and coral unit tags — Temperature anomaly (°C, coral line, zero baseline dashed), Mass balance (m w.e., crevasse-blue line, increasingly negative), Lake growth (hectares, ice-blue line) — each a canvas sparkline that fills with area up to the current year, shows a dashed ghost of the future, and ends in a present-day dot, plus a "at 1984: −0.8 m" style readout line.
+
+Story: two quiet serif paragraphs about painted rocks, patience, and a lake where the bridge stood. Footer mono line: "ICE MEMORY · THE GALLERY OF 100 · ROOM 85 / THE LAKE SWALLOWS THE VALLEY WHERE ICE ONCE STOOD".
+
+Signature moment: dragging the slider through the century — five seconds of motion compress a hundred years: the tongue shortens and thins, crevasses multiply, the lake widens over the old bed, markers flip coral one by one, the sky warms, and the sparklines write themselves to the present. Model the melt from a plausible warming curve (accelerating after 1980, mid-century plateau), keep readouts consistent with the visuals, and render everything instantly on every input event. Responsive: readouts and era caption reflow into the flow under 640px. Reduced motion: no cross-fades. No network, no images — the glacier is pure canvas math.

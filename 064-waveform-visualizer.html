@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oscilloscope Music — X-Y Lissajous Instrument</title>
+<style>
+  :root{
+    --screen:#041007;
+    --phos:#4ade80;
+    --phos-dim:#1c5b33;
+    --panel:#2a2d31;
+    --panel-lo:#212428;
+    --panel-hi:#3a3e43;
+    --amber:#f59e0b;
+    --engraved:#c3c9c0;
+    --engraved-dim:#7c837c;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    --caps:system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(120% 100% at 50% 0%,#33373c,#17191c 60%,#0d0e10);
+    color:var(--engraved);
+    font-family:var(--mono);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--phos);color:#041007}
+
+  /* ============ chassis ============ */
+  .chassis{
+    flex:1;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,480px);
+    gap:clamp(10px,2vw,28px);
+    padding:clamp(10px,2.4vh,26px) clamp(12px,2.6vw,34px);
+    min-height:0;
+  }
+  .screencell{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:0;
+  }
+  .bezel{
+    position:relative;width:100%;height:100%;max-width:calc((100vh - 160px) * 1.25);
+    border-radius:26px;
+    background:linear-gradient(160deg,var(--panel-hi),var(--panel) 45%,var(--panel-lo));
+    box-shadow:
+      0 24px 60px rgba(0,0,0,.65),
+      inset 0 1px 0 rgba(255,255,255,.14),
+      inset 0 -2px 8px rgba(0,0,0,.5);
+    padding:clamp(14px,2.2vw,30px);
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .screw{
+    position:absolute;width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#6a7076,#2c2f33 60%,#17191b);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.25),0 1px 2px rgba(0,0,0,.6);
+  }
+  .screw::after{
+    content:"";position:absolute;left:2px;right:2px;top:6px;height:2px;border-radius:1px;
+    background:rgba(0,0,0,.55);transform:rotate(38deg);
+  }
+  .screw.tl{top:8px;left:8px}.screw.tr{top:8px;right:8px}
+  .screw.bl{bottom:8px;left:8px}.screw.br{bottom:8px;right:8px}
+
+  .screen{
+    position:relative;flex:1;min-height:0;border-radius:16px;overflow:hidden;
+    background:var(--screen);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.9),inset 0 0 14px rgba(74,222,128,.06),0 0 0 3px #101312;
+    cursor:crosshair;
+  }
+  .screen canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .screen .glass{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(130% 120% at 50% 42%,#0000 55%,rgba(0,0,0,.5) 88%),
+      linear-gradient(115deg,rgba(255,255,255,.05) 0 18%,#0000 30%),
+      repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,#0000 2px 4px);
+    border-radius:16px;
+  }
+  .screen .flash{
+    position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(40% 40% at 50% 50%,rgba(74,222,128,.25),#0000 70%);
+    transition:opacity .5s ease;
+  }
+  .readouts{
+    display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;
+    padding:2px 6px 0;font-size:11px;letter-spacing:.12em;color:var(--phos);
+    text-shadow:0 0 8px rgba(74,222,128,.55);
+    min-height:18px;
+  }
+  .readouts .dim{color:var(--engraved-dim);text-shadow:none;font-size:9px;letter-spacing:.22em}
+  .readouts .amber{color:var(--amber);text-shadow:0 0 8px rgba(245,158,11,.5)}
+
+  .brand{
+    display:flex;align-items:baseline;gap:14px;padding:0 6px;
+  }
+  .brand b{
+    font-family:var(--caps);font-weight:800;font-size:13px;letter-spacing:.34em;
+    color:var(--engraved);
+    text-shadow:0 -1px 0 rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.09);
+  }
+  .brand span{
+    font-size:9px;letter-spacing:.26em;color:var(--engraved-dim);text-transform:uppercase;
+  }
+  .brand .led{
+    margin-left:auto;width:10px;height:10px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fca5a5,#dc2626 60%,#7f1d1d);
+    box-shadow:0 0 10px rgba(220,38,38,.7);
+    opacity:.25;transition:opacity .3s,box-shadow .3s;
+  }
+  .brand .led.on{opacity:1}
+
+  /* ============ panel column ============ */
+  .panelcol{
+    display:flex;flex-direction:column;gap:clamp(8px,1.6vh,16px);
+    min-height:0;overflow-y:auto;padding-right:4px;
+    scrollbar-width:thin;scrollbar-color:#4a4f55 #1c1f22;
+  }
+  .panelcol::-webkit-scrollbar{width:8px}
+  .panelcol::-webkit-scrollbar-track{background:#1c1f22;border-radius:4px}
+  .panelcol::-webkit-scrollbar-thumb{background:#4a4f55;border-radius:4px}
+  .panelcol::-webkit-scrollbar-thumb:hover{background:#5a6066}
+
+  .module{
+    background:linear-gradient(170deg,var(--panel-hi),var(--panel) 40%,var(--panel-lo));
+    border-radius:14px;
+    box-shadow:0 10px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -2px 6px rgba(0,0,0,.4);
+    padding:clamp(10px,1.6vh,16px) clamp(12px,1.4vw,18px);
+  }
+  .module>h2{
+    font-family:var(--caps);font-weight:800;font-size:10px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--engraved);
+    text-shadow:0 -1px 0 rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.08);
+    margin-bottom:10px;display:flex;align-items:baseline;gap:10px;
+  }
+  .module>h2 small{
+    font-family:var(--mono);font-weight:400;font-size:9px;letter-spacing:.2em;
+    color:var(--engraved-dim);text-transform:none;
+  }
+
+  .keys{
+    display:grid;grid-template-columns:repeat(8,1fr);gap:6px;
+  }
+  .pkey{
+    position:relative;border:0;cursor:pointer;border-radius:8px;
+    background:linear-gradient(180deg,#3c4046,#26292d 70%,#1e2124);
+    color:#d7dcd4;font-family:var(--mono);font-size:12px;
+    padding:12px 4px 10px;min-height:52px;
+    box-shadow:0 4px 0 #14161a,0 6px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.16);
+    transition:transform .06s ease,box-shadow .06s ease,background .15s;
+  }
+  .pkey small{
+    display:block;font-size:8px;letter-spacing:.14em;color:var(--engraved-dim);margin-top:3px;
+  }
+  .pkey:hover{background:linear-gradient(180deg,#45494f,#2b2e33 70%,#22252a)}
+  .pkey:focus-visible{outline:2px dashed var(--phos);outline-offset:2px}
+  .pkey.down{
+    transform:translateY(3px);box-shadow:0 1px 0 #14161a,0 2px 6px rgba(0,0,0,.5);
+    background:linear-gradient(180deg,#1d3a2a,#152b20 70%,#112217);
+    color:var(--phos);text-shadow:0 0 8px rgba(74,222,128,.6);
+  }
+  .pkey.down small{color:#2e7d4f}
+
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{
+    font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--engraved);background:linear-gradient(180deg,#3a3e43,#26292d);
+    border:1px solid #14161a;border-radius:6px;
+    padding:9px 11px;min-height:38px;cursor:pointer;
+    box-shadow:0 3px 0 #14161a,inset 0 1px 0 rgba(255,255,255,.1);
+    transition:transform .06s,box-shadow .06s,color .2s;
+  }
+  .seg button:hover{color:#fff}
+  .seg button:focus-visible{outline:2px dashed var(--phos);outline-offset:2px}
+  .seg button[aria-pressed="true"]{
+    color:var(--phos);text-shadow:0 0 8px rgba(74,222,128,.55);
+    transform:translateY(2px);box-shadow:0 1px 0 #14161a,inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  .knobrow{display:flex;flex-wrap:wrap;gap:12px 22px}
+  .knob{display:flex;flex-direction:column;gap:8px;flex:1;min-width:120px}
+  .knob label{
+    font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--engraved-dim);
+    display:flex;justify-content:space-between;gap:8px;
+  }
+  .knob label output{color:var(--phos);text-shadow:0 0 6px rgba(74,222,128,.5);letter-spacing:.1em}
+  .knob input[type="range"]{
+    -webkit-appearance:none;appearance:none;width:100%;height:26px;background:#0000;cursor:pointer;
+  }
+  .knob input[type="range"]::-webkit-slider-runnable-track{
+    height:6px;border-radius:3px;
+    background:linear-gradient(180deg,#14161a,#1e2124);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.8),0 1px 0 rgba(255,255,255,.06);
+  }
+  .knob input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;margin-top:-6px;
+    background:radial-gradient(circle at 35% 30%,#565c63,#26292d 65%);
+    border:1px solid #0d0e10;
+    box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  .knob input[type="range"]::-moz-range-track{
+    height:6px;border-radius:3px;background:#14161a;box-shadow:inset 0 1px 3px rgba(0,0,0,.8);
+  }
+  .knob input[type="range"]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;border:1px solid #0d0e10;
+    background:radial-gradient(circle at 35% 30%,#565c63,#26292d 65%);
+  }
+  .knob input[type="range"]:focus-visible{outline:2px dashed var(--phos);outline-offset:3px}
+
+  .warn{
+    display:none;align-items:center;gap:8px;margin-top:10px;
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);
+  }
+  .warn.show{display:flex}
+  .warn i{
+    width:9px;height:9px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 10px rgba(245,158,11,.8);animation:blink 1s steps(2,end) infinite;
+  }
+  @keyframes blink{50%{opacity:.25}}
+
+  .footnote{
+    font-size:9px;letter-spacing:.18em;color:var(--engraved-dim);text-transform:uppercase;
+    padding:0 4px;line-height:1.8;
+  }
+  .footnote b{color:var(--engraved);font-weight:400}
+
+  @media (max-width:880px){
+    body{overflow:auto}
+    .chassis{grid-template-columns:1fr;overflow:visible}
+    .bezel{max-width:none;height:auto;min-height:0}
+    .screen{height:min(72vw,420px);flex:none}
+    .panelcol{overflow:visible}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .warn i{animation:none}
+    .pkey,.seg button{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="chassis">
+
+  <!-- ================ SCREEN ================ -->
+  <section class="screencell">
+    <div class="bezel">
+      <span class="screw tl" aria-hidden="true"></span>
+      <span class="screw tr" aria-hidden="true"></span>
+      <span class="screw bl" aria-hidden="true"></span>
+      <span class="screw br" aria-hidden="true"></span>
+
+      <div class="brand">
+        <b>OS-42 &middot; LISSAJOUS</b>
+        <span>X-Y phosphor mode &middot; Gallery of 100</span>
+        <span class="led" id="powerLed" title="Beam status"></span>
+      </div>
+
+      <div class="screen" id="screen">
+        <canvas id="scope"></canvas>
+        <div class="glass" aria-hidden="true"></div>
+        <div class="flash" id="flash" aria-hidden="true"></div>
+      </div>
+
+      <div class="readouts" aria-live="off">
+        <span class="dim">CH&nbsp;A</span><span id="roA">261.6 Hz</span>
+        <span class="dim">CH&nbsp;B</span><span id="roB">392.4 Hz</span>
+        <span class="dim">RATIO</span><span id="roR">3 : 2 &middot; perfect fifth</span>
+        <span class="dim">&phi;</span><span id="roP">+90&deg;</span>
+        <span class="amber" id="roClk">BEAM LIVE</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ PANEL ================ -->
+  <section class="panelcol" aria-label="Instrument controls">
+
+    <div class="module">
+      <h2>Keyboard <small>hold to sound &middot; sets channel A</small></h2>
+      <div class="keys" id="keyrow">
+        <button class="pkey" data-sem="0" type="button">A<small>C</small></button>
+        <button class="pkey" data-sem="2" type="button">S<small>D</small></button>
+        <button class="pkey" data-sem="4" type="button">D<small>E</small></button>
+        <button class="pkey" data-sem="5" type="button">F<small>F</small></button>
+        <button class="pkey" data-sem="7" type="button">G<small>G</small></button>
+        <button class="pkey" data-sem="9" type="button">H<small>A</small></button>
+        <button class="pkey" data-sem="11" type="button">J<small>B</small></button>
+        <button class="pkey" data-sem="12" type="button">K<small>C&prime;</small></button>
+      </div>
+    </div>
+
+    <div class="module">
+      <h2>Interval <small>channel B multiplier</small></h2>
+      <div class="seg" id="intervals">
+        <button type="button" data-n="1" data-d="1" aria-pressed="false">1:1 unison</button>
+        <button type="button" data-n="2" data-d="1" aria-pressed="false">2:1 octave</button>
+        <button type="button" data-n="3" data-d="2" aria-pressed="true">3:2 fifth</button>
+        <button type="button" data-n="4" data-d="3" aria-pressed="false">4:3 fourth</button>
+        <button type="button" data-n="5" data-d="4" aria-pressed="false">5:4 maj 3rd</button>
+        <button type="button" data-n="6" data-d="5" aria-pressed="false">6:5 min 3rd</button>
+        <button type="button" data-n="5" data-d="3" aria-pressed="false">5:3 maj 6th</button>
+        <button type="button" data-n="7" data-d="5" aria-pressed="false">7:5 tritone</button>
+        <button type="button" data-n="8" data-d="3" aria-pressed="false">8:3 oct+4th</button>
+      </div>
+      <div class="knobrow" style="margin-top:12px">
+        <div class="knob">
+          <label for="phaseKnob">Phase &phi; <output id="phaseOut">90&deg;</output></label>
+          <input type="range" id="phaseKnob" min="0" max="180" value="90" step="1">
+        </div>
+        <div class="knob">
+          <label for="detuneKnob">Detune cents <output id="detuneOut">0</output></label>
+          <input type="range" id="detuneKnob" min="-25" max="25" value="0" step="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="module">
+      <h2>Harmonic series <small>n on channel B</small></h2>
+      <div class="seg" id="harmonics">
+        <button type="button" data-h="2" aria-pressed="false">2&omega;</button>
+        <button type="button" data-h="3" aria-pressed="true">3&omega;</button>
+        <button type="button" data-h="4" aria-pressed="false">4&omega;</button>
+        <button type="button" data-h="5" aria-pressed="false">5&omega;</button>
+        <button type="button" data-h="6" aria-pressed="false">6&omega;</button>
+        <button type="button" data-h="7" aria-pressed="false">7&omega;</button>
+        <button type="button" data-h="8" aria-pressed="false">8&omega;</button>
+      </div>
+    </div>
+
+    <div class="module">
+      <h2>Beam <small>crt conditioning</small></h2>
+      <div class="knobrow">
+        <div class="knob">
+          <label for="persistKnob">Persistence <output id="persistOut">82%</output></label>
+          <input type="range" id="persistKnob" min="40" max="98" value="82" step="1">
+        </div>
+        <div class="knob">
+          <label for="gainKnob">Gain <output id="gainOut">60%</output></label>
+          <input type="range" id="gainKnob" min="5" max="100" value="60" step="1">
+        </div>
+        <div class="knob">
+          <label for="sweepKnob">Auto sweep <output id="sweepOut">off</output></label>
+          <input type="range" id="sweepKnob" min="0" max="3" value="0" step="1">
+        </div>
+      </div>
+      <div class="seg" style="margin-top:12px">
+        <button type="button" id="holdBtn" aria-pressed="false">Hold figure</button>
+        <button type="button" id="powerBtn" aria-pressed="false">Power &middot; audio</button>
+      </div>
+      <div class="warn" id="warn" role="status"><i aria-hidden="true"></i>Overdrive &mdash; figure folding at the skirts</div>
+    </div>
+
+    <p class="footnote">
+      <b>OS-42 field note:</b> X-Y mode plots channel A against channel B directly &mdash;
+      no time axis. Equal frequencies draw a circle; simple ratios draw knots;
+      the tritone never closes. Keys A&ndash;K double as physical keys.
+    </p>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+var TAU=Math.PI*2;
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var canvas=document.getElementById("scope");
+var ctx=canvas.getContext("2d");
+var screen=document.getElementById("screen");
+var powerLed=document.getElementById("powerLed");
+var roA=document.getElementById("roA");
+var roB=document.getElementById("roB");
+var roR=document.getElementById("roR");
+var roP=document.getElementById("roP");
+var roClk=document.getElementById("roClk");
+var flash=document.getElementById("flash");
+var warn=document.getElementById("warn");
+
+var NAMES=["perfect unison","perfect octave","perfect fifth","perfect fourth",
+  "major third","minor third","major sixth","tritone","octave + fourth"];
+function ratioName(n,d){
+  var map={"1:1":"perfect unison","2:1":"perfect octave","3:2":"perfect fifth",
+    "4:3":"perfect fourth","5:4":"major third","6:5":"minor third",
+    "5:3":"major sixth","7:5":"tritone","8:3":"octave + fourth"};
+  return map[n+":"+d]||"ratio "+n+":"+d;
+}
+
+/* ---------- state ---------- */
+var semitone=0;               /* channel A offset from C4 */
+var BASE=261.6306;
+var ratioN=3,ratioD=2;        /* channel B = A * n/d */
+var phase=90*Math.PI/180;
+var detune=0;                 /* cents */
+var persistence=0.82;         /* trail retention */
+var gain=0.6;
+var sweep=0;                  /* 0 off, else speed index */
+var freeze=false;
+var phi=0;
+var last=0;
+var audioOn=false;
+var level=0;
+
+function fA(){return BASE*Math.pow(2,semitone/12);}
+function fB(){
+  return BASE*Math.pow(2,semitone/12)*(ratioN/ratioD)*Math.pow(2,detune/1200/10);
+}
+
+/* ---------- canvas ---------- */
+var W=0,H=0,cx=0,cy=0,S=0;
+function resize(){
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var r=screen.getBoundingClientRect();
+  W=Math.max(120,Math.round(r.width));H=Math.max(120,Math.round(r.height));
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  cx=W/2;cy=H/2;S=Math.min(W,H)*0.36;
+  paintBase();
+}
+function paintBase(){
+  ctx.fillStyle="#041007";
+  ctx.fillRect(0,0,W,H);
+  graticule();
+}
+function graticule(){
+  ctx.save();
+  ctx.strokeStyle="rgba(28,91,51,0.5)";
+  ctx.lineWidth=1;
+  var step=Math.max(24,Math.min(W,H)/10);
+  for(var x=cx%step;x<=W;x+=step){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(var y=cy%step;y<=H;y+=step){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  ctx.strokeStyle="rgba(28,91,51,0.85)";
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.strokeStyle="rgba(74,222,128,0.35)";
+  ctx.setLineDash([3,6]);
+  ctx.strokeRect(cx-S,cy-S,S*2,S*2);
+  ctx.setLineDash([]);
+  ctx.fillStyle="rgba(124,131,124,0.5)";
+  ctx.font="9px ui-monospace,'Courier New',monospace";
+  ctx.fillText("X-Y",8,14);
+  ctx.fillText("A \u2192 x",8,26);
+  ctx.fillText("B \u2192 y",8,38);
+  ctx.restore();
+}
+
+/* ---------- beam ---------- */
+function trace(dt){
+  var a=fA(),b=fB();
+  var steps=64;
+  var dphi=TAU*Math.max(a,b)*dt/8;
+  if(freeze)dphi=0;
+  if(RM)dphi*=0.35;
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  ctx.lineWidth=1.5;
+  ctx.strokeStyle="rgba(74,222,128,0.6)";
+  ctx.beginPath();
+  var px=null,py=null;
+  for(var i=0;i<=steps;i++){
+    var p=phi+dphi*i/steps;
+    var x=cx+Math.sin(p)*S;
+    var y=cy+Math.sin(p*(b/a)+phase)*S;
+    if(px===null)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    px=x;py=y;
+  }
+  ctx.stroke();
+  /* bright head */
+  var hx=cx+Math.sin(phi)*S, hy=cy+Math.sin(phi*(b/a)+phase)*S;
+  ctx.fillStyle="rgba(214,255,222,0.95)";
+  ctx.beginPath();ctx.arc(hx,hy,1.9,0,TAU);ctx.fill();
+  ctx.restore();
+  phi+=dphi;
+  if(phi>TAU*1000)phi-=TAU*1000;
+  return Math.max(Math.abs(Math.sin(phi)),Math.abs(Math.sin(phi*(b/a)+phase)));
+}
+
+/* ---------- frame ---------- */
+function frame(ts){
+  var dt=Math.min((ts-last)/1000,0.05);last=ts;
+  var alpha=Math.max(0.028,Math.min(0.2,(1-persistence)*(0.35)));
+  ctx.fillStyle="rgba(4,16,7,"+(alpha+0.05).toFixed(3)+")";
+  ctx.fillRect(0,0,W,H);
+  if(!freeze||Math.random()<0.2)graticule();
+  if(sweep>0&&!freeze){
+    phase+=dt*0.25*sweep*(1+Math.sin(ts*0.00021)*0.4);
+    if(phase>TAU)phase-=TAU;
+  }
+  level=trace(dt);
+  var over=level>0.995&&gain>0.85;
+  warn.classList.toggle("show",over&&!freeze);
+  roClk.textContent=freeze?"HOLD":(over?"OVERDRIVE":"BEAM LIVE");
+  requestAnimationFrame(frame);
+}
+
+/* ---------- readouts ---------- */
+function updateReadouts(){
+  roA.textContent=fA().toFixed(1)+" Hz";
+  roB.textContent=fB().toFixed(1)+" Hz";
+  roR.textContent=ratioN+" : "+ratioD+" \u00b7 "+ratioName(ratioN,ratioD)
+    +(detune?" ("+(detune>0?"+":"")+Math.round(detune)+"\u00a2)":"");
+  roP.textContent="+"+Math.round(phase*180/Math.PI)%360+"\u00b0";
+}
+
+/* ---------- audio ---------- */
+var ac=null,gA=null,gB=null,oA=null,oB=null,master=null;
+function startAudio(){
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  if(!ac){
+    ac=new AC();
+    master=ac.createGain();master.gain.value=0.16;master.connect(ac.destination);
+    oA=ac.createOscillator();oA.type="sine";
+    oB=ac.createOscillator();oB.type="sine";
+    gA=ac.createGain();gA.gain.value=0;
+    gB=ac.createGain();gB.gain.value=0;
+    oA.connect(gA);gA.connect(master);
+    oB.connect(gB);gB.connect(master);
+    oA.start();oB.start();
+  }
+  ac.resume();
+  audioOn=true;
+  applyAudio(true);
+  powerLed.classList.add("on");
+  flash.style.opacity="1";
+  window.setTimeout(function(){flash.style.opacity="0";},240);
+}
+function stopAudio(){
+  audioOn=false;
+  applyAudio(false);
+  powerLed.classList.remove("on");
+  if(ac)ac.suspend();
+}
+function applyAudio(on){
+  if(!ac)return;
+  var t=ac.currentTime;
+  var target=on?gain*0.5:0.0001;
+  gA.gain.setTargetAtTime(target,t,0.05);
+  gB.gain.setTargetAtTime(target,t,0.05);
+  oA.frequency.setTargetAtTime(fA(),t,0.03);
+  oB.frequency.setTargetAtTime(fB(),t,0.03);
+}
+function retune(){
+  if(audioOn&&ac){
+    var t=ac.currentTime;
+    oA.frequency.setTargetAtTime(fA(),t,0.04);
+    oB.frequency.setTargetAtTime(fB(),t,0.04);
+  }
+  updateReadouts();
+}
+
+/* ---------- keys ---------- */
+var keyrow=document.getElementById("keyrow");
+var keyButtons={};
+keyrow.querySelectorAll(".pkey").forEach(function(b){
+  keyButtons[b.dataset.sem]=b;
+  function press(e){
+    e.preventDefault();
+    keyrow.querySelectorAll(".pkey").forEach(function(x){x.classList.remove("down");});
+    b.classList.add("down");
+    semitone=parseInt(b.dataset.sem,10);
+    if(!audioOn)startAudio();else retune();
+    if(!audioOn)updateReadouts();
+  }
+  b.addEventListener("pointerdown",press);
+});
+var KEYMAP={"a":0,"s":2,"d":4,"f":5,"g":7,"h":9,"j":11,"k":12};
+window.addEventListener("keydown",function(e){
+  if(e.repeat)return;
+  var tag=(e.target&&e.target.tagName)||"";
+  if(tag==="INPUT"||tag==="BUTTON")return;
+  var k=e.key.toLowerCase();
+  if(k in KEYMAP){
+    var b=keyButtons[String(KEYMAP[k])];
+    if(b){
+      keyrow.querySelectorAll(".pkey").forEach(function(x){x.classList.remove("down");});
+      b.classList.add("down");
+      semitone=KEYMAP[k];
+      if(!audioOn)startAudio();else retune();
+      if(!audioOn)updateReadouts();
+    }
+  }
+});
+window.addEventListener("keyup",function(e){
+  var k=e.key.toLowerCase();
+  if(k in KEYMAP){
+    var b=keyButtons[String(KEYMAP[k])];
+    if(b&&!b.matches(":focus"))b.classList.remove("down");
+  }
+});
+
+/* ---------- interval + harmonic buttons ---------- */
+document.getElementById("intervals").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
+  ratioN=parseInt(b.dataset.n,10);ratioD=parseInt(b.dataset.d,10);
+  retune();
+});
+document.getElementById("harmonics").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  ratioH=parseInt(b.dataset.h,10);
+  ratioN=ratioH;ratioD=1;
+  this.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
+  document.querySelectorAll("#intervals button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+  retune();
+});
+var ratioH=3;
+
+/* ---------- knobs ---------- */
+function bindKnob(id,outId,fmt,apply){
+  var el=document.getElementById(id),out=document.getElementById(outId);
+  function sync(){
+    var v=parseFloat(el.value);
+    out.textContent=fmt(v);
+    apply(v);
+  }
+  el.addEventListener("input",sync);
+  sync();
+}
+bindKnob("phaseKnob","phaseOut",function(v){return Math.round(v)+"\u00b0";},function(v){phase=v*Math.PI/180;updateReadouts();});
+bindKnob("detuneKnob","detuneOut",function(v){return (v>0?"+":"")+Math.round(v);},function(v){detune=v;retune();});
+bindKnob("persistKnob","persistOut",function(v){return Math.round(v)+"%";},function(v){persistence=v/100;});
+bindKnob("gainKnob","gainOut",function(v){return Math.round(v)+"%";},function(v){gain=v/100;if(audioOn)applyAudio(true);});
+bindKnob("sweepKnob","sweepOut",function(v){return v==0?"off":v+"x";},function(v){sweep=v;});
+
+/* ---------- hold + power ---------- */
+var holdBtn=document.getElementById("holdBtn");
+function toggleHold(){
+  freeze=!freeze;
+  holdBtn.setAttribute("aria-pressed",freeze?"true":"false");
+  holdBtn.textContent=freeze?"Release hold":"Hold figure";
+}
+holdBtn.addEventListener("click",toggleHold);
+var powerBtn=document.getElementById("powerBtn");
+powerBtn.addEventListener("click",function(){
+  if(audioOn){stopAudio();powerBtn.setAttribute("aria-pressed","false");}
+  else{startAudio();powerBtn.setAttribute("aria-pressed","true");}
+});
+
+/* ---------- click on screen: nudge phase ---------- */
+screen.addEventListener("pointerdown",function(e){
+  var r=screen.getBoundingClientRect();
+  var fx=((e.clientX-r.left)/r.width-0.5), fy=((e.clientY-r.top)/r.height-0.5);
+  phase=(Math.atan2(fy,fx)+Math.PI/2+TAU)%TAU;
+  document.getElementById("phaseKnob").value=Math.round(phase*180/Math.PI);
+  document.getElementById("phaseOut").textContent=Math.round(phase*180/Math.PI)%360+"\u00b0";
+  updateReadouts();
+});
+
+window.addEventListener("resize",resize);
+resize();
+updateReadouts();
+last=performance.now();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

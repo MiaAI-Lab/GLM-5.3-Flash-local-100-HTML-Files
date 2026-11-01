@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drip Studio — Pour &amp; Run Painting</title>
+<style>
+  :root{
+    --wall:#f4f1ea;
+    --wall-lo:#e9e4d8;
+    --floor:#c9c2b2;
+    --floor-lo:#b4ac99;
+    --label:#fbfaf7;
+    --ink:#26241f;
+    --ink-soft:#6f6a5e;
+    --line:#d8d2c4;
+    --cadmium:#d0402e;
+    --ultra:#274b9f;
+    --chrome:#e3a812;
+    --titanium:#f6f3ec;
+    --viridian:#2e7a5f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:Georgia,"Times New Roman",ui-serif,serif;
+    color:var(--ink);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--cadmium);color:#fff}
+
+  /* ============ museum shell ============ */
+  .museum{flex:1;display:flex;min-height:0}
+  .wallzone{flex:1;min-width:0;position:relative;display:flex;flex-direction:column}
+  .railzone{
+    flex:0 0 auto;width:clamp(220px,24vw,320px);
+    border-left:1px solid var(--line);
+    background:linear-gradient(180deg,var(--wall),#efebe1);
+    display:flex;flex-direction:column;gap:clamp(10px,2vh,18px);
+    overflow-y:auto;padding:clamp(12px,2.4vh,22px) clamp(12px,1.6vw,18px);
+    scrollbar-width:thin;scrollbar-color:#b9b1a0 #efebe1;
+  }
+  .railzone::-webkit-scrollbar{width:8px}
+  .railzone::-webkit-scrollbar-track{background:#efebe1;border-radius:4px}
+  .railzone::-webkit-scrollbar-thumb{background:#b9b1a0;border-radius:4px}
+
+  /* ---------- header strip ---------- */
+  .marquee{
+    flex:0 0 auto;display:flex;align-items:baseline;gap:clamp(10px,2vw,24px);flex-wrap:wrap;
+    padding:clamp(10px,2vh,16px) clamp(14px,2.6vw,34px) clamp(8px,1.4vh,12px);
+    border-bottom:1px solid var(--line);
+  }
+  .marquee .kick{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .marquee h1{font-weight:400;font-size:clamp(1.3rem,3vw,2.1rem);letter-spacing:.03em}
+  .marquee h1 em{font-style:italic;color:var(--cadmium)}
+  .marquee .roomno{
+    margin-left:auto;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft);
+  }
+
+  /* ---------- the canvas on the wall ---------- */
+  .easel{
+    flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+    padding:clamp(10px,2.4vh,26px) clamp(14px,2.6vw,40px);
+  }
+  .canvasframe{
+    position:relative;height:100%;max-height:100%;aspect-ratio:4/5;max-width:100%;
+    background:#fbfaf5;
+    border:10px solid #e7e1d2;
+    outline:1px solid #cfc8b6;
+    box-shadow:
+      0 22px 50px rgba(60,54,40,.22),
+      0 4px 14px rgba(60,54,40,.14),
+      inset 0 0 0 1px rgba(0,0,0,.05);
+    cursor:none;
+    touch-action:none;
+  }
+  canvas#drip{
+    position:absolute;inset:0;width:100%;height:100%;display:block;
+  }
+  .poursplit{
+    position:absolute;width:8px;height:8px;border-radius:50%;
+    transform:translate(-50%,-50%);pointer-events:none;
+    box-shadow:0 2px 4px rgba(0,0,0,.25);
+  }
+  .nolabel{
+    position:absolute;left:-10px;top:-46px;
+    background:var(--label);border:1px solid var(--line);
+    padding:7px 11px 8px;min-width:190px;
+    box-shadow:0 3px 10px rgba(60,54,40,.15);
+  }
+  .nolabel .artist{font-size:12px;letter-spacing:.06em}
+  .nolabel .title{
+    font-style:italic;font-size:11px;color:var(--ink-soft);
+  }
+  .nolabel .meta{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:8px;letter-spacing:.16em;color:#98917f;margin-top:3px;text-transform:uppercase;
+  }
+  .nolabel::before{
+    content:"";position:absolute;left:12px;top:-7px;width:44px;height:14px;
+    background:rgba(217,201,168,.85);transform:rotate(-2deg);
+    box-shadow:0 1px 3px rgba(60,54,40,.2);
+  }
+
+  /* ---------- floor line + crate ---------- */
+  .floorscrim{
+    flex:0 0 auto;height:clamp(30px,6vh,56px);
+    background:linear-gradient(180deg,var(--floor),var(--floor-lo));
+    box-shadow:inset 0 6px 12px rgba(0,0,0,.08);
+    position:relative;overflow:hidden;
+  }
+  .floorscrim::after{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(90deg,rgba(0,0,0,.04) 0 2px,#0000 2px 90px);
+  }
+  .crate{
+    position:absolute;right:clamp(12px,4vw,60px);bottom:6px;
+    width:clamp(120px,16vw,190px);height:clamp(54px,8vh,74px);
+    background:
+      repeating-linear-gradient(90deg,rgba(120,90,50,.16) 0 3px,#0000 3px 26px),
+      linear-gradient(180deg,#c8a56f,#b08c54);
+    border:2px solid #8a6a3c;border-radius:4px;
+    box-shadow:0 8px 18px rgba(60,44,20,.3),inset 0 2px 0 rgba(255,255,255,.25);
+    display:flex;align-items:center;justify-content:center;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:#5d4426;
+    opacity:0;pointer-events:none;
+    transition:opacity .4s ease,transform .8s cubic-bezier(.3,1,.3,1);
+  }
+  .crate.stamp{
+    opacity:1;pointer-events:auto;
+    animation:crateIn .8s cubic-bezier(.3,1,.3,1);
+  }
+  @keyframes crateIn{
+    from{transform:translateX(60px) rotate(2deg)}
+    to{transform:translateX(0) rotate(0)}
+  }
+  .crate:hover{filter:brightness(1.06)}
+
+  /* ============ pigment shelf ============ */
+  .railzone h2{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-weight:400;font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding-bottom:7px;
+  }
+  .pots{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .pot{
+    position:relative;border:1px solid var(--line);border-radius:6px;
+    background:linear-gradient(180deg,#fffdf8,#f3efe4);
+    padding:9px 9px 8px;cursor:pointer;text-align:left;
+    box-shadow:0 3px 8px rgba(60,54,40,.08);
+    transition:transform .15s,box-shadow .2s,border-color .2s;
+  }
+  .pot:hover{transform:translateY(-2px)}
+  .pot:focus-visible{outline:2px dashed var(--cadmium);outline-offset:3px}
+  .pot .jar{
+    display:block;width:100%;height:44px;border-radius:4px;
+    box-shadow:inset 0 -8px 12px rgba(0,0,0,.22),inset 0 6px 8px rgba(255,255,255,.28);
+  }
+  .pot .pname{
+    display:block;margin-top:6px;font-size:11px;letter-spacing:.04em;
+  }
+  .pot .pcode{
+    display:block;font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:7.5px;letter-spacing:.14em;color:#98917f;margin-top:1px;text-transform:uppercase;
+  }
+  .pot[aria-pressed="true"]{
+    border-color:var(--ink);
+    box-shadow:0 0 0 2px var(--ink),0 4px 10px rgba(60,54,40,.18);
+  }
+  .pot[aria-pressed="true"]::after{
+    content:"in use";position:absolute;top:-8px;right:8px;
+    background:var(--ink);color:#fbfaf7;font-family:ui-monospace,monospace;
+    font-size:7px;letter-spacing:.18em;padding:2px 7px;border-radius:2px;text-transform:uppercase;
+  }
+
+  /* ---------- flow console ---------- */
+  .flowbox{display:flex;flex-direction:column;gap:10px}
+  .flowrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .flowrow label{font-size:11px;letter-spacing:.03em}
+  .flowrow output{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:10px;letter-spacing:.08em;color:var(--ink-soft);
+  }
+  input#viscosity,input#flowrate{
+    -webkit-appearance:none;appearance:none;width:100%;height:26px;background:#0000;cursor:pointer;
+  }
+  input#viscosity::-webkit-slider-runnable-track{
+    height:4px;border-radius:2px;background:linear-gradient(90deg,#8d8677,#4a453a);
+  }
+  input#viscosity::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+    margin-top:-7px;background:radial-gradient(circle at 35% 30%,#fffdf8,#c9c2b2 75%);
+    border:1.5px solid #6f6a5e;box-shadow:0 2px 5px rgba(60,54,40,.3);
+  }
+  input#viscosity::-moz-range-track{height:4px;border-radius:2px;background:#8d8677}
+  input#viscosity::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;border:1.5px solid #6f6a5e;
+    background:radial-gradient(circle at 35% 30%,#fffdf8,#c9c2b2 75%);
+  }
+  input#flowrate::-webkit-slider-runnable-track{
+    height:4px;border-radius:2px;background:linear-gradient(90deg,#8d8677,#4a453a);
+  }
+  input#flowrate::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+    margin-top:-7px;background:radial-gradient(circle at 35% 30%,#fffdf8,#c9c2b2 75%);
+    border:1.5px solid #6f6a5e;box-shadow:0 2px 5px rgba(60,54,40,.3);
+  }
+  input#flowrate::-moz-range-track{height:4px;border-radius:2px;background:#8d8677}
+  input#flowrate::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;border:1.5px solid #6f6a5e;
+    background:radial-gradient(circle at 35% 30%,#fffdf8,#c9c2b2 75%);
+  }
+  input:focus-visible{outline:2px dashed var(--cadmium);outline-offset:4px}
+
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px}
+  .abtn{
+    flex:1;font-family:Georgia,serif;font-size:12px;letter-spacing:.04em;
+    color:var(--ink);cursor:pointer;
+    background:linear-gradient(180deg,#fffdf8,#f0ebdd);
+    border:1px solid #b9b1a0;border-radius:5px;
+    padding:10px 10px;min-height:42px;
+    box-shadow:0 2px 0 #b9b1a0,inset 0 1px 0 rgba(255,255,255,.7);
+    transition:transform .07s,box-shadow .07s,background .25s;
+  }
+  .abtn:hover{background:linear-gradient(180deg,#fff,#f6f2e6)}
+  .abtn:focus-visible{outline:2px dashed var(--cadmium);outline-offset:2px}
+  .abtn:active{transform:translateY(2px);box-shadow:0 0 0 #b9b1a0}
+  .abtn[aria-pressed="true"]{background:linear-gradient(180deg,#efe7d2,#e2d8be);border-color:#6f6a5e}
+  .abtn.dark{background:linear-gradient(180deg,#3a372f,#26241f);color:#fbfaf7;border-color:#171613;box-shadow:0 2px 0 #171613,inset 0 1px 0 rgba(255,255,255,.14)}
+  .abtn.dark:hover{filter:brightness(1.12)}
+
+  .dryingnote{
+    font-size:10.5px;line-height:1.6;color:var(--ink-soft);font-style:italic;
+  }
+  .catalogno{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+    font-size:8px;letter-spacing:.2em;color:#98917f;text-transform:uppercase;
+    display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;
+  }
+  .catalogno b{color:var(--ink-soft);font-weight:400}
+
+  /* ---------- varnish sweep ---------- */
+  .varnish{
+    position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:2px;
+  }
+  .varnish .sheen{
+    position:absolute;top:-20%;bottom:-20%;width:34%;
+    background:linear-gradient(105deg,#0000 0%,rgba(255,255,240,.5) 45%,rgba(255,255,240,.65) 50%,rgba(255,255,240,.5) 55%,#0000 100%);
+    transform:translateX(-140%) skewX(-8deg);
+    filter:blur(3px);
+    mix-blend-mode:screen;
+  }
+  .varnish.run .sheen{animation:sweep 2.2s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes sweep{to{transform:translateX(440%) skewX(-8deg)}}
+
+  /* ---------- cursor bottle ---------- */
+  .pourcursor{
+    position:fixed;z-index:60;pointer-events:none;
+    transform:translate(-50%,-58%);opacity:0;
+    transition:opacity .25s ease;
+  }
+  .pourcursor.on{opacity:1}
+  .pourcursor .bottle{
+    width:22px;height:34px;border-radius:5px 5px 8px 8px;
+    background:linear-gradient(90deg,rgba(0,0,0,.08),rgba(255,255,255,.34) 42%,rgba(0,0,0,.16));
+    box-shadow:0 2px 5px rgba(0,0,0,.2),inset 0 0 0 1px rgba(0,0,0,.08);
+    position:relative;overflow:hidden;
+  }
+  .pourcursor .bottle::after{
+    content:"";position:absolute;left:3px;right:3px;bottom:3px;height:70%;
+    background:var(--pourc,#d0402e);border-radius:2px 2px 6px 6px;opacity:.85;
+  }
+  .pourcursor .tip{
+    position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
+    width:8px;height:6px;border-radius:0 0 3px 3px;background:#8d8677;
+  }
+  .drop{
+    position:fixed;z-index:59;width:7px;height:7px;border-radius:50%;
+    transform:translate(-50%,-50%);pointer-events:none;
+    transition:transform .32s cubic-bezier(.55,0,.85,.6),opacity .32s ease;
+  }
+
+  @media (max-width:820px){
+    body{overflow:auto}
+    .museum{flex-direction:column}
+    .railzone{width:100%;border-left:0;border-top:1px solid var(--line)}
+    .canvasframe{height:auto;width:min(92vw,520px);aspect-ratio:4/5}
+    .easel{padding-bottom:14px}
+    .nolabel{top:auto;bottom:-8px;left:-6px}
+    .pourcursor{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .varnish.run .sheen{animation:none;transform:translateX(440%) skewX(-8deg);opacity:0}
+    .crate.stamp{animation:none}
+    .pot,.abtn{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="museum">
+
+  <!-- ================= WALL ================= -->
+  <div class="wallzone">
+    <header class="marquee">
+      <span class="kick">Gallery of 100 &middot; Hall IV &middot; Room 09 &middot; works in progress</span>
+      <h1>Drip <em>Studio</em></h1>
+      <span class="roomno">Interactives &middot; please touch</span>
+    </header>
+
+    <section class="easel" aria-label="Painting canvas — hold the pointer to pour">
+      <div class="canvasframe" id="frame">
+        <canvas id="drip" aria-label="Canvas being poured with paint"></canvas>
+        <div class="varnish" id="varnish" aria-hidden="true"><div class="sheen"></div></div>
+        <div class="nolabel">
+          <div class="artist">Visitor Hand</div>
+          <div class="title">&ldquo;Untitled (pour no. <span id="pourNo">1</span>)&rdquo;</div>
+          <div class="meta">house paint on canvas &middot; <span id="dripCount">0</span> runs</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="floorscrim" aria-hidden="true">
+      <div class="crate" id="crate">Fragile &mdash; N&deg; <span id="crateNo">001</span></div>
+    </div>
+  </div>
+
+  <!-- ================= RAIL ================= -->
+  <aside class="railzone" aria-label="Pigment shelf and flow console">
+    <h2>Pigment shelf</h2>
+    <div class="pots" id="pots">
+      <button class="pot" type="button" data-col="#d0402e" data-name="Cadmium red" aria-pressed="true">
+        <span class="jar" style="background:linear-gradient(180deg,#e05a44,#d0402e 55%,#a02c1c)"></span>
+        <span class="pname">Cadmium red</span>
+        <span class="pcode">PR 108 &middot; series 4</span>
+      </button>
+      <button class="pot" type="button" data-col="#274b9f" data-name="Ultramarine" aria-pressed="false">
+        <span class="jar" style="background:linear-gradient(180deg,#3d63c9,#274b9f 55%,#18306b)"></span>
+        <span class="pname">Ultramarine</span>
+        <span class="pcode">PB 29 &middot; series 2</span>
+      </button>
+      <button class="pot" type="button" data-col="#e3a812" data-name="Chrome yellow" aria-pressed="false">
+        <span class="jar" style="background:linear-gradient(180deg,#f4c33c,#e3a812 55%,#a87809)"></span>
+        <span class="pname">Chrome yellow</span>
+        <span class="pcode">PY 34 &middot; series 2</span>
+      </button>
+      <button class="pot" type="button" data-col="#2e7a5f" data-name="Viridian" aria-pressed="false">
+        <span class="jar" style="background:linear-gradient(180deg,#3f9a79,#2e7a5f 55%,#1d523f)"></span>
+        <span class="pname">Viridian</span>
+        <span class="pcode">PG 18 &middot; series 3</span>
+      </button>
+      <button class="pot" type="button" data-col="#f6f3ec" data-name="Titanium white" aria-pressed="false">
+        <span class="jar" style="background:linear-gradient(180deg,#ffffff,#f1eee4 60%,#d8d2c0)"></span>
+        <span class="pname">Titanium white</span>
+        <span class="pcode">PW 6 &middot; series 1</span>
+      </button>
+      <button class="pot" type="button" data-col="#1d1c1a" data-name="Ivory black" aria-pressed="false">
+        <span class="jar" style="background:linear-gradient(180deg,#3a3835,#1d1c1a 60%,#0c0b0a)"></span>
+        <span class="pname">Ivory black</span>
+        <span class="pcode">PBk 9 &middot; series 1</span>
+      </button>
+    </div>
+
+    <h2 style="margin-top:6px">Flow console</h2>
+    <div class="flowbox">
+      <div class="flowrow">
+        <label for="viscosity">Viscosity</label>
+        <output id="viscOut">1.0 &mdash; house paint</output>
+      </div>
+      <input type="range" id="viscosity" min="0.5" max="4" step="0.1" value="1">
+      <div class="flowrow">
+        <label for="flowrate">Pour volume</label>
+        <output id="flowOut">steady</output>
+      </div>
+      <input type="range" id="flowrate" min="0.3" max="3" step="0.1" value="1.2">
+      <div class="btnrow">
+        <button class="abtn" id="varnishBtn" type="button" aria-pressed="false">Varnish sweep</button>
+        <button class="abtn" id="dryBtn" type="button">Force dry</button>
+        <button class="abtn dark" id="clearBtn" type="button">New canvas</button>
+      </div>
+      <p class="dryingnote" id="dryNote">
+        Thicker paint runs slower and dries glossy at the head. Wipe the
+        cursor across the canvas while pouring to braid the runs.
+      </p>
+      <div class="catalogno">
+        <span>Acc. no. <b>2019.0042</b></span>
+        <span>Unstable &middot; <b id="wetCount">0</b> wet</span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+var TAU=Math.PI*2;
+var RM=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var canvas=document.getElementById("drip");
+var ctx=canvas.getContext("2d");
+var frame=document.getElementById("frame");
+var pots=document.getElementById("pots");
+var visc=document.getElementById("viscosity");
+var viscOut=document.getElementById("viscOut");
+var flow=document.getElementById("flowrate");
+var flowOut=document.getElementById("flowOut");
+var varnishBtn=document.getElementById("varnishBtn");
+var varnishEl=document.getElementById("varnish");
+var dryBtn=document.getElementById("dryBtn");
+var clearBtn=document.getElementById("clearBtn");
+var dryNote=document.getElementById("dryNote");
+var pourNo=document.getElementById("pourNo");
+var dripCount=document.getElementById("dripCount");
+var wetCount=document.getElementById("wetCount");
+var crate=document.getElementById("crate");
+var crateNo=document.getElementById("crateNo");
+var cursorEl=document.createElement("div");
+cursorEl.className="pourcursor";
+cursorEl.innerHTML="<div class='bottle'><div class='tip'></div></div>";
+document.body.appendChild(cursorEl);
+
+/* ---------- palette ---------- */
+var potCols={
+  "#d0402e":[208,64,46],
+  "#274b9f":[39,75,159],
+  "#e3a812":[227,168,18],
+  "#2e7a5f":[46,122,95],
+  "#f6f3ec":[246,243,236],
+  "#1d1c1a":[29,28,26]
+};
+var POTS="#d0402e,#274b9f,#e3a812,#2e7a5f,#f6f3ec,#1d1c1a".split(",");
+var color=POTS[0];
+var colorName="Cadmium red";
+
+/* ---------- state ---------- */
+var W=0,H=0,dpr=1;
+var runs=[];          /* active dripping ropes */
+var pour=null;        /* current pour at cursor */
+var pourIndex=1;
+var totalRuns=0;
+var pointer={x:0,y:0,down:false,inside:false};
+var last=0,t=0;
+var varnishLevel=0;   /* 0..1 gloss coat */
+var needBase=true;
+
+function viscVal(){return parseFloat(visc.value);}
+function flowVal(){return parseFloat(flow.value);}
+
+/* ---------- base coat ---------- */
+function paintBase(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#fbfaf5");
+  g.addColorStop(1,"#f6f4ec");
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+  /* faint canvas weave */
+  ctx.strokeStyle="rgba(120,110,90,0.045)";
+  ctx.lineWidth=1;
+  for(var x=0;x<W;x+=4){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(var y=0;y<H;y+=4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+}
+
+/* ---------- runs ---------- */
+function spawnRun(x,y){
+  var v=viscVal();
+  runs.push({
+    x:x,y:y,
+    w:2.2+v*1.8+flowVal()*1.6+rnd(-0.4,0.4),
+    speed:(38+42/ (v*v))*(0.7+flowVal()*0.35),
+    col:color,
+    rgb:potCols[color]||[0,0,0],
+    age:0,
+    life:9+rnd(0,4),
+    wig:rnd(0.5,1.6),
+    ph:rnd(0,TAU),
+    lobes:[rnd(0.5,1),rnd(0.5,1),rnd(0.5,1)],
+    glossy:true,
+    head:true
+  });
+  totalRuns++;
+  dripCount.textContent=String(totalRuns);
+  wetCount.textContent=String(runs.length);
+}
+function rnd(a,b){return a+Math.random()*(b-a);}
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+
+function updateRuns(dt){
+  var v=viscVal();
+  for(var i=runs.length-1;i>=0;i--){
+    var r=runs[i];
+    r.age+=dt;
+    if(r.age>2.2)r.glossy=false;
+    var drag=1-0.09*v*0.5;
+    r.speed*=Math.pow(drag,dt*4);
+    r.y+=r.speed*dt;
+    /* sideways wander */
+    r.x+=Math.sin(t*r.wig*2.2+r.ph)*10*dt*(1.6-v*0.2);
+    /* grow slightly while young */
+    if(r.age<0.5)r.w+=dt*flowVal()*6;
+    /* split occasionally at high flow */
+    if(!RM&&flowVal()>1.6&&r.age>0.35&&r.age<0.75&&Math.random()<dt*1.1&&runs.length<26){
+      runs.push({
+        x:r.x+rnd(-4,4),y:r.y,
+        w:r.w*rnd(0.4,0.7),
+        speed:r.speed*rnd(0.75,1.05),
+        col:r.col,rgb:r.rgb,
+        age:r.age*0.6,life:r.life*rnd(0.7,1.1),
+        wig:rnd(0.6,1.8),ph:rnd(0,TAU),
+        lobes:[rnd(0.4,1),rnd(0.4,1)],
+        glossy:r.glossy,head:false
+      });
+      wetCount.textContent=String(runs.length);
+    }
+    if(r.y>H+30||r.age>r.life){
+      runs.splice(i,1);
+      wetCount.textContent=String(runs.length);
+    }
+  }
+}
+function drawRuns(){
+  for(var i=0;i<runs.length;i++){
+    var r=runs[i];
+    var rgb=r.rgb;
+    /* draw a trail as a tapering rope from spawn to current head */
+    var topY=Math.max(0,r.y-r.speed*r.age*0.9-8);
+    var len=r.y-topY;
+    if(len<2)continue;
+    var grad=ctx.createLinearGradient(0,topY,0,r.y);
+    grad.addColorStop(0,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0.85)");
+    grad.addColorStop(1,"rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)");
+    ctx.strokeStyle=grad;
+    ctx.lineCap="round";
+    var segs=Math.max(4,Math.round(len/14));
+    for(var s=0;s<segs;s++){
+      var f0=s/segs,f1=(s+1)/segs;
+      var y0=topY+len*f0,y1=topY+len*f1;
+      var taper=0.55+0.45*Math.pow(f0,0.8);
+      var wob=Math.sin(f0*9+r.ph)*r.w*0.18;
+      var wob2=Math.sin(f1*9+r.ph)*r.w*0.18;
+      ctx.lineWidth=Math.max(0.6,r.w*taper);
+      ctx.beginPath();
+      ctx.moveTo(r.x+wob,y0);
+      ctx.lineTo(r.x+wob2,y1);
+      ctx.stroke();
+    }
+    /* glossy head */
+    if(r.glossy||r.head){
+      var hx=r.x+Math.sin(9+r.ph)*r.w*0.18;
+      ctx.fillStyle="rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",1)";
+      ctx.beginPath();
+      ctx.ellipse(r.x,r.y,r.w*1.35,r.w*1.75,0,0,TAU);
+      ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,0.55)";
+      ctx.beginPath();
+      ctx.ellipse(hx-r.w*0.35,r.y-r.w*0.5,r.w*0.34,r.w*0.5,0.4,0,TAU);
+      ctx.fill();
+    }
+  }
+  /* varnish coat tint */
+  if(varnishLevel>0.01){
+    ctx.fillStyle="rgba(255,250,230,"+(0.10*varnishLevel)+")";
+    ctx.fillRect(0,0,W,H);
+  }
+}
+
+/* ---------- pouring ---------- */
+function startPour(x,y){
+  pour={x:x,y:y,t:0,acc:0};
+  spawnRun(x,y);
+  updateNote();
+}
+function updatePour(dt){
+  if(!pour)return;
+  pour.t+=dt;
+  pour.acc+=dt*flowVal();
+  var interval=0.16/flowVal()*(0.7+viscVal()*0.35);
+  if(pour.acc>interval){
+    pour.acc=0;
+    if(runs.length<28)spawnRun(pointer.x||pour.x,pointer.y||pour.y);
+  }
+  /* widening stream at the cursor */
+  ctx.fillStyle=rgba(color,0.9);
+  var sw=2+flowVal()*2.4;
+  ctx.beginPath();
+  ctx.ellipse(pour.x,pour.y,sw*0.8,sw*1.5,0,0,TAU);
+  ctx.fill();
+  if(pointer.down&&pointer.inside){pour.x=pointer.x;pour.y=pointer.y;}
+}
+function rgba(hex,a){
+  var c=potCols[hex]||[0,0,0];
+  return"rgba("+c[0]+","+c[1]+","+c[2]+","+a+")";
+}
+function updateNote(){
+  var v=viscVal();
+  var desc=v<0.9?"thin wash \u2014 runs fast":(v<1.8?"house paint \u2014 steady":(v<2.9?"gel medium \u2014 sluggish":"heavy gel \u2014 creeps"));
+  viscOut.textContent=v.toFixed(1)+" \u2014 "+desc;
+  var f=flowVal();
+  flowOut.textContent=f<0.7?("drip ("+f.toFixed(1)+")"):(f<1.6?"steady ("+f.toFixed(1)+")":(f<2.4?"pour ("+f.toFixed(1)+")":"torrent ("+f.toFixed(1)+")"));
+}
+
+/* ---------- pointer ---------- */
+function localXY(e){
+  var r=frame.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};
+}
+frame.addEventListener("pointerenter",function(){
+  pointer.inside=true;
+  cursorEl.classList.add("on");
+});
+frame.addEventListener("pointerleave",function(){
+  pointer.inside=false;
+  cursorEl.classList.remove("on");
+  if(pour&&!pointer.down)endPour();
+});
+frame.addEventListener("pointerdown",function(e){
+  e.preventDefault();
+  var p=localXY(e);
+  pointer.x=p.x;pointer.y=p.y;pointer.down=true;
+  frame.setPointerCapture(e.pointerId);
+  startPour(p.x,p.y);
+});
+frame.addEventListener("pointermove",function(e){
+  var p=localXY(e);
+  pointer.x=p.x;pointer.y=p.y;
+  cursorEl.style.left=e.clientX+"px";
+  cursorEl.style.top=e.clientY+"px";
+  cursorEl.style.setProperty("--pourc",color);
+  if(pointer.down&&pour){pour.x=p.x;pour.y=p.y;}
+});
+function endPour(){
+  if(pour){pour=null;}
+  pointer.down=false;
+}
+frame.addEventListener("pointerup",endPour);
+frame.addEventListener("pointercancel",endPour);
+window.addEventListener("keydown",function(e){
+  if(e.key===" "){e.preventDefault();}
+});
+
+/* ---------- pots ---------- */
+pots.addEventListener("click",function(e){
+  var b=e.target.closest(".pot");
+  if(!b)return;
+  color=b.dataset.col;
+  colorName=b.dataset.name;
+  this.querySelectorAll(".pot").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
+  cursorEl.style.setProperty("--pourc",color);
+  pourNo.textContent=String(pourIndex);
+  dryNote.textContent=colorName+" loaded. "+dryNote.textContent;
+});
+visc.addEventListener("input",updateNote);
+flow.addEventListener("input",updateNote);
+
+/* ---------- varnish ---------- */
+varnishBtn.addEventListener("click",function(){
+  varnishLevel=Math.min(1,varnishLevel+0.45);
+  varnishEl.classList.remove("run");
+  void varnishEl.offsetWidth;
+  varnishEl.classList.add("run");
+  varnishBtn.setAttribute("aria-pressed","true");
+  window.setTimeout(function(){varnishBtn.setAttribute("aria-pressed","false");},2300);
+});
+
+/* ---------- force dry ---------- */
+dryBtn.addEventListener("click",function(){
+  runs.forEach(function(r){r.glossy=false;r.age=Math.max(r.age,r.life*0.7);r.speed*=0.25;});
+  dryNote.textContent="Blower on. Heads matte out; the runs slow and stop.";
+});
+
+/* ---------- new canvas / crate ---------- */
+function newCanvas(){
+  runs=[];
+  pour=null;
+  varnishLevel=0;
+  pourIndex++;
+  pourNo.textContent=String(pourIndex);
+  totalRuns=0;
+  dripCount.textContent="0";
+  wetCount.textContent="0";
+  paintBase();
+  crateNo.textContent=String(pourIndex-1).padStart(3,"0");
+  crate.classList.remove("stamp");
+  void crate.offsetWidth;
+  crate.classList.add("stamp");
+  dryNote.textContent="Fresh canvas stretched. The old pour went to the crate below.";
+}
+clearBtn.addEventListener("click",newCanvas);
+crate.addEventListener("click",newCanvas);
+
+/* ---------- resize ---------- */
+function resize(){
+  var r=frame.getBoundingClientRect();
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  W=Math.max(120,r.width);H=Math.max(120,r.height);
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  paintBase();
+}
+window.addEventListener("resize",resize);
+
+/* ---------- frame ---------- */
+function frameLoop(ts){
+  var dt=Math.min((ts-last)/1000,0.05);last=ts;
+  t+=dt;
+  updatePour(dt);
+  updateRuns(dt);
+  drawRuns();
+  requestAnimationFrame(frameLoop);
+}
+
+resize();
+updateNote();
+last=performance.now();
+requestAnimationFrame(frameLoop);
+})();
+</script>
+</body>
+</html>

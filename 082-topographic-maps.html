@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONTOUR — A Topographic Explorer</title>
+<meta name="description" content="Procedural terrain as contour bands with elevation shading. Draw a route across the ridgelines and watch its elevation profile rise beneath; stamp summits; reseed for new ranges.">
+<style>
+/* ============================================================
+   CONTOUR — 082
+   The land is a story told in rings. Draw across it.
+   ============================================================ */
+
+:root {
+  --cream: #efe8d5;
+  --cream-deep: #e4dbc4;
+  --contour-a: #b59a6a;
+  --contour-b: #8a6a4a;
+  --water: #a8c0d0;
+  --water-deep: #7d9db0;
+  --vermilion: #c0392b;
+  --ink: #3a3227;
+  --ink-soft: rgba(58, 50, 39, 0.64);
+  --ink-faint: rgba(58, 50, 39, 0.38);
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--cream);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--vermilion);
+  color: var(--cream);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--contour-b);
+  border-radius: 5px;
+  border: 2px solid var(--cream-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   SURVEY HEADER
+   ------------------------------------------------------------ */
+
+.sheet {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.4vh, 30px) clamp(14px, 3vw, 42px) clamp(28px, 5vh, 56px);
+}
+
+.survey-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 2.5px solid var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: clamp(12px, 2vh, 22px);
+}
+
+.survey-head h1 {
+  font-weight: 500;
+  font-size: clamp(1.9rem, 5vw, 3.4rem);
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+.survey-head h1 .rn {
+  font-family: var(--font-mono);
+  font-size: 0.36em;
+  letter-spacing: 0.4em;
+  color: var(--vermilion);
+  vertical-align: super;
+}
+
+.survey-head .meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: right;
+  line-height: 1.9;
+}
+
+.survey-head .meta b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   MAP BENCH
+   ------------------------------------------------------------ */
+
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(230px, 25vw, 320px);
+  gap: clamp(12px, 1.8vw, 24px);
+  align-items: stretch;
+}
+
+.map-panel {
+  position: relative;
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(58, 50, 39, 0.18);
+  background: var(--cream);
+  min-width: 0;
+}
+
+#map {
+  display: block;
+  width: 100%;
+  height: clamp(340px, 56vh, 620px);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* graticule corner labels */
+.map-grid-label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+.map-grid-label.tl { top: 8px; left: 10px; }
+.map-grid-label.br { bottom: 8px; right: 10px; }
+
+/* legend strip */
+.legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(239, 232, 213, 0.88);
+  border: 1px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  pointer-events: none;
+  max-width: 190px;
+}
+
+.legend .row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend .swatch {
+  width: 16px;
+  height: 9px;
+  border: 1px solid var(--ink);
+}
+
+.legend .swatch.w { background: linear-gradient(90deg, #a8c0d0, #7d9db0); }
+.legend .swatch.l { background: #d9c9a4; }
+.legend .swatch.h { background: #b59a6a; }
+.legend .swatch.p { background: #8a6a4a; }
+.legend .swatch.r { background: #c0392b; }
+
+/* ------------------------------------------------------------
+   SIDE PANEL — tools + summit log
+   ------------------------------------------------------------ */
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.8vw, 20px);
+  min-width: 0;
+}
+
+.panel {
+  border: 2px solid var(--ink);
+  box-shadow: 5px 5px 0 rgba(58, 50, 39, 0.16);
+  background: rgba(255, 252, 243, 0.6);
+  padding: 14px 16px;
+}
+
+.panel h2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.panel h2 span {
+  color: var(--vermilion);
+  font-weight: 400;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tool-btn {
+  padding: 11px 8px;
+  border: 2px solid var(--ink);
+  background: var(--cream);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
+  min-height: 42px;
+}
+
+.tool-btn:hover {
+  background: var(--cream-deep);
+}
+
+.tool-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.tool-btn.primary {
+  background: var(--vermilion);
+  color: var(--cream);
+}
+
+.tool-btn.primary:hover {
+  background: #a93226;
+}
+
+.tool-btn.wide {
+  grid-column: 1 / -1;
+}
+
+/* stamps log */
+.stamps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.stamps::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stamps::-webkit-scrollbar-thumb {
+  background: var(--contour-b);
+}
+
+.stamps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1.5px dashed var(--contour-b);
+  background: rgba(239, 232, 213, 0.7);
+  animation: stamp-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes stamp-in {
+  from { transform: scale(0.7) rotate(-6deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.stamps li:only-child::after { content: ""; }
+
+.stamps .rn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--vermilion);
+  min-width: 3ch;
+}
+
+.stamps .nm {
+  font-style: italic;
+  font-size: 14.5px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stamps .el {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.stamps .empty {
+  border: none;
+  color: var(--ink-faint);
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* route facts */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.fact {
+  border: 1.5px solid var(--ink);
+  padding: 8px 10px;
+  background: var(--cream);
+}
+
+.fact .k {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.fact .v {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+  color: var(--ink);
+}
+
+.fact .v.unit {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------
+   PROFILE CHART
+   ------------------------------------------------------------ */
+
+.profile-panel {
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(58, 50, 39, 0.18);
+  background: rgba(255, 252, 243, 0.75);
+  margin-top: clamp(12px, 1.8vw, 24px);
+  padding: 14px 16px 10px;
+  position: relative;
+  min-height: 190px;
+}
+
+.profile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.profile-head h2 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.profile-head .elev {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--vermilion);
+  font-variant-numeric: tabular-nums;
+}
+
+#profile {
+  display: block;
+  width: 100%;
+  height: clamp(140px, 24vh, 230px);
+}
+
+.profile-empty {
+  position: absolute;
+  inset: 60px 0 0;
+  display: grid;
+  place-items: center;
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 15px;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .bench {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .side .panel {
+    flex: 1 1 220px;
+  }
+}
+
+/* ------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .stamps li {
+    animation: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <header class="survey-head">
+    <h1>CONTOUR <span class="rn">SHEET 082</span></h1>
+    <div class="meta">
+      <p><b>Quadrangle:</b> <span id="quadName">Mount Ida</span> · <b>Series:</b> Gallery of 100</p>
+      <p><b>Contour interval:</b> 120 m · <b>Draw</b> a route with your pointer</p>
+    </div>
+  </header>
+
+  <div class="bench">
+
+    <div class="map-panel">
+      <canvas id="map" aria-label="Topographic map — drag to draw a survey route across the terrain"></canvas>
+      <span class="map-grid-label tl" id="gridTL">N 46°12′</span>
+      <span class="map-grid-label br" id="gridBR">SCALE 1 : 50 000</span>
+      <div class="legend" aria-hidden="true">
+        <div class="row"><span class="swatch w"></span> Water</div>
+        <div class="row"><span class="swatch l"></span> Valley floor</div>
+        <div class="row"><span class="swatch h"></span> Mid slopes</div>
+        <div class="row"><span class="swatch p"></span> High country</div>
+        <div class="row"><span class="swatch r"></span> Your route</div>
+      </div>
+    </div>
+
+    <div class="side">
+
+      <section class="panel">
+        <h2>Field kit <span>№ 082</span></h2>
+        <div class="tools">
+          <button class="tool-btn" id="reseedBtn" type="button">New range</button>
+          <button class="tool-btn" id="clearBtn" type="button">Erase route</button>
+          <button class="tool-btn" id="stampsBtn" type="button">Stamp summits</button>
+          <button class="tool-btn" id="modeBtn" type="button">Shaded: on</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Route log <span id="stampCount">0 stamps</span></h2>
+        <ul class="stamps" id="stampList">
+          <li class="empty">No summits stamped yet — the peaks are still waiting to be named.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Route facts</h2>
+        <div class="facts">
+          <div class="fact">
+            <p class="k">Distance</p>
+            <p class="v" id="factDist">—</p>
+          </div>
+          <div class="fact">
+            <p class="k">Gain</p>
+            <p class="v" id="factGain">—</p>
+          </div>
+          <div class="fact">
+            <p class="k">High point</p>
+            <p class="v" id="factHigh">—</p>
+          </div>
+          <div class="fact">
+            <p class="k">Grade (max)</p>
+            <p class="v" id="factGrade">—</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <section class="profile-panel">
+    <div class="profile-head">
+      <h2>Elevation profile — the story of the climb</h2>
+      <span class="elev" id="profileElev">draw a route to read it</span>
+    </div>
+    <canvas id="profile" aria-label="Elevation profile of the drawn route"></canvas>
+    <p class="profile-empty" id="profileEmpty">Your route becomes a story here —
+      every rise a paragraph, every summit a full stop.</p>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     SEEDED NOISE TERRAIN
+     ============================================================ */
+  var SEED = 82;
+
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+
+  /* value noise with bilinear smoothing */
+  function valueNoise(seed, size) {
+    var r = rng(seed);
+    var grid = [];
+    for (var i = 0; i < (size + 1) * (size + 1); i++) grid.push(r());
+    return function (x, y) {
+      var xf = x * size, yf = y * size;
+      var x0 = Math.floor(xf), y0 = Math.floor(yf);
+      var tx = xf - x0, ty = yf - y0;
+      var sx = tx * tx * (3 - 2 * tx);
+      var sy = ty * ty * (3 - 2 * ty);
+      var i00 = y0 * (size + 1) + x0;
+      var i10 = i00 + 1;
+      var i01 = i00 + (size + 1);
+      var i11 = i01 + 1;
+      var a = grid[i00] + (grid[i10] - grid[i00]) * sx;
+      var b = grid[i01] + (grid[i11] - grid[i01]) * sx;
+      return a + (b - a) * sy;
+    };
+  }
+
+  var GRID = 134;
+  var elev = [];          /* 0..1 */
+
+  function generate() {
+    var n1 = valueNoise(SEED * 3 + 11, 4);
+    var n2 = valueNoise(SEED * 5 + 29, 8);
+    var n3 = valueNoise(SEED * 7 + 53, 17);
+    var ridgeSeed = rng(SEED * 13 + 7);
+    var ridgeA = ridgeSeed() * 6.28;
+    var ridgeB = 1.4 + ridgeSeed() * 1.6;
+    var cx = 0.3 + ridgeSeed() * 0.4;
+    elev = [];
+    for (var j = 0; j < GRID; j++) {
+      for (var i = 0; i < GRID; i++) {
+        var u = i / (GRID - 1), v = j / (GRID - 1);
+        var h = 0.52 * n1(u, v) + 0.3 * n2(u, v) + 0.18 * n3(u, v);
+        /* a diagonal ridge to climb */
+        var d = Math.abs((v - cx) - Math.sin(u * 2.6 + ridgeA) * 0.16);
+        h += Math.exp(-d * d * ridgeB * 7) * 0.34;
+        /* edge falloff — water rim */
+        var ex = Math.min(u, 1 - u), ey = Math.min(v, 1 - v);
+        var edge = Math.min(ex, ey);
+        h -= Math.max(0, 0.16 - edge) * 2.4;
+        elev.push(Math.max(0, Math.min(1, h)));
+      }
+    }
+    /* named summit: highest cell */
+    var best = 0, bi = 0;
+    for (var k = 0; k < elev.length; k++) {
+      if (elev[k] > best) { best = elev[k]; bi = k; }
+    }
+    summit.i = bi % GRID;
+    summit.j = Math.floor(bi / GRID);
+    summit.h = best;
+  }
+
+  var summit = { i: 0, j: 0, h: 0 };
+
+  function elevAt(x01, y01) {
+    var x = Math.max(0, Math.min(GRID - 1.001, x01 * (GRID - 1)));
+    var y = Math.max(0, Math.min(GRID - 1.001, y01 * (GRID - 1)));
+    var x0 = Math.floor(x), y0 = Math.floor(y);
+    var tx = x - x0, ty = y - y0;
+    var a = elev[y0 * GRID + x0];
+    var b = elev[y0 * GRID + Math.min(GRID - 1, x0 + 1)];
+    var c = elev[Math.min(GRID - 1, y0 + 1) * GRID + x0];
+    var d = elev[Math.min(GRID - 1, y0 + 1) * GRID + Math.min(GRID - 1, x0 + 1)];
+    return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty;
+  }
+
+  function meters(h) {
+    return Math.round(240 + h * 1760);   /* 240 m .. 2000 m */
+  }
+
+  /* ------------------------------------------------------------
+     QUAD NAMES
+     ------------------------------------------------------------ */
+  var A = ["Mount", "Cairn", "Ben", "Fell", "Horn", "Torr", "Spike", "Dome"];
+  var B = ["Ida", "Serena", "Corvid", "Halcyon", "Vesper", "Aster", "Lyra", "Meren", "Sable", "Ondine"];
+  var C = ["Spur", "Range", "Massif", "Reach", "Anticline", "Table"];
+
+  function quadName() {
+    var r = rng(SEED + 7771);
+    return A[(r() * A.length) | 0] + " " + B[(r() * B.length) | 0] + " " + C[(r() * C.length) | 0];
+  }
+
+  /* ============================================================
+     MAP RENDER
+     ============================================================ */
+  var mapCv = document.getElementById("map");
+  var mctx = mapCv.getContext("2d");
+  var mw = 0, mh = 0;
+  var shaded = true;
+  var showStamps = false;
+
+  /* contour band classes */
+  function bandOf(h) {
+    if (h < 0.14) return 0;      /* water */
+    if (h < 0.30) return 1;
+    if (h < 0.48) return 2;
+    if (h < 0.66) return 3;
+    if (h < 0.84) return 4;
+    return 5;
+  }
+
+  var BAND_FILL = ["#a8c0d0", "#cfc19c", "#d9c9a4", "#c2a878", "#b59a6a", "#8a6a4a"];
+  var BAND_LINE = ["#7d9db0", "#a08a5e", "#b59a6a", "#a3845a", "#8a6a4a", "#6b4f36"];
+
+  function sizeMap() {
+    var rect = mapCv.getBoundingClientRect();
+    mw = Math.max(1, rect.width);
+    mh = Math.max(1, rect.height);
+    mapCv.width = Math.round(mw * DPR);
+    mapCv.height = Math.round(mh * DPR);
+    mctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function drawMap() {
+    mctx.clearRect(0, 0, mw, mh);
+    var cell = Math.max(2, Math.round(mw / GRID));
+
+    /* bands */
+    for (var j = 0; j < GRID; j++) {
+      var y = j / (GRID - 1) * mh;
+      for (var i = 0; i < GRID; i++) {
+        var x = i / (GRID - 1) * mw;
+        var h = elev[j * GRID + i];
+        mctx.fillStyle = BAND_FILL[bandOf(h)];
+        mctx.fillRect(x, y, cell + 0.5, cell + 0.5);
+        if (shaded) {
+          var hx = elev[j * GRID + Math.min(GRID - 1, i + 1)];
+          var hy = elev[Math.min(GRID - 1, j + 1) * GRID + i];
+          var slope = (hx - h) + (hy - h);
+          mctx.fillStyle = slope < -0.004
+            ? "rgba(255,244,214,0.30)"
+            : (slope > 0.004 ? "rgba(58,40,20,0.14)" : "rgba(0,0,0,0)");
+          if (slope !== 0) mctx.fillRect(x, y, cell + 0.5, cell + 0.5);
+        }
+      }
+    }
+
+    /* contour lines via marching squares-ish edge walk (cheap: per-cell edges) */
+    mctx.lineWidth = 1;
+    for (var lv = 0; lv < 6; lv++) {
+      var level = 0.14 + lv * 0.14;
+      mctx.strokeStyle = BAND_LINE[lv];
+      mctx.beginPath();
+      for (var jj = 0; jj < GRID - 1; jj++) {
+        for (var ii = 0; ii < GRID - 1; ii++) {
+          var a = elev[jj * GRID + ii];
+          var b = elev[jj * GRID + ii + 1];
+          var c = elev[(jj + 1) * GRID + ii + 1];
+          var d = elev[(jj + 1) * GRID + ii];
+          var code = (a > level ? 1 : 0) | (b > level ? 2 : 0) | (c > level ? 4 : 0) | (d > level ? 8 : 0);
+          if (code === 0 || code === 15) continue;
+          var x0 = ii / (GRID - 1) * mw;
+          var y0 = jj / (GRID - 1) * mh;
+          var dx = mw / (GRID - 1);
+          var dy = mh / (GRID - 1);
+          var pts = [];
+          /* top edge */
+          if ((a > level) !== (b > level)) pts.push([x0 + dx * (level - a) / (b - a), y0]);
+          /* right edge */
+          if ((b > level) !== (c > level)) pts.push([x0 + dx, y0 + dy * (level - b) / (c - b)]);
+          /* bottom edge */
+          if ((d > level) !== (c > level)) pts.push([x0 + dx * (level - d) / (c - d), y0 + dy]);
+          /* left edge */
+          if ((a > level) !== (d > level)) pts.push([x0, y0 + dy * (level - a) / (d - a)]);
+          if (pts.length >= 2) {
+            mctx.moveTo(pts[0][0], pts[0][1]);
+            mctx.lineTo(pts[1][0], pts[1][1]);
+            if (pts.length === 4) {
+              mctx.moveTo(pts[2][0], pts[2][1]);
+              mctx.lineTo(pts[3][0], pts[3][1]);
+            }
+          }
+        }
+      }
+      mctx.stroke();
+    }
+
+    /* roman numeral band labels */
+    mctx.font = "700 10px ui-monospace, 'Courier New', monospace";
+    mctx.fillStyle = "rgba(58,50,39,0.5)";
+    var RN = ["", "I", "II", "III", "IV", "V"];
+    for (var b = 1; b <= 5; b++) {
+      /* find a representative cell of this band */
+      var found = null;
+      for (var s = 0; s < elev.length; s += 61) {
+        if (bandOf(elev[s]) === b) { found = s; break; }
+      }
+      if (found === null) continue;
+      var fx = (found % GRID) / (GRID - 1) * mw;
+      var fy = Math.floor(found / GRID) / (GRID - 1) * mh;
+      mctx.fillText(RN[b], fx + 3, fy - 3);
+    }
+
+    /* summit triangle + optional stamp */
+    var sx = summit.i / (GRID - 1) * mw;
+    var sy = summit.j / (GRID - 1) * mh;
+    mctx.strokeStyle = "#3a3227";
+    mctx.lineWidth = 2;
+    mctx.beginPath();
+    mctx.moveTo(sx, sy - 7);
+    mctx.lineTo(sx - 6, sy + 5);
+    mctx.lineTo(sx + 6, sy + 5);
+    mctx.closePath();
+    mctx.stroke();
+
+    if (showStamps) {
+      drawStamp(mctx, sx, sy - 22, "BM " + meters(summit.h));
+    }
+
+    /* route */
+    if (route.length > 1) {
+      mctx.strokeStyle = "#c0392b";
+      mctx.lineWidth = 2.6;
+      mctx.lineJoin = "round";
+      mctx.lineCap = "round";
+      mctx.setLineDash([]);
+      mctx.beginPath();
+      mctx.moveTo(route[0].x * mw, route[0].y * mh);
+      for (var r = 1; r < route.length; r++) {
+        mctx.lineTo(route[r].x * mw, route[r].y * mh);
+      }
+      mctx.stroke();
+      /* endpoints */
+      mctx.fillStyle = "#c0392b";
+      mctx.beginPath();
+      mctx.arc(route[0].x * mw, route[0].y * mh, 4.4, 0, 6.2832);
+      mctx.fill();
+      var lastP = route[route.length - 1];
+      mctx.beginPath();
+      mctx.arc(lastP.x * mw, lastP.y * mh, 4.4, 0, 6.2832);
+      mctx.fill();
+      mctx.fillStyle = "#efe8d5";
+      mctx.font = "700 9px ui-monospace, 'Courier New', monospace";
+      mctx.textAlign = "center";
+      mctx.fillText("A", route[0].x * mw, route[0].y * mh + 3);
+      mctx.fillText("B", lastP.x * mw, lastP.y * mh + 3);
+      mctx.textAlign = "left";
+    }
+
+    /* hovered crosshair readout */
+    if (hover) {
+      mctx.strokeStyle = "rgba(58,50,39,0.45)";
+      mctx.lineWidth = 1;
+      mctx.setLineDash([3, 4]);
+      mctx.beginPath();
+      mctx.moveTo(hover.px, 0);
+      mctx.lineTo(hover.px, mh);
+      mctx.moveTo(0, hover.py);
+      mctx.lineTo(mw, hover.py);
+      mctx.stroke();
+      mctx.setLineDash([]);
+      var hv = meters(elevAt(hover.x, hover.y));
+      var label = hv + " m";
+      mctx.font = "700 10px ui-monospace, 'Courier New', monospace";
+      var tw = mctx.measureText(label).width;
+      var lx = Math.min(hover.px + 8, mw - tw - 12);
+      var ly = Math.max(hover.py - 20, 8);
+      mctx.fillStyle = "rgba(239,232,213,0.92)";
+      mctx.fillRect(lx - 4, ly - 3, tw + 8, 16);
+      mctx.strokeStyle = "#3a3227";
+      mctx.lineWidth = 1;
+      mctx.strokeRect(lx - 4, ly - 3, tw + 8, 16);
+      mctx.fillStyle = "#3a3227";
+      mctx.fillText(label, lx, ly + 9);
+    }
+  }
+
+  function drawStamp(c2, x, y, label) {
+    c2.save();
+    c2.translate(x, y);
+    c2.rotate(-0.08);
+    c2.strokeStyle = "#c0392b";
+    c2.globalAlpha = 0.85;
+    c2.lineWidth = 1.6;
+    c2.strokeRect(-34, -11, 68, 22);
+    c2.font = "700 10px ui-monospace, 'Courier New', monospace";
+    c2.fillStyle = "#c0392b";
+    c2.textAlign = "center";
+    c2.textBaseline = "middle";
+    c2.fillText(label, 0, 0.5);
+    c2.restore();
+  }
+
+  /* ============================================================
+     ROUTE
+     ============================================================ */
+  var route = [];
+  var drawing = false;
+  var hover = null;
+  var minSeg = 0.018;
+
+  function xyFromEvent(e) {
+    var rect = mapCv.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+      px: e.clientX - rect.left,
+      py: e.clientY - rect.top
+    };
+  }
+
+  mapCv.addEventListener("pointerdown", function (e) {
+    var p = xyFromEvent(e);
+    route = [{ x: p.x, y: p.y }];
+    drawing = true;
+    hover = p;
+    mapCv.setPointerCapture(e.pointerId);
+    updateProfile();
+    updateFacts();
+    drawMap();
+  });
+
+  mapCv.addEventListener("pointermove", function (e) {
+    var p = xyFromEvent(e);
+    hover = p;
+    if (drawing) {
+      var lp = route[route.length - 1];
+      var dx = p.x - lp.x, dy = p.y - lp.y;
+      if (Math.hypot(dx, dy) > minSeg) {
+        route.push({ x: p.x, y: p.y });
+        updateProfile();
+        updateFacts();
+      }
+    }
+    drawMap();
+  });
+
+  function endDraw() {
+    if (!drawing) return;
+    drawing = false;
+    drawMap();
+    checkSummitStamp();
+  }
+  mapCv.addEventListener("pointerup", endDraw);
+  mapCv.addEventListener("pointercancel", endDraw);
+
+  mapCv.addEventListener("pointerleave", function () {
+    hover = null;
+    drawMap();
+  });
+
+  /* ============================================================
+     PROFILE
+     ============================================================ */
+  var profCv = document.getElementById("profile");
+  var pctx = profCv.getContext("2d");
+  var pw = 0, ph = 0;
+  var profileData = null;    /* {samples: [{d, e}], dist, gain, high, minE, maxE} */
+
+  function sizeProfile() {
+    var rect = profCv.getBoundingClientRect();
+    pw = Math.max(1, rect.width);
+    ph = Math.max(1, rect.height);
+    profCv.width = Math.round(pw * DPR);
+    profCv.height = Math.round(ph * DPR);
+    pctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function sampleRoute() {
+    if (route.length < 2) return null;
+    /* resample by cumulative distance */
+    var total = 0;
+    var segs = [];
+    for (var i = 1; i < route.length; i++) {
+      var d = Math.hypot(route[i].x - route[i - 1].x, route[i].y - route[i - 1].y);
+      segs.push(d);
+      total += d;
+    }
+    var N = Math.min(220, Math.max(40, Math.round(total * 420)));
+    var samples = [];
+    var target = 0;
+    var acc = 0;
+    var seg = 0;
+    var px = route[0].x, py = route[0].y;
+    for (var k = 0; k <= N; k++) {
+      target = total * k / N;
+      while (acc < target && seg < segs.length) {
+        acc += segs[seg];
+        seg++;
+        px = route[seg].x;
+        py = route[seg].y;
+      }
+      var hh = elevAt(px, py);
+      samples.push({ d: total > 0 ? target / total : 0, e: meters(hh) });
+    }
+    var gain = 0;
+    var high = samples[0].e;
+    var minE = Infinity, maxE = -Infinity;
+    for (var g = 1; g < samples.length; g++) {
+      var up = samples[g].e - samples[g - 1].e;
+      if (up > 0) gain += up;
+      if (samples[g].e > high) high = samples[g].e;
+      if (samples[g].e < minE) minE = samples[g].e;
+      if (samples[g].e > maxE) maxE = samples[g].e;
+    }
+    if (samples[0].e < minE) minE = samples[0].e;
+    if (samples[0].e > maxE) maxE = samples[0].e;
+    /* max grade over 3% windows */
+    var maxGrade = 0;
+    var win = Math.max(2, Math.round(samples.length * 0.02));
+    for (var wI = win; wI < samples.length; wI++) {
+      var run = samples[wI].d - samples[wI - win].d;
+      if (run <= 0) continue;
+      var rise = samples[wI].e - samples[wI - win].e;
+      var distM = total * run * 42;   /* px->km scale for drama */
+      var grade = distM > 1 ? rise / distM : 0;
+      if (grade > maxGrade) maxGrade = grade;
+    }
+    return { samples: samples, total: total, gain: gain, high: high, minE: minE, maxE: maxE, maxGrade: maxGrade };
+  }
+
+  function drawProfile() {
+    pctx.clearRect(0, 0, pw, ph);
+    if (!profileData) {
+      document.getElementById("profileEmpty").style.display = "grid";
+      return;
+    }
+    document.getElementById("profileEmpty").style.display = "none";
+    var S = profileData.samples;
+    var padL = 44, padR = 12, padT = 14, padB = 24;
+    var plotW = pw - padL - padR;
+    var plotH = ph - padT - padB;
+    var lo = profileData.minE - 60;
+    var hi = profileData.maxE + 60;
+
+    /* grid */
+    pctx.font = "9px ui-monospace, 'Courier New', monospace";
+    pctx.textAlign = "right";
+    pctx.textBaseline = "middle";
+    for (var li = 0; li <= 4; li++) {
+      var v = lo + (hi - lo) * li / 4;
+      var y = padT + (1 - (v - lo) / (hi - lo)) * plotH;
+      pctx.strokeStyle = "rgba(58,50,39,0.16)";
+      pctx.lineWidth = 1;
+      pctx.beginPath();
+      pctx.moveTo(padL, y);
+      pctx.lineTo(pw - padR, y);
+      pctx.stroke();
+      pctx.fillStyle = "rgba(58,50,39,0.55)";
+      pctx.fillText(Math.round(v) + " m", padL - 6, y);
+    }
+
+    /* km ticks */
+    pctx.textAlign = "center";
+    pctx.textBaseline = "top";
+    var kmTotal = profileData.total * 42;
+    for (var km = 0; km <= Math.floor(kmTotal); km++) {
+      var xx = padL + (km / Math.max(1, kmTotal)) * plotW;
+      pctx.strokeStyle = "rgba(58,50,39,0.22)";
+      pctx.beginPath();
+      pctx.moveTo(xx, padT + plotH);
+      pctx.lineTo(xx, padT + plotH + 4);
+      pctx.stroke();
+      if (kmTotal > 2 && km % Math.ceil(kmTotal / 6) === 0) {
+        pctx.fillStyle = "rgba(58,50,39,0.55)";
+        pctx.fillText(km + " km", xx, padT + plotH + 7);
+      }
+    }
+
+    /* area */
+    pctx.beginPath();
+    pctx.moveTo(padL, padT + plotH);
+    for (var s = 0; s < S.length; s++) {
+      var px2 = padL + S[s].d * plotW;
+      var py2 = padT + (1 - (S[s].e - lo) / (hi - lo)) * plotH;
+      pctx.lineTo(px2, py2);
+    }
+    pctx.lineTo(padL + plotW, padT + plotH);
+    pctx.closePath();
+    var fillG = pctx.createLinearGradient(0, padT, 0, padT + plotH);
+    fillG.addColorStop(0, "rgba(192,57,43,0.30)");
+    fillG.addColorStop(1, "rgba(181,154,106,0.12)");
+    pctx.fillStyle = fillG;
+    pctx.fill();
+
+    /* line */
+    pctx.beginPath();
+    for (var l = 0; l < S.length; l++) {
+      var px3 = padL + S[l].d * plotW;
+      var py3 = padT + (1 - (S[l].e - lo) / (hi - lo)) * plotH;
+      if (l === 0) pctx.moveTo(px3, py3);
+      else pctx.lineTo(px3, py3);
+    }
+    pctx.strokeStyle = "#c0392b";
+    pctx.lineWidth = 2.4;
+    pctx.lineJoin = "round";
+    pctx.stroke();
+
+    /* summit dot if route passes near high point */
+    var hiS = S[0];
+    for (var hs = 1; hs < S.length; hs++) {
+      if (S[hs].e > hiS.e) hiS = S[hs];
+    }
+    var hx2 = padL + hiS.d * plotW;
+    var hy2 = padT + (1 - (hiS.e - lo) / (hi - lo)) * plotH;
+    pctx.fillStyle = "#efe8d5";
+    pctx.strokeStyle = "#c0392b";
+    pctx.lineWidth = 2;
+    pctx.beginPath();
+    pctx.arc(hx2, hy2, 4.2, 0, 6.2832);
+    pctx.fill();
+    pctx.stroke();
+
+    /* high label */
+    pctx.font = "700 10px ui-monospace, 'Courier New', monospace";
+    pctx.fillStyle = "#c0392b";
+    pctx.textAlign = "center";
+    pctx.textBaseline = "bottom";
+    pctx.fillText(hiS.e + " m", Math.min(Math.max(hx2, padL + 22), pw - padR - 22), hy2 - 6);
+    pctx.textAlign = "left";
+    pctx.textBaseline = "alphabetic";
+  }
+
+  function updateProfile() {
+    profileData = sampleRoute();
+    drawProfile();
+    var elevEl = document.getElementById("profileElev");
+    if (profileData) {
+      var S = profileData.samples;
+      elevEl.textContent = "now " + S[S.length - 1].e + " m · high " + profileData.high + " m";
+    } else {
+      elevEl.textContent = "draw a route to read it";
+    }
+  }
+
+  function updateFacts() {
+    var set = function (id, val) {
+      document.getElementById(id).textContent = val;
+    };
+    if (!profileData) {
+      set("factDist", "—"); set("factGain", "—");
+      set("factHigh", "—"); set("factGrade", "—");
+      return;
+    }
+    set("factDist", (profileData.total * 42).toFixed(1));
+    set("factGain", Math.round(profileData.gain) + "");
+    set("factHigh", profileData.high + "");
+    set("factGrade", Math.round(profileData.maxGrade * 100) + "%");
+  }
+
+  /* ============================================================
+     SUMMIT STAMPS LOG
+     ============================================================ */
+  var stamps = [];
+  var stampList = document.getElementById("stampList");
+  var stampCount = document.getElementById("stampCount");
+  var ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+
+  function checkSummitStamp() {
+    if (!profileData) return;
+    var hiE = profileData.high;
+    /* stamp a new entry when a route's high point beats the previous record */
+    if (stamps.length === 0 || hiE > stamps[stamps.length - 1].el) {
+      var r = rng(SEED + stamps.length * 131 + Math.round(hiE));
+      var nm = A[(r() * A.length) | 0] + " " + B[(r() * B.length) | 0];
+      stamps.push({ rn: ROMAN[Math.min(stamps.length, 11)], nm: nm, el: hiE });
+      renderStamps();
+      showStamps = true;
+      drawMap();
+    }
+  }
+
+  function renderStamps() {
+    stampList.textContent = "";
+    stampCount.textContent = stamps.length + (stamps.length === 1 ? " stamp" : " stamps");
+    if (!stamps.length) {
+      var li0 = document.createElement("li");
+      li0.className = "empty";
+      li0.textContent = "No summits stamped yet — the peaks are still waiting to be named.";
+      stampList.appendChild(li0);
+      return;
+    }
+    for (var i = stamps.length - 1; i >= 0; i--) {
+      var li = document.createElement("li");
+      var rn = document.createElement("span");
+      rn.className = "rn";
+      rn.textContent = stamps[i].rn;
+      var nm = document.createElement("span");
+      nm.className = "nm";
+      nm.textContent = stamps[i].nm;
+      var el = document.createElement("span");
+      el.className = "el";
+      el.textContent = stamps[i].el + " m";
+      li.appendChild(rn);
+      li.appendChild(nm);
+      li.appendChild(el);
+      stampList.appendChild(li);
+    }
+  }
+
+  /* ============================================================
+     TOOL BUTTONS
+     ============================================================ */
+  var quadNameEl = document.getElementById("quadName");
+
+  document.getElementById("reseedBtn").addEventListener("click", function () {
+    SEED = (SEED * 16807 + 1013904223) >>> 0;
+    if (SEED === 0) SEED = 82;
+    generate();
+    route = [];
+    profileData = null;
+    showStamps = false;
+    var nm = quadName();
+    quadNameEl.textContent = nm;
+    document.title = "CONTOUR — " + nm + " · A Topographic Explorer";
+    var r2 = rng(SEED + 5);
+    var lat = 46 + r2() * 2;
+    var lon = 7 + r2() * 2;
+    document.getElementById("gridTL").textContent =
+      "N " + (46 + Math.floor(r2() * 3)) + "°" + String(Math.floor(r2() * 60)).padStart(2, "0") + "′";
+    updateProfile();
+    updateFacts();
+    renderStamps();
+    drawMap();
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    route = [];
+    profileData = null;
+    updateProfile();
+    updateFacts();
+    drawMap();
+  });
+
+  document.getElementById("stampsBtn").addEventListener("click", function () {
+    showStamps = !showStamps;
+    drawMap();
+  });
+
+  var modeBtn = document.getElementById("modeBtn");
+  modeBtn.addEventListener("click", function () {
+    shaded = !shaded;
+    modeBtn.textContent = shaded ? "Shaded: on" : "Shaded: off";
+    drawMap();
+  });
+
+  /* ============================================================
+     BOOT
+     ============================================================ */
+  function sizeAll() {
+    sizeMap();
+    sizeProfile();
+    drawMap();
+    drawProfile();
+  }
+
+  window.addEventListener("resize", sizeAll);
+
+  generate();
+  quadNameEl.textContent = quadName();
+  renderStamps();
+  sizeAll();
+  updateProfile();
+  updateFacts();
+})();
+</script>
+</body>
+</html>

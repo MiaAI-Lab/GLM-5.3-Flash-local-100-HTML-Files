@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KALEIDO — a mirrored drawing lens</title>
+<style>
+/* ============================================================
+   KALEIDO — mirrored drawing instrument
+   brass lens · velvet surround · jewel pigments
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --velvet-1: #1a0f2e;
+  --velvet-2: #120a20;
+  --velvet-3: #0b0616;
+  --brass-hi: #e6c982;
+  --brass: #c9a227;
+  --brass-mid: #a3822f;
+  --brass-lo: #6e5518;
+  --cream: #f2e9d4;
+  --cream-dim: #b9ac8f;
+  --cream-faint: #8a7f68;
+  --ink-on-brass: #2c2208;
+}
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--cream);
+  background:
+    radial-gradient(130% 100% at 50% -20%, #2a1a4a 0%, rgba(42, 26, 74, 0) 55%),
+    linear-gradient(180deg, var(--velvet-1) 0%, var(--velvet-2) 55%, var(--velvet-3) 100%);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* velvet pile texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 4px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+  z-index: 40;
+}
+
+::selection { background: var(--brass); color: var(--ink-on-brass); }
+::-moz-selection { background: var(--brass); color: var(--ink-on-brass); }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--velvet-3); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--brass), var(--brass-lo));
+  border-radius: 6px;
+  border: 2px solid var(--velvet-3);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+.masthead {
+  width: min(1100px, 94vw);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: clamp(16px, 3vw, 36px) 0 clamp(8px, 1.6vw, 16px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+.brand-plate {
+  width: clamp(48px, 7vw, 66px);
+  height: clamp(48px, 7vw, 66px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, #fff6da 0%, var(--brass) 42%, var(--brass-lo) 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 246, 218, 0.7),
+    inset 0 -3px 6px rgba(40, 28, 6, 0.55),
+    0 6px 16px rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem, 2.4vw, 1.4rem);
+  color: var(--ink-on-brass);
+  letter-spacing: 0.05em;
+}
+.brand h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+.brand .est {
+  display: block;
+  margin-top: 0.4em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream-faint);
+}
+.mast-right {
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cream-faint);
+  line-height: 2;
+}
+.mast-right b { color: var(--cream-dim); font-weight: 400; }
+
+/* ---------- the instrument ---------- */
+.lens-assembly {
+  position: relative;
+  width: min(86vmin, 620px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin-top: clamp(2px, 0.8vw, 10px);
+}
+.bezel {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, #ffe9ae 0%, rgba(255, 233, 174, 0) 34%),
+    conic-gradient(from 210deg,
+      var(--brass-lo), var(--brass-hi) 12%, var(--brass-mid) 26%,
+      var(--brass-hi) 41%, var(--brass-lo) 55%, var(--brass-hi) 72%,
+      var(--brass-mid) 86%, var(--brass-lo) 100%);
+  box-shadow:
+    0 40px 90px -30px rgba(0, 0, 0, 0.85),
+    0 6px 22px rgba(0, 0, 0, 0.5),
+    inset 0 3px 6px rgba(255, 244, 208, 0.5),
+    inset 0 -6px 14px rgba(30, 20, 4, 0.7);
+}
+/* knurled edge */
+.bezel::before {
+  content: "";
+  position: absolute;
+  inset: 1.1%;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(rgba(40, 28, 6, 0.55) 0deg 1.6deg, rgba(255, 240, 200, 0.14) 1.6deg 3.2deg);
+  -webkit-mask: radial-gradient(circle, transparent 0 94.5%, #000 95% 100%);
+  mask: radial-gradient(circle, transparent 0 94.5%, #000 95% 100%);
+}
+/* inner brass ring with engraving */
+.bezel::after {
+  content: "";
+  position: absolute;
+  inset: 5.6%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 244, 208, 0.25), rgba(255, 244, 208, 0) 40%),
+    conic-gradient(from 40deg, var(--brass-mid), var(--brass-hi) 18%, var(--brass-lo) 50%, var(--brass-mid) 82%, var(--brass-mid));
+  box-shadow:
+    inset 0 2px 5px rgba(255, 244, 208, 0.4),
+    inset 0 -4px 10px rgba(30, 20, 4, 0.65);
+}
+.engraving {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.engraving text {
+  fill: #4a3a10;
+  font-size: 11.5px;
+  letter-spacing: 4.5px;
+}
+
+.lens-stage {
+  position: relative;
+  width: 74%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0d0718;
+  box-shadow:
+    inset 0 0 0 2px rgba(60, 44, 10, 0.9),
+    inset 0 10px 40px rgba(0, 0, 0, 0.75),
+    inset 0 -6px 30px rgba(40, 20, 60, 0.5);
+  cursor: crosshair;
+  touch-action: none;
+}
+.lens-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.lens-stage .grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background:
+    repeating-conic-gradient(rgba(255,255,255,0.028) 0deg 0.7deg, rgba(0,0,0,0.03) 0.7deg 1.4deg),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 2px);
+}
+.lens-stage .glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05) 26%, transparent 44%),
+    radial-gradient(circle at 72% 84%, rgba(180, 150, 255, 0.10), transparent 40%);
+}
+.reticle {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.lens-stage:hover .reticle,
+.lens-stage:focus-within .reticle { opacity: 0.55; }
+.reticle::before,
+.reticle::after {
+  content: "";
+  position: absolute;
+  background: rgba(242, 233, 212, 0.5);
+}
+.reticle::before {
+  left: 50%;
+  top: 6%;
+  bottom: 6%;
+  width: 1px;
+}
+.reticle::after {
+  top: 50%;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+}
+
+/* ---------- title plate under the lens ---------- */
+.title-plate {
+  margin-top: clamp(14px, 2.4vw, 26px);
+  padding: 0.85em 2.2em 1em;
+  background:
+    linear-gradient(165deg, #e6c982 0%, #c9a227 34%, #8f6f1f 78%, #6e5518 100%);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 218, 0.7),
+    inset 0 -2px 4px rgba(30, 20, 4, 0.55),
+    0 10px 26px -8px rgba(0, 0, 0, 0.7);
+  text-align: center;
+}
+.title-plate .tp-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink-on-brass);
+  text-shadow: 0 1px 0 rgba(255, 244, 208, 0.5);
+}
+.title-plate .tp-sub {
+  margin-top: 0.45em;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #4a3a10;
+}
+
+/* ---------- toolbar ---------- */
+.toolbar {
+  width: min(1040px, 94vw);
+  margin: clamp(16px, 2.6vw, 30px) auto clamp(14px, 2.4vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.8vw, 18px);
+  border-top: 1px solid rgba(201, 162, 39, 0.35);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+  padding: clamp(12px, 1.8vw, 18px) 0;
+}
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 26px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tool-label {
+  font-size: 0.62rem;
+  font-weight: 300;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  white-space: nowrap;
+}
+
+/* mirrors stepper */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.stepper button {
+  font: inherit;
+  font-size: 1rem;
+  width: 46px;
+  height: 44px;
+  border: 0;
+  background: rgba(201, 162, 39, 0.08);
+  color: var(--cream);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.stepper button:hover { background: rgba(201, 162, 39, 0.25); }
+.stepper button:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: -4px;
+}
+.stepper .mirror-read {
+  min-width: 3.2em;
+  text-align: center;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.95rem;
+  color: var(--cream);
+  font-variant-numeric: tabular-nums;
+  border-left: 1px solid rgba(201, 162, 39, 0.35);
+  border-right: 1px solid rgba(201, 162, 39, 0.35);
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* palette */
+.palette {
+  display: inline-flex;
+  gap: 8px;
+}
+.pal-btn {
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  background: transparent;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  border-radius: 999px;
+  padding: 0.8em 1.2em 0.8em 1.45em;
+  cursor: pointer;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.pal-btn:hover { color: var(--cream); border-color: var(--brass); }
+.pal-btn:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 2px;
+}
+.pal-btn[aria-pressed="true"] {
+  color: var(--ink-on-brass);
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+  border-color: var(--brass-hi);
+}
+.pal-chips {
+  display: inline-flex;
+  gap: 3px;
+}
+.pal-chips i {
+  width: 9px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+/* brush */
+.brush-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.brush-swatches {
+  display: inline-flex;
+  gap: 7px;
+}
+.brush-swatches button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(242, 233, 212, 0.25);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.brush-swatches button:hover { transform: scale(1.12); }
+.brush-swatches button:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+.brush-swatches button[aria-pressed="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25), 0 0 14px rgba(255, 255, 255, 0.35);
+  transform: scale(1.12);
+}
+.size-slider {
+  width: clamp(120px, 20vw, 200px);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--cream-dim), var(--brass));
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -6.5px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--cream-dim), var(--brass));
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cream);
+}
+
+/* actions */
+.actions {
+  display: inline-flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.act {
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: rgba(201, 162, 39, 0.1);
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  border-radius: 3px;
+  padding: 0.95em 1.5em;
+  cursor: pointer;
+  min-height: 46px;
+  transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.act:hover {
+  background: rgba(201, 162, 39, 0.24);
+  border-color: var(--brass);
+  transform: translateY(-2px);
+}
+.act:active { transform: translateY(0) scale(0.97); }
+.act:focus-visible {
+  outline: 2px solid var(--brass-hi);
+  outline-offset: 3px;
+}
+.act.primary {
+  background: linear-gradient(180deg, var(--brass-hi), var(--brass));
+  color: var(--ink-on-brass);
+  border-color: var(--brass-lo);
+  font-weight: 400;
+}
+
+/* ---------- footer whisper ---------- */
+.footnote {
+  width: min(760px, 90vw);
+  margin: 0 auto clamp(20px, 3vw, 36px);
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(0.82rem, 1.7vw, 0.98rem);
+  color: var(--cream-faint);
+  line-height: 1.8;
+}
+.footnote b {
+  font-style: normal;
+  color: var(--cream-dim);
+  font-weight: 400;
+}
+
+@media (max-width: 460px) {
+  .tool-label { width: 100%; text-align: center; }
+  .mast-right { text-align: left; }
+  .brand { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pal-btn, .act, .brush-swatches button, .stepper button { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <div class="brand-plate" aria-hidden="true">K</div>
+    <h1>Kaleido
+      <span class="est">optical toy works · est. 1871 · patent pending</span>
+    </h1>
+  </div>
+  <p class="mast-right">
+    Instrument <b>Nº 026 / 100</b><br>
+    Mirrors <b id="statMirrors">6</b> · Pigment <b id="statColor">Jewel</b><br>
+    Strokes laid <b id="statStrokes">0</b>
+  </p>
+</header>
+
+<main class="lens-assembly">
+  <div class="bezel" aria-hidden="true"></div>
+
+  <svg class="engraving" viewBox="0 0 620 620" aria-hidden="true">
+    <defs>
+      <path id="engTop" d="M 310 310 m -288 0 a 288 288 0 0 1 576 0" fill="none"></path>
+      <path id="engBottom" d="M 310 310 m -288 0 a 288 288 0 0 0 576 0" fill="none"></path>
+    </defs>
+    <text><textPath href="#engTop" startOffset="50%" text-anchor="middle">THE MIRROR LANTERN KALEIDOSCOPE</textPath></text>
+    <text><textPath href="#engBottom" startOffset="50%" text-anchor="middle">SIX MIRRORS MAKE TWELVE FOLDS OF LIGHT</textPath></text>
+  </svg>
+
+  <div class="lens-stage" id="stage" aria-label="Kaleidoscope drawing lens. Draw with pointer or finger.">
+    <canvas id="art"></canvas>
+    <canvas id="live"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="glass" aria-hidden="true"></div>
+    <div class="reticle" aria-hidden="true"></div>
+  </div>
+
+  <div class="title-plate">
+    <div class="tp-name">Kaleido</div>
+    <div class="tp-sub">A drawing instrument of mirrored light · Nº 26 of 100</div>
+  </div>
+</main>
+
+<section class="toolbar" aria-label="Instrument controls">
+  <div class="tool-row">
+    <span class="tool-label">Mirrors</span>
+    <div class="stepper">
+      <button type="button" id="mMinus" aria-label="Fewer mirrors">−</button>
+      <span class="mirror-read" id="mirrorRead">6</span>
+      <button type="button" id="mPlus" aria-label="More mirrors">+</button>
+    </div>
+    <span class="tool-label">Palette</span>
+    <div class="palette" role="group" aria-label="Pigment palette">
+      <button class="pal-btn" type="button" data-pal="jewel" aria-pressed="true">
+        Jewel
+        <span class="pal-chips" aria-hidden="true">
+          <i style="background:#ff4f9a"></i><i style="background:#7df9ff"></i><i style="background:#ffd23f"></i>
+        </span>
+      </button>
+      <button class="pal-btn" type="button" data-pal="pastel" aria-pressed="false">
+        Pastel
+        <span class="pal-chips" aria-hidden="true">
+          <i style="background:#ffc7de"></i><i style="background:#c9e4ff"></i><i style="background:#fff3b8"></i>
+        </span>
+      </button>
+      <button class="pal-btn" type="button" data-pal="ember" aria-pressed="false">
+        Ember
+        <span class="pal-chips" aria-hidden="true">
+          <i style="background:#ff6b35"></i><i style="background:#ff3c00"></i><i style="background:#ffd166"></i>
+        </span>
+      </button>
+      <button class="pal-btn" type="button" data-pal="ocean" aria-pressed="false">
+        Ocean
+        <span class="pal-chips" aria-hidden="true">
+          <i style="background:#39c0ff"></i><i style="background:#2ce8c8"></i><i style="background:#7df9ff"></i>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="tool-row">
+    <span class="tool-label">Brush</span>
+    <div class="brush-row">
+      <div class="brush-swatches" id="brushSw" role="group" aria-label="Brush color">
+        <button type="button" data-ci="0" aria-pressed="true" aria-label="Pigment 1"></button>
+        <button type="button" data-ci="1" aria-pressed="false" aria-label="Pigment 2"></button>
+        <button type="button" data-ci="2" aria-pressed="false" aria-label="Pigment 3"></button>
+        <button type="button" data-ci="3" aria-pressed="false" aria-label="Pigment 4"></button>
+        <button type="button" data-ci="4" aria-pressed="false" aria-label="Pigment 5"></button>
+      </div>
+      <input type="range" class="size-slider" id="sizeRange" min="1.5" max="26" value="7" step="0.5" aria-label="Brush size">
+    </div>
+    <span class="tool-label">Actions</span>
+    <div class="actions">
+      <button class="act primary" type="button" id="replayBtn">Replay</button>
+      <button class="act" type="button" id="clearBtn">Clear</button>
+      <button class="act" type="button" id="symmetryBtn">Symmetry Toggle</button>
+    </div>
+  </div>
+</section>
+
+<p class="footnote">
+  Draw slowly for ribbon strokes; draw fast for comets. Change the mirror count and watch the
+  whole garden re-fold itself — <b>no two evenings in the lens are ever the same</b>.
+</p>
+
+<p class="visually-hidden" id="live" aria-live="polite"></p>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $('stage');
+  var artCv = $('art');
+  var liveCv = $('live');
+  var art = artCv.getContext('2d');
+  var live = liveCv.getContext('2d');
+  var mirrorRead = $('mirrorRead');
+  var statMirrors = $('statMirrors');
+  var statColor = $('statColor');
+  var statStrokes = $('statStrokes');
+  var liveEl = $('live');
+  var sizeRange = $('sizeRange');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var PALETTES = {
+    jewel:  ['#ff4f9a', '#7df9ff', '#ffd23f', '#9d6bff', '#3cff9e'],
+    pastel: ['#ffc7de', '#c9e4ff', '#fff3b8', '#d8c7ff', '#b8f2e6'],
+    ember:  ['#ff6b35', '#ff3c00', '#ffd166', '#ff9f68', '#c92a2a'],
+    ocean:  ['#39c0ff', '#2ce8c8', '#7df9ff', '#2f6bff', '#a8f0ff']
+  };
+  var PAL_NAMES = { jewel: 'Jewel', pastel: 'Pastel', ember: 'Ember', ocean: 'Ocean' };
+
+  var mirrors = 6;
+  var symmetric = true;      /* false = mirror-flip alternate wedges */
+  var paletteName = 'jewel';
+  var colors = PALETTES.jewel.slice();
+  var colorIdx = 0;
+  var brushSize = 7;
+
+  var W = 0, H = 0, CX = 0, CY = 0, R = 0, dpr = 1;
+  var strokeCount = 0;
+  var strokes = [];          /* recorded polyline strokes for replay + re-morph */
+
+  /* ---------------- sizing ---------------- */
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var rect = stage.getBoundingClientRect();
+    W = Math.max(10, Math.round(rect.width));
+    H = W;
+    CX = W / 2;
+    CY = W / 2;
+    R = W / 2;
+    [artCv, liveCv].forEach(function (cv) {
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    });
+    art.lineCap = 'round';
+    art.lineJoin = 'round';
+    repaintAll();
+  }
+
+  /* ---------------- geometry ---------------- */
+  function wedgeAngle() { return (Math.PI * 2) / mirrors; }
+
+  /* ---------------- painting primitives ---------------- */
+  function paintStroke(ctx, pts, color, width, alphaBoost) {
+    if (pts.length < 2) {
+      if (pts.length === 1) {
+        dot(ctx, pts[0].x, pts[0].y, color, width);
+      }
+      return;
+    }
+    var segs = [];
+    var i;
+    for (i = 1; i < pts.length; i++) {
+      var dx = pts[i].x - pts[i - 1].x;
+      var dy = pts[i].y - pts[i - 1].y;
+      segs.push(Math.sqrt(dx * dx + dy * dy));
+    }
+    var total = segs.reduce(function (a, b) { return a + b; }, 0) || 1;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (reduced) {
+      /* calm: single flat stroke */
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.85;
+      ctx.lineWidth = width;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (i = 1; i < pts.length; i++) { ctx.lineTo(pts[i].x, pts[i].y); }
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    /* tapered, speed-weighted ribbon: draw per-segment with width from speed */
+    for (i = 1; i < pts.length; i++) {
+      var speed = segs[i - 1];
+      var t = i / pts.length;
+      var wBase = width * (0.35 + 0.65 * Math.sin(Math.min(1, t * 1.15) * Math.PI));
+      var w = Math.max(0.6, wBase * (1.25 - Math.min(1, speed / 42) * 0.75));
+      var a = Math.min(1, (0.34 + 0.5 * (1 - Math.min(1, speed / 42))) * (alphaBoost || 1));
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = a;
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(pts[i - 1].x, pts[i - 1].y);
+      var mx = (pts[i - 1].x + pts[i].x) / 2;
+      var my = (pts[i - 1].y + pts[i].y) / 2;
+      ctx.quadraticCurveTo(pts[i - 1].x, pts[i - 1].y, mx, my);
+      ctx.stroke();
+    }
+    /* glow pass */
+    ctx.globalAlpha = 0.16;
+    ctx.lineWidth = width * 2.6;
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (i = 1; i < pts.length; i++) { ctx.lineTo(pts[i].x, pts[i].y); }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function dot(ctx, x, y, color, width) {
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(1, width / 2), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* draw one polyline replicated through all mirror wedges */
+  function paintMirrored(ctx, pts, color, width) {
+    var wa = wedgeAngle();
+    var m;
+    for (m = 0; m < mirrors; m++) {
+      var base = m * wa;
+      ctx.save();
+      ctx.translate(CX, CY);
+      ctx.rotate(base);
+      paintStroke(ctx, pts, color, width, 1);
+      ctx.restore();
+
+      if (!symmetric) { continue; }
+      /* reflected copy within the wedge */
+      ctx.save();
+      ctx.translate(CX, CY);
+      ctx.rotate(base + wa);
+      ctx.scale(1, -1);
+      paintStroke(ctx, pts, color, width, 1);
+      ctx.restore();
+    }
+  }
+
+  function toLocal(pts) {
+    return pts.map(function (p) {
+      return { x: p.x - CX, y: p.y - CY };
+    });
+  }
+  function fromLocal(pts) {
+    return pts.map(function (p) {
+      return { x: p.x + CX, y: p.y + CY };
+    });
+  }
+
+  /* ---------------- stroke lifecycle ---------------- */
+  function commitStroke(ptsScreen, color, width) {
+    var local = toLocal(ptsScreen);
+    strokes.push({ pts: local, color: color, width: width, born: performance.now() });
+    if (strokes.length > 160) { strokes.shift(); }
+    strokeCount++;
+    statStrokes.textContent = String(strokeCount);
+    paintMirrored(art, ptsScreen, color, width);
+  }
+
+  function repaintAll() {
+    art.clearRect(0, 0, W, H);
+    var i;
+    for (i = 0; i < strokes.length; i++) {
+      paintMirrored(art, fromLocal(strokes[i].pts), strokes[i].color, strokes[i].width);
+    }
+  }
+
+  /* ---------------- pointer drawing ---------------- */
+  var drawing = false;
+  var currentPts = [];
+  var lastRafPts = 0;
+
+  function posFromEvent(e) {
+    var rect = stage.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width * W,
+      y: (e.clientY - rect.top) / rect.height * W
+    };
+  }
+
+  function onDown(e) {
+    e.preventDefault();
+    drawing = true;
+    currentPts = [posFromEvent(e)];
+    if (stage.setPointerCapture) {
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+  }
+  function onMove(e) {
+    if (!drawing) { return; }
+    e.preventDefault();
+    currentPts.push(posFromEvent(e));
+    if (currentPts.length > 90) { currentPts.shift(); }
+    var now = performance.now();
+    if (now - lastRafPts > 12) {
+      lastRafPts = now;
+      live.clearRect(0, 0, W, H);
+      paintMirrored(live, currentPts, colors[colorIdx], brushSize);
+    }
+  }
+  function onUp() {
+    if (!drawing) { return; }
+    drawing = false;
+    commitStroke(currentPts.slice(), colors[colorIdx], brushSize);
+    currentPts = [];
+    live.clearRect(0, 0, W, H);
+  }
+
+  stage.addEventListener('pointerdown', onDown);
+  stage.addEventListener('pointermove', onMove);
+  stage.addEventListener('pointerup', onUp);
+  stage.addEventListener('pointercancel', onUp);
+  stage.addEventListener('pointerleave', onUp);
+  stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+  /* ---------------- morph on mirror change ---------------- */
+  function setMirrors(n) {
+    n = Math.max(3, Math.min(12, n));
+    if (n === mirrors) { return; }
+    mirrors = n;
+    mirrorRead.textContent = String(n);
+    statMirrors.textContent = String(n);
+    var engraving = document.querySelector('.engraving textPath[href="#engBottom"]');
+    if (engraving) {
+      engraving.textContent = n + ' MIRRORS MAKE ' + (n * 2) + ' FOLDS OF LIGHT';
+    }
+    repaintAll();
+    liveEl.textContent = 'Mirrors set to ' + n + ' — the drawing re-folded itself.';
+  }
+
+  $('mPlus').addEventListener('click', function () { setMirrors(mirrors + 1); });
+  $('mMinus').addEventListener('click', function () { setMirrors(mirrors - 1); });
+
+  /* ---------------- palette & brush ---------------- */
+  function applyPalette(name) {
+    paletteName = name;
+    colors = PALETTES[name].slice();
+    statColor.textContent = PAL_NAMES[name];
+    document.querySelectorAll('.pal-btn').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.pal === name));
+    });
+    paintBrushSwatches();
+    liveEl.textContent = 'Palette: ' + PAL_NAMES[name] + '.';
+  }
+
+  document.querySelectorAll('.pal-btn').forEach(function (b) {
+    b.addEventListener('click', function () { applyPalette(b.dataset.pal); });
+  });
+
+  var swButtons = Array.prototype.slice.call(document.querySelectorAll('#brushSw button'));
+  function paintBrushSwatches() {
+    swButtons.forEach(function (b, i) {
+      b.style.background = colors[i % colors.length];
+      b.style.boxShadow = '0 0 10px ' + colors[i % colors.length] + '55';
+    });
+  }
+  swButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      colorIdx = Number(b.dataset.ci);
+      swButtons.forEach(function (x) {
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+    });
+  });
+
+  sizeRange.addEventListener('input', function () {
+    brushSize = Number(sizeRange.value);
+  });
+
+  /* ---------------- actions ---------------- */
+  $('clearBtn').addEventListener('click', function () {
+    strokes = [];
+    strokeCount = 0;
+    statStrokes.textContent = '0';
+    repaintAll();
+    liveEl.textContent = 'The lens is cleared.';
+  });
+
+  $('symmetryBtn').addEventListener('click', function () {
+    symmetric = !symmetric;
+    repaintAll();
+    liveEl.textContent = symmetric
+      ? 'True kaleidoscope symmetry: every wedge mirrored.'
+      : 'Simple rotational symmetry: wedges repeat without reflection.';
+  });
+
+  var replayTimer = 0;
+  $('replayBtn').addEventListener('click', function () {
+    if (reduced) { repaintAll(); return; }
+    if (!strokes.length) {
+      liveEl.textContent = 'Nothing to replay yet — draw into the lens first.';
+      return;
+    }
+    window.clearTimeout(replayTimer);
+    var snapshot = strokes.slice();
+    strokes = [];
+    strokeCount = 0;
+    statStrokes.textContent = '0';
+    repaintAll();
+    var i = 0;
+    var total = snapshot.length;
+    var stepMs = Math.max(40, Math.min(170, 2600 / total));
+    function next() {
+      if (i >= total) {
+        liveEl.textContent = 'Replay complete — ' + total + ' strokes relaid.';
+        return;
+      }
+      var s = snapshot[i];
+      strokes.push(s);
+      strokeCount++;
+      statStrokes.textContent = String(strokeCount);
+      paintMirrored(art, fromLocal(s.pts), s.color, s.width);
+      i++;
+      replayTimer = window.setTimeout(next, stepMs);
+    }
+    next();
+    liveEl.textContent = 'Replaying ' + total + ' strokes through the mirrors…';
+  });
+
+  /* ---------------- boot ---------------- */
+  window.addEventListener('resize', function () {
+    resize();
+  });
+  window.addEventListener('pagehide', function () {
+    window.clearTimeout(replayTimer);
+  });
+
+  paintBrushSwatches();
+  resize();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHALK &amp; CHALKDUST · №097 — The Projectile Lecture · The Gallery of 100</title>
+<style>
+:root{
+  --board:    #2e4a3f;
+  --board-2:  #27413a;
+  --chalk:    #f0ede4;
+  --chalk-dim:rgba(240,237,228,.55);
+  --yellow:   #f2d98c;
+  --wood:     #8a6540;
+  --wood-2:   #6d4e2e;
+  --paper:    #f6f1e6;
+  --ink:      #33302a;
+  --ink-soft: #6f6a5c;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --hand: "Segoe Print", "Bradley Hand", "Comic Sans MS", "Marker Felt", cursive;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scrollbar-color:#6d5a44 transparent; }
+html::-webkit-scrollbar{ width:10px; }
+html::-webkit-scrollbar-thumb{ background:#6d5a44; border-radius:6px; }
+body{
+  font-family:var(--serif);
+  color:var(--ink);
+  background:
+    radial-gradient(900px 500px at 20% 0%, #fbf8f0, transparent 60%),
+    linear-gradient(180deg, #efe9dc, #e5ddcb);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{ background:rgba(242,217,140,.6); color:#33302a; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed var(--wood); outline-offset:4px; border-radius:4px; }
+button{ font-family:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+/* chalk dust motes drifting over everything */
+.dust{
+  position:fixed; inset:0; z-index:40; pointer-events:none; opacity:.5;
+}
+
+/* ---------- lecture hall ---------- */
+.hall{
+  max-width:1420px; margin:0 auto;
+  padding:clamp(14px,2.6vw,34px) clamp(12px,3vw,42px) clamp(14px,2.4vh,28px);
+  display:flex; flex-direction:column; gap:clamp(12px,2vh,22px);
+}
+.lectern{
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;
+}
+.lectern h1{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(1.5rem,3.2vw,2.3rem);
+  letter-spacing:.18em; text-transform:uppercase;
+  color:#3d3a32;
+}
+.lectern h1 .amp{ color:var(--wood); font-style:italic; }
+.lectern .course{
+  font-style:italic; font-size:.95rem; color:var(--ink-soft);
+}
+.lectern .term{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-soft);
+  text-align:right;
+}
+
+/* ---------- the board ---------- */
+.board-frame{
+  background:
+    linear-gradient(160deg, var(--wood), var(--wood-2));
+  padding:clamp(10px,1.6vw,20px);
+  border-radius:10px;
+  box-shadow:0 26px 50px -24px rgba(40,28,12,.75), inset 0 2px 3px rgba(255,235,200,.4), inset 0 -3px 5px rgba(30,18,6,.5);
+  position:relative;
+}
+.board{
+  position:relative;
+  border-radius:4px;
+  overflow:hidden;
+  background:
+    radial-gradient(1100px 500px at 30% 20%, rgba(255,255,255,.045), transparent 60%),
+    radial-gradient(800px 500px at 80% 90%, rgba(0,0,0,.16), transparent 55%),
+    var(--board);
+  box-shadow:inset 0 0 60px rgba(0,0,0,.35);
+}
+.board canvas{ display:block; width:100%; height:auto; }
+
+/* chalk tray */
+.tray{
+  position:absolute; left:6%; right:6%; bottom:-12px;
+  height:14px;
+  background:linear-gradient(180deg, #a37c52, #7a5735);
+  border-radius:3px;
+  box-shadow:0 4px 8px rgba(30,18,6,.5), inset 0 1px 0 rgba(255,235,200,.5);
+  display:flex; align-items:center; gap:16px;
+  padding:0 14px;
+  z-index:5;
+}
+.tray .chalk-stick{
+  width:34px; height:8px;
+  border-radius:2px 2px 3px 3px;
+  background:linear-gradient(180deg, #fbf8ee, #d9d4c4);
+  box-shadow:0 1px 2px rgba(30,18,6,.5);
+}
+.tray .chalk-stick.y{ background:linear-gradient(180deg, #f7e7ae, #d9c072); width:26px; }
+.tray .eraser{
+  width:52px; height:11px;
+  background:linear-gradient(180deg, #4c4440, #2e2926);
+  border-radius:2px;
+  box-shadow:0 1px 3px rgba(30,18,6,.6);
+  position:relative;
+}
+.tray .eraser::after{
+  content:""; position:absolute; left:4px; right:4px; bottom:2px; height:3px;
+  background:rgba(240,237,228,.35);
+  border-radius:2px;
+}
+
+/* ---------- under board : controls ---------- */
+.desk{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:clamp(12px,2vw,26px);
+  align-items:start;
+}
+@media (max-width:960px){
+  .desk{ grid-template-columns:minmax(0,1fr); }
+}
+.slidercard{
+  background:var(--paper);
+  border:1px solid rgba(51,48,42,.25);
+  border-radius:8px;
+  padding:16px 18px 14px;
+  box-shadow:0 14px 30px -20px rgba(40,28,12,.55);
+}
+.slidercard h2{
+  font-family:var(--serif); font-weight:600;
+  font-size:.72rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-soft);
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:12px;
+}
+.slidercard h2 b{ font-family:var(--mono); font-weight:400; font-size:.72rem; letter-spacing:.06em; color:#33302a; }
+.sl-row{ display:flex; align-items:center; gap:14px; margin-top:10px; }
+.sl-row:first-of-type{ margin-top:0; }
+.sl-row .lab{
+  font-family:var(--serif); font-style:italic; font-size:.95rem;
+  color:var(--ink);
+  width:9.5em; flex:none;
+}
+input[type="range"].chalk-range{
+  -webkit-appearance:none; appearance:none;
+  flex:1; height:26px; background:transparent; cursor:pointer; touch-action:none;
+}
+input[type="range"].chalk-range::-webkit-slider-runnable-track{
+  height:4px; border-radius:2px;
+  background:repeating-linear-gradient(90deg, rgba(51,48,42,.55) 0 2px, transparent 2px 8px);
+}
+input[type="range"].chalk-range::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:18px; height:18px; margin-top:-7px; border-radius:50%;
+  background:linear-gradient(180deg, #fbf8ee, #d9d4c4);
+  border:2px solid #6f6a5c;
+  box-shadow:0 2px 4px rgba(40,28,12,.4);
+}
+input[type="range"].chalk-range::-moz-range-track{
+  height:4px; border-radius:2px;
+  background:repeating-linear-gradient(90deg, rgba(51,48,42,.55) 0 2px, transparent 2px 8px);
+}
+input[type="range"].chalk-range::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%;
+  background:linear-gradient(180deg, #fbf8ee, #d9d4c4);
+  border:2px solid #6f6a5c;
+}
+.chips{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.chip{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.22em; text-transform:uppercase;
+  border:1px solid rgba(51,48,42,.45);
+  border-radius:4px;
+  padding:9px 14px;
+  color:var(--ink);
+  background:rgba(255,255,255,.5);
+  transition:background .25s ease, color .25s ease;
+  touch-action:manipulation;
+}
+.chip:hover{ background:var(--ink); color:var(--paper); }
+.chip[aria-pressed="true"]{ background:#2e4a3f; border-color:#2e4a3f; color:var(--chalk); }
+
+/* readouts */
+.readouts{
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:16px;
+}
+.ro{
+  border:1px dashed rgba(51,48,42,.4);
+  border-radius:6px;
+  padding:9px 10px;
+  text-align:center;
+}
+.ro .k{
+  font-family:var(--mono); font-size:.5rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-soft);
+  display:block;
+}
+.ro .v{
+  font-family:var(--serif);
+  font-size:1.25rem; font-weight:600; color:#33302a;
+  font-variant-numeric:tabular-nums;
+  display:block; margin-top:2px;
+}
+
+/* derivation card */
+.derivation{
+  font-family:var(--serif);
+  font-size:.98rem; line-height:2;
+  color:var(--ink);
+}
+.derivation .step{
+  display:block;
+  border-bottom:1px dashed rgba(51,48,42,.25);
+  padding:5px 0;
+}
+.derivation .step:last-child{ border-bottom:0; }
+.derivation .step .no{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.16em; color:var(--ink-soft);
+  margin-right:10px;
+}
+.derivation .step .res{ color:#1f6f5c; font-weight:600; }
+.derivation .note{
+  display:block; margin-top:10px;
+  font-family:var(--hand), var(--serif);
+  font-size:.95rem; color:#7c4a1e;
+  transform:rotate(-.5deg);
+}
+
+/* foot */
+.foot{
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding-top:10px; border-top:1px solid rgba(51,48,42,.25);
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.foot .g{ color:#1f6f5c; }
+
+@media (prefers-reduced-motion: reduce){
+  .chip{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<svg class="dust" aria-hidden="true" width="100%" height="100%">
+  <filter id="dustFilter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="9"></feTurbulence>
+    <feColorMatrix type="matrix" values="0 0 0 0 0.94  0 0 0 0 0.93  0 0 0 0 0.89  0 0 0 0.05 0"></feColorMatrix>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#dustFilter)"></rect>
+</svg>
+
+<div class="hall">
+
+  <header class="lectern">
+    <div>
+      <h1>Chalk <span class="amp">&amp;</span> Chalkdust</h1>
+      <p class="course">Physics 14 — elementary projectiles, taught the old way</p>
+    </div>
+    <div class="term">
+      LECTURE №097 · 50 MIN<br>
+      THE GALLERY OF 100
+    </div>
+  </header>
+
+  <div class="board-frame">
+    <div class="board">
+      <canvas id="boardCv" role="img" aria-label="Chalkboard with animated projectile derivation"></canvas>
+    </div>
+    <div class="tray" aria-hidden="true">
+      <span class="chalk-stick"></span>
+      <span class="chalk-stick y"></span>
+      <span class="eraser"></span>
+    </div>
+  </div>
+
+  <div class="desk">
+
+    <section class="slidercard" aria-label="Projectile controls">
+      <h2>Apparatus <b id="launchRead">θ 45.0° · v 28 m/s</b></h2>
+      <div class="sl-row">
+        <label class="lab" for="angleSl">Launch angle θ</label>
+        <input type="range" class="chalk-range" id="angleSl" min="10" max="80" step="0.5" value="45" aria-label="Launch angle in degrees">
+        <span class="lab" style="width:4.5em; text-align:right" id="angleVal">45.0°</span>
+      </div>
+      <div class="sl-row">
+        <label class="lab" for="velSl">Muzzle speed v</label>
+        <input type="range" class="chalk-range" id="velSl" min="8" max="55" step="0.5" value="28" aria-label="Muzzle speed in metres per second">
+        <span class="lab" style="width:4.5em; text-align:right" id="velVal">28 m/s</span>
+      </div>
+      <div class="sl-row">
+        <label class="lab" for="gravSl">Gravity g</label>
+        <input type="range" class="chalk-range" id="gravSl" min="1.6" max="24.8" step="0.1" value="9.81" aria-label="Gravity in metres per second squared">
+        <span class="lab" style="width:4.5em; text-align:right" id="gravVal">9.81</span>
+      </div>
+      <div class="chips">
+        <button class="chip" type="button" data-preset="earth" aria-pressed="true">Earth g</button>
+        <button class="chip" type="button" data-preset="moon" aria-pressed="false">Moon g</button>
+        <button class="chip" type="button" data-preset="mars" aria-pressed="false">Mars g</button>
+        <button class="chip" type="button" id="eraseBtn">Erase board</button>
+        <button class="chip" type="button" id="solveBtn" aria-pressed="true">Solve live</button>
+      </div>
+      <div class="readouts">
+        <div class="ro"><span class="k">Range R</span><span class="v" id="roRange">—</span></div>
+        <div class="ro"><span class="k">Apex h</span><span class="v" id="roApex">—</span></div>
+        <div class="ro"><span class="k">Flight T</span><span class="v" id="roTime">—</span></div>
+      </div>
+    </section>
+
+    <section class="slidercard" aria-label="Derivation">
+      <h2>Derivation, line by line</h2>
+      <div class="derivation" id="deriv">
+        <span class="step"><span class="no">i.</span>x(t) = v·cosθ · t</span>
+        <span class="step"><span class="no">ii.</span>y(t) = v·sinθ · t − ½g·t²</span>
+        <span class="step"><span class="no">iii.</span>Set y = 0 → T = 2v·sinθ / g</span>
+        <span class="step"><span class="no">iv.</span>R = v·cosθ · T = <span class="res" id="dR">—</span></span>
+        <span class="step"><span class="no">v.</span>h = (v·sinθ)² / 2g = <span class="res" id="dH">—</span></span>
+        <span class="note" id="profNote">— observe how R peaks at forty-five degrees; the board never lies. — prof. H.</span>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <span>Chalk &amp; Chalkdust · №097 of 100</span>
+    <span class="g" id="footMsg">DRAG A SLIDER — THE BOARD REWRITES ITSELF</span>
+    <span>PHYSICS 14 · SPRING TERM</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var cv = document.getElementById("boardCv");
+var ctx = cv.getContext("2d");
+var els = {
+  angle: document.getElementById("angleSl"),
+  vel: document.getElementById("velSl"),
+  grav: document.getElementById("gravSl"),
+  angleVal: document.getElementById("angleVal"),
+  velVal: document.getElementById("velVal"),
+  gravVal: document.getElementById("gravVal"),
+  launchRead: document.getElementById("launchRead"),
+  roRange: document.getElementById("roRange"),
+  roApex: document.getElementById("roApex"),
+  roTime: document.getElementById("roTime"),
+  dR: document.getElementById("dR"),
+  dH: document.getElementById("dH"),
+  profNote: document.getElementById("profNote"),
+  footMsg: document.getElementById("footMsg"),
+  eraseBtn: document.getElementById("eraseBtn"),
+  solveBtn: document.getElementById("solveBtn")
+};
+var chips = Array.prototype.slice.call(document.querySelectorAll("[data-preset]"));
+
+/* ================= state ================= */
+var W = 0, H = 0, DPR = 1;
+var angle = 45, vel = 28, grav = 9.81;
+var solveLive = true;
+var flight = [];          /* dotted chalk trail points */
+var projectile = null;    /* live lob {x,y,vx,vy,t} */
+var smudges = [];         /* eraser smudge zones */
+var dustBursts = [];
+var reveal = 0;           /* derivation chalk-in progress 0..5 */
+var deriveTimer = 0;
+var raf = 0, running = true, lastT = 0, frame = 0;
+
+/* meters to screen mapping */
+var view = { mPerPx: 0.16, groundY: 0 };
+
+/* ================= physics ================= */
+function computeStats(){
+  var th = angle * Math.PI / 180;
+  var vy = vel * Math.sin(th);
+  var vx = vel * Math.cos(th);
+  var T = 2 * vy / grav;
+  var R = vx * T;
+  var hMax = vy * vy / (2 * grav);
+  return { th: th, vx: vx, vy: vy, T: T, R: R, hMax: hMax };
+}
+function fmt(n, d){
+  return n.toFixed(d === undefined ? 1 : d);
+}
+
+/* ================= trail building ================= */
+function rebuildTrail(){
+  var s = computeStats();
+  flight = [];
+  var steps = 90;
+  var mPerPx = view.mPerPx;
+  for (var i = 0; i <= steps; i++){
+    var t = s.T * i / steps;
+    var x = s.vx * t;
+    var y = s.vy * t - 0.5 * grav * t * t;
+    flight.push({
+      x: 60 + x / mPerPx,
+      y: view.groundY - y / mPerPx,
+      t: t
+    });
+  }
+  /* apex + landing annotations */
+  var apexT = s.vy / grav;
+  var apex = { x: 60 + (s.vx * apexT) / mPerPx, y: view.groundY - s.hMax / mPerPx };
+  var land = { x: 60 + s.R / mPerPx, y: view.groundY };
+  var launch = { x: 60, y: view.groundY - (s.vy * 0.28) / mPerPx * 0 / 1 + 0 };
+  launch.y = view.groundY;
+  return { s: s, apex: apex, land: land, launch: launch };
+}
+
+/* ================= chalk helpers ================= */
+function chalkLine(x0, y0, x1, y1, wobble, alpha, width, color){
+  ctx.strokeStyle = color || "rgba(240,237,228," + (alpha || 0.9) + ")";
+  ctx.lineWidth = width || 2.2;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  var segs = 6;
+  ctx.moveTo(x0, y0);
+  for (var i = 1; i <= segs; i++){
+    var f = i / segs;
+    var jx = (Math.random() - 0.5) * (wobble || 1.6);
+    var jy = (Math.random() - 0.5) * (wobble || 1.6);
+    ctx.lineTo(lerp(x0, x1, f) + jx, lerp(y0, y1, f) + jy);
+  }
+  ctx.stroke();
+}
+function chalkText(txt, x, y, size, color, align, italic){
+  ctx.font = (italic ? "italic " : "") + (size || 17) + 'px ui-serif, Georgia, serif';
+  ctx.fillStyle = color || "rgba(240,237,228,.92)";
+  ctx.textAlign = align || "left";
+  /* double-pass for chalk texture */
+  ctx.fillText(txt, x + (Math.random() - 0.5) * 0.8, y + (Math.random() - 0.5) * 0.8);
+  ctx.globalAlpha = 0.55;
+  ctx.fillText(txt, x, y);
+  ctx.globalAlpha = 1;
+  ctx.textAlign = "left";
+}
+
+/* ================= board painting ================= */
+function paintBoard(now){
+  var geom = rebuildTrail();
+  var s = geom.s;
+
+  /* board base with vertical wipe smudges */
+  ctx.clearRect(0, 0, W, H);
+  var base = ctx.createLinearGradient(0, 0, W, H);
+  base.addColorStop(0, "#304d41");
+  base.addColorStop(0.5, "#2e4a3f");
+  base.addColorStop(1, "#284239");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, W, H);
+  smudges.forEach(function(sm){
+    var g = ctx.createRadialGradient(sm.x, sm.y, 2, sm.x, sm.y, sm.r);
+    g.addColorStop(0, "rgba(240,237,228,.06)");
+    g.addColorStop(1, "rgba(240,237,228,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(sm.x - sm.r, sm.y - sm.r * 0.6, sm.r * 2, sm.r * 1.2);
+  });
+  /* corner residue */
+  ctx.fillStyle = "rgba(240,237,228,.05)";
+  ctx.fillRect(W - 90, H - 60, 90, 60);
+
+  /* ground line */
+  chalkLine(30, view.groundY, W - 30, view.groundY, 2, 0.85, 2.6);
+  /* hatching under ground */
+  for (var hx = 46; hx < W - 40; hx += 34){
+    chalkLine(hx, view.groundY + 2, hx - 12, view.groundY + 12, 1.2, 0.4, 1.4);
+  }
+
+  /* cannon / launcher sketch */
+  var th = s.th;
+  var bx = 60, by = view.groundY;
+  ctx.save();
+  ctx.translate(bx, by);
+  ctx.rotate(-th);
+  chalkLine(0, 0, 54, 0, 2.4, 0.95, 7);
+  chalkLine(0, 5, 46, 5, 2.2, 0.5, 3);
+  ctx.restore();
+  /* wheel */
+  ctx.strokeStyle = "rgba(240,237,228,.9)";
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.arc(bx + 4, by + 8, 9, 0, 6.283);
+  ctx.stroke();
+  chalkLine(bx - 5, by + 8, bx + 13, by + 8, 1, 0.5, 1.4);
+  /* angle arc */
+  ctx.strokeStyle = "rgba(242,217,140,.8)";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(bx + 10, by, 30, -th, 0);
+  ctx.stroke();
+  chalkText("θ=" + fmt(angle, 1) + "°", bx + 46, by - Math.sin(th) * 34, 15, "rgba(242,217,140,.95)");
+
+  /* dotted chalk trajectory */
+  var dashStep = 2;
+  ctx.fillStyle = "rgba(240,237,228,.9)";
+  for (var i = 0; i < flight.length; i += dashStep){
+    var p = flight[i];
+    ctx.beginPath();
+    ctx.arc(p.x + (Math.random() - 0.5), p.y + (Math.random() - 0.5), 1.7, 0, 6.283);
+    ctx.fill();
+  }
+  /* faint velocity vector at launch */
+  chalkLine(60, view.groundY, 60 + s.vx * 1.1, view.groundY - s.vy * 1.1, 1.4, 0.5, 1.6, "rgba(242,217,140,.55)");
+  chalkText("v", 66 + s.vx * 1.1, view.groundY - s.vy * 1.1 - 8, 15, "rgba(242,217,140,.85)", "left", true);
+
+  /* apex marker + annotation */
+  if (reveal >= 2){
+    ctx.strokeStyle = "rgba(240,237,228,.5)";
+    ctx.setLineDash([3, 6]);
+    ctx.beginPath();
+    ctx.moveTo(geom.apex.x, geom.apex.y);
+    ctx.lineTo(geom.apex.x, view.groundY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    chalkText("h = " + fmt(s.hMax) + " m", geom.apex.x + 10, geom.apex.y - 8, 16);
+    ctx.strokeStyle = "rgba(240,237,228,.35)";
+    ctx.beginPath();
+    ctx.arc(geom.apex.x, geom.apex.y, 6, 0, 6.283);
+    ctx.stroke();
+  }
+  /* range bracket */
+  if (reveal >= 3){
+    var ry = view.groundY + 26;
+    chalkLine(60, ry, geom.land.x, ry, 1.4, 0.7, 2);
+    chalkLine(60, ry - 6, 60, ry + 6, 1.4, 0.7, 2);
+    chalkLine(geom.land.x, ry - 6, geom.land.x, ry + 6, 1.4, 0.7, 2);
+    chalkText("R = " + fmt(s.R) + " m", (60 + geom.land.x) / 2, ry + 22, 17, "rgba(240,237,228,.95)", "center");
+  }
+  /* flight time near landing */
+  if (reveal >= 4){
+    chalkText("T = " + fmt(s.T, 2) + " s", geom.land.x - 40, view.groundY - 16, 15, "rgba(242,217,140,.9)");
+  }
+
+  /* title in corner, serif chalk */
+  chalkText("PROJECTILE MOTION — R = v²·sin(2θ)/g", W - 34, 44, 21, "rgba(240,237,228,.95)", "right", true);
+  chalkText("v = " + fmt(vel, 1) + " m/s   g = " + fmt(grav, 2) + " m/s²", W - 34, 74, 16, "rgba(240,237,228,.7)", "right");
+  chalkText("fig. " + (angle < 45 ? "low arc" : angle > 45 ? "high arc" : "the perfect forty-five"), W - 34, 100, 14, "rgba(242,217,140,.75)", "right", true);
+
+  /* live projectile */
+  if (projectile){
+    var t = projectile.t;
+    var px = 60 + (s.vx * t) / view.mPerPx;
+    var py = view.groundY - (s.vy * t - 0.5 * grav * t * t) / view.mPerPx;
+    /* motion streak */
+    ctx.strokeStyle = "rgba(242,217,140,.7)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(px - projectile.vx * 0.6, py + projectile.vy * 0.6 * 0);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+    ctx.fillStyle = "#f2d98c";
+    ctx.beginPath();
+    ctx.arc(px, py, 5.5, 0, 6.283);
+    ctx.fill();
+    /* shadow on ground */
+    ctx.fillStyle = "rgba(0,0,0,.3)";
+    ctx.beginPath();
+    ctx.ellipse(px, view.groundY + 3, 7, 2.4, 0, 0, 6.283);
+    ctx.fill();
+  }
+
+  /* dust puffs from eraser / impacts */
+  for (var d2 = dustBursts.length - 1; d2 >= 0; d2--){
+    var db = dustBursts[d2];
+    db.life -= 0.02;
+    if (db.life <= 0){ dustBursts.splice(d2, 1); continue; }
+    ctx.fillStyle = "rgba(240,237,228," + (db.life * 0.25).toFixed(3) + ")";
+    ctx.beginPath();
+    ctx.arc(db.x + db.vx * (1 - db.life) * 22, db.y - (1 - db.life) * 14, 2 + (1 - db.life) * 8, 0, 6.283);
+    ctx.fill();
+  }
+}
+
+/* ================= projectile lob on slider change ================= */
+function launchProjectile(){
+  var s = computeStats();
+  projectile = {
+    t: 0,
+    T: s.T,
+    vx: s.vx,
+    vy: s.vy
+  };
+  var scale = clamp(1 / Math.max(1, s.T * 0.42), 0.55, 2.6);
+  projectile.rate = scale;
+}
+
+/* ================= derivation reveal ================= */
+function updateDerivation(){
+  var s = computeStats();
+  els.dR.textContent = fmt(s.R) + " m";
+  els.dH.textContent = fmt(s.hMax) + " m";
+  var notes = [
+    "— observe how R peaks at forty-five degrees; the board never lies. — prof. H.",
+    "— halve g and the ball hangs in the air like a held breath. — prof. H.",
+    "— sin(2θ) forgives neither haste nor my handwriting. — prof. H.",
+    "— the apex is quiet; that is where the vertical velocity forgets itself. — prof. H."
+  ];
+  els.profNote.textContent = notes[Math.floor(angle + vel) % notes.length];
+  els.launchRead.textContent = "θ " + fmt(angle, 1) + "° · v " + fmt(vel, 1) + " m/s";
+  els.roRange.textContent = fmt(s.R) + " m";
+  els.roApex.textContent = fmt(s.hMax) + " m";
+  els.roTime.textContent = fmt(s.T, 2) + " s";
+}
+
+/* ================= loop ================= */
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  frame++;
+  var dt = clamp((now - lastT) / 1000, 0, 0.05);
+  lastT = now;
+
+  /* reveal animation on change */
+  if (solveLive){
+    deriveTimer += dt;
+    reveal = Math.min(5, 1 + deriveTimer * 2.2);
+  }
+
+  /* live projectile integration */
+  if (projectile){
+    projectile.t += dt * projectile.rate;
+    if (projectile.t > projectile.T){
+      /* impact puff */
+      var s2 = computeStats();
+      dustBursts.push({ x: 60 + s2.R / view.mPerPx, y: view.groundY - 4, vx: 1, vy: 0, life: 1 });
+      projectile = null;
+    }
+  }
+
+  paintBoard(now);
+}
+
+/* ================= input ================= */
+function onSlide(){
+  angle = parseFloat(els.angle.value);
+  vel = parseFloat(els.vel.value);
+  grav = parseFloat(els.grav.value);
+  els.angleVal.textContent = fmt(angle, 1) + "°";
+  els.velVal.textContent = fmt(vel, 1) + " m/s";
+  els.gravVal.textContent = fmt(grav, 2);
+  deriveTimer = 0;
+  reveal = 1;
+  updateDerivation();
+  if (solveLive) launchProjectile();
+  els.footMsg.textContent = "REWRITING… θ " + fmt(angle, 1) + "° · v " + fmt(vel, 1) + " m/s";
+}
+[els.angle, els.vel, els.grav].forEach(function(sl){
+  sl.addEventListener("input", onSlide);
+});
+
+chips.forEach(function(c){
+  c.addEventListener("click", function(){
+    chips.forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+    c.setAttribute("aria-pressed", "true");
+    var p = c.getAttribute("data-preset");
+    if (p === "earth") grav = 9.81;
+    else if (p === "moon") grav = 1.62;
+    else if (p === "mars") grav = 3.71;
+    els.grav.value = String(grav);
+    onSlide();
+    var names = { earth: "EARTH", moon: "THE MOON", mars: "MARS" };
+    els.footMsg.textContent = "GRAVITY — " + names[p] + " · THE ARC REMEMBERS";
+    dustBursts.push({ x: W * 0.5, y: H * 0.4, vx: -1, vy: 0, life: 1 });
+  });
+});
+
+els.eraseBtn.addEventListener("click", function(){
+  smudges = [];
+  for (var i = 0; i < 7; i++){
+    smudges.push({
+      x: Math.random() * W,
+      y: Math.random() * H * 0.7,
+      r: 60 + Math.random() * 90
+    });
+  }
+  dustBursts.push({ x: W * 0.3, y: H * 0.5, vx: 0.6, vy: 0, life: 1 });
+  dustBursts.push({ x: W * 0.6, y: H * 0.35, vx: -0.5, vy: 0, life: 1 });
+  els.footMsg.textContent = "BOARD ERASED · THE CHALK REMEMBERS ANYWAY";
+});
+
+els.solveBtn.addEventListener("click", function(){
+  solveLive = !solveLive;
+  els.solveBtn.setAttribute("aria-pressed", solveLive ? "true" : "false");
+  els.solveBtn.textContent = solveLive ? "Solve live" : "Hold the math";
+  if (solveLive){ deriveTimer = 0; launchProjectile(); }
+});
+
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  if (e.key === "e" || e.key === "E") els.eraseBtn.click();
+  if (e.key === "ArrowUp"){ els.angle.value = String(clamp(angle + 1, 10, 80)); onSlide(); }
+  if (e.key === "ArrowDown"){ els.angle.value = String(clamp(angle - 1, 10, 80)); onSlide(); }
+});
+
+/* ================= fit ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var r = cv.parentElement.getBoundingClientRect();
+  W = Math.max(280, Math.round(r.width));
+  H = Math.max(220, Math.round(clamp(W * 0.52, 300, 620)));
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.height = (H / W * 100) + "%";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  view.groundY = Math.round(H * 0.82);
+  view.mPerPx = clamp(W / 2600, 0.045, 0.34);
+}
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){ fit(); }, 160);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+});
+
+/* ================= boot ================= */
+fit();
+updateDerivation();
+launchProjectile();
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

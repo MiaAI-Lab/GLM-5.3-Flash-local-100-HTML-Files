@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WEATHER, SET TO MUSIC — four movements for sky and ear</title>
+<style>
+/* ============================================================
+   WEATHER, SET TO MUSIC
+   four hand-tuned scenes · parallax hills · synthesized sound
+   ============================================================ */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  --paper: #f4f1ea;
+  --paper-deep: #e9e4d8;
+  --ink: #2b2f38;
+  --ink-soft: #6d7480;
+  --ink-faint: #a7adb8;
+  --hairline: rgba(43, 47, 56, 0.16);
+  --accent: #d98e2b;
+  --scene-h: clamp(300px, 58vh, 640px);
+  --ease-song: cubic-bezier(0.4, 0.02, 0.25, 1);
+}
+
+body[data-weather="clear"] { --accent: #d98e2b; }
+body[data-weather="rain"]  { --accent: #3d5a80; }
+body[data-weather="snow"]  { --accent: #6f95b8; }
+body[data-weather="storm"] { --accent: #565f70; }
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--accent); color: #fffdf6; }
+::-moz-selection { background: var(--accent); color: #fffdf6; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--paper-deep); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--ink-soft), var(--ink));
+  border-radius: 6px;
+  border: 2px solid var(--paper-deep);
+}
+
+/* ---------- masthead ---------- */
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: clamp(16px, 3vw, 34px) clamp(18px, 4vw, 56px) clamp(10px, 1.6vw, 18px);
+}
+.kicker {
+  margin: 0 0 0.55em;
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4.6vw, 3rem);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+.masthead h1 em {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--accent);
+  transition: color 1.4s ease;
+}
+.opus {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--ink-faint);
+  text-align: right;
+  line-height: 1.7;
+}
+.opus b { color: var(--ink-soft); font-weight: 500; }
+
+/* ---------- stage ---------- */
+.stage {
+  position: relative;
+  margin: 0 clamp(10px, 2.4vw, 40px);
+  height: var(--scene-h);
+  border-radius: clamp(10px, 1.6vw, 22px);
+  overflow: hidden;
+  box-shadow:
+    0 40px 90px -38px rgba(20, 24, 32, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.6) inset;
+  isolation: isolate;
+}
+
+.scenes { position: absolute; inset: 0; }
+.scenes svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.scene {
+  opacity: 0;
+  transition: opacity 2s var(--ease-song);
+}
+.scene.on { opacity: 1; }
+
+.precip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+body[data-weather="snow"] .precip { mix-blend-mode: normal; }
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #eef3ff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(120% 90% at 50% 42%, transparent 55%, rgba(12, 16, 24, 0.34) 100%);
+}
+
+/* plate label on the scene */
+.plate {
+  position: absolute;
+  left: clamp(14px, 2.4vw, 30px);
+  bottom: clamp(12px, 2vw, 26px);
+  z-index: 5;
+  max-width: min(560px, 78%);
+  padding: 0.9em 1.2em 1em;
+  border-radius: 12px;
+  background: rgba(14, 18, 26, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f4f2ea;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.plate .mv {
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.plate .line {
+  margin: 0.45em 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  line-height: 1.45;
+  transition: opacity 0.5s ease;
+}
+.plate .tempo {
+  margin: 0.5em 0 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.readout {
+  position: absolute;
+  right: clamp(14px, 2.4vw, 30px);
+  top: clamp(12px, 2vw, 26px);
+  z-index: 5;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: clamp(0.6rem, 1.2vw, 0.72rem);
+  letter-spacing: 0.14em;
+  color: #f4f2ea;
+  background: rgba(14, 18, 26, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 0.7em 0.9em;
+  line-height: 1.8;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-variant-numeric: tabular-nums;
+}
+.readout b { font-weight: 500; color: #ffe9bd; }
+
+/* clouds drift */
+.cloud-drift { animation: cloudDrift 46s ease-in-out infinite alternate; }
+.cloud-drift.slow { animation-duration: 74s; animation-delay: -20s; }
+@keyframes cloudDrift {
+  from { transform: translateX(-14px); }
+  to   { transform: translateX(22px); }
+}
+
+/* ---------- console ---------- */
+.console {
+  margin: clamp(14px, 2.4vw, 26px) clamp(10px, 2.4vw, 40px) clamp(18px, 3vw, 40px);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: clamp(14px, 2vw, 28px);
+  flex-wrap: wrap;
+}
+
+.movements {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  flex: 1 1 460px;
+  min-width: min(460px, 100%);
+}
+.mv-btn {
+  position: relative;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 0.8em 1em 0.9em;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  min-height: 56px;
+}
+.mv-btn:hover { background: rgba(43, 47, 56, 0.05); transform: translateY(-2px); }
+.mv-btn:active { transform: translateY(0); }
+.mv-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.mv-btn .numeral {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  transition: color 0.5s ease;
+}
+.mv-btn .mname {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.mv-btn::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 7px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-song);
+}
+.mv-btn[aria-pressed="true"] { border-color: var(--accent); }
+.mv-btn[aria-pressed="true"] .numeral { color: var(--accent); }
+.mv-btn[aria-pressed="true"]::after { transform: scaleX(1); }
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+  flex-wrap: wrap;
+}
+.intensity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: clamp(170px, 24vw, 260px);
+}
+.intensity label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.intensity label b {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  transition: color 1.2s ease;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 26px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(43,47,56,0.2), var(--accent));
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 0 3px 10px rgba(20, 24, 32, 0.35);
+}
+input[type="range"]::-moz-range-track {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(43,47,56,0.2), var(--accent));
+}
+input[type="range"]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  box-shadow: 0 3px 10px rgba(20, 24, 32, 0.35);
+}
+input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.btn {
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 650;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding: 0.95em 1.6em;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  cursor: pointer;
+  min-height: 46px;
+  transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+}
+.btn:hover { background: rgba(43, 47, 56, 0.06); transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(0.97); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.btn[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.colophon {
+  padding: 0 clamp(18px, 4vw, 56px) clamp(20px, 3vw, 34px);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, "Courier New", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cloud-drift { animation: none; }
+  .scene { transition-duration: 0.6s; }
+  .mv-btn, .plate .line { transition-duration: 0.01s; }
+}
+
+@media (max-width: 560px) {
+  .movements { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+  .readout { display: none; }
+}
+</style>
+</head>
+<body data-weather="clear">
+
+<header class="masthead">
+  <div>
+    <p class="kicker">an ambient cycle in four movements · sky and ear together</p>
+    <h1>Weather, set to <em>music</em></h1>
+  </div>
+  <p class="opus">
+    OP. <b>22</b> — THE OPEN AIR<br>
+    FOR SYNTHESIZED WINDS AND PARTICLES<br>
+    DURATION: <b>AS LONG AS YOU LIKE</b>
+  </p>
+</header>
+
+<main class="stage" aria-label="Weather scene stage">
+  <div class="scenes" aria-hidden="true">
+    <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMax slice" focusable="false">
+      <defs>
+        <filter id="softBlur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="14"></feGaussianBlur>
+        </filter>
+        <filter id="cloudBlur" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="7"></feGaussianBlur>
+        </filter>
+        <linearGradient id="skyClear" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8ecae6"></stop>
+          <stop offset="0.62" stop-color="#cfe3d8"></stop>
+          <stop offset="1" stop-color="#ffd9a0"></stop>
+        </linearGradient>
+        <linearGradient id="skyRain" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3d5a80"></stop>
+          <stop offset="1" stop-color="#98c1d9"></stop>
+        </linearGradient>
+        <linearGradient id="skySnow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c2d8ff"></stop>
+          <stop offset="1" stop-color="#e0fbfc"></stop>
+        </linearGradient>
+        <linearGradient id="skyStorm" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#20232e"></stop>
+          <stop offset="0.8" stop-color="#4a5261"></stop>
+          <stop offset="1" stop-color="#8894a7"></stop>
+        </linearGradient>
+        <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#fff3d6" stop-opacity="0.95"></stop>
+          <stop offset="1" stop-color="#fff3d6" stop-opacity="0"></stop>
+        </radialGradient>
+        <linearGradient id="rayWash" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff3d6" stop-opacity="0.5"></stop>
+          <stop offset="1" stop-color="#fff3d6" stop-opacity="0"></stop>
+        </linearGradient>
+      </defs>
+
+      <!-- I. CLEAR -->
+      <g class="scene" id="scene-clear">
+        <rect width="1200" height="700" fill="url(#skyClear)"></rect>
+        <circle cx="872" cy="168" r="150" fill="url(#sunGlow)"></circle>
+        <circle cx="872" cy="168" r="52" fill="#fff3d6" filter="url(#softBlur)"></circle>
+        <circle cx="872" cy="168" r="40" fill="#fffbe9"></circle>
+        <polygon points="700,0 830,0 560,700 430,700" fill="url(#rayWash)" opacity="0.35"></polygon>
+        <polygon points="900,0 990,0 800,700 690,700" fill="url(#rayWash)" opacity="0.22"></polygon>
+        <g class="cloud-drift" fill="#fffdf6" opacity="0.92" filter="url(#cloudBlur)">
+          <ellipse cx="300" cy="150" rx="110" ry="34"></ellipse>
+          <ellipse cx="380" cy="132" rx="80" ry="28"></ellipse>
+          <ellipse cx="225" cy="168" rx="66" ry="22"></ellipse>
+        </g>
+        <g class="cloud-drift slow" fill="#fff8e8" opacity="0.8" filter="url(#cloudBlur)">
+          <ellipse cx="1020" cy="260" rx="95" ry="26"></ellipse>
+          <ellipse cx="1090" cy="246" rx="60" ry="20"></ellipse>
+        </g>
+        <g stroke="#5a5142" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.75">
+          <path d="M540 210 q14 -16 28 0 q14 -16 28 0"></path>
+          <path d="M620 240 q10 -12 20 0 q10 -12 20 0"></path>
+        </g>
+        <path d="M-50 430 C150 370 300 410 470 375 C640 340 760 395 930 360 C1050 335 1150 380 1250 355 L1250 700 L-50 700 Z" fill="#e3c387"></path>
+        <path d="M-50 500 C120 455 260 495 430 462 C620 428 780 490 950 458 C1080 436 1160 470 1250 450 L1250 700 L-50 700 Z" fill="#cf9f5f"></path>
+        <path d="M-50 585 C160 540 330 575 520 548 C720 520 880 570 1060 545 C1140 534 1200 552 1250 540 L1250 700 L-50 700 Z" fill="#9c7a40"></path>
+        <g fill="#7d6132">
+          <rect x="160" y="470" width="9" height="52" rx="3"></rect>
+          <circle cx="164" cy="458" r="30"></circle>
+          <rect x="1020" y="452" width="8" height="46" rx="3"></rect>
+          <circle cx="1024" cy="440" r="26"></circle>
+        </g>
+      </g>
+
+      <!-- II. RAIN -->
+      <g class="scene" id="scene-rain">
+        <rect width="1200" height="700" fill="url(#skyRain)"></rect>
+        <g fill="#2f4460" opacity="0.9" filter="url(#cloudBlur)">
+          <ellipse cx="260" cy="110" rx="180" ry="46"></ellipse>
+          <ellipse cx="420" cy="92" rx="130" ry="36"></ellipse>
+          <ellipse cx="920" cy="120" rx="220" ry="50"></ellipse>
+          <ellipse cx="1080" cy="96" rx="140" ry="38"></ellipse>
+          <ellipse cx="660" cy="70" rx="160" ry="40"></ellipse>
+        </g>
+        <g fill="#5b7ea0" opacity="0.75" filter="url(#cloudBlur)">
+          <ellipse cx="520" cy="170" rx="190" ry="34"></ellipse>
+          <ellipse cx="980" cy="185" rx="170" ry="30"></ellipse>
+        </g>
+        <path d="M-50 430 C150 370 300 410 470 375 C640 340 760 395 930 360 C1050 335 1150 380 1250 355 L1250 700 L-50 700 Z" fill="#6e8cab"></path>
+        <path d="M-50 500 C120 455 260 495 430 462 C620 428 780 490 950 458 C1080 436 1160 470 1250 450 L1250 700 L-50 700 Z" fill="#4a6889"></path>
+        <path d="M-50 585 C160 540 330 575 520 548 C720 520 880 570 1060 545 C1140 534 1200 552 1250 540 L1250 700 L-50 700 Z" fill="#33506f"></path>
+        <g stroke="#26405c" stroke-width="4" stroke-linecap="round" opacity="0.8">
+          <path d="M210 640 q26 -30 52 0 q26 -30 52 0" fill="none"></path>
+          <path d="M960 632 q26 -30 52 0 q26 -30 52 0" fill="none"></path>
+        </g>
+      </g>
+
+      <!-- III. SNOW -->
+      <g class="scene" id="scene-snow">
+        <rect width="1200" height="700" fill="url(#skySnow)"></rect>
+        <circle cx="940" cy="140" r="120" fill="#ffffff" opacity="0.5" filter="url(#softBlur)"></circle>
+        <g fill="#ffffff" opacity="0.95" filter="url(#cloudBlur)">
+          <ellipse cx="300" cy="130" rx="170" ry="40"></ellipse>
+          <ellipse cx="450" cy="112" rx="120" ry="30"></ellipse>
+          <ellipse cx="860" cy="150" rx="190" ry="42"></ellipse>
+        </g>
+        <path d="M-50 430 C150 370 300 410 470 375 C640 340 760 395 930 360 C1050 335 1150 380 1250 355 L1250 700 L-50 700 Z" fill="#dbe9fa"></path>
+        <path d="M-50 500 C120 455 260 495 430 462 C620 428 780 490 950 458 C1080 436 1160 470 1250 450 L1250 700 L-50 700 Z" fill="#c3d7f0"></path>
+        <path d="M-50 585 C160 540 330 575 520 548 C720 520 880 570 1060 545 C1140 534 1200 552 1250 540 L1250 700 L-50 700 Z" fill="#a9c3e4"></path>
+        <path d="M-50 585 C160 540 330 575 520 548 C720 520 880 570 1060 545 C1140 534 1200 552 1250 540 L1250 700 L-50 700 Z" fill="#ffffff" opacity="0.55"></path>
+        <g stroke="#7d90ad" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.85">
+          <path d="M300 640 L300 520 M300 560 L260 520 M300 575 L345 528 M300 600 L268 566 M300 615 L338 575"></path>
+          <path d="M940 636 L940 540 M940 575 L906 540 M940 590 L978 548 M940 610 L912 580"></path>
+        </g>
+        <g fill="#eef5ff">
+          <circle cx="312" cy="512" r="17"></circle>
+          <circle cx="296" cy="522" r="12"></circle>
+          <circle cx="330" cy="522" r="11"></circle>
+          <circle cx="950" cy="532" r="15"></circle>
+          <circle cx="936" cy="540" r="10"></circle>
+        </g>
+      </g>
+
+      <!-- IV. STORM -->
+      <g class="scene" id="scene-storm">
+        <rect width="1200" height="700" fill="url(#skyStorm)"></rect>
+        <g fill="#181b24" opacity="0.96" filter="url(#cloudBlur)">
+          <ellipse cx="240" cy="90" rx="220" ry="54"></ellipse>
+          <ellipse cx="520" cy="66" rx="200" ry="48"></ellipse>
+          <ellipse cx="840" cy="100" rx="240" ry="56"></ellipse>
+          <ellipse cx="1100" cy="70" rx="180" ry="44"></ellipse>
+        </g>
+        <g fill="#333a48" opacity="0.85" filter="url(#cloudBlur)">
+          <ellipse cx="380" cy="160" rx="200" ry="38"></ellipse>
+          <ellipse cx="760" cy="180" rx="230" ry="40"></ellipse>
+          <ellipse cx="1060" cy="170" rx="160" ry="32"></ellipse>
+        </g>
+        <path d="M-50 430 C150 370 300 410 470 375 C640 340 760 395 930 360 C1050 335 1150 380 1250 355 L1250 700 L-50 700 Z" fill="#3a4150"></path>
+        <path d="M-50 500 C120 455 260 495 430 462 C620 428 780 490 950 458 C1080 436 1160 470 1250 450 L1250 700 L-50 700 Z" fill="#2a303c"></path>
+        <path d="M-50 585 C160 540 330 575 520 548 C720 520 880 570 1060 545 C1140 534 1200 552 1250 540 L1250 700 L-50 700 Z" fill="#1c202a"></path>
+        <g stroke="#12151d" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9">
+          <path d="M180 642 q30 -34 60 0 q30 -34 60 0"></path>
+          <path d="M930 636 q30 -34 60 0 q30 -34 60 0"></path>
+        </g>
+      </g>
+    </svg>
+    <canvas class="precip" id="precip"></canvas>
+    <div class="flash" id="flash"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <aside class="readout" aria-label="Sky conditions readout">
+    <div>AIR <b id="roTemp">21.4°C</b></div>
+    <div>WIND <b id="roWind">SW 6 km/h</b></div>
+    <div>LIGHT <b id="roLight">92%</b></div>
+  </aside>
+
+  <div class="plate">
+    <div class="mv" id="plateMv">Movement I · Clear</div>
+    <p class="line" id="plateLine">The sky rehearses in gold, and every hill stops to listen.</p>
+    <p class="tempo" id="plateTempo">Largo lucente — broad and shining</p>
+  </div>
+</main>
+
+<section class="console" aria-label="Performance console">
+  <div class="movements" role="group" aria-label="Choose a movement">
+    <button class="mv-btn" type="button" data-weather="clear" aria-pressed="true">
+      <span class="numeral">I.</span>
+      <span class="mname">Clear</span>
+    </button>
+    <button class="mv-btn" type="button" data-weather="rain" aria-pressed="false">
+      <span class="numeral">II.</span>
+      <span class="mname">Rain</span>
+    </button>
+    <button class="mv-btn" type="button" data-weather="snow" aria-pressed="false">
+      <span class="numeral">III.</span>
+      <span class="mname">Snow</span>
+    </button>
+    <button class="mv-btn" type="button" data-weather="storm" aria-pressed="false">
+      <span class="numeral">IV.</span>
+      <span class="mname">Storm</span>
+    </button>
+  </div>
+
+  <div class="side">
+    <div class="intensity">
+      <label for="intensityRange">Intensity <b id="intensityVal">55</b></label>
+      <input type="range" id="intensityRange" min="5" max="100" value="55" aria-label="Weather intensity">
+    </div>
+    <button class="btn" id="soundBtn" type="button" aria-pressed="false">Sound off</button>
+  </div>
+</section>
+
+<footer class="colophon">
+  <span>Four scenes · one continuous performance</span>
+  <span>Keys 1–4 change movement · arrows drift between skies</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var WEATHERS = {
+    clear: {
+      numeral: 'I', name: 'Clear', tempo: 'Largo lucente — broad and shining',
+      line: 'The sky rehearses in gold, and every hill stops to listen.',
+      dir: 'SW', temp: 21.4, wind: 6, light: 92
+    },
+    rain: {
+      numeral: 'II', name: 'Rain', tempo: 'Andante gocciolante — falling, walking pace',
+      line: 'Ten thousand small drums rehearsal on the roof of the afternoon.',
+      dir: 'SE', temp: 13.8, wind: 18, light: 41
+    },
+    snow: {
+      numeral: 'III', name: 'Snow', tempo: 'Adagio fiocco — slow, weightless',
+      line: 'The world lowers its voice until the streets turn to paper.',
+      dir: 'NE', temp: -2.6, wind: 11, light: 63
+    },
+    storm: {
+      numeral: 'IV', name: 'Storm', tempo: 'Presto furioso — fast and furious',
+      line: 'The clouds argue all night, and the thunder takes notes.',
+      dir: 'W', temp: 15.2, wind: 47, light: 22
+    }
+  };
+  var ORDER = ['clear', 'rain', 'snow', 'storm'];
+
+  var weather = 'clear';
+  var intensity = 0.55;
+  var soundOn = false;
+
+  var flashEl = $('flash');
+  var canvas = $('precip');
+  var ctx = canvas.getContext('2d');
+  var plateLine = $('plateLine');
+  var plateMv = $('plateMv');
+  var plateTempo = $('plateTempo');
+  var roTemp = $('roTemp');
+  var roWind = $('roWind');
+  var roLight = $('roLight');
+  var intensityVal = $('intensityVal');
+  var mvBtns = Array.prototype.slice.call(document.querySelectorAll('.mv-btn'));
+
+  /* ---------------- canvas precipitation ---------------- */
+  var W = 0, H = 0, dpr = 1;
+  var drops = [];
+  var flakes = [];
+  var pollen = [];
+  var rafId = 0;
+  var lastT = 0;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seed();
+  }
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function seed() {
+    drops = [];
+    flakes = [];
+    pollen = [];
+    var i;
+    var rainCount = Math.round((70 + intensity * 210) * (weather === 'storm' ? 1.35 : 1));
+    if (reduced) { rainCount = Math.round(rainCount * 0.5); }
+    if (weather === 'rain' || weather === 'storm') {
+      for (i = 0; i < rainCount; i++) {
+        drops.push({
+          x: rand(-60, W + 60),
+          y: rand(-H, H),
+          len: rand(10, 24) * (weather === 'storm' ? 1.25 : 1),
+          spd: rand(480, 760) * (weather === 'storm' ? 1.4 : 1),
+          a: rand(0.18, 0.45),
+          slant: weather === 'storm' ? rand(0.34, 0.5) : rand(0.1, 0.2)
+        });
+      }
+    }
+    if (weather === 'snow') {
+      var fl = Math.round((70 + intensity * 110) * (reduced ? 0.5 : 1));
+      for (i = 0; i < fl; i++) {
+        flakes.push({
+          x: rand(0, W),
+          y: rand(-H, H),
+          r: rand(1.2, 3.4),
+          spd: rand(26, 74),
+          sway: rand(0.6, 1.8),
+          ph: rand(0, Math.PI * 2),
+          a: rand(0.5, 0.95)
+        });
+      }
+    }
+    if (weather === 'clear') {
+      for (i = 0; i < 26; i++) {
+        pollen.push({
+          x: rand(0, W),
+          y: rand(0, H),
+          r: rand(0.8, 2.2),
+          vx: rand(-8, 8),
+          vy: rand(-5, 5),
+          ph: rand(0, Math.PI * 2),
+          a: rand(0.25, 0.6)
+        });
+      }
+    }
+  }
+
+  function drawFrame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000 || 0.016);
+    lastT = now;
+    ctx.clearRect(0, 0, W, H);
+    var i, p;
+
+    if (weather === 'rain' || weather === 'storm') {
+      var stormy = weather === 'storm';
+      ctx.lineCap = 'round';
+      for (i = 0; i < drops.length; i++) {
+        p = drops[i];
+        p.y += p.spd * dt;
+        p.x += p.spd * p.slant * dt;
+        if (p.y > H + 30) { p.y = rand(-80, -10); p.x = rand(-60, W + 60); }
+        if (p.x > W + 80) { p.x = -40; }
+        ctx.strokeStyle = stormy
+          ? 'rgba(190, 205, 225, ' + p.a + ')'
+          : 'rgba(210, 230, 245, ' + p.a + ')';
+        ctx.lineWidth = stormy ? 1.4 : 1.1;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.len * p.slant, p.y - p.len);
+        ctx.stroke();
+      }
+    } else if (weather === 'snow') {
+      for (i = 0; i < flakes.length; i++) {
+        p = flakes[i];
+        p.ph += dt * p.sway;
+        p.y += p.spd * dt;
+        p.x += Math.sin(p.ph) * 16 * dt;
+        if (p.y > H + 8) { p.y = -8; p.x = rand(0, W); }
+        if (p.x > W + 8) { p.x = -8; }
+        if (p.x < -8) { p.x = W + 8; }
+        ctx.fillStyle = 'rgba(255,255,255,' + p.a + ')';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      for (i = 0; i < pollen.length; i++) {
+        p = pollen[i];
+        p.ph += dt;
+        p.x += (p.vx + Math.sin(p.ph) * 6) * dt;
+        p.y += (p.vy + Math.cos(p.ph * 0.7) * 4) * dt;
+        if (p.x > W + 10) { p.x = -10; }
+        if (p.x < -10) { p.x = W + 10; }
+        if (p.y > H + 10) { p.y = -10; }
+        if (p.y < -10) { p.y = H + 10; }
+        ctx.fillStyle = 'rgba(255, 243, 214, ' + (p.a * (0.7 + 0.3 * Math.sin(p.ph * 2))) + ')';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    rafId = requestAnimationFrame(drawFrame);
+  }
+
+  /* ---------------- lightning ---------------- */
+  var flashTimer = 0;
+  function doFlash() {
+    var strength = reduced ? 0.3 : rand(0.55, 0.95);
+    flashEl.style.transition = 'none';
+    flashEl.style.opacity = String(strength);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        flashEl.style.transition = 'opacity 0.5s ease';
+        flashEl.style.opacity = '0';
+      });
+    });
+    if (!reduced && Math.random() < 0.4) {
+      window.setTimeout(function () {
+        flashEl.style.transition = 'none';
+        flashEl.style.opacity = String(strength * 0.5);
+        requestAnimationFrame(function () {
+          flashEl.style.transition = 'opacity 0.35s ease';
+          flashEl.style.opacity = '0';
+        });
+      }, 130);
+    }
+  }
+  function scheduleStorm() {
+    window.clearTimeout(flashTimer);
+    if (weather !== 'storm') { return; }
+    var wait = (reduced ? 9000 : 5200) - intensity * 3400 + rand(0, 4200);
+    flashTimer = window.setTimeout(function () {
+      doFlash();
+      thunder(0.15);
+      scheduleStorm();
+    }, Math.max(2200, wait));
+  }
+
+  /* ---------------- audio ---------------- */
+  var ac = null, master = null, comp = null;
+  var beds = {};
+  var noiseBuf = null, brownBuf = null;
+
+  function ensureAudio() {
+    if (ac) { if (ac.state === 'suspended') { ac.resume(); } return true; }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { return false; }
+    ac = new Ctx();
+    comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 6;
+    master = ac.createGain();
+    master.gain.value = 0;
+    master.connect(comp);
+    comp.connect(ac.destination);
+
+    var len = ac.sampleRate * 2;
+    noiseBuf = ac.createBuffer(1, len, ac.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) { d[i] = Math.random() * 2 - 1; }
+
+    brownBuf = ac.createBuffer(1, len, ac.sampleRate);
+    var b = brownBuf.getChannelData(0);
+    var last = 0;
+    for (var j = 0; j < len; j++) {
+      var white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02;
+      b[j] = last * 3.5;
+    }
+
+    buildBeds();
+    return true;
+  }
+
+  function noiseSource(buf) {
+    var s = ac.createBufferSource();
+    s.buffer = buf;
+    s.loop = true;
+    s.start();
+    return s;
+  }
+
+  function buildBeds() {
+    var t = ac.currentTime;
+
+    /* CLEAR: warm pad + soft air */
+    var cg = ac.createGain();
+    cg.gain.setValueAtTime(0.0001, t);
+    var cf = ac.createBiquadFilter();
+    cf.type = 'lowpass';
+    cf.frequency.value = 900;
+    var pad1 = ac.createOscillator();
+    pad1.type = 'triangle';
+    pad1.frequency.value = 196;
+    var pad2 = ac.createOscillator();
+    pad2.type = 'triangle';
+    pad2.frequency.value = 294;
+    pad2.detune.value = 5;
+    var pg1 = ac.createGain(); pg1.gain.value = 0.16;
+    var pg2 = ac.createGain(); pg2.gain.value = 0.1;
+    pad1.connect(pg1); pg1.connect(cf);
+    pad2.connect(pg2); pg2.connect(cf);
+    var air = noiseSource(noiseBuf);
+    var airF = ac.createBiquadFilter();
+    airF.type = 'lowpass';
+    airF.frequency.value = 420;
+    var airG = ac.createGain();
+    airG.gain.value = 0.014;
+    air.connect(airF); airF.connect(airG); airG.connect(cf);
+    cf.connect(cg);
+    cg.connect(master);
+    pad1.start(); pad2.start();
+    beds.clear = { gain: cg, base: 0.5 };
+
+    /* RAIN: filtered noise + drips */
+    var rg = ac.createGain();
+    rg.gain.setValueAtTime(0.0001, t);
+    var rf = ac.createBiquadFilter();
+    rf.type = 'lowpass';
+    rf.frequency.value = 1500;
+    var rn = noiseSource(noiseBuf);
+    var rng = ac.createGain();
+    rng.gain.value = 0.16;
+    rn.connect(rng); rng.connect(rf); rf.connect(rg);
+    rg.connect(master);
+    beds.rain = { gain: rg, base: 0.55 };
+
+    /* SNOW: hush + distant shimmer */
+    var sg = ac.createGain();
+    sg.gain.setValueAtTime(0.0001, t);
+    var sf = ac.createBiquadFilter();
+    sf.type = 'lowpass';
+    sf.frequency.value = 380;
+    var sn = noiseSource(noiseBuf);
+    var sng = ac.createGain();
+    sng.gain.value = 0.2;
+    sn.connect(sng); sng.connect(sf); sf.connect(sg);
+    var sh = ac.createOscillator();
+    sh.type = 'sine';
+    sh.frequency.value = 1568;
+    var shG = ac.createGain();
+    shG.gain.value = 0.012;
+    var trem = ac.createOscillator();
+    trem.frequency.value = 0.25;
+    var tremG = ac.createGain();
+    tremG.gain.value = 0.008;
+    trem.connect(tremG);
+    tremG.connect(shG.gain);
+    sh.connect(shG);
+    shG.connect(sg);
+    sh.start(); trem.start();
+    sg.connect(master);
+    beds.snow = { gain: sg, base: 0.4 };
+
+    /* STORM: heavy rain + sweeping wind */
+    var tg = ac.createGain();
+    tg.gain.setValueAtTime(0.0001, t);
+    var tf = ac.createBiquadFilter();
+    tf.type = 'lowpass';
+    tf.frequency.value = 1100;
+    var tn = noiseSource(noiseBuf);
+    var tng = ac.createGain();
+    tng.gain.value = 0.26;
+    tn.connect(tng); tng.connect(tf); tf.connect(tg);
+    var wn = noiseSource(noiseBuf);
+    var wf = ac.createBiquadFilter();
+    wf.type = 'bandpass';
+    wf.frequency.value = 500;
+    wf.Q.value = 0.8;
+    var wg = ac.createGain();
+    wg.gain.value = 0.14;
+    wn.connect(wf); wf.connect(wg); wg.connect(tg);
+    var wlfo = ac.createOscillator();
+    wlfo.frequency.value = 0.09;
+    var wlfoG = ac.createGain();
+    wlfoG.gain.value = 320;
+    wlfo.connect(wlfoG);
+    wlfoG.connect(wf.frequency);
+    wlfo.start();
+    tg.connect(master);
+    beds.storm = { gain: tg, base: 0.6 };
+  }
+
+  function crossfade() {
+    if (!ac) { return; }
+    var t = ac.currentTime;
+    ORDER.forEach(function (key) {
+      var bed = beds[key];
+      if (!bed) { return; }
+      var target = (key === weather && soundOn) ? bed.base * (0.55 + intensity * 0.75) : 0.0001;
+      bed.gain.gain.cancelScheduledValues(t);
+      bed.gain.gain.setValueAtTime(Math.max(bed.gain.gain.value, 0.0001), t);
+      bed.gain.gain.linearRampToValueAtTime(target, t + 2);
+    });
+  }
+
+  function playDrip() {
+    if (!ac || !soundOn) { return; }
+    var t = ac.currentTime;
+    var o = ac.createOscillator();
+    o.type = 'sine';
+    var f0 = rand(650, 1500);
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(f0 * 0.6, t + 0.12);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(rand(0.02, 0.06), t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    o.connect(g);
+    g.connect(master);
+    o.start(t);
+    o.stop(t + 0.2);
+  }
+  function dripChain() {
+    if (!soundOn) { return; }
+    if (weather === 'rain' || weather === 'storm') {
+      playDrip();
+      if (weather === 'storm' && Math.random() < 0.4) {
+        window.setTimeout(playDrip, rand(60, 200));
+      }
+    }
+    var gap = (weather === 'storm' ? rand(160, 700) : rand(420, 1600)) / (0.6 + intensity);
+    window.setTimeout(dripChain, gap);
+  }
+
+  function birdChain() {
+    if (!soundOn) { return; }
+    if (weather === 'clear' && !reduced) {
+      var n = 2 + Math.floor(rand(0, 3));
+      for (var i = 0; i < n; i++) {
+        (function (i) {
+          window.setTimeout(function () {
+            if (!ac || !soundOn || weather !== 'clear') { return; }
+            var t = ac.currentTime;
+            var o = ac.createOscillator();
+            o.type = 'sine';
+            var base = rand(1900, 2600);
+            o.frequency.setValueAtTime(base, t);
+            o.frequency.linearRampToValueAtTime(base * rand(1.15, 1.35), t + 0.07);
+            o.frequency.linearRampToValueAtTime(base * 0.9, t + 0.14);
+            var g = ac.createGain();
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.linearRampToValueAtTime(0.028, t + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+            o.connect(g);
+            g.connect(master);
+            o.start(t);
+            o.stop(t + 0.2);
+          }, i * rand(110, 190));
+        })(i);
+      }
+    }
+    window.setTimeout(birdChain, rand(2600, 7000));
+  }
+
+  function thunder(delay) {
+    if (!ac || !soundOn) { return; }
+    var t = ac.currentTime + delay;
+    var s = ac.createBufferSource();
+    s.buffer = brownBuf;
+    s.loop = true;
+    var f = ac.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(220, t);
+    f.frequency.exponentialRampToValueAtTime(60, t + 3);
+    var g = ac.createGain();
+    var peak = 0.12 + intensity * 0.5;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(peak, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(peak * 0.35, t + 0.9);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + rand(2.6, 4.2));
+    s.connect(f);
+    f.connect(g);
+    g.connect(master);
+    s.start(t);
+    s.stop(t + 4.6);
+  }
+
+  /* ---------------- readout ---------------- */
+  var shown = { t: 21.4, w: 6, l: 92 };
+  var target = { t: 21.4, w: 6, l: 92 };
+  var roRaf = 0;
+  function tickReadout() {
+    var done = true;
+    var k;
+    for (k in shown) {
+      var diff = target[k] - shown[k];
+      if (Math.abs(diff) > 0.05) {
+        shown[k] += diff * 0.06;
+        done = false;
+      } else {
+        shown[k] = target[k];
+      }
+    }
+    roTemp.textContent = shown.t.toFixed(1) + '°C';
+    roWind.textContent = WEATHERS[weather].dir + ' ' + Math.round(shown.w) + ' km/h';
+    roLight.textContent = Math.round(shown.l) + '%';
+    if (!done) { roRaf = requestAnimationFrame(tickReadout); }
+  }
+  function setReadoutTargets() {
+    var w = WEATHERS[weather];
+    target.t = w.temp + (weather === 'storm' ? intensity * 2 : 0);
+    target.w = w.wind * (0.5 + intensity);
+    target.l = Math.max(6, w.light * (weather === 'storm' ? (1.1 - intensity * 0.4) : 1));
+    cancelAnimationFrame(roRaf);
+    roRaf = requestAnimationFrame(tickReadout);
+  }
+
+  /* ---------------- scene switching ---------------- */
+  var lineTimer = 0;
+  function setWeather(key) {
+    if (key === weather || !WEATHERS[key]) { return; }
+    weather = key;
+    document.body.dataset.weather = key;
+    ORDER.forEach(function (k) {
+      document.getElementById('scene-' + k).classList.toggle('on', k === key);
+    });
+    mvBtns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.weather === key));
+    });
+    var w = WEATHERS[key];
+    plateMv.textContent = 'Movement ' + w.numeral + ' · ' + w.name;
+    plateTempo.textContent = w.tempo;
+    plateLine.style.opacity = '0';
+    window.clearTimeout(lineTimer);
+    lineTimer = window.setTimeout(function () {
+      plateLine.textContent = w.line;
+      plateLine.style.opacity = '1';
+    }, reduced ? 40 : 500);
+    seed();
+    setReadoutTargets();
+    crossfade();
+    if (key === 'storm') { scheduleStorm(); }
+    else { window.clearTimeout(flashTimer); }
+  }
+
+  /* ---------------- parallax ---------------- */
+  /* ground paths are identified by their d attribute reaching y=700 */
+  function parallax(e) {
+    if (reduced) { return; }
+    var stage = document.querySelector('.stage');
+    var r = stage.getBoundingClientRect();
+    if (e.clientY < r.top || e.clientY > r.bottom) { return; }
+    var nx = (e.clientX / window.innerWidth - 0.5);
+    ORDER.forEach(function (k) {
+      var paths = document.getElementById('scene-' + k).querySelectorAll('path');
+      var ground = [];
+      for (var i = 0; i < paths.length; i++) {
+        if (paths[i].getAttribute('d') && paths[i].getAttribute('d').indexOf('700') > -1) {
+          ground.push(paths[i]);
+        }
+      }
+      for (var g = 0; g < ground.length; g++) {
+        var depth = (g + 1) * 7;
+        ground[g].style.transform = 'translateX(' + (nx * depth).toFixed(1) + 'px)';
+      }
+    });
+  }
+  document.addEventListener('pointermove', parallax, { passive: true });
+
+  /* ---------------- controls ---------------- */
+  mvBtns.forEach(function (b) {
+    b.addEventListener('click', function () { setWeather(b.dataset.weather); });
+  });
+
+  var range = $('intensityRange');
+  range.addEventListener('input', function () {
+    intensity = range.value / 100;
+    intensityVal.textContent = range.value;
+    crossfade();
+    if (weather === 'storm') { scheduleStorm(); }
+    setReadoutTargets();
+  });
+
+  var soundBtn = $('soundBtn');
+  soundBtn.addEventListener('click', function () {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    soundBtn.textContent = soundOn ? 'Sound on' : 'Sound off';
+    if (soundOn) {
+      if (ensureAudio()) {
+        master.gain.cancelScheduledValues(ac.currentTime);
+        master.gain.setTargetAtTime(0.85, ac.currentTime, 0.4);
+        crossfade();
+        dripChain();
+        birdChain();
+        if (weather === 'storm') { scheduleStorm(); }
+      } else {
+        soundOn = false;
+        soundBtn.setAttribute('aria-pressed', 'false');
+        soundBtn.textContent = 'Sound off';
+      }
+    } else if (ac) {
+      master.gain.setTargetAtTime(0.0001, ac.currentTime, 0.3);
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var idx = ORDER.indexOf(weather);
+    if (e.key >= '1' && e.key <= '4') {
+      setWeather(ORDER[Number(e.key) - 1]);
+    } else if (e.key === 'ArrowRight') {
+      setWeather(ORDER[(idx + 1) % ORDER.length]);
+    } else if (e.key === 'ArrowLeft') {
+      setWeather(ORDER[(idx + ORDER.length - 1) % ORDER.length]);
+    }
+  });
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('pagehide', function () {
+    cancelAnimationFrame(rafId);
+    cancelAnimationFrame(roRaf);
+    window.clearTimeout(flashTimer);
+    if (ac) { try { ac.close(); } catch (err) {} }
+  });
+
+  /* ---------------- boot ---------------- */
+  resize();
+  document.getElementById('scene-clear').classList.add('on');
+  setReadoutTargets();
+  lastT = performance.now();
+  rafId = requestAnimationFrame(drawFrame);
+})();
+</script>
+</body>
+</html>

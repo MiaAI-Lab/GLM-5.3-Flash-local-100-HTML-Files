@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIREFLY FIELD — Field Notes from the Clearing</title>
+<style>
+  :root {
+    --night: #0a1f14;
+    --night-deep: #06120b;
+    --glow: #d9f99d;
+    --glow-hot: #fef08a;
+    --moon: #e8eef7;
+    --ink: #cfe0c8;
+    --ink-dim: rgba(207, 224, 200, 0.55);
+    --hair: rgba(207, 224, 200, 0.2);
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "Courier New", monospace;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  ::selection {
+    background: rgba(217, 249, 157, 0.28);
+    color: #f6ffe8;
+  }
+
+  html {
+    scrollbar-color: #1c3a2a var(--night-deep);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--night-deep);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1c3a2a;
+    border-radius: 5px;
+  }
+
+  body {
+    background: var(--night-deep);
+    color: var(--ink);
+    font-family: var(--mono);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #meadow {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(120% 95% at 50% 30%, transparent 55%, rgba(2, 8, 5, 0.62) 100%);
+  }
+
+  /* ---------- field notes card ---------- */
+
+  .notes {
+    position: fixed;
+    left: clamp(12px, 2.6vw, 34px);
+    top: clamp(12px, 2.8vh, 30px);
+    width: min(300px, 82vw);
+    padding: 14px 16px 12px;
+    background: rgba(6, 16, 10, 0.55);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  .notes h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(19px, 2.4vw, 25px);
+    letter-spacing: 0.16em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+
+  .notes .lat {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 3px;
+  }
+
+  .notes .fnotes {
+    margin-top: 10px;
+    font-family: var(--serif);
+    font-size: 12.5px;
+    line-height: 1.62;
+    color: var(--ink-dim);
+  }
+
+  .notes .fnotes em {
+    color: var(--ink);
+  }
+
+  /* ---------- counters + controls ---------- */
+
+  .panel {
+    position: fixed;
+    right: clamp(12px, 2.6vw, 34px);
+    top: clamp(12px, 2.8vh, 30px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    z-index: 6;
+  }
+
+  .count {
+    text-align: right;
+    background: rgba(6, 16, 10, 0.55);
+    border: 1px solid var(--hair);
+    padding: 10px 14px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .count .k {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .count .v {
+    display: block;
+    font-size: clamp(20px, 2.6vw, 28px);
+    color: var(--glow);
+    text-shadow: 0 0 14px rgba(217, 249, 157, 0.4);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .count .v small {
+    font-size: 0.5em;
+    color: var(--ink-dim);
+  }
+
+  .ctrls {
+    display: flex;
+    gap: 7px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(6, 16, 10, 0.55);
+    border: 1px solid var(--hair);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    min-height: 42px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .btn:hover,
+  .btn:focus-visible {
+    outline: none;
+    border-color: rgba(217, 249, 157, 0.55);
+    box-shadow: 0 0 16px rgba(217, 249, 157, 0.12);
+  }
+
+  .btn.on {
+    color: var(--glow);
+    border-color: rgba(217, 249, 157, 0.5);
+  }
+
+  .btn svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ---------- caption bottom ---------- */
+
+  .caption {
+    position: fixed;
+    left: clamp(12px, 2.6vw, 34px);
+    right: clamp(12px, 2.6vw, 34px);
+    bottom: clamp(10px, 2.4vh, 26px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  .caption .advice {
+    max-width: 46ch;
+    font-family: var(--serif);
+    font-size: clamp(12px, 1.6vw, 15px);
+    font-style: italic;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    text-shadow: 0 1px 12px rgba(2, 8, 5, 0.9);
+  }
+
+  .caption .advice b {
+    color: var(--glow);
+    font-weight: 400;
+  }
+
+  .moonlabel {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    text-align: right;
+    line-height: 1.9;
+  }
+
+  /* ---------- jar hint pulse ---------- */
+
+  .jarhint {
+    position: fixed;
+    z-index: 5;
+    pointer-events: none;
+    width: 2px;
+    height: 2px;
+  }
+
+  .noscript-note {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    text-align: center;
+    padding: 2rem;
+    z-index: 10;
+  }
+
+  @media (max-width: 680px) {
+    .notes {
+      width: min(260px, 74vw);
+      padding: 11px 13px 10px;
+    }
+    .notes .fnotes {
+      display: none;
+    }
+    .caption .advice {
+      max-width: 60vw;
+    }
+    .moonlabel {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .count {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="meadow" role="img" aria-label="A summer-night forest clearing with fireflies, a glass catching jar, grass silhouettes and a full moon"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<section class="notes">
+  <h1>Firefly Field</h1>
+  <p class="lat">Lampyris noctiluca · field notes, 22:47</p>
+  <p class="fnotes">Each flash is a <em>cold light</em> — nearly no heat at all. The males blink in species rhythm; the females answer from the grass. Approach slowly, or they go dark and wait you out.</p>
+</section>
+
+<aside class="panel">
+  <div class="count">
+    <span class="k">Fireflies</span>
+    <span class="v"><span id="freeCount">0</span> <small>free · </small><span id="jarCount">0</span> <small>jarred</small></span>
+  </div>
+  <div class="ctrls">
+    <button class="btn" id="cricketsBtn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 9.5v5h4l5 4.5v-14l-5 4.5H4z"></path>
+        <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7"></path>
+      </svg>
+      <span id="cricketsLabel">Crickets off</span>
+    </button>
+    <button class="btn" id="releaseBtn" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3v6"></path>
+        <path d="M8 7l4 4 4-4"></path>
+        <path d="M5 13c2 4 5 6 7 6s5-2 7-6"></path>
+      </svg>
+      <span>Release all</span>
+    </button>
+  </div>
+</aside>
+
+<footer class="caption">
+  <p class="advice">Drag the <b>glass jar</b> from the grass and hold it near a light — they spook at first, so come close <b>slowly</b>. Click to open the lid and let them swirl free.</p>
+  <p class="moonlabel">Waxing gibbous · 92%<br>Wind calm · 16 °C</p>
+</footer>
+
+<noscript>
+  <div class="noscript-note">The meadow needs JavaScript. Without it, the night is simply dark, and somewhere out there the fireflies are flashing for nobody.</div>
+</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const canvas = document.getElementById('meadow');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const freeCountEl = document.getElementById('freeCount');
+  const jarCountEl = document.getElementById('jarCount');
+  const cricketsBtn = document.getElementById('cricketsBtn');
+  const cricketsLabel = document.getElementById('cricketsLabel');
+  const releaseBtn = document.getElementById('releaseBtn');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0;
+  let H = 0;
+  let horizon = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    horizon = H * 0.78;
+    buildTrees();
+    buildGrass();
+    initMist();
+    seedFlies();
+    seedJarred();
+  }
+
+  /* ---------- audio: crickets (user-initiated) ---------- */
+
+  const audio = {
+    ctx: null,
+    master: null,
+    timer: 0,
+    on: false,
+    ensure() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          this.ctx = new AC();
+          this.master = this.ctx.createGain();
+          this.master.gain.value = 0.0;
+          this.master.connect(this.ctx.destination);
+        }
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      return !!this.ctx;
+    },
+    chirp() {
+      if (!this.ctx) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      o.type = 'square';
+      o.frequency.value = 4200 + Math.random() * 700;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      const pulses = 3 + (Math.random() * 3 | 0);
+      let tt = t;
+      for (let i = 0; i < pulses; i++) {
+        g.gain.exponentialRampToValueAtTime(0.028, tt + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0004, tt + 0.028);
+        tt += 0.05;
+      }
+      const f = this.ctx.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = 4400;
+      f.Q.value = 9;
+      o.connect(f);
+      f.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      o.stop(tt + 0.08);
+    },
+    toggle() {
+      if (!this.ensure()) return false;
+      this.on = !this.on;
+      const t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setValueAtTime(this.master.gain.value, t);
+      this.master.gain.linearRampToValueAtTime(this.on ? 1 : 0, t + 0.5);
+      return this.on;
+    }
+  };
+
+  cricketsBtn.addEventListener('click', () => {
+    const on = audio.toggle();
+    cricketsBtn.classList.toggle('on', on);
+    cricketsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    cricketsLabel.textContent = on ? 'Crickets on' : 'Crickets off';
+  });
+
+  /* ---------- pointer ---------- */
+
+  const pointer = { x: 0, y: 0, down: false, drag: false, sx: 0, sy: 0, active: false };
+
+  function setPointer(e) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.active = true;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    setPointer(e);
+    pointer.down = true;
+    pointer.drag = false;
+    pointer.sx = e.clientX;
+    pointer.sy = e.clientY;
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    }
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    setPointer(e);
+    if (pointer.down) {
+      const dx = e.clientX - pointer.sx;
+      const dy = e.clientY - pointer.sy;
+      if (Math.hypot(dx, dy) > 8) pointer.drag = true;
+      if (jar.held) {
+        jar.x = pointer.x;
+        jar.y = pointer.y;
+      }
+    }
+  });
+
+  function upPointer() {
+    if (pointer.down && !pointer.drag) {
+      if (jar.held) {
+        jar.held = false;
+        jar.vx = 0;
+        jar.vy = 0;
+      } else if (jar.caught > 0) {
+        releaseAll();
+      } else if (nearJar(pointer.x, pointer.y)) {
+        jar.held = true;
+      }
+    }
+    pointer.down = false;
+    pointer.drag = false;
+  }
+
+  canvas.addEventListener('pointerup', upPointer);
+  canvas.addEventListener('pointercancel', upPointer);
+  canvas.addEventListener('pointerleave', () => {
+    pointer.active = false;
+    pointer.down = false;
+  });
+
+  function nearJar(x, y) {
+    return Math.abs(x - jar.x) < jar.w * 0.75 && Math.abs(y - jar.y) < jar.h * 0.75;
+  }
+
+  /* ---------- the jar ---------- */
+
+  const jar = {
+    x: 0,
+    y: 0,
+    w: 46,
+    h: 62,
+    vx: 0,
+    vy: 0,
+    held: false,
+    caught: 0,
+    alpha: 0
+  };
+
+  function seedJar() {
+    jar.x = W * 0.78;
+    jar.y = horizon - 34;
+  }
+
+  function insideJar(fx, fy) {
+    return fx > jar.x - jar.w * 0.34 && fx < jar.x + jar.w * 0.34 &&
+      fy > jar.y - jar.h * 0.34 && fy < jar.y + jar.h * 0.3;
+  }
+
+  /* ---------- fireflies ---------- */
+
+  const flies = [];
+  const jarred = [];
+  const MAX_FREE = 64;
+  const MAX_JARRED = 14;
+
+  function seedFlies() {
+    flies.length = 0;
+    const n = Math.min(MAX_FREE, Math.round((W * H) / 16000));
+    for (let i = 0; i < n; i++) {
+      flies.push(makeFly(Math.random() * W, horizon * 0.25 + Math.random() * (horizon - horizon * 0.25)));
+    }
+  }
+
+  function makeFly(x, y) {
+    return {
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 20,
+      vy: (Math.random() - 0.5) * 12,
+      phase: Math.random() * 10,
+      blinkMode: Math.random() * TAU,
+      glow: 0,
+      spook: 0,
+      size: 0.85 + Math.random() * 0.75,
+      wanderT: Math.random() * 20
+    };
+  }
+
+  function seedJarred() {
+    jarred.length = 0;
+    jar.caught = 0;
+  }
+
+  function releaseAll() {
+    while (jarred.length) {
+      const j = jarred.pop();
+      const f = makeFly(jar.x + (Math.random() - 0.5) * 20, jar.y + (Math.random() - 0.5) * 20);
+      f.vx = (Math.random() - 0.5) * 120;
+      f.vy = -60 - Math.random() * 80;
+      f.spook = 1.6;
+      flies.push(f);
+    }
+    jar.caught = 0;
+    jar.alpha = 0;
+  }
+
+  releaseBtn.addEventListener('click', releaseAll);
+
+  /* ---------- firefly behaviour ---------- */
+
+  function blinkCurve(f, t) {
+    const primary = 0.5 + 0.5 * Math.sin(f.blinkMode + Math.sin(t * 0.23 + f.phase) * 2.1 + t * 0.9);
+    const stutter = Math.pow(Math.max(0, Math.sin(t * 2.3 + f.phase * 3.3)), 6);
+    return Math.min(1, primary * 0.75 + stutter * 0.7);
+  }
+
+  function updateFlies(dt, t) {
+    for (let i = flies.length - 1; i >= 0; i--) {
+      const f = flies[i];
+      f.wanderT += dt;
+      f.phase += dt * (0.7 + f.size * 0.4);
+
+      let ax = Math.sin(f.wanderT * 0.6 + f.blinkMode) * 26 + Math.cos(f.wanderT * 0.31 + f.phase) * 14;
+      let ay = Math.sin(f.wanderT * 0.43 + f.phase * 2) * 16 - 4;
+
+      /* moon pull, very faint */
+      const mdx = W * 0.82 - f.x;
+      const mdy = H * 0.12 - f.y;
+      const md = Math.hypot(mdx, mdy) || 1;
+      ax += mdx / md * 2.5;
+      ay += mdy / md * 1.6;
+
+      /* pointer + jar approach: fear then curiosity */
+      if (pointer.active && !jar.held) {
+        const dx = pointer.x - f.x;
+        const dy = pointer.y - f.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d < 130) {
+          f.spook = Math.max(f.spook, 1 - d / 130);
+        }
+      }
+
+      const jdx = jar.x - f.x;
+      const jdy = jar.y - f.y;
+      const jd = Math.hypot(jdx, jdy) || 1;
+      const approach = jar.held ? Math.max(0, 1 - jd / 190) : 0;
+      if (jd < 95 && !jar.held) {
+        f.spook = Math.max(f.spook, 1 - jd / 95);
+      }
+
+      if (f.spook > 0.05) {
+        ax -= jdx / jd * 220 * f.spook + (pointer.active ? (f.x - pointer.x) / jd * 60 * f.spook : 0);
+        ay -= jdy / jd * 200 * f.spook;
+        f.spook = Math.max(0, f.spook - dt * 0.55);
+      } else if (approach > 0.25) {
+        ax += jdx / jd * 64 * approach;
+        ay += jdy / jd * 64 * approach;
+      }
+
+      f.vx += ax * dt;
+      f.vy += ay * dt;
+
+      const drag = Math.exp(-1.35 * dt);
+      f.vx *= drag;
+      f.vy *= drag;
+      const sp = Math.hypot(f.vx, f.vy);
+      const cap = f.spook > 0.3 ? 240 : 90;
+      if (sp > cap) {
+        f.vx = f.vx / sp * cap;
+        f.vy = f.vy / sp * cap;
+      }
+
+      f.x += f.vx * dt;
+      f.y += f.vy * dt;
+
+      if (f.x < -20) f.x = W + 18;
+      if (f.x > W + 20) f.x = -18;
+      if (f.y < H * 0.06) { f.y = H * 0.06; f.vy = Math.abs(f.vy) * 0.4; }
+      if (f.y > horizon - 4) { f.y = horizon - 4; f.vy = -Math.abs(f.vy) * 0.5; }
+
+      f.glow = blinkCurve(f, t) * (1 - f.spook * 0.85);
+
+      if (jar.held && f.glow > 0.12 && insideJar(f.x, f.y) && jarred.length < MAX_JARRED) {
+        jarred.push(f);
+        flies.splice(i, 1);
+        jar.caught = jarred.length;
+      }
+    }
+  }
+
+  function drawFlyGlow(f, t) {
+    const g = f.glow;
+    if (g < 0.02) {
+      ctx.fillStyle = 'rgba(40, 60, 44, 0.5)';
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, 1.1 * f.size, 0, TAU);
+      ctx.fill();
+      return;
+    }
+    const R = 9 * f.size * (0.6 + g * 0.9);
+    const gr = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, R);
+    const hot = g > 0.72;
+    gr.addColorStop(0, hot ? 'rgba(254, 240, 138, ' + (0.85 * g).toFixed(3) + ')' : 'rgba(217, 249, 157, ' + (0.7 * g).toFixed(3) + ')');
+    gr.addColorStop(0.4, 'rgba(190, 235, 140, ' + (0.24 * g).toFixed(3) + ')');
+    gr.addColorStop(1, 'rgba(190, 235, 140, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gr;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, R, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255, 252, 220, ' + (0.5 + 0.5 * g).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 1.3 * f.size, 0, TAU);
+    ctx.fill();
+  }
+
+  function drawJarred() {
+    for (let i = 0; i < jarred.length; i++) {
+      const f = jarred[i];
+      const px = jar.x - jar.w * 0.22 + (i % 5) * jar.w * 0.11 + Math.sin(tGlobal * 1.4 + i * 2.1) * 2.4;
+      const py = jar.y + jar.h * 0.02 - Math.floor(i / 5) * 14 + Math.cos(tGlobal * 1.1 + i * 1.7) * 2.2;
+      const g = 0.35 + 0.35 * blinkCurve(f, tGlobal);
+      const gr = ctx.createRadialGradient(px, py, 0, px, py, 8);
+      gr.addColorStop(0, 'rgba(217, 249, 157, ' + (0.5 * g).toFixed(3) + ')');
+      gr.addColorStop(1, 'rgba(217, 249, 157, 0)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+      ctx.fillStyle = 'rgba(255, 252, 220, ' + g.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(px, py, 1.1, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  /* ---------- jar drawing ---------- */
+
+  function drawJar(t) {
+    if (jar.held) jar.alpha = Math.min(1, jar.alpha + 0.08);
+    else if (!jar.held && !jar.caught) jar.alpha = Math.max(0, jar.alpha - 0.02);
+    else jar.alpha = Math.max(0.65, jar.alpha);
+
+    const x = jar.x;
+    const y = jar.y;
+    const w = jar.w;
+    const h = jar.h;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    /* glass body */
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.34, -h * 0.34);
+    ctx.lineTo(-w * 0.3, h * 0.3);
+    ctx.quadraticCurveTo(0, h * 0.38, w * 0.3, h * 0.3);
+    ctx.lineTo(w * 0.34, -h * 0.34);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(210, 235, 220, 0.09)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(220, 245, 230, 0.5)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    /* left highlight */
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.24, -h * 0.22);
+    ctx.lineTo(-w * 0.21, h * 0.18);
+    ctx.stroke();
+
+    /* neck + lid */
+    ctx.strokeStyle = 'rgba(220, 245, 230, 0.6)';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(-w * 0.24, -h * 0.46, w * 0.48, h * 0.12);
+    if (jar.held) {
+      ctx.fillStyle = 'rgba(220, 245, 230, 0.12)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.ellipse(0, -h * 0.48, w * 0.3, 4.5, 0, Math.PI, 0);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = 'rgba(190, 205, 195, 0.35)';
+      ctx.strokeStyle = 'rgba(220, 245, 230, 0.75)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.ellipse(0, -h * 0.46, w * 0.26, 5, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  /* ---------- trees, grass, mist, moon ---------- */
+
+  let trees = [];
+  let grass = [];
+  let mist = [];
+
+  function buildTrees() {
+    trees = [];
+    const n = Math.round(W / 90) + 4;
+    for (let i = 0; i < n; i++) {
+      const x = (i + Math.random() * 0.7) * (W / n);
+      const h = H * (0.18 + Math.random() * 0.3);
+      trees.push({
+        x: x,
+        y: horizon + 6,
+        h: h,
+        w: h * (0.34 + Math.random() * 0.22),
+        lean: (Math.random() - 0.5) * 0.3
+      });
+    }
+  }
+
+  function drawTrees() {
+    ctx.fillStyle = '#04120b';
+    trees.forEach((tr) => {
+      ctx.beginPath();
+      ctx.moveTo(tr.x - tr.w * 0.5, tr.y);
+      ctx.quadraticCurveTo(tr.x - tr.w * 0.32 + tr.lean * tr.w, tr.y - tr.h * 0.55, tr.x + tr.lean * tr.w * 0.6, tr.y - tr.h);
+      ctx.quadraticCurveTo(tr.x + tr.w * 0.36 + tr.lean * tr.w, tr.y - tr.h * 0.5, tr.x + tr.w * 0.55, tr.y);
+      ctx.closePath();
+      ctx.fill();
+    });
+  }
+
+  function buildGrass() {
+    grass = [];
+    const n = Math.round(W / 7) + 40;
+    for (let i = 0; i < n; i++) {
+      const depth = Math.random();
+      grass.push({
+        x: Math.random() * W,
+        h: (12 + Math.random() * 30) * (0.55 + depth * 0.7),
+        lean: (Math.random() - 0.5) * 16,
+        ph: Math.random() * TAU,
+        depth: depth
+      });
+    }
+    grass.sort((a, b) => a.depth - b.depth);
+  }
+
+  function drawGrass(t) {
+    const swy = reduceMotion ? 0 : 1;
+    for (let i = 0; i < grass.length; i++) {
+      const g = grass[i];
+      const sway = Math.sin(t * 0.9 + g.ph) * 4 * swy + Math.sin(t * 0.23 + g.ph * 2) * 3 * swy;
+      const baseY = horizon + 10 + g.depth * (H - horizon) * 0.9;
+      ctx.strokeStyle = 'rgba(6, 22, 13, ' + (0.7 + g.depth * 0.3).toFixed(2) + ')';
+      ctx.lineWidth = 1 + g.depth * 1.4;
+      ctx.beginPath();
+      ctx.moveTo(g.x, baseY);
+      ctx.quadraticCurveTo(g.x + g.lean * 0.4 + sway * 0.4, baseY - g.h * 0.6, g.x + g.lean + sway, baseY - g.h);
+      ctx.stroke();
+    }
+  }
+
+  function initMist() {
+    mist = [];
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      mist.push({
+        x: Math.random() * W,
+        y: horizon - 40 - Math.random() * (H - horizon) * 0.4,
+        w: W * (0.2 + Math.random() * 0.35),
+        h: 24 + Math.random() * 46,
+        v: 4 + Math.random() * 8,
+        a: 0.03 + Math.random() * 0.05
+      });
+    }
+  }
+
+  function drawMist(dt) {
+    ctx.save();
+    for (let i = 0; i < mist.length; i++) {
+      const m = mist[i];
+      if (!reduceMotion) {
+        m.x += m.v * dt;
+        if (m.x - m.w * 0.5 > W) m.x = -m.w * 0.5;
+      }
+      const gr = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.w * 0.5);
+      gr.addColorStop(0, 'rgba(220, 235, 225, ' + m.a + ')');
+      gr.addColorStop(1, 'rgba(220, 235, 225, 0)');
+      ctx.fillStyle = gr;
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.scale(1, m.h / (m.w * 0.5));
+      ctx.beginPath();
+      ctx.arc(0, 0, m.w * 0.5, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawSky(t) {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#050f0a');
+    g.addColorStop(0.42, '#0a1f14');
+    g.addColorStop(0.75, '#0d2917');
+    g.addColorStop(1, '#040a07');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    /* stars */
+    const n = 60;
+    for (let i = 0; i < n; i++) {
+      const sx = ((i * 173) % W);
+      const sy = ((i * 97) % (H * 0.5));
+      const tw = reduceMotion ? 0.4 : 0.25 + 0.35 * Math.sin(t * (0.5 + (i % 5) * 0.13) + i);
+      ctx.fillStyle = 'rgba(226, 238, 247, ' + (tw * 0.5).toFixed(3) + ')';
+      ctx.fillRect(sx, sy, 1.2, 1.2);
+    }
+
+    /* moon */
+    const mx = W * 0.82;
+    const my = H * 0.12;
+    const mr = Math.min(W, H) * 0.052;
+    const halo = ctx.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 4);
+    halo.addColorStop(0, 'rgba(232, 238, 247, 0.22)');
+    halo.addColorStop(1, 'rgba(232, 238, 247, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(mx, my, mr * 4, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+    const mg = ctx.createRadialGradient(mx - mr * 0.3, my - mr * 0.3, mr * 0.15, mx, my, mr);
+    mg.addColorStop(0, '#f8fbff');
+    mg.addColorStop(1, '#cfd9e6');
+    ctx.fillStyle = mg;
+    ctx.beginPath();
+    ctx.arc(mx, my, mr, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(148, 160, 176, 0.5)';
+    ctx.beginPath();
+    ctx.arc(mx - mr * 0.32, my - mr * 0.1, mr * 0.16, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(mx + mr * 0.25, my + mr * 0.3, mr * 0.1, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(mx + mr * 0.05, my - mr * 0.42, mr * 0.08, 0, TAU);
+    ctx.fill();
+  }
+
+  /* ---------- counters ---------- */
+
+  function updateCounts() {
+    freeCountEl.textContent = String(flies.length);
+    jarCountEl.textContent = String(jarred.length);
+  }
+
+  /* ---------- cricket scheduler ---------- */
+
+  let cricketT = 0;
+
+  function tickCrickets(dt) {
+    if (!audio.on) return;
+    cricketT -= dt;
+    if (cricketT <= 0) {
+      audio.chirp();
+      cricketT = 0.5 + Math.random() * 1.4;
+    }
+  }
+
+  /* ---------- main loop ---------- */
+
+  let tGlobal = 0;
+  let last = performance.now();
+  let rafId = 0;
+
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.1) dt = 0.1;
+    if (dt < 0) dt = 0;
+    tGlobal += dt;
+
+    drawSky(tGlobal);
+    drawMist(dt);
+    drawTrees();
+    drawGrass(tGlobal);
+    updateFlies(dt, tGlobal);
+
+    for (let i = 0; i < flies.length; i++) {
+      drawFlyGlow(flies[i], tGlobal);
+    }
+
+    drawJar(tGlobal);
+    drawJarred();
+    updateCounts();
+    tickCrickets(dt);
+  }
+
+  window.addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) last = performance.now();
+  });
+  window.addEventListener('pagehide', () => cancelAnimationFrame(rafId));
+
+  resize();
+  seedJar();
+  rafId = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

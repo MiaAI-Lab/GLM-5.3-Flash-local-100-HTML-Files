@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASHES &amp; EMBER · №099 — A Phoenix in Particles · The Gallery of 100</title>
+<style>
+:root{
+  --void:    #0a0503;
+  --void-2:  #140806;
+  --ember-1: #ff6b35;
+  --ember-2: #ffd166;
+  --ember-3: #e63946;
+  --gold:    #f3d9a4;
+  --smoke:   #3d2b28;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--serif);
+  background:
+    radial-gradient(900px 560px at 50% 78%, #1c0c06, transparent 65%),
+    var(--void);
+  color:var(--gold);
+  min-height:100vh;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--ember-1); color:#140806; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed var(--ember-2); outline-offset:4px; }
+
+#fire{
+  position:fixed; inset:0; display:block;
+  touch-action:none;
+  cursor:pointer;
+}
+body.charging #fire{ cursor:grabbing; }
+
+/* ---------- tiny caps title ---------- */
+.title{
+  position:fixed; top:clamp(12px,2.6vh,26px); left:50%;
+  transform:translateX(-50%);
+  z-index:5;
+  text-align:center;
+  pointer-events:none;
+}
+.title .caps{
+  font-family:var(--mono);
+  font-size:clamp(.56rem,1.5vw,.68rem);
+  letter-spacing:.6em; text-transform:uppercase;
+  color:rgba(243,217,164,.75);
+  text-shadow:0 0 12px rgba(255,107,53,.35);
+}
+.title .caps b{ color:var(--ember-2); font-weight:400; }
+
+/* ---------- haiku ---------- */
+.haiku{
+  position:fixed; left:clamp(14px,3.5vw,44px); bottom:clamp(16px,4vh,40px);
+  z-index:5;
+  max-width:min(330px, 74vw);
+  pointer-events:none;
+}
+.haiku p{
+  font-style:italic;
+  font-size:clamp(.95rem, 2vw, 1.18rem);
+  line-height:1.9;
+  color:rgba(243,217,164,.85);
+  text-shadow:0 1px 10px rgba(0,0,0,.8);
+}
+.haiku .grain{ color:rgba(243,217,164,.4); font-size:.78em; letter-spacing:.2em; }
+
+/* ---------- counter + telemetry ---------- */
+.ledger{
+  position:fixed; right:clamp(14px,3.5vw,44px); bottom:clamp(16px,4vh,40px);
+  z-index:5;
+  text-align:right;
+  font-family:var(--mono);
+  font-size:.6rem; letter-spacing:.22em; line-height:2.1;
+  color:rgba(243,217,164,.55);
+  font-variant-numeric:tabular-nums;
+  pointer-events:none;
+}
+.ledger b{ color:var(--ember-2); font-weight:400; }
+.ledger .big{
+  display:block;
+  font-size:1.5rem; letter-spacing:.12em;
+  color:var(--gold);
+  line-height:1.2;
+  margin-bottom:4px;
+  text-shadow:0 0 18px rgba(255,107,53,.3);
+}
+
+/* ---------- hint ---------- */
+.hint{
+  position:fixed; top:clamp(12px,2.6vh,26px); right:clamp(14px,3.5vw,44px);
+  z-index:5;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.28em; text-transform:uppercase;
+  color:rgba(243,217,164,.5);
+  text-align:right; line-height:2.2;
+  pointer-events:none;
+}
+.hint em{ font-style:normal; color:var(--ember-2); border-bottom:1px solid rgba(255,209,102,.4); padding-bottom:1px; }
+
+/* ---------- rebirth flash line ---------- */
+.rebirth-line{
+  position:fixed; left:50%; top:38%;
+  transform:translate(-50%,-50%) scale(.94);
+  z-index:6;
+  font-style:italic;
+  font-size:clamp(1.2rem, 3.4vw, 2rem);
+  color:var(--ember-2);
+  text-shadow:0 0 26px rgba(255,107,53,.6), 0 2px 14px rgba(0,0,0,.8);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .8s ease, transform 1.6s cubic-bezier(.2,.7,.2,1);
+  text-align:center;
+  max-width:80vw;
+}
+.rebirth-line.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+
+/* heat shimmer at the edges when charging */
+body.charging .title .caps{ color:rgba(255,209,102,.95); }
+
+@media (max-width:640px){
+  .hint{ display:none; }
+  .haiku{ max-width:64vw; }
+  .ledger{ font-size:.54rem; }
+}
+@media (prefers-reduced-motion: reduce){
+  .rebirth-line{ transition:opacity .5s ease; transform:translate(-50%,-50%); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="fire" role="img" aria-label="A phoenix of embers — click to scatter, hold to feed the fire"></canvas>
+
+<div class="title" aria-hidden="true">
+  <span class="caps">ASHES <b>&amp;</b> EMBER — A REBIRTH IN PARTICLES</span>
+</div>
+
+<div class="hint" aria-hidden="true">
+  <div><em>CLICK</em> SCATTER THE BIRD</div>
+  <div><em>HOLD</em> FEED THE FIRE</div>
+  <div>THE EMBERS REMEMBER</div>
+</div>
+
+<figure class="haiku">
+  <p id="haikuText">from the ash, a wish —<br>wings of borrowed sunlight<br>learn the wind again</p>
+  <span class="grain">— Haiku of the Ninth Rebirth</span>
+</figure>
+
+<div class="ledger" aria-hidden="false">
+  <span class="big" id="rebirthBig">0</span>
+  REBIRTHS<br>
+  EMBERS <b id="emberCount">0</b> · HEAT <b id="heatRead">32%</b><br>
+  CYCLE <b id="phaseRead">ROOSTING</b> · №099 OF 100
+</div>
+
+<div class="rebirth-line" id="rebirthLine" aria-hidden="true"></div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var TAU = Math.PI * 2;
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var cv = document.getElementById("fire");
+var ctx = cv.getContext("2d");
+var els = {
+  rebirthBig: document.getElementById("rebirthBig"),
+  emberCount: document.getElementById("emberCount"),
+  heatRead: document.getElementById("heatRead"),
+  phaseRead: document.getElementById("phaseRead"),
+  rebirthLine: document.getElementById("rebirthLine"),
+  haiku: document.getElementById("haikuText")
+};
+
+/* ================= phoenix silhouette ================= */
+/* target points sampled from a stylized rising bird: body, two wings, tail */
+function birdTargets(cx, cy, s, spread){
+  var pts = [];
+  var i;
+  /* body: teardrop */
+  for (i = 0; i < 120; i++){
+    var t = i / 120;
+    var yy = lerp(-0.62, 0.5, t);                 /* -0.62 head .. 0.5 lower body */
+    var half = 0.16 * Math.sin(Math.PI * clamp((t + 0.08) / 1.16, 0.02, 0.98)) + 0.02;
+    var side = (i % 2 === 0) ? 1 : -1;
+    pts.push({ x: cx + side * half * s, y: cy + yy * s });
+  }
+  /* head + beak */
+  for (i = 0; i < 22; i++){
+    var a = -Math.PI / 2 + (i / 22 - 0.5) * 1.9;
+    pts.push({ x: cx + Math.cos(a) * 0.13 * s, y: cy - 0.66 * s + Math.sin(a) * 0.13 * s * 0.8 });
+  }
+  /* two swept wings: layered arcs of feather clusters */
+  for (i = 0; i < 300; i++){
+    var side = (i % 2 === 0) ? 1 : -1;
+    var f = (i % 2 === 0) ? (i / 2) / 150 : ((i - 1) / 2) / 150;   /* 0..1 along wing */
+    var arch = Math.sin(f * Math.PI * 0.9);
+    var wx = side * (0.18 + f * (0.85 + spread * 0.22)) * s;
+    var wy = -0.34 * s - arch * (0.42 + spread * 0.1) * s + f * f * 0.3 * s;
+    /* feather serration */
+    var fluff = Math.sin(f * 34) * 0.028 * s;
+    pts.push({
+      x: cx + wx + fluff * side,
+      y: cy + wy + Math.abs(fluff)
+    });
+  }
+  /* long forked tail */
+  for (i = 0; i < 110; i++){
+    var t2 = i / 110;
+    var side2 = (i % 2 === 0) ? 1 : -1;
+    var tw = 0.10 * (1 - t2) * s;
+    pts.push({
+      x: cx + side2 * tw + side2 * t2 * 0.16 * s,
+      y: cy + 0.5 * s + t2 * (0.75 + spread * 0.12) * s
+    });
+  }
+  /* trailing flame curls off the wings */
+  for (i = 0; i < 60; i++){
+    var side3 = (i % 2 === 0) ? 1 : -1;
+    var f3 = (i % 2 === 0) ? (i / 2) / 30 : ((i - 1) / 2) / 30;
+    pts.push({
+      x: cx + side3 * (0.3 + f3 * 0.5) * s,
+      y: cy - 0.1 * s - Math.sin(f3 * 5) * 0.1 * s + f3 * 0.42 * s
+    });
+  }
+  return pts;
+}
+
+/* ================= particles ================= */
+var embers = [];
+var sparks = [];
+var smoke = [];
+var MAX_EMBERS = 2400;
+var MAX_SPARKS = 500;
+var MAX_SMOKE = 90;
+
+var W = 0, H = 0, DPR = 1;
+var cx = 0, cy = 0, birdS = 0;
+var heat = 0.32;            /* 0..1, rises while holding */
+var charging = false;
+var rebirths = 0;
+var phase = "roosting";     /* roosting | scattered | gathering */
+var gatherT = 0;
+var raf = 0, running = true, lastT = 0, frame = 0;
+var haikus = [
+  "from the ash, a wish —<br>wings of borrowed sunlight<br>learn the wind again",
+  "what the fire keeps<br>it keeps in the shape of flight —<br>hold the ember close",
+  "nine times burned to bone,<br>nine times the morning finds her<br>wearing the same gold",
+  "the ash remembers<br>every wingbeat it has been;<br>so the fire is kind"
+];
+
+function homePoint(p){
+  return p.targets[(p.ti + Math.floor(p.tj)) % p.targets.length];
+}
+
+function buildFlock(){
+  var targets = birdTargets(cx, cy, birdS, 0.5);
+  embers = [];
+  var n = Math.min(MAX_EMBERS, Math.round(Math.min(1600, W * H / 900) + 320));
+  for (var i = 0; i < n; i++){
+    embers.push(makeEmber(i, targets, true));
+  }
+  els.emberCount.textContent = String(embers.length);
+}
+function makeEmber(i, targets, near){
+  var hp = targets[i % targets.length];
+  var jx = (Math.random() - 0.5) * birdS * 0.05;
+  var jy = (Math.random() - 0.5) * birdS * 0.05;
+  return {
+    hx: hp.x + jx, hy: hp.y + jy,
+    targets: targets,
+    ti: (i * 7) % targets.length,
+    tj: Math.floor(Math.random() * 3),
+    x: near ? hp.x + jx : hp.x + (Math.random() - 0.5) * W * 0.9,
+    y: near ? hp.y + jy : hp.y + (Math.random() - 0.5) * H * 0.9,
+    vx: 0, vy: 0,
+    r: 0.7 + Math.random() * 1.7,
+    heatIdx: Math.random(),
+    flick: Math.random() * TAU,
+    rise: 0.15 + Math.random() * 0.5,
+    drift: (Math.random() - 0.5) * 0.4
+  };
+}
+function scatter(bx, by){
+  phase = "scattered";
+  gatherT = 0;
+  for (var i = 0; i < embers.length; i++){
+    var p = embers[i];
+    var dx = p.x - bx, dy = p.y - by;
+    var d = Math.sqrt(dx * dx + dy * dy) + 6;
+    var power = clamp(520 / d, 4, 26) * (0.6 + Math.random() * 0.8);
+    p.vx += (dx / d) * power;
+    p.vy += (dy / d) * power - 1.2;
+  }
+  /* spark spray */
+  for (var s = 0; s < 150; s++){
+    if (sparks.length >= MAX_SPARKS) break;
+    var a = Math.random() * TAU;
+    var sp = 2 + Math.random() * 7;
+    sparks.push({
+      x: bx + Math.cos(a) * 8, y: by + Math.sin(a) * 8,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+      life: 1, decay: 0.012 + Math.random() * 0.02,
+      r: 0.8 + Math.random() * 1.8,
+      col: Math.random() < 0.5 ? "255,107,53" : "255,209,102"
+    });
+  }
+  /* smoke */
+  for (var k = 0; k < 14; k++){
+    if (smoke.length >= MAX_SMOKE) break;
+    smoke.push({
+      x: bx + (Math.random() - 0.5) * 60,
+      y: by + (Math.random() - 0.5) * 40,
+      r: 14 + Math.random() * 26,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: -0.4 - Math.random() * 0.7,
+      life: 1,
+      decay: 0.004 + Math.random() * 0.004
+    });
+  }
+}
+
+/* ================= input ================= */
+var holdTimer = 0;
+cv.addEventListener("pointerdown", function(e){
+  ensureAudio();
+  if (AC && AC.state === "suspended") AC.resume();
+  charging = true;
+  document.body.classList.add("charging");
+  holdTimer = 0;
+  try { cv.setPointerCapture(e.pointerId); } catch(err){}
+  if (phase !== "scattered"){
+    scatter(e.clientX, e.clientY);
+    whoosh(0.5);
+  }
+});
+cv.addEventListener("pointermove", function(e){
+  if (!charging) return;
+  /* drag feeds heat and stirs sparks */
+  heat = clamp(heat + 0.004, 0, 1);
+});
+var releaseFire = function(){
+  if (!charging) return;
+  charging = false;
+  document.body.classList.remove("charging");
+};
+cv.addEventListener("pointerup", releaseFire);
+cv.addEventListener("pointercancel", releaseFire);
+
+window.addEventListener("keydown", function(e){
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code === "Space"){
+    e.preventDefault();
+    if (phase !== "scattered"){
+      scatter(W / 2, cy);
+      whoosh(0.5);
+    } else {
+      beginGather();
+    }
+  }
+});
+
+/* ================= rebirth ================= */
+function beginGather(){
+  if (phase !== "scattered") return;
+  phase = "gathering";
+  gatherT = 0;
+  rebirths++;
+  els.rebirthBig.textContent = String(rebirths);
+  var line = ["IT REMEMBERS THE SHAPE OF WINGS", "ASH, BUT LISTENING", "THE FIRE KEEPS ITS PROMISE", "BORN. BURNED. BORN AGAIN."][rebirths % 4];
+  els.rebirthLine.textContent = line;
+  els.rebirthLine.classList.add("show");
+  setTimeout(function(){ els.rebirthLine.classList.remove("show"); }, 2600);
+  els.haiku.innerHTML = haikus[rebirths % haikus.length];
+  chime();
+}
+
+/* ================= audio ================= */
+var AC = null, fireGain = null, fireSrc = null, fireLP = null;
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  /* fire bed: crackly noise */
+  var len = AC.sampleRate * 2.5;
+  var buf = AC.createBuffer(1, len, AC.sampleRate);
+  var d = buf.getChannelData(0);
+  var last = 0;
+  for (var i = 0; i < len; i++){
+    var w = Math.random() * 2 - 1;
+    last = (last + 0.05 * w) / 1.05;
+    d[i] = last * 2.6;
+  }
+  fireSrc = AC.createBufferSource();
+  fireSrc.buffer = buf; fireSrc.loop = true;
+  fireLP = AC.createBiquadFilter();
+  fireLP.type = "lowpass";
+  fireLP.frequency.value = 900;
+  fireGain = AC.createGain();
+  fireGain.gain.value = 0.0001;
+  fireSrc.connect(fireLP); fireLP.connect(fireGain); fireGain.connect(AC.destination);
+  fireSrc.start();
+  return true;
+}
+function whoosh(vol){
+  if (!AC) return;
+  var t = AC.currentTime;
+  var o = AC.createOscillator();
+  o.type = "sine";
+  o.frequency.setValueAtTime(320, t);
+  o.frequency.exponentialRampToValueAtTime(64, t + 0.6);
+  var g = AC.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.08);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t); o.stop(t + 0.75);
+}
+function chime(){
+  if (!AC) return;
+  var t = AC.currentTime;
+  [523.25, 659.25, 830.6, 1046.5].forEach(function(f, i){
+    var o = AC.createOscillator();
+    o.type = "sine";
+    o.frequency.value = f;
+    var g = AC.createGain();
+    var st = t + i * 0.13;
+    g.gain.setValueAtTime(0.0001, st);
+    g.gain.linearRampToValueAtTime(0.12, st + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, st + 1.4);
+    o.connect(g); g.connect(AC.destination);
+    o.start(st); o.stop(st + 1.5);
+  });
+}
+
+/* ================= simulation ================= */
+function step(dt){
+  frame++;
+  /* heat dynamics */
+  if (charging){
+    holdTimer += dt;
+    heat = clamp(heat + dt * 0.22, 0, 1);
+    /* ember birth while charging */
+    if (embers.length < Math.min(MAX_EMBERS, 1200 + heat * 1200) && Math.random() < 0.5){
+      var targets = embers.length ? embers[0].targets : birdTargets(cx, cy, birdS, 0.5);
+      embers.push(makeEmber(Math.floor(Math.random() * 1000), targets, true));
+      els.emberCount.textContent = String(embers.length);
+    }
+  } else {
+    heat = clamp(heat - dt * 0.05, 0.18, 1);
+  }
+
+  /* fire audio follows heat */
+  if (AC && fireGain){
+    var g = phase === "roosting" ? 0.05 + heat * 0.09 : 0.03 + heat * 0.05;
+    fireGain.gain.setTargetAtTime(g, AC.currentTime, 0.4);
+    fireLP.frequency.setTargetAtTime(600 + heat * 1400, AC.currentTime, 0.4);
+  }
+
+  var rising = 1 + heat * 2.1;
+  var drag = Math.pow(0.86, dt * 60);
+  var k = (reduced.matches ? 0.012 : 0.028) * (1 + heat * 0.5);
+
+  for (var i = 0; i < embers.length; i++){
+    var p = embers[i];
+    if (phase === "roosting"){
+      /* orbit + flicker around home; embers constantly rise and reattach */
+      p.flick += dt * (2.2 + p.heatIdx * 2);
+      p.vy -= (p.rise * rising * 0.06) * dt * 60 * 0.01;
+      p.vy += Math.sin(p.flick) * 0.02 * dt * 60;
+      p.vx += (Math.sin(p.flick * 0.7) * 0.018 + p.drift * 0.004) * dt * 60;
+      p.x += p.vx * dt * 60 * 0.12;
+      p.y += p.vy * dt * 60 * 0.12;
+      p.vx *= drag; p.vy *= drag;
+      /* spring home */
+      p.x += (p.hx - p.x) * k * dt * 60 * 0.55;
+      p.y += (p.hy - p.y) * k * dt * 60 * 0.55;
+      /* if drifted far, recycle to a home point (keeps flame alive) */
+      var ddx = p.x - p.hx, ddy = p.y - p.hy;
+      if (ddx * ddx + ddy * ddy > birdS * birdS * 0.5){
+        var hp2 = homePoint(p);
+        p.x = hp2.x + (Math.random() - 0.5) * 6;
+        p.y = hp2.y + Math.random() * 8;
+        p.vx = 0; p.vy = 0;
+      }
+    } else if (phase === "scattered"){
+      p.vy += 0.05 * dt * 60;                 /* gravity */
+      p.vx *= Math.pow(0.955, dt * 60);
+      p.vy *= Math.pow(0.975, dt * 60);
+      p.vy -= p.rise * 0.02 * dt * 60 * rising;  /* embers still float */
+      p.x += p.vx * dt * 60;
+      p.y += p.vy * dt * 60;
+      if (p.y > H + 30 || p.x < -60 || p.x > W + 60){
+        var hp3 = homePoint(p);
+        p.x = Math.random() * W;
+        p.y = H + 10 + Math.random() * 40;
+        p.vx = 0; p.vy = -1 - Math.random() * 2;
+      }
+      /* gentle pull back toward form after a pause */
+      p.vx += (p.hx - p.x) * 0.00016 * dt * 60;
+      p.vy += (p.hy - p.y) * 0.00016 * dt * 60;
+    } else { /* gathering */
+      gatherT += dt;
+      var pull = clamp(gatherT * 0.5, 0.05, 1);
+      p.vx += (p.hx - p.x) * 0.055 * pull * dt * 60;
+      p.vy += (p.hy - p.y) * 0.055 * pull * dt * 60;
+      p.vx *= Math.pow(0.9, dt * 60);
+      p.vy *= Math.pow(0.9, dt * 60);
+      p.x += p.vx * dt * 60 * 0.2;
+      p.y += p.vy * dt * 60 * 0.2;
+      if (gatherT > 2.6 && i === 0){
+        phase = "roosting";
+        els.phaseRead.textContent = "ROOSTING";
+      }
+    }
+  }
+
+  /* sparks */
+  for (var s = sparks.length - 1; s >= 0; s--){
+    var sp2 = sparks[s];
+    sp2.vy += 0.06 * dt * 60;
+    sp2.vx *= Math.pow(0.96, dt * 60);
+    sp2.x += sp2.vx * dt * 60;
+    sp2.y += sp2.vy * dt * 60;
+    sp2.life -= sp2.decay * dt * 60;
+    if (sp2.life <= 0) sparks.splice(s, 1);
+  }
+
+  /* smoke */
+  for (var m = smoke.length - 1; m >= 0; m--){
+    var sm = smoke[m];
+    sm.x += sm.vx * dt * 60;
+    sm.y += sm.vy * dt * 60;
+    sm.r += dt * 12;
+    sm.life -= sm.decay * dt * 60;
+    if (sm.life <= 0) smoke.splice(m, 1);
+  }
+
+  /* phase transitions */
+  if (phase === "scattered"){
+    /* after the embers settle a while, the rebirth stirs on its own */
+    if (!charging){
+      gatherT += dt;
+      if (gatherT > 4.2) beginGather();
+    }
+  }
+  els.heatRead.textContent = Math.round(heat * 100) + "%";
+  els.phaseRead.textContent = phase === "roosting" ? "ROOSTING" : phase === "scattered" ? "ASHFALL" : "REBIRTH";
+}
+
+/* ================= render ================= */
+function render(){
+  ctx.clearRect(0, 0, W, H);
+  /* void gradient + floor glow */
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#0a0503");
+  bg.addColorStop(0.7, "#0d0605");
+  bg.addColorStop(1, "#160806");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  var pool = ctx.createRadialGradient(cx, H * 0.94, 4, cx, H * 0.94, W * 0.5);
+  var poolA = 0.10 + heat * 0.22;
+  pool.addColorStop(0, "rgba(255,107,53," + poolA.toFixed(3) + ")");
+  pool.addColorStop(1, "rgba(255,107,53,0)");
+  ctx.fillStyle = pool;
+  ctx.fillRect(0, H * 0.5, W, H * 0.5);
+
+  /* smoke under embers */
+  for (var m = 0; m < smoke.length; m++){
+    var sm = smoke[m];
+    var sg = ctx.createRadialGradient(sm.x, sm.y, 1, sm.x, sm.y, sm.r);
+    sg.addColorStop(0, "rgba(61,43,40," + (sm.life * 0.16).toFixed(3) + ")");
+    sg.addColorStop(1, "rgba(61,43,40,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.arc(sm.x, sm.y, sm.r, 0, TAU);
+    ctx.fill();
+  }
+
+  /* embers: additive glow */
+  ctx.globalCompositeOperation = "lighter";
+  for (var i = 0; i < embers.length; i++){
+    var p = embers[i];
+    var flick = 0.55 + 0.45 * Math.sin(p.flick * 3.1);
+    var hot = p.heatIdx * (0.4 + heat * 0.6);
+    var col = hot > 0.72 ? "255,209,102" : hot > 0.45 ? "255,107,53" : "230,57,70";
+    var a = (0.34 + 0.5 * flick) * (phase === "gathering" ? 1 : 0.92);
+    var r = p.r * (0.8 + flick * 0.5) * (1 + heat * 0.25);
+    ctx.fillStyle = "rgba(" + col + "," + a.toFixed(3) + ")";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, TAU);
+    ctx.fill();
+    /* soft halo on a subset */
+    if (p.heatIdx > 0.86){
+      var hg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 6);
+      hg.addColorStop(0, "rgba(" + col + "," + (a * 0.22).toFixed(3) + ")");
+      hg.addColorStop(1, "rgba(" + col + ",0)");
+      ctx.fillStyle = hg;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 6, 0, TAU);
+      ctx.fill();
+    }
+  }
+  /* sparks */
+  for (var s = 0; s < sparks.length; s++){
+    var sp3 = sparks[s];
+    ctx.fillStyle = "rgba(" + sp3.col + "," + clamp(sp3.life, 0, 1).toFixed(3) + ")";
+    ctx.beginPath();
+    ctx.arc(sp3.x, sp3.y, sp3.r * sp3.life + 0.4, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+
+  /* charge aura while holding */
+  if (charging){
+    var aura = ctx.createRadialGradient(cx, cy, birdS * 0.2, cx, cy, birdS * (1.6 + heat));
+    aura.addColorStop(0, "rgba(255,209,102," + (heat * 0.12).toFixed(3) + ")");
+    aura.addColorStop(1, "rgba(255,107,53,0)");
+    ctx.fillStyle = aura;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+/* ================= loop ================= */
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  var dt = clamp((now - lastT) / 1000, 0, 0.05);
+  lastT = now;
+  step(dt);
+  render();
+}
+
+/* ================= fit ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + "px";
+  cv.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx = W / 2;
+  cy = H * 0.46;
+  birdS = clamp(Math.min(W, H) * 0.30, 120, 340);
+}
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    fit();
+    buildFlock();
+  }, 180);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+fit();
+buildFlock();
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

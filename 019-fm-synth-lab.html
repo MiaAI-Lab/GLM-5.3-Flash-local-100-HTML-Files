@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FREQUENCY GARDEN · №019 — FM Synthesizer · The Gallery of 100</title>
+<style>
+:root{
+  --walnut:    #3a2b20;
+  --walnut-2:  #2c2016;
+  --walnut-3:  #4a382a;
+  --panel:     #d9d0bd;
+  --panel-2:   #cfc5b0;
+  --panel-3:   #e4dcc9;
+  --ink:       #2f2a24;
+  --ink-soft:  #6b6154;
+  --led-hot:   #ff5c39;
+  --led-go:    #68d391;
+  --cable:     #e05d38;
+  --lcd:       #191510;
+  --lcd-cream: #e8dfc8;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ scrollbar-color:#5a4632 transparent; }
+html::-webkit-scrollbar{ width:10px; }
+html::-webkit-scrollbar-thumb{ background:#5a4632; border-radius:6px; }
+body{
+  font-family:var(--sans);
+  color:var(--ink);
+  background:
+    repeating-linear-gradient(93deg,
+      rgba(0,0,0,.14) 0 2px, transparent 2px 7px,
+      rgba(255,255,255,.025) 7px 9px, transparent 9px 16px),
+    linear-gradient(180deg, var(--walnut-3), var(--walnut) 45%, var(--walnut-2));
+  min-height:100vh;
+  padding:clamp(14px,3vw,40px) clamp(10px,3vw,44px) clamp(18px,3vh,34px);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--led-hot); color:#fff7ef; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid var(--led-hot); outline-offset:3px; border-radius:8px; }
+
+/* ---------- garden frame ---------- */
+.garden{ max-width:1240px; margin:0 auto; }
+
+/* ---------- brandplate ---------- */
+.brandplate{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding:16px clamp(16px,2.4vw,28px);
+  border-radius:18px 18px 8px 8px;
+  background:linear-gradient(180deg, var(--panel-3), var(--panel));
+  box-shadow:0 2px 0 rgba(255,255,255,.35) inset, 0 -3px 0 rgba(47,42,36,.18) inset, 0 18px 34px -18px rgba(0,0,0,.7);
+}
+.brandplate .mark{
+  display:flex; align-items:center; gap:16px;
+}
+.brandplate h1{
+  font-size:clamp(1.25rem, 2.6vw, 1.9rem);
+  font-weight:800; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink);
+}
+.brandplate .model{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--ink-soft); margin-top:4px;
+}
+.silk-rule{ flex:1; min-width:60px; height:1px; background:linear-gradient(90deg, rgba(47,42,36,.4), transparent); }
+.power{
+  display:flex; align-items:center; gap:12px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--ink);
+  background:linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border:1px solid rgba(47,42,36,.4);
+  border-radius:999px;
+  padding:10px 16px;
+  cursor:pointer;
+  box-shadow:0 2px 0 rgba(47,42,36,.25);
+  transition:transform .2s ease, box-shadow .2s ease;
+  touch-action:manipulation;
+}
+.power:hover{ transform:translateY(-2px); box-shadow:0 4px 0 rgba(47,42,36,.2), 0 10px 18px -10px rgba(0,0,0,.5); }
+.power .p-led{
+  width:10px; height:10px; border-radius:50%;
+  background:#8a8172;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
+  transition:background .3s ease, box-shadow .3s ease;
+}
+body.on .power .p-led{ background:var(--led-go); box-shadow:0 0 10px rgba(104,211,145,.9); }
+
+/* ---------- instrument ---------- */
+.instrument{
+  position:relative;
+  margin-top:10px;
+  border-radius:8px 8px 22px 22px;
+  background:linear-gradient(180deg, var(--panel-3), var(--panel) 30%, var(--panel-2));
+  box-shadow:
+    0 2px 0 rgba(255,255,255,.3) inset,
+    0 -6px 0 rgba(47,42,36,.16) inset,
+    0 34px 60px -24px rgba(0,0,0,.75);
+  padding:clamp(14px,2.2vw,26px);
+  padding-bottom:clamp(12px,2vw,22px);
+}
+/* walnut cheeks */
+.instrument::before, .instrument::after{
+  content:""; position:absolute; top:10px; bottom:10px; width:12px;
+  background:repeating-linear-gradient(180deg, rgba(0,0,0,.18) 0 3px, transparent 3px 9px),
+             linear-gradient(90deg, #4a382a, #3a2b20);
+  border-radius:6px;
+  pointer-events:none;
+}
+.instrument::before{ left:-7px; }
+.instrument::after{ right:-7px; }
+
+.mods{
+  display:grid; gap:clamp(10px,1.6vw,18px);
+  grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.15fr);
+  grid-template-areas:"op env tone" "out out tone";
+}
+@media (max-width:940px){
+  .mods{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"op env" "tone out"; }
+}
+@media (max-width:600px){
+  .mods{ grid-template-columns:minmax(0,1fr); grid-template-areas:"op" "env" "tone" "out"; }
+}
+
+/* ---------- modules ---------- */
+.module{
+  position:relative;
+  border-radius:14px;
+  background:linear-gradient(180deg, var(--panel-3), var(--panel));
+  border:1px solid rgba(47,42,36,.35);
+  box-shadow:0 2px 0 rgba(255,255,255,.4) inset, 0 3px 8px -4px rgba(0,0,0,.5);
+  padding:14px 16px 14px;
+}
+.module.op{ grid-area:op; }
+.module.env{ grid-area:env; }
+.module.tone{ grid-area:tone; }
+.module.out{ grid-area:out; }
+.module h2{
+  font-size:.62rem; font-weight:700; letter-spacing:.34em; text-transform:uppercase;
+  color:var(--ink-soft);
+  display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:1px solid rgba(47,42,36,.25);
+  padding-bottom:8px; margin-bottom:12px;
+}
+.module h2 .sub{ font-family:var(--mono); font-size:.52rem; letter-spacing:.2em; color:rgba(107,97,84,.8); }
+.screw{
+  position:absolute; width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #efe8d8, #a99f8a);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.45);
+}
+.screw::after{
+  content:""; position:absolute; left:1px; right:1px; top:3.6px; height:1.4px;
+  background:rgba(47,42,36,.5); transform:rotate(40deg);
+}
+.screw.a{ top:7px; left:7px; } .screw.b{ top:7px; right:7px; }
+.screw.c{ bottom:7px; left:7px; } .screw.d{ bottom:7px; right:7px; }
+
+/* ---------- LEDs ---------- */
+.ledrow{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+.led{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:.52rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.led i{
+  width:9px; height:9px; border-radius:50%;
+  background:#9a9182;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
+  transition:background .25s ease, box-shadow .25s ease;
+}
+.led.hot i{ background:var(--led-hot); box-shadow:0 0 9px rgba(255,92,57,.85); }
+.led.go i{ background:var(--led-go); box-shadow:0 0 9px rgba(104,211,145,.85); }
+.led.hot.blink i{ animation:ledblink 1.1s steps(2) infinite; }
+@keyframes ledblink{
+  50%{ background:#9a9182; box-shadow:inset 0 1px 2px rgba(0,0,0,.4); }
+}
+
+/* ---------- knobs ---------- */
+.knobrow{ display:flex; gap:clamp(8px,1.6vw,18px); justify-content:space-around; flex-wrap:wrap; }
+.knob{
+  display:grid; justify-items:center; gap:6px;
+  width:86px; padding:6px 4px 8px;
+  border-radius:12px; cursor:ns-resize; touch-action:none; user-select:none;
+  transition:background .25s ease;
+}
+.knob:hover{ background:rgba(47,42,36,.06); }
+.knob.drag{ cursor:grabbing; background:rgba(47,42,36,.1); }
+.knob-cap{
+  position:relative; width:62px; height:62px; border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 28%, #5c4632, #3a2b20 68%, #2c2016);
+  box-shadow:0 3px 6px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.16), inset 0 -3px 5px rgba(0,0,0,.4);
+  transform:rotate(calc(var(--val,.5) * 270deg - 135deg));
+  display:block;
+}
+.knob-cap::before{
+  content:""; position:absolute; left:50%; top:5px; width:3.5px; height:16px;
+  margin-left:-1.75px; border-radius:2px;
+  background:var(--lcd-cream);
+  box-shadow:0 0 4px rgba(232,223,200,.5);
+  display:block;
+}
+.knob-cap::after{
+  content:""; position:absolute; inset:0; border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,255,255,.05) 0deg 4deg, transparent 4deg 8deg);
+  display:block;
+}
+.knob .k-label{
+  font-size:.54rem; font-weight:700; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--ink);
+}
+.knob .k-val{ font-family:var(--mono); font-size:.6rem; color:var(--ink-soft); min-height:1em; }
+.k-ticks{
+  position:relative; width:62px; height:8px; margin-top:-4px;
+  background:repeating-linear-gradient(90deg, rgba(47,42,36,.5) 0 1px, transparent 1px 8.7px);
+  -webkit-mask:linear-gradient(180deg, #000, #000) 0 0/100% 4px no-repeat;
+  mask:linear-gradient(180deg, #000, #000) 0 0/100% 4px no-repeat;
+  opacity:.5;
+}
+
+/* ---------- wave switch ---------- */
+.switchrow{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; flex-wrap:wrap; }
+.switch{
+  display:inline-flex; border:1px solid rgba(47,42,36,.45); border-radius:9px; overflow:hidden;
+  box-shadow:0 2px 4px -2px rgba(0,0,0,.4);
+}
+.switch button{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.24em; text-transform:uppercase;
+  padding:9px 14px; color:var(--ink-soft);
+  background:linear-gradient(180deg, var(--panel-3), var(--panel-2));
+  border:0; cursor:pointer;
+  transition:background .25s ease, color .25s ease;
+  touch-action:manipulation;
+}
+.switch button + button{ border-left:1px solid rgba(47,42,36,.35); }
+.switch button.on{ background:var(--ink); color:var(--lcd-cream); }
+
+/* ---------- ADSR faders ---------- */
+.adsr{ display:flex; gap:clamp(8px,1.8vw,20px); justify-content:space-around; }
+.fader{
+  display:grid; justify-items:center; gap:6px; width:58px;
+  cursor:ns-resize; touch-action:none; user-select:none;
+  padding:6px 2px 8px; border-radius:12px;
+  transition:background .25s ease;
+}
+.fader:hover{ background:rgba(47,42,36,.06); }
+.fader.drag{ cursor:grabbing; background:rgba(47,42,36,.1); }
+.fader .track{
+  position:relative; width:16px; height:120px; border-radius:8px;
+  background:linear-gradient(180deg, #b8ae99, #cabfab);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.4), 0 1px 0 rgba(255,255,255,.4);
+  display:block;
+}
+.fader .fill{
+  position:absolute; left:5px; right:5px; bottom:2px;
+  height:calc(var(--val,.6) * (100% - 4px));
+  border-radius:6px;
+  background:linear-gradient(180deg, rgba(255,92,57,.55), rgba(255,92,57,.25));
+  display:block;
+}
+.fader .thumb{
+  position:absolute; left:-8px; right:-8px; height:20px;
+  bottom:calc(var(--val,.6) * (100% - 22px) + 1px);
+  border-radius:5px;
+  background:linear-gradient(180deg, #efe8d8, #c4baa5);
+  box-shadow:0 2px 4px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.6);
+  display:block;
+}
+.fader .thumb::after{
+  content:""; position:absolute; left:3px; right:3px; top:9px; height:1.6px;
+  background:rgba(47,42,36,.35); border-radius:2px;
+}
+.fader .f-label{ font-size:.56rem; font-weight:700; letter-spacing:.3em; text-transform:uppercase; color:var(--ink); }
+.fader .f-val{ font-family:var(--mono); font-size:.56rem; color:var(--ink-soft); min-height:1em; }
+
+/* ---------- ports ---------- */
+.ports{
+  display:flex; gap:clamp(10px,2vw,22px); align-items:flex-start;
+  margin-top:12px; padding-top:10px;
+  border-top:1px dashed rgba(47,42,36,.3);
+}
+.port{
+  display:grid; justify-items:center; gap:4px;
+  background:none; border:0; cursor:pointer; padding:2px 4px;
+  font-family:inherit; touch-action:manipulation;
+}
+.port i{
+  width:14px; height:14px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #f4ecd9, #b6ac96 70%);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.5);
+  border:1px solid rgba(47,42,36,.5);
+  transition:box-shadow .25s ease, transform .25s ease;
+  display:block;
+}
+.port:hover i{ transform:scale(1.15); }
+.port.hot i{ box-shadow:0 0 10px rgba(224,93,56,.85), inset 0 1px 2px rgba(0,0,0,.35); border-color:var(--cable); }
+.port em{
+  font-style:normal; font-family:var(--mono); font-size:.5rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink-soft); white-space:nowrap;
+}
+.ports .fill{ flex:1; }
+
+/* ---------- output / LCD ---------- */
+.outgrid{ display:grid; gap:12px; grid-template-columns:minmax(0,1fr) 150px; align-items:stretch; }
+@media (max-width:600px){ .outgrid{ grid-template-columns:minmax(0,1fr); } }
+.lcd{
+  position:relative; border-radius:10px; overflow:hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 30%),
+    var(--lcd);
+  box-shadow:inset 0 3px 10px rgba(0,0,0,.75), 0 1px 0 rgba(255,255,255,.35);
+  border:1px solid rgba(0,0,0,.6);
+  min-height:150px;
+}
+.lcd canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.lcd .scan{
+  position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+}
+.lcd-read{
+  position:absolute; left:10px; bottom:8px; right:10px;
+  display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.18em; text-transform:uppercase;
+  color:rgba(232,223,200,.75);
+  z-index:3;
+}
+.lcd-read b{ color:var(--lcd-cream); font-weight:400; font-variant-numeric:tabular-nums; }
+.lcd-read .hot{ color:var(--led-hot); }
+.outside{ display:grid; gap:10px; align-content:start; }
+
+/* volume */
+.vrow{ display:grid; gap:6px; justify-items:center; }
+.vslider{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:26px; background:transparent; cursor:pointer; touch-action:none;
+}
+.vslider::-webkit-slider-runnable-track{
+  height:8px; border-radius:4px;
+  background:linear-gradient(180deg, #b8ae99, #cabfab);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.4);
+}
+.vslider::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:22px; height:22px; margin-top:-7px; border-radius:5px;
+  background:linear-gradient(180deg, #efe8d8, #c4baa5);
+  box-shadow:0 2px 4px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.6);
+  border:none;
+}
+.vslider::-moz-range-track{ height:8px; border-radius:4px; background:#b8ae99; box-shadow:inset 0 2px 4px rgba(0,0,0,.4); }
+.vslider::-moz-range-thumb{ width:22px; height:22px; border:none; border-radius:5px; background:linear-gradient(180deg,#efe8d8,#c4baa5); box-shadow:0 2px 4px rgba(0,0,0,.45); }
+
+/* ---------- cables overlay ---------- */
+.cables{
+  position:absolute; left:0; top:0; width:100%; height:100%;
+  pointer-events:none; z-index:6; overflow:visible;
+}
+.cables .cable-shadow{ fill:none; stroke:rgba(0,0,0,.35); stroke-width:5.5; stroke-linecap:round; }
+.cables .cable-wire{ fill:none; stroke:var(--cable); stroke-width:3.6; stroke-linecap:round; }
+.cables .cable-core{ fill:none; stroke:rgba(255,214,196,.55); stroke-width:1.1; stroke-linecap:round; }
+.cables .cable-hit{ fill:none; stroke:transparent; stroke-width:20; stroke-linecap:round; pointer-events:stroke; cursor:grab; }
+.cables .cable-hit.drag{ cursor:grabbing; }
+.cables .plug{ fill:#f4ecd9; stroke:rgba(47,42,36,.6); stroke-width:1.2; }
+
+/* ---------- keybed ---------- */
+.keybed{
+  position:relative;
+  margin-top:clamp(12px,1.8vw,18px);
+  border-radius:12px;
+  background:linear-gradient(180deg, var(--walnut-2), var(--walnut));
+  box-shadow:inset 0 3px 8px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.14);
+  padding:12px 12px 14px;
+}
+.keybed .kb-label{
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(217,208,189,.55);
+  display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.keys{ position:relative; height:132px; touch-action:none; }
+.white{
+  position:absolute; top:0; bottom:0;
+  background:linear-gradient(180deg, #f7f2e6, #e4dcc9 80%, #cfc5b0);
+  border:1px solid rgba(47,42,36,.35);
+  border-radius:0 0 6px 6px;
+  box-shadow:inset 0 -6px 8px -6px rgba(0,0,0,.35), 0 3px 4px -2px rgba(0,0,0,.4);
+  cursor:pointer;
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;
+}
+.white span, .black span{
+  font-family:var(--mono); font-size:.52rem; letter-spacing:.14em; text-transform:uppercase;
+  color:rgba(47,42,36,.55); pointer-events:none;
+}
+.white.on{
+  background:linear-gradient(180deg, #ffe4d6, #ffc9b0);
+  box-shadow:inset 0 4px 10px -4px rgba(255,92,57,.7), 0 1px 2px rgba(0,0,0,.3);
+  transform:translateY(1px);
+}
+.black{
+  position:absolute; top:0; height:62%;
+  background:linear-gradient(180deg, #35414f, #1c2430 70%, #10161f);
+  border:1px solid #0a0f16;
+  border-radius:0 0 5px 5px;
+  box-shadow:inset 0 -5px 7px -5px rgba(255,255,255,.25), 0 4px 6px -2px rgba(0,0,0,.6);
+  z-index:2; cursor:pointer;
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;
+}
+.black span{ color:rgba(232,223,200,.5); }
+.black.on{
+  background:linear-gradient(180deg, #7a3220, #4c1f12);
+  box-shadow:inset 0 3px 8px -3px rgba(255,92,57,.8);
+  transform:translateY(1px);
+}
+
+/* ---------- colophon ---------- */
+.colophon{
+  margin-top:16px;
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.24em; text-transform:uppercase;
+  color:rgba(217,208,189,.5);
+}
+.colophon .hot{ color:var(--led-hot); }
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:clamp(16px,3vh,30px);
+  transform:translate(-50%,8px);
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.24em; text-transform:uppercase;
+  color:#fff3ea;
+  background:rgba(44,32,22,.94);
+  border:1px solid rgba(255,92,57,.6);
+  border-radius:999px;
+  padding:9px 16px;
+  opacity:0; transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none; z-index:40;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .led.hot.blink i{ animation:none; }
+  .power, .port i, .knob, .fader{ transition:none; }
+  .toast{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="garden">
+
+  <header class="brandplate">
+    <div class="mark">
+      <div>
+        <h1>Frequency Garden</h1>
+        <p class="model">MODEL FG-19 · DUAL-OPERATOR FM · SOLID WALNUT</p>
+      </div>
+    </div>
+    <div class="silk-rule" aria-hidden="true"></div>
+    <button class="power" id="powerBtn" type="button" aria-pressed="false">
+      <span class="p-led" aria-hidden="true"></span>
+      <span id="powerLabel">Power · Off</span>
+    </button>
+  </header>
+
+  <section class="instrument" id="instrument" aria-label="Frequency Garden synthesizer">
+
+    <svg class="cables" id="cableSvg" aria-hidden="true">
+      <path class="cable-shadow" id="c1shadow" d=""></path>
+      <path class="cable-shadow" id="c2shadow" d=""></path>
+      <path class="cable-wire" id="c1wire" d=""></path>
+      <path class="cable-wire" id="c2wire" d=""></path>
+      <path class="cable-core" id="c1core" d=""></path>
+      <path class="cable-core" id="c2core" d=""></path>
+      <circle class="plug" id="c1plug" r="5.5"></circle>
+      <circle class="plug" id="c2plug" r="5.5"></circle>
+      <path class="cable-hit" id="c1hit" d=""></path>
+      <path class="cable-hit" id="c2hit" d=""></path>
+    </svg>
+
+    <div class="mods">
+
+      <!-- OPERATOR -->
+      <div class="module op">
+        <span class="screw a" aria-hidden="true"></span><span class="screw b" aria-hidden="true"></span>
+        <span class="screw c" aria-hidden="true"></span><span class="screw d" aria-hidden="true"></span>
+        <h2>Operator <span class="sub">CAR / MOD</span></h2>
+        <div class="knobrow">
+          <div class="knob" data-knob="ratio" role="slider" tabindex="0" aria-label="Modulation ratio"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="60">
+            <span class="knob-cap" aria-hidden="true"></span>
+            <span class="k-label">Ratio</span>
+            <span class="k-val">2.00</span>
+          </div>
+          <div class="knob" data-knob="index" role="slider" tabindex="0" aria-label="Modulation index"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="42">
+            <span class="knob-cap" aria-hidden="true"></span>
+            <span class="k-label">Index</span>
+            <span class="k-val">180</span>
+          </div>
+        </div>
+        <div class="switchrow">
+          <div class="switch" role="group" aria-label="Carrier waveform">
+            <button type="button" class="on" data-wave="sine">Sine</button>
+            <button type="button" data-wave="triangle">Tri</button>
+          </div>
+          <div class="ledrow">
+            <span class="led hot" id="ledFM"><i aria-hidden="true"></i>FM</span>
+            <span class="led" id="ledAM"><i aria-hidden="true"></i>AM</span>
+          </div>
+        </div>
+        <div class="ports">
+          <button class="port" type="button" data-port="modOut" aria-label="Modulator output port">
+            <i aria-hidden="true"></i><em>Mod Out</em>
+          </button>
+          <button class="port" type="button" data-port="carIn" aria-label="Carrier input port">
+            <i aria-hidden="true"></i><em>Car In</em>
+          </button>
+          <button class="port" type="button" data-port="carOut" aria-label="Carrier output port">
+            <i aria-hidden="true"></i><em>Car Out</em>
+          </button>
+        </div>
+      </div>
+
+      <!-- ENVELOPE -->
+      <div class="module env">
+        <span class="screw a" aria-hidden="true"></span><span class="screw b" aria-hidden="true"></span>
+        <span class="screw c" aria-hidden="true"></span><span class="screw d" aria-hidden="true"></span>
+        <h2>Envelope <span class="sub">ADSR</span></h2>
+        <div class="adsr">
+          <div class="fader" data-fader="attack" role="slider" tabindex="0" aria-label="Attack"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+            <span class="track" aria-hidden="true"><span class="fill"></span><span class="thumb"></span></span>
+            <span class="f-label">A</span>
+            <span class="f-val">0.12s</span>
+          </div>
+          <div class="fader" data-fader="decay" role="slider" tabindex="0" aria-label="Decay"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="42">
+            <span class="track" aria-hidden="true"><span class="fill"></span><span class="thumb"></span></span>
+            <span class="f-label">D</span>
+            <span class="f-val">0.35s</span>
+          </div>
+          <div class="fader" data-fader="sustain" role="slider" tabindex="0" aria-label="Sustain"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="65">
+            <span class="track" aria-hidden="true"><span class="fill"></span><span class="thumb"></span></span>
+            <span class="f-label">S</span>
+            <span class="f-val">65%</span>
+          </div>
+          <div class="fader" data-fader="release" role="slider" tabindex="0" aria-label="Release"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="55">
+            <span class="track" aria-hidden="true"><span class="fill"></span><span class="thumb"></span></span>
+            <span class="f-label">R</span>
+            <span class="f-val">0.80s</span>
+          </div>
+        </div>
+        <div class="ports">
+          <button class="port" type="button" data-port="vcaIn" aria-label="Amplifier input port">
+            <i aria-hidden="true"></i><em>VCA In</em>
+          </button>
+          <span class="fill" aria-hidden="true"></span>
+          <span class="led go" id="ledGate"><i aria-hidden="true"></i>Gate</span>
+        </div>
+      </div>
+
+      <!-- TONE -->
+      <div class="module tone">
+        <span class="screw a" aria-hidden="true"></span><span class="screw b" aria-hidden="true"></span>
+        <span class="screw c" aria-hidden="true"></span><span class="screw d" aria-hidden="true"></span>
+        <h2>Tone <span class="sub">VCF</span></h2>
+        <div class="knobrow">
+          <div class="knob" data-knob="cutoff" role="slider" tabindex="0" aria-label="Filter cutoff"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="78">
+            <span class="knob-cap" aria-hidden="true"></span>
+            <span class="k-label">Cutoff</span>
+            <span class="k-val">3.4k</span>
+          </div>
+        </div>
+        <div class="ledrow" style="margin-top:10px">
+          <span class="led" id="ledFil"><i aria-hidden="true"></i>In circuit</span>
+        </div>
+        <p style="font-size:.78rem; font-style:italic; color:var(--ink-soft); line-height:1.6; margin-top:10px">
+          A gentle lowpass, wound by hand. Park the carrier cable here to soften the garden's edges.
+        </p>
+        <div class="ports">
+          <button class="port" type="button" data-port="filterIn" aria-label="Filter input port">
+            <i aria-hidden="true"></i><em>Filter In</em>
+          </button>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="module out">
+        <span class="screw a" aria-hidden="true"></span><span class="screw b" aria-hidden="true"></span>
+        <span class="screw c" aria-hidden="true"></span><span class="screw d" aria-hidden="true"></span>
+        <h2>Output <span class="sub">SCOPE · SPECTRUM</span></h2>
+        <div class="outgrid">
+          <div class="lcd">
+            <canvas id="scopeCanvas" aria-hidden="true"></canvas>
+            <canvas id="specCanvas" aria-hidden="true"></canvas>
+            <div class="scan" aria-hidden="true"></div>
+            <div class="lcd-read">
+              <span>NOTE <b id="roNote">—</b></span>
+              <span>VOICES <b id="roVoices">0</b></span>
+              <span>RT <b id="roRatio">2.00</b></span>
+              <span>IDX <b id="roIndex">180</b></span>
+              <span class="hot" id="roClip">CLIP</span>
+            </div>
+          </div>
+          <div class="outside">
+            <div class="vrow">
+              <span class="k-label" style="font-size:.54rem;font-weight:700;letter-spacing:.26em;text-transform:uppercase">Volume</span>
+              <input type="range" class="vslider" id="volume" min="0" max="100" value="72" aria-label="Master volume">
+            </div>
+            <div class="ledrow" style="justify-content:center">
+              <span class="led hot" id="ledClip"><i aria-hidden="true"></i>Clip</span>
+              <span class="led go" id="ledSig"><i aria-hidden="true"></i>Sig</span>
+            </div>
+            <p style="font-size:.74rem; font-style:italic; color:var(--ink-soft); line-height:1.55; text-align:center">
+              Two operators, one bloom per key.
+            </p>
+          </div>
+        </div>
+        <div class="ports">
+          <button class="port" type="button" data-port="mixIn" aria-label="Mixer input port">
+            <i aria-hidden="true"></i><em>Mix In</em>
+          </button>
+          <span class="fill" aria-hidden="true"></span>
+          <span style="font-family:var(--mono);font-size:.52rem;letter-spacing:.2em;color:var(--ink-soft);text-transform:uppercase">To amplifier</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- KEYBED -->
+    <div class="keybed">
+      <div class="kb-label">
+        <span>Keyboard · C4 – E5</span>
+        <span>PLAY WITH POINTER OR KEYS A W S E D F T G Y H U J K O L P</span>
+      </div>
+      <div class="keys" id="keys">
+        <button class="white" type="button" data-note="60" style="left:0%;width:10%"><span>C4</span></button>
+        <button class="white" type="button" data-note="62" style="left:10%;width:10%"><span>D4</span></button>
+        <button class="white" type="button" data-note="64" style="left:20%;width:10%"><span>E4</span></button>
+        <button class="white" type="button" data-note="65" style="left:30%;width:10%"><span>F4</span></button>
+        <button class="white" type="button" data-note="67" style="left:40%;width:10%"><span>G4</span></button>
+        <button class="white" type="button" data-note="69" style="left:50%;width:10%"><span>A4</span></button>
+        <button class="white" type="button" data-note="71" style="left:60%;width:10%"><span>B4</span></button>
+        <button class="white" type="button" data-note="72" style="left:70%;width:10%"><span>C5</span></button>
+        <button class="white" type="button" data-note="74" style="left:80%;width:10%"><span>D5</span></button>
+        <button class="white" type="button" data-note="76" style="left:90%;width:10%"><span>E5</span></button>
+        <button class="black" type="button" data-note="61" style="left:calc(10% - 3.2%);width:6.4%"><span>C#</span></button>
+        <button class="black" type="button" data-note="63" style="left:calc(20% - 3.2%);width:6.4%"><span>D#</span></button>
+        <button class="black" type="button" data-note="66" style="left:calc(40% - 3.2%);width:6.4%"><span>F#</span></button>
+        <button class="black" type="button" data-note="68" style="left:calc(50% - 3.2%);width:6.4%"><span>G#</span></button>
+        <button class="black" type="button" data-note="70" style="left:calc(60% - 3.2%);width:6.4%"><span>A#</span></button>
+        <button class="black" type="button" data-note="73" style="left:calc(80% - 3.2%);width:6.4%"><span>C#</span></button>
+        <button class="black" type="button" data-note="75" style="left:calc(90% - 3.2%);width:6.4%"><span>D#</span></button>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="colophon">
+    <span>Frequency Garden · №019 of 100</span>
+    <span class="hot">DRAG THE PATCH CABLES — THE CIRCUIT LISTENS</span>
+    <span>The Gallery of 100</span>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var els = {
+  instrument: document.getElementById("instrument"),
+  cableSvg: document.getElementById("cableSvg"),
+  toast: document.getElementById("toast"),
+  powerBtn: document.getElementById("powerBtn"),
+  powerLabel: document.getElementById("powerLabel"),
+  volume: document.getElementById("volume"),
+  scope: document.getElementById("scopeCanvas"),
+  spec: document.getElementById("specCanvas"),
+  roNote: document.getElementById("roNote"),
+  roVoices: document.getElementById("roVoices"),
+  roRatio: document.getElementById("roRatio"),
+  roIndex: document.getElementById("roIndex"),
+  roClip: document.getElementById("roClip"),
+  ledFM: document.getElementById("ledFM"),
+  ledAM: document.getElementById("ledAM"),
+  ledFil: document.getElementById("ledFil"),
+  ledGate: document.getElementById("ledGate"),
+  ledClip: document.getElementById("ledClip"),
+  ledSig: document.getElementById("ledSig")
+};
+var sctx = els.scope.getContext("2d");
+var pctx = els.spec.getContext("2d");
+
+var ports = {};
+Array.prototype.forEach.call(document.querySelectorAll(".port"), function(p){
+  ports[p.getAttribute("data-port")] = p;
+});
+
+/* ================= patch state ================= */
+var PATCHES = [
+  { id:1, from:"modOut", end:"carIn", options:["carIn","vcaIn"], els:{
+      shadow:document.getElementById("c1shadow"), wire:document.getElementById("c1wire"),
+      core:document.getElementById("c1core"), hit:document.getElementById("c1hit"),
+      plug:document.getElementById("c1plug") }, free:null },
+  { id:2, from:"carOut", end:"filterIn", options:["filterIn","mixIn"], els:{
+      shadow:document.getElementById("c2shadow"), wire:document.getElementById("c2wire"),
+      core:document.getElementById("c2core"), hit:document.getElementById("c2hit"),
+      plug:document.getElementById("c2plug") }, free:null }
+];
+
+/* ================= synth params ================= */
+var params = {
+  ratio:0.60,     /* knob 0..1 -> ratio 0.25..8 */
+  index:0.42,     /* -> 0..500 Hz */
+  cutoff:0.78,    /* -> 120..8000 Hz */
+  volume:0.72,
+  wave:"sine",
+  adsr:{ attack:0.5, decay:0.42, sustain:0.65, release:0.55 }
+};
+function ratioHz(){ return 0.25 * Math.pow(32, params.ratio); }
+function indexHz(){ return params.index * 500; }
+function cutoffHz(){ return 120 * Math.pow(66.66, params.cutoff); }
+function adsrSec(name){
+  var v = params.adsr[name];
+  if (name === "attack") return 0.002 + v * v * 1.5;
+  if (name === "decay")  return 0.03 + v * 1.6;
+  if (name === "release") return 0.03 + v * v * 3.4;
+  return v;
+}
+
+/* ================= audio ================= */
+var AC = null, master = null, analyser = null, timeData = null, freqData = null;
+var voices = {};
+var powered = false;
+
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  master = AC.createGain();
+  master.gain.value = params.volume * 0.5;
+  analyser = AC.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.72;
+  master.connect(analyser);
+  analyser.connect(AC.destination);
+  timeData = new Uint8Array(analyser.fftSize);
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  return true;
+}
+function setPower(on){
+  if (on){
+    if (!ensureAudio()){ showToast("AUDIO UNAVAILABLE"); return; }
+    if (AC.state === "suspended") AC.resume();
+    powered = true;
+    document.body.classList.add("on");
+    els.powerBtn.setAttribute("aria-pressed","true");
+    els.powerLabel.textContent = "Power · On";
+    showToast("FG-19 · WARMED UP");
+  } else {
+    powered = false;
+    allNotesOff();
+    if (AC) AC.suspend();
+    document.body.classList.remove("on");
+    els.powerBtn.setAttribute("aria-pressed","false");
+    els.powerLabel.textContent = "Power · Off";
+    showToast("FG-19 · ASLEEP");
+  }
+}
+els.powerBtn.addEventListener("click", function(){ setPower(!powered); });
+
+function midiHz(n){ return 440 * Math.pow(2, (n - 69) / 12); }
+
+function noteOn(note){
+  if (!powered){
+    setPower(true);
+    if (!powered) return;
+  }
+  if (voices[note] || Object.keys(voices).length >= 8) return;
+  var t = AC.currentTime;
+  var f = midiHz(note);
+  var env = AC.createGain();
+  env.gain.value = 0.0001;
+  var car = AC.createOscillator();
+  car.type = params.wave;
+  car.frequency.value = f;
+  var mod = AC.createOscillator();
+  mod.type = "sine";
+  mod.frequency.value = f * ratioHz();
+  var modG = AC.createGain();
+  modG.gain.value = indexHz();
+  var amG = AC.createGain();
+  amG.gain.value = (indexHz() / 500) * 0.85;
+  var lp = null;
+  var routeIn = (PATCHES[1].end === "filterIn");
+  if (routeIn){
+    lp = AC.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = cutoffHz();
+    lp.Q.value = 0.6;
+  }
+  var dest = routeIn ? lp : master;
+  car.connect(env);
+  env.connect(dest);
+  if (lp) lp.connect(master);
+  var mode = (PATCHES[0].end === "carIn") ? "fm" : "am";
+  if (mode === "fm"){
+    mod.connect(modG);
+    modG.connect(car.frequency);
+  } else {
+    mod.connect(amG);
+    amG.connect(env.gain);
+  }
+  car.start(); mod.start();
+  /* ADSR */
+  var A = adsrSec("attack"), D = adsrSec("decay"), S = params.adsr.sustain;
+  var peak = 0.30;
+  env.gain.cancelScheduledValues(t);
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.linearRampToValueAtTime(peak, t + A);
+  env.gain.setTargetAtTime(Math.max(0.0002, peak * S), t + A, Math.max(0.01, D / 4));
+  voices[note] = { car:car, mod:mod, env:env, modG:modG, amG:amG, lp:lp, started:t };
+  refreshLeds();
+}
+function noteOff(note){
+  var v = voices[note];
+  if (!v) return;
+  var t = AC.currentTime;
+  var R = adsrSec("release");
+  v.env.gain.cancelScheduledValues(t);
+  v.env.gain.setTargetAtTime(0.0001, t, Math.max(0.02, R / 5));
+  var dead = v;
+  delete voices[note];
+  setTimeout(function(){
+    try { dead.car.stop(); dead.mod.stop(); } catch(e){}
+    try {
+      dead.env.disconnect();
+      dead.modG.disconnect();
+      dead.amG.disconnect();
+      if (dead.lp) dead.lp.disconnect();
+    } catch(e){}
+  }, R * 1000 + 400);
+  refreshLeds();
+}
+function allNotesOff(){
+  for (var n in voices){ noteOff(parseInt(n, 10)); }
+}
+function refreshLeds(){
+  var fmMode = (PATCHES[0].end === "carIn");
+  els.ledFM.classList.toggle("hot", fmMode);
+  els.ledAM.classList.toggle("hot", !fmMode);
+  els.ledFil.classList.toggle("hot", PATCHES[1].end === "filterIn");
+  els.ledGate.classList.toggle("hot", Object.keys(voices).length > 0);
+  els.roRatio.textContent = ratioHz().toFixed(2);
+  els.roIndex.textContent = String(Math.round(indexHz()));
+}
+
+/* ================= knobs ================= */
+function setupKnob(root){
+  var id = root.getAttribute("data-knob");
+  var val = params[id];
+  var readout = root.querySelector(".k-val");
+  function fmt(){
+    if (id === "ratio") return ratioHz().toFixed(2);
+    if (id === "index") return String(Math.round(indexHz()));
+    return cutoffHz() >= 1000 ? (cutoffHz()/1000).toFixed(1) + "k" : String(Math.round(cutoffHz()));
+  }
+  function render(){
+    root.style.setProperty("--val", val.toFixed(4));
+    root.setAttribute("aria-valuenow", String(Math.round(val * 100)));
+    root.setAttribute("aria-valuetext", fmt());
+    readout.textContent = fmt();
+    if (id === "ratio") els.roRatio.textContent = ratioHz().toFixed(2);
+    if (id === "index") els.roIndex.textContent = String(Math.round(indexHz()));
+  }
+  render();
+  var sy = 0, sv = 0, drag = false;
+  root.addEventListener("pointerdown", function(e){
+    drag = true; sy = e.clientY; sv = val;
+    root.classList.add("drag");
+    try { root.setPointerCapture(e.pointerId); } catch(err){}
+    e.preventDefault();
+  });
+  root.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    val = clamp(sv + (sy - e.clientY) / 160, 0, 1);
+    params[id] = val;
+    render();
+    /* live morph of running voices */
+    if (AC && powered){
+      var t = AC.currentTime;
+      for (var n in voices){
+        var v = voices[n];
+        v.mod.frequency.setTargetAtTime(midiHz(parseInt(n,10)) * ratioHz(), t, 0.03);
+        if (v.modG) v.modG.gain.setTargetAtTime(indexHz(), t, 0.03);
+        if (v.amG) v.amG.gain.setTargetAtTime((indexHz()/500) * 0.85, t, 0.03);
+        if (v.lp) v.lp.frequency.setTargetAtTime(cutoffHz(), t, 0.03);
+      }
+    }
+  });
+  var end = function(e){
+    if (!drag) return;
+    drag = false;
+    root.classList.remove("drag");
+    try { root.releasePointerCapture(e.pointerId); } catch(err){}
+  };
+  root.addEventListener("pointerup", end);
+  root.addEventListener("pointercancel", end);
+  root.addEventListener("keydown", function(e){
+    var step = e.shiftKey ? 0.01 : 0.04;
+    var hit = true;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") val = clamp(val + step, 0, 1);
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") val = clamp(val - step, 0, 1);
+    else if (e.key === "Home") val = 0;
+    else if (e.key === "End") val = 1;
+    else hit = false;
+    if (hit){
+      e.preventDefault();
+      params[id] = val;
+      render();
+    }
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll(".knob"), setupKnob);
+
+/* ================= ADSR faders ================= */
+var FMT = {
+  attack: function(){ return adsrSec("attack").toFixed(2) + "s"; },
+  decay:  function(){ return adsrSec("decay").toFixed(2) + "s"; },
+  sustain:function(){ return Math.round(params.adsr.sustain * 100) + "%"; },
+  release:function(){ return adsrSec("release").toFixed(2) + "s"; }
+};
+function setupFader(root){
+  var id = root.getAttribute("data-fader");
+  var val = params.adsr[id];
+  var readout = root.querySelector(".f-val");
+  function render(){
+    root.style.setProperty("--val", val.toFixed(4));
+    root.setAttribute("aria-valuenow", String(Math.round(val * 100)));
+    readout.textContent = FMT[id]();
+  }
+  render();
+  var sy = 0, sv = 0, drag = false;
+  function setFromY(clientY){
+    var r = root.querySelector(".track").getBoundingClientRect();
+    val = clamp(1 - (clientY - (r.top + 10)) / (r.height - 20), 0, 1);
+    params.adsr[id] = val;
+    render();
+  }
+  root.addEventListener("pointerdown", function(e){
+    drag = true; sy = e.clientY; sv = val;
+    root.classList.add("drag");
+    try { root.setPointerCapture(e.pointerId); } catch(err){}
+    setFromY(e.clientY);
+    e.preventDefault();
+  });
+  root.addEventListener("pointermove", function(e){
+    if (!drag) return;
+    setFromY(e.clientY);
+  });
+  var end = function(e){
+    if (!drag) return;
+    drag = false;
+    root.classList.remove("drag");
+    try { root.releasePointerCapture(e.pointerId); } catch(err){}
+  };
+  root.addEventListener("pointerup", end);
+  root.addEventListener("pointercancel", end);
+  root.addEventListener("keydown", function(e){
+    var step = e.shiftKey ? 0.01 : 0.05;
+    var hit = true;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") val = clamp(val + step, 0, 1);
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") val = clamp(val - step, 0, 1);
+    else if (e.key === "Home") val = 0;
+    else if (e.key === "End") val = 1;
+    else hit = false;
+    if (hit){
+      e.preventDefault();
+      params.adsr[id] = val;
+      render();
+    }
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll(".fader"), setupFader);
+
+/* ================= volume + wave ================= */
+els.volume.addEventListener("input", function(){
+  params.volume = parseInt(els.volume.value, 10) / 100;
+  if (AC && master) master.gain.setTargetAtTime(params.volume * 0.5, AC.currentTime, 0.05);
+});
+Array.prototype.forEach.call(document.querySelectorAll(".switch button"), function(b){
+  b.addEventListener("click", function(){
+    Array.prototype.forEach.call(document.querySelectorAll(".switch button"), function(x){
+      x.classList.remove("on");
+    });
+    b.classList.add("on");
+    params.wave = b.getAttribute("data-wave");
+    if (AC && powered){
+      var t = AC.currentTime;
+      for (var n in voices){ voices[n].car.type = params.wave; }
+    }
+    showToast("CARRIER · " + params.wave.toUpperCase());
+  });
+});
+
+/* ================= keyboard ================= */
+var NOTE_NAMES = { 60:"C4",61:"C#",62:"D4",63:"D#",64:"E4",65:"F4",66:"F#",67:"G4",68:"G#",69:"A4",70:"A#",71:"B4",72:"C5",73:"C#",74:"D5",75:"D#",76:"E5" };
+var keyEls = {};
+Array.prototype.forEach.call(document.querySelectorAll("[data-note]"), function(k){
+  keyEls[k.getAttribute("data-note")] = k;
+});
+function pressKey(note, on){
+  var el = keyEls[String(note)];
+  if (el) el.classList.toggle("on", on);
+  if (on){
+    noteOn(note);
+    els.roNote.textContent = NOTE_NAMES[note] || String(note);
+  } else {
+    noteOff(note);
+  }
+}
+var pointerNotes = {};
+Array.prototype.forEach.call(document.querySelectorAll("[data-note]"), function(k){
+  var note = parseInt(k.getAttribute("data-note"), 10);
+  k.addEventListener("pointerdown", function(e){
+    try { k.releasePointerCapture(e.pointerId); } catch(err){}
+    pointerNotes[e.pointerId] = note;
+    pressKey(note, true);
+    e.preventDefault();
+  });
+  k.addEventListener("pointerenter", function(e){
+    if (e.buttons > 0 && pointerNotes[e.pointerId] !== note){
+      if (pointerNotes[e.pointerId] !== undefined) pressKey(pointerNotes[e.pointerId], false);
+      pointerNotes[e.pointerId] = note;
+      pressKey(note, true);
+    }
+  });
+});
+window.addEventListener("pointerup", function(e){
+  if (pointerNotes[e.pointerId] !== undefined){
+    pressKey(pointerNotes[e.pointerId], false);
+    delete pointerNotes[e.pointerId];
+  }
+});
+window.addEventListener("pointercancel", function(e){
+  if (pointerNotes[e.pointerId] !== undefined){
+    pressKey(pointerNotes[e.pointerId], false);
+    delete pointerNotes[e.pointerId];
+  }
+});
+var KEYMAP = { "a":60, "w":61, "s":62, "e":63, "d":64, "f":65, "t":66, "g":67, "y":68, "h":69, "u":70, "j":71, "k":72, "o":73, "l":74, "p":75 };
+var heldKeys = {};
+window.addEventListener("keydown", function(e){
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  var note = KEYMAP[e.key.toLowerCase()];
+  if (note !== undefined && !heldKeys[e.key.toLowerCase()]){
+    heldKeys[e.key.toLowerCase()] = note;
+    pressKey(note, true);
+  }
+});
+window.addEventListener("keyup", function(e){
+  var k = e.key.toLowerCase();
+  if (heldKeys[k] !== undefined){
+    pressKey(heldKeys[k], false);
+    delete heldKeys[k];
+  }
+});
+
+/* ================= patch cables ================= */
+function portCenter(id){
+  var p = ports[id];
+  var r = p.querySelector("i").getBoundingClientRect();
+  var ir = els.instrument.getBoundingClientRect();
+  return { x: r.left + r.width/2 - ir.left, y: r.top + r.height/2 - ir.top };
+}
+function cablePath(a, b){
+  var sag = Math.max(26, Math.abs(b.x - a.x) * 0.28);
+  var c1 = { x: a.x, y: a.y + sag };
+  var c2 = { x: b.x, y: b.y + sag };
+  return "M" + a.x.toFixed(1) + " " + a.y.toFixed(1) +
+         " C" + c1.x.toFixed(1) + " " + c1.y.toFixed(1) +
+         ", " + c2.x.toFixed(1) + " " + c2.y.toFixed(1) +
+         ", " + b.x.toFixed(1) + " " + b.y.toFixed(1);
+}
+function drawCables(){
+  var ir = els.instrument.getBoundingClientRect();
+  els.cableSvg.setAttribute("viewBox", "0 0 " + Math.max(10, ir.width) + " " + Math.max(10, ir.height));
+  PATCHES.forEach(function(pc){
+    var a = portCenter(pc.from);
+    var b = pc.free ? pc.free : portCenter(pc.end);
+    var d = cablePath(a, b);
+    pc.els.wire.setAttribute("d", d);
+    pc.els.shadow.setAttribute("d", d);
+    pc.els.core.setAttribute("d", d);
+    pc.els.hit.setAttribute("d", d);
+    pc.els.plug.setAttribute("cx", b.x);
+    pc.els.plug.setAttribute("cy", b.y);
+  });
+  /* port heat */
+  for (var id in ports){
+    var hot = false;
+    PATCHES.forEach(function(pc){
+      if (pc.end === id || pc.from === id) hot = true;
+    });
+    ports[id].classList.toggle("hot", hot);
+  }
+}
+var dragPatch = null;
+PATCHES.forEach(function(pc){
+  pc.els.hit.addEventListener("pointerdown", function(e){
+    dragPatch = pc;
+    pc.els.hit.classList.add("drag");
+    e.preventDefault();
+  });
+});
+window.addEventListener("pointermove", function(e){
+  if (!dragPatch) return;
+  var ir = els.instrument.getBoundingClientRect();
+  var x = e.clientX - ir.left, y = e.clientY - ir.top;
+  var best = null, bd = 90 * 90;
+  dragPatch.options.forEach(function(id){
+    var c = portCenter(id);
+    var d = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y);
+    if (d < bd){ bd = d; best = id; }
+  });
+  dragPatch.free = { x:x, y:y };
+  if (best){
+    dragPatch.free = null;
+    if (dragPatch.end !== best){
+      dragPatch.end = best;
+      refreshLeds();
+      showToast(dragPatch.id === 1
+        ? (best === "carIn" ? "MOD → CARRIER · FM BLOOM" : "MOD → VCA · AM SHIMMER")
+        : (best === "filterIn" ? "CARRIER → FILTER · SOFTENED" : "CARRIER → MIX · PURE"));
+    }
+  }
+  drawCables();
+});
+window.addEventListener("pointerup", function(e){
+  if (!dragPatch) return;
+  var pc = dragPatch;
+  dragPatch = null;
+  pc.els.hit.classList.remove("drag");
+  if (pc.free){
+    /* replug to nearest option, else return home */
+    var ir = els.instrument.getBoundingClientRect();
+    var x = pc.free.x, y = pc.free.y;
+    var best = null, bd = 110 * 110;
+    pc.options.forEach(function(id){
+      var c = portCenter(id);
+      var d = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y);
+      if (d < bd){ bd = d; best = id; }
+    });
+    if (best){
+      if (pc.end !== best){
+        pc.end = best;
+        refreshLeds();
+        showToast(pc.id === 1
+          ? (best === "carIn" ? "MOD → CARRIER · FM BLOOM" : "MOD → VCA · AM SHIMMER")
+          : (best === "filterIn" ? "CARRIER → FILTER · SOFTENED" : "CARRIER → MIX · PURE"));
+      }
+    }
+    pc.free = null;
+    drawCables();
+  }
+});
+/* click a port to connect the matching cable */
+Array.prototype.forEach.call(document.querySelectorAll(".port"), function(p){
+  p.addEventListener("click", function(){
+    var id = p.getAttribute("data-port");
+    PATCHES.forEach(function(pc){
+      if (pc.options.indexOf(id) > -1 && pc.end !== id){
+        pc.end = id;
+        refreshLeds();
+        drawCables();
+        showToast(pc.id === 1
+          ? (id === "carIn" ? "MOD → CARRIER · FM BLOOM" : "MOD → VCA · AM SHIMMER")
+          : (id === "filterIn" ? "CARRIER → FILTER · SOFTENED" : "CARRIER → MIX · PURE"));
+      }
+    });
+  });
+});
+
+/* ================= scope + spectrum ================= */
+var SW = 0, SH = 0, PW = 0, PH = 0, DPR = 1;
+function fitLcd(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var sr = els.scope.getBoundingClientRect();
+  var pr = els.spec.getBoundingClientRect();
+  SW = Math.max(40, Math.round(sr.width)); SH = Math.max(40, Math.round(sr.height));
+  PW = Math.max(40, Math.round(pr.width)); PH = Math.max(40, Math.round(pr.height));
+  els.scope.width = Math.round(SW * DPR); els.scope.height = Math.round(SH * DPR);
+  els.spec.width = Math.round(PW * DPR); els.spec.height = Math.round(PH * DPR);
+  sctx.setTransform(DPR,0,0,DPR,0,0);
+  pctx.setTransform(DPR,0,0,DPR,0,0);
+}
+function drawScope(){
+  sctx.clearRect(0, 0, SW, SH);
+  sctx.strokeStyle = "rgba(232,223,200,.14)";
+  sctx.lineWidth = 1;
+  var gx;
+  for (gx = 1; gx < 6; gx++){
+    sctx.beginPath();
+    sctx.moveTo(SW / 6 * gx, 0);
+    sctx.lineTo(SW / 6 * gx, SH);
+    sctx.stroke();
+  }
+  sctx.beginPath();
+  sctx.moveTo(0, SH / 2);
+  sctx.lineTo(SW, SH / 2);
+  sctx.stroke();
+  if (AC && powered){
+    analyser.getByteTimeDomainData(timeData);
+    sctx.beginPath();
+    var n = timeData.length, i;
+    for (i = 0; i < n; i += 4){
+      var x = (i / n) * SW;
+      var y = SH / 2 + ((timeData[i] - 128) / 128) * (SH * 0.42);
+      if (i === 0) sctx.moveTo(x, y); else sctx.lineTo(x, y);
+    }
+    sctx.strokeStyle = "#e8dfc8";
+    sctx.lineWidth = 1.8;
+    sctx.lineJoin = "round";
+    sctx.shadowColor = "rgba(232,223,200,.5)";
+    sctx.shadowBlur = 6;
+    sctx.stroke();
+    sctx.shadowBlur = 0;
+  } else {
+    sctx.strokeStyle = "rgba(232,223,200,.3)";
+    sctx.lineWidth = 1.4;
+    sctx.beginPath();
+    sctx.moveTo(0, SH / 2);
+    sctx.lineTo(SW, SH / 2);
+    sctx.stroke();
+  }
+}
+function drawSpectrum(){
+  pctx.clearRect(0, 0, PW, PH);
+  var bars = 32;
+  var bw = PW / bars;
+  if (AC && powered){
+    analyser.getByteFrequencyData(freqData);
+    for (var i = 0; i < bars; i++){
+      /* log-ish sample */
+      var idx = Math.floor(Math.pow(i / bars, 1.7) * (freqData.length - 2));
+      var v = freqData[idx] / 255;
+      var h = Math.max(2, v * (PH - 18));
+      var g = pctx.createLinearGradient(0, PH - h, 0, PH);
+      g.addColorStop(0, "#ffb26b");
+      g.addColorStop(1, "rgba(255,92,57,.55)");
+      pctx.fillStyle = g;
+      pctx.fillRect(i * bw + 1.5, PH - 4 - h, bw - 3, h);
+    }
+  } else {
+    pctx.fillStyle = "rgba(232,223,200,.14)";
+    for (var j = 0; j < bars; j++){
+      pctx.fillRect(j * bw + 1.5, PH - 8, bw - 3, 2);
+    }
+  }
+}
+var sigFrame = 0;
+function loop(){
+  raf = requestAnimationFrame(loop);
+  sigFrame++;
+  drawScope();
+  if (sigFrame % 2 === 0) drawSpectrum();
+  if (sigFrame % 20 === 0 && AC && powered){
+    analyser.getByteTimeDomainData(timeData);
+    var peak = 0, i;
+    for (i = 0; i < timeData.length; i += 8){
+      var dv = Math.abs(timeData[i] - 128) / 128;
+      if (dv > peak) peak = dv;
+    }
+    var clipping = peak > 0.94;
+    var sounding = peak > 0.02;
+    els.ledClip.classList.toggle("hot", clipping);
+    els.ledSig.classList.toggle("hot", sounding);
+    els.roClip.style.visibility = clipping ? "visible" : "hidden";
+    els.roVoices.textContent = String(Object.keys(voices).length);
+    els.ledGate.classList.toggle("hot", Object.keys(voices).length > 0);
+  }
+}
+var raf = 0, running = true;
+
+/* ================= toast ================= */
+var toastTimer = 0;
+function showToast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 1900);
+}
+
+/* ================= events ================= */
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    fitLcd();
+    drawCables();
+  }, 140);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+fitLcd();
+drawCables();
+refreshLeds();
+raf = requestAnimationFrame(loop);
+setTimeout(drawCables, 350);
+})();
+</script>
+</body>
+</html>

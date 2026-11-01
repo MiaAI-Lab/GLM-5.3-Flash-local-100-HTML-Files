@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEDUSA — A Ballet of the Abyss</title>
+<style>
+  :root {
+    --ink: #cfe3ff;
+    --bright: #f2f7ff;
+    --dim: #7d93b8;
+    --bio: #7df9ff;
+    --pink: #ff9ecd;
+    --abyss: #030b1c;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", "Courier New", monospace;
+    --serif: ui-serif, Georgia, "Times New Roman", serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scrollbar-color: #123252 #02060f;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #02060f;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #123252;
+    border-radius: 5px;
+    border: 2px solid #02060f;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1d4d78;
+  }
+
+  ::selection {
+    background: rgba(125, 249, 255, 0.28);
+    color: #eaf6ff;
+  }
+
+  body {
+    background: var(--abyss);
+    color: var(--ink);
+    font-family: var(--mono);
+    overflow-x: hidden;
+  }
+
+  #sea {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+  }
+
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(125% 95% at 50% 38%, transparent 52%, rgba(1, 4, 10, 0.6) 100%);
+  }
+
+  .hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: clamp(14px, 2.6vw, 30px);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .readout-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+
+  .readout-value {
+    font-size: clamp(26px, 4.2vw, 42px);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--bright);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 22px rgba(125, 249, 255, 0.22);
+  }
+
+  .readout-value .unit {
+    font-size: 0.42em;
+    color: var(--bio);
+    margin-left: 0.35em;
+    font-weight: 400;
+  }
+
+  .readout-sub {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .readout-sub .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--bio);
+    box-shadow: 0 0 7px var(--bio);
+  }
+
+  .sound {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(6, 18, 38, 0.55);
+    border: 1px solid rgba(125, 249, 255, 0.24);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    padding: 11px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .sound:hover,
+  .sound:focus-visible {
+    border-color: rgba(125, 249, 255, 0.7);
+    box-shadow: 0 0 20px rgba(125, 249, 255, 0.18);
+    outline: none;
+  }
+
+  .sound.on {
+    color: var(--bio);
+    border-color: rgba(125, 249, 255, 0.6);
+  }
+
+  .sound svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .gauge {
+    position: fixed;
+    right: clamp(12px, 2.2vw, 28px);
+    top: 50%;
+    transform: translateY(-50%);
+    height: min(46vh, 380px);
+    width: 1px;
+    background: rgba(207, 227, 255, 0.18);
+    z-index: 4;
+  }
+
+  .gauge .zone {
+    position: absolute;
+    right: 13px;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--dim);
+    white-space: nowrap;
+    transform: translateY(50%);
+  }
+
+  .gauge .tick {
+    position: absolute;
+    left: -4px;
+    width: 9px;
+    height: 1px;
+    background: rgba(207, 227, 255, 0.32);
+  }
+
+  .gauge .marker {
+    position: absolute;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bio);
+    box-shadow: 0 0 14px var(--bio), 0 0 3px #fff;
+    transform: translate(-50%, -50%);
+  }
+
+  .nameplate {
+    position: fixed;
+    left: clamp(14px, 3vw, 42px);
+    bottom: clamp(18px, 4.5vh, 48px);
+    max-width: min(430px, 80vw);
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity 0.26s ease, transform 0.26s ease;
+  }
+
+  .nameplate.swap {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  .nameplate .kicker {
+    font-size: 10px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--bio);
+    margin-bottom: 10px;
+  }
+
+  .nameplate .kicker::before {
+    content: "";
+    display: inline-block;
+    width: 26px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--bio), transparent);
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  .nameplate .latin {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(30px, 4.8vw, 48px);
+    line-height: 1.04;
+    color: var(--bright);
+    text-shadow: 0 0 26px rgba(125, 249, 255, 0.28);
+  }
+
+  .nameplate .common {
+    font-family: var(--serif);
+    font-size: clamp(13px, 1.6vw, 16px);
+    letter-spacing: 0.16em;
+    color: var(--ink);
+    margin-top: 7px;
+  }
+
+  .nameplate .note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(12px, 1.5vw, 14.5px);
+    line-height: 1.58;
+    color: var(--dim);
+    margin-top: 10px;
+    max-width: 38ch;
+  }
+
+  .hint {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(14px, 3vh, 32px);
+    font-size: 10px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--dim);
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity 0.9s ease;
+    animation: bob 2.8s ease-in-out infinite;
+  }
+
+  .hint.gone {
+    opacity: 0;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -7px); }
+  }
+
+  .scroll-space {
+    height: 720vh;
+  }
+
+  .noscript-note {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--dim);
+    text-align: center;
+    padding: 2rem;
+  }
+
+  @media (max-width: 640px) {
+    .gauge {
+      display: none;
+    }
+    .readout-sub {
+      letter-spacing: 0.12em;
+    }
+    .nameplate {
+      max-width: 88vw;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hint {
+      animation: none;
+    }
+    .sound,
+    .nameplate {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="sea" role="img" aria-label="A deep sea scene of bioluminescent jellyfish drifting through darkening water"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="hud">
+  <div class="readout">
+    <span class="readout-label">Depth</span>
+    <span class="readout-value"><span id="depthVal">0000</span><span class="unit">m</span></span>
+    <div class="readout-sub">
+      <span id="pressureVal">1.0 atm</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="tempVal">17.5 °C</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="castVal">cast 5</span>
+    </div>
+  </div>
+  <button id="soundBtn" class="sound" type="button" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9.5v5h4l5 4.5v-14l-5 4.5H4z"></path>
+      <path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7"></path>
+      <path class="wave" d="M19 6a8.5 8.5 0 0 1 0 12"></path>
+    </svg>
+    <span id="soundLabel">Sound off</span>
+  </button>
+</header>
+
+<aside class="gauge" aria-hidden="true">
+  <span class="zone" style="top: 4%;">Sunlight</span>
+  <span class="zone" style="top: 30%;">Twilight</span>
+  <span class="zone" style="top: 66%;">Midnight</span>
+  <span class="tick" style="top: 28%;"></span>
+  <span class="tick" style="top: 55%;"></span>
+  <span class="tick" style="top: 80%;"></span>
+  <span class="marker" id="gaugeMarker"></span>
+</aside>
+
+<section class="nameplate" id="nameplate" aria-live="polite">
+  <p class="kicker">Specimen <span id="bandIndex">01</span> / 04 · <span id="bandDepth">0 – 620 m</span></p>
+  <h1 class="latin" id="latinName">Aurelia victoriae</h1>
+  <p class="common" id="commonName">The Crescent Moon</p>
+  <p class="note" id="bandNote">Bell like dropped porcelain, four rings of pale fire where the stomach should be. Common wherever the light still remembers the sky.</p>
+</section>
+
+<p class="hint" id="hint">Scroll to descend</p>
+
+<div class="scroll-space" aria-hidden="true"></div>
+
+<noscript>
+  <div class="noscript-note">This abyss needs JavaScript to breathe. The jellyfish are waiting behind a disabled curtain.</div>
+</noscript>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+
+  /* ---------- small math helpers ---------- */
+
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const mix3 = (c1, c2, t) => [
+    lerp(c1[0], c2[0], t),
+    lerp(c1[1], c2[1], t),
+    lerp(c1[2], c2[2], t)
+  ];
+  const rgba = (c, a) => 'rgba(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ',' + a + ')';
+
+  /* ---------- DOM ---------- */
+
+  const canvas = document.getElementById('sea');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const depthVal = document.getElementById('depthVal');
+  const pressureVal = document.getElementById('pressureVal');
+  const tempVal = document.getElementById('tempVal');
+  const castVal = document.getElementById('castVal');
+  const gaugeMarker = document.getElementById('gaugeMarker');
+  const nameplate = document.getElementById('nameplate');
+  const bandIndex = document.getElementById('bandIndex');
+  const bandDepth = document.getElementById('bandDepth');
+  const latinName = document.getElementById('latinName');
+  const commonName = document.getElementById('commonName');
+  const bandNote = document.getElementById('bandNote');
+  const hint = document.getElementById('hint');
+  const soundBtn = document.getElementById('soundBtn');
+  const soundLabel = document.getElementById('soundLabel');
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MOTION = reduceMotion ? 0 : 1;
+
+  let W = 0;
+  let H = 0;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    initRays();
+    initSnow();
+  }
+
+  /* ---------- depth model (scroll = descent) ---------- */
+
+  const MAX_DEPTH = 2400;
+  let targetFrac = 0;
+  let frac = 0;
+  let prevFrac = 0;
+
+  function readScroll() {
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    targetFrac = clamp(window.scrollY / max, 0, 1);
+    hideHint();
+  }
+
+  function hideHint() {
+    hint.classList.add('gone');
+  }
+
+  /* ---------- pointer + light rings ---------- */
+
+  const pointer = { x: 0, y: 0, idleT: 99, strength: 0 };
+  const rings = [];
+
+  window.addEventListener('pointermove', (e) => {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.idleT = 0;
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', (e) => {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.idleT = 0;
+    if (e.target && e.target.closest && e.target.closest('button')) return;
+    rings.push({
+      x: e.clientX,
+      y: e.clientY,
+      age: 0,
+      life: 2.6,
+      max: Math.max(W, H) * 0.42
+    });
+    audio.ping();
+    hideHint();
+  });
+
+  /* ---------- specimen bands ---------- */
+
+  const BANDS = [
+    {
+      at: 0,
+      latin: 'Aurelia victoriae',
+      common: 'The Crescent Moon',
+      depth: '0 – 620 m',
+      note: 'Bell like dropped porcelain, four rings of pale fire where the stomach should be. Common wherever the light still remembers the sky.'
+    },
+    {
+      at: 0.28,
+      latin: 'Pelagia noctiluca',
+      common: 'The Mauve Stinger',
+      depth: '620 – 1 260 m',
+      note: 'Warted and luminous, it carries its lanterns in its lips. Old sailors claimed they could read a coming storm in its glow.'
+    },
+    {
+      at: 0.55,
+      latin: 'Atolla wyvillei',
+      common: 'The Alarm Jelly',
+      depth: '1 260 – 1 880 m',
+      note: 'When seized it spins a wheel of blue light, a burglar alarm running thirty million years before the word existed.'
+    },
+    {
+      at: 0.8,
+      latin: 'Bathymedusa spectra',
+      common: 'The Phantom Crown',
+      depth: '1 880 m — floor',
+      note: 'Almost nothing but a circlet of cold fire and a rumour of a bell. This far down, an outline is a luxury.'
+    }
+  ];
+
+  const SPECIES = [
+    { bellA: [143, 184, 255], bellB: [88, 128, 205], rim: [224, 240, 255], bio: [125, 249, 255], core: [224, 240, 255], alphaMul: 1.0, tent: 8, seg: 15, size: [34, 58], len: 0.16, lw: 1.2, pulse: 1.0, thrust: 2.1, curio: 0.85, glow: 0.55, crown: false },
+    { bellA: [224, 176, 255], bellB: [152, 98, 214], rim: [255, 158, 205], bio: [255, 158, 205], core: [255, 224, 244], alphaMul: 0.95, tent: 10, seg: 19, size: [28, 50], len: 0.19, lw: 1.0, pulse: 1.15, thrust: 2.5, curio: 1.1, glow: 0.85, crown: false },
+    { bellA: [205, 118, 190], bellB: [122, 62, 150], rim: [125, 249, 255], bio: [125, 249, 255], core: [208, 255, 255], alphaMul: 0.9, tent: 9, seg: 17, size: [30, 54], len: 0.17, lw: 1.1, pulse: 1.3, thrust: 2.7, curio: 0.9, glow: 1.0, crown: true },
+    { bellA: [126, 170, 235], bellB: [52, 84, 140], rim: [125, 249, 255], bio: [170, 240, 255], core: [235, 250, 255], alphaMul: 0.62, tent: 12, seg: 24, size: [24, 44], len: 0.24, lw: 0.8, pulse: 0.8, thrust: 1.9, curio: 1.25, glow: 1.1, crown: true }
+  ];
+
+  function bandAt(f) {
+    let idx = 0;
+    for (let i = 0; i < BANDS.length; i++) {
+      if (f >= BANDS[i].at) idx = i;
+    }
+    return idx;
+  }
+
+  let currentBand = 0;
+  let bandTimer = 0;
+
+  function setBand(i) {
+    currentBand = i;
+    const b = BANDS[i];
+    nameplate.classList.add('swap');
+    if (bandTimer) window.clearTimeout(bandTimer);
+    bandTimer = window.setTimeout(() => {
+      latinName.textContent = b.latin;
+      commonName.textContent = b.common;
+      bandNote.textContent = b.note;
+      bandDepth.textContent = b.depth;
+      bandIndex.textContent = String(i + 1).padStart(2, '0');
+      nameplate.classList.remove('swap');
+    }, 260);
+  }
+
+  /* ---------- sound (user-initiated only) ---------- */
+
+  const audio = {
+    ctx: null,
+    master: null,
+    on: false,
+    init() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0;
+      this.master.connect(this.ctx.destination);
+      const droneGain = this.ctx.createGain();
+      droneGain.gain.value = 0.055;
+      droneGain.connect(this.master);
+      const freqs = [52, 78.3];
+      const weights = [0.8, 0.4];
+      for (let i = 0; i < 2; i++) {
+        const o = this.ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = freqs[i];
+        const g = this.ctx.createGain();
+        g.gain.value = weights[i];
+        o.connect(g);
+        g.connect(droneGain);
+        o.start();
+      }
+      const lfo = this.ctx.createOscillator();
+      lfo.frequency.value = 0.07;
+      const lg = this.ctx.createGain();
+      lg.gain.value = 0.02;
+      lfo.connect(lg);
+      lg.connect(droneGain.gain);
+      lfo.start();
+      return true;
+    },
+    ping() {
+      if (!this.on || !this.ctx) return;
+      const t = this.ctx.currentTime;
+      const o = this.ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(920, t);
+      o.frequency.exponentialRampToValueAtTime(240, t + 0.55);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.09, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      o.stop(t + 0.65);
+      const o2 = this.ctx.createOscillator();
+      o2.type = 'sine';
+      o2.frequency.setValueAtTime(620, t + 0.28);
+      o2.frequency.exponentialRampToValueAtTime(180, t + 0.9);
+      const g2 = this.ctx.createGain();
+      g2.gain.setValueAtTime(0.0001, t + 0.28);
+      g2.gain.exponentialRampToValueAtTime(0.035, t + 0.3);
+      g2.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+      o2.connect(g2);
+      g2.connect(this.master);
+      o2.start(t + 0.28);
+      o2.stop(t + 1.05);
+    },
+    toggle() {
+      if (!this.ctx) {
+        if (!this.init()) return false;
+      }
+      this.on = !this.on;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      const t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setValueAtTime(this.master.gain.value, t);
+      this.master.gain.linearRampToValueAtTime(this.on ? 0.6 : 0.0, t + 0.4);
+      return this.on;
+    }
+  };
+
+  soundBtn.addEventListener('click', () => {
+    const on = audio.toggle();
+    soundBtn.classList.toggle('on', on);
+    soundBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    soundLabel.textContent = on ? 'Sound on' : 'Sound off';
+  });
+
+  /* ---------- jellyfish ---------- */
+
+  class Jelly {
+    constructor(band, x, y) {
+      this.band = band;
+      this.s = SPECIES[band];
+      const lo = this.s.size[0];
+      const hi = this.s.size[1];
+      const smallView = Math.min(W, H) < 620;
+      this.r = lerp(lo, hi, Math.random()) * (smallView ? 0.78 : 1);
+      this.x = x;
+      this.y = y;
+      const ang = Math.random() * TAU;
+      this.vx = Math.cos(ang) * 6;
+      this.vy = Math.sin(ang) * 6;
+      this.heading = -Math.PI / 2 + (Math.random() - 0.5) * 0.9;
+      this.seedPhase = Math.random() * TAU;
+      this.wanderT = Math.random() * 12;
+      this.phase = Math.random() * TAU;
+      this.freq = lerp(0.85, 1.35, Math.random()) * this.s.pulse;
+      this.contract = 0;
+      this.prevContract = 0;
+      this.flash = 0;
+      this.alpha = 0;
+      this.dying = false;
+      this.segLen = this.r * 0.17 * this.s.len * 6;
+      this.buildChains();
+    }
+
+    buildChains() {
+      const self = this;
+      function makeChain(count, segs) {
+        const pts = [];
+        for (let j = 0; j <= segs; j++) {
+          pts.push({ x: self.x, y: self.y + j * self.segLen * (count > 0 ? 1 : 0.001) });
+        }
+        return { a: 0, pts: pts, seed: Math.random() * TAU };
+      }
+      this.tentacles = [];
+      for (let i = 0; i < this.s.tent; i++) {
+        const c = makeChain(1, this.s.seg + ((Math.random() * 4) | 0));
+        c.a = (i / this.s.tent) * TAU;
+        this.tentacles.push(c);
+      }
+      this.arms = [];
+      for (let i = 0; i < 4; i++) {
+        const c = makeChain(1, Math.round(this.s.seg * 0.55));
+        c.a = (i / 4) * TAU + 0.4;
+        this.arms.push(c);
+      }
+    }
+
+    update(dt, t) {
+      const s = this.s;
+      this.prevContract = this.contract;
+
+      if (MOTION) {
+        this.phase += dt * this.freq * Math.PI;
+      }
+      this.contract = Math.pow(Math.max(0, Math.sin(this.phase)), 1.25);
+
+      if (MOTION) {
+        const dC = (this.contract - this.prevContract) / Math.max(dt, 0.0001);
+        if (dC > 0) {
+          this.vx += Math.cos(this.heading) * dC * s.thrust * this.r * 0.012;
+          this.vy += Math.sin(this.heading) * dC * s.thrust * this.r * 0.012;
+        }
+        if (this.contract > 0.86 && this.prevContract <= 0.86) this.flash = 1;
+        this.heading += Math.sin(this.wanderT * 0.9 + this.seedPhase) * 0.5 * dt;
+        this.wanderT += dt * 0.4;
+      }
+      this.flash = Math.max(0, this.flash - dt * 1.8);
+
+      if (MOTION) {
+        let ax = 0;
+        let ay = 0;
+        let pull = 0;
+        pointer.idleT += dt;
+        pointer.strength = clamp(1 - pointer.idleT / 2.2, 0, 1);
+        if (pointer.strength > 0.03) {
+          const dx = pointer.x - this.x;
+          const dy = pointer.y - this.y;
+          const d = Math.hypot(dx, dy) || 1;
+          if (d > 12 && d < Math.max(W, H) * 0.7) {
+            const w = 30 * pointer.strength * s.curio / Math.max(d, 90);
+            ax = dx / d;
+            ay = dy / d;
+            pull = w;
+          }
+        }
+        for (let i = 0; i < rings.length; i++) {
+          const rg = rings[i];
+          const dx = rg.x - this.x;
+          const dy = rg.y - this.y;
+          const d = Math.hypot(dx, dy) || 1;
+          if (d < rg.r + 320) {
+            const w = (1 - rg.age / rg.life) * 70 / Math.max(d, 70);
+            ax += dx / d * w;
+            ay += dy / d * w;
+            pull += w * 30;
+          }
+        }
+        if (pull > 0) {
+          const target = Math.atan2(ay, ax);
+          let dh = target - this.heading;
+          while (dh > Math.PI) dh -= TAU;
+          while (dh < -Math.PI) dh += TAU;
+          this.heading += clamp(dh, -2.4 * dt, 2.4 * dt);
+          this.vx += ax * pull * dt;
+          this.vy += ay * pull * dt;
+        }
+
+        const drag = Math.exp(-1.25 * dt);
+        this.vx *= drag;
+        this.vy = this.vy * drag - 7 * dt;
+
+        if (this.x < 60) this.vx += 34 * dt;
+        if (this.x > W - 60) this.vx -= 34 * dt;
+        if (this.y < -160) this.vy += 30 * dt;
+        if (this.y > H + 160) this.vy -= 30 * dt;
+
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+      }
+
+      if (this.dying) {
+        this.alpha -= dt * 0.8;
+      } else {
+        this.alpha = Math.min(1, this.alpha + dt * 0.7) * 1;
+      }
+      this.alpha = clamp(this.alpha, 0, 1);
+
+      this.updateChains(t);
+    }
+
+    updateChains(t) {
+      const lipR = this.r * (1.32 - 0.4 * this.contract);
+      const k = 1 - Math.exp(-9 * 0.016);
+      const swayOn = MOTION ? 1 : 0;
+
+      const upd = (chain, radial, lift, isArm) => {
+        const pts = chain.pts;
+        pts[0].x = this.x + Math.cos(chain.a) * radial;
+        pts[0].y = this.y + Math.sin(chain.a) * lift + lipR * 0.06;
+        const seg = this.segLen * (isArm ? 1.02 : 1);
+        const n = pts.length;
+        for (let i = 1; i < n; i++) {
+          const prev = pts[i - 1];
+          const p = pts[i];
+          const sway = swayOn * Math.sin(t * 1.7 + chain.seed + i * 0.45) * (i / n) * this.r * 0.11;
+          const tx = prev.x + sway;
+          const ty = prev.y + seg * (0.97 - this.contract * 0.05);
+          p.x += (tx - p.x) * k;
+          p.y += (ty - p.y) * k;
+        }
+      };
+
+      for (let i = 0; i < this.tentacles.length; i++) {
+        upd(this.tentacles[i], lipR * 0.9, lipR * 0.16, false);
+      }
+      for (let i = 0; i < this.arms.length; i++) {
+        upd(this.arms[i], lipR * 0.32, lipR * 0.1, true);
+      }
+    }
+
+    draw(t) {
+      const s = this.s;
+      const a = this.alpha * s.alphaMul;
+      if (a <= 0.015) return;
+
+      this.drawArms(t, a);
+      this.drawTentacles(a);
+      this.drawBell(t, a);
+    }
+
+    drawArms(t, a) {
+      const s = this.s;
+      for (let i = 0; i < this.arms.length; i++) {
+        const pts = this.arms[i].pts;
+        const n = pts.length;
+        ctx.beginPath();
+        for (let pass = 0; pass < 2; pass++) {
+          for (let j = 0; j < n; j++) {
+            const idx = pass === 0 ? j : n - 1 - j;
+            const p = pts[idx];
+            const q = pts[Math.min(idx + 1, n - 1)];
+            let dx = q.x - p.x;
+            let dy = q.y - p.y;
+            const d = Math.hypot(dx, dy) || 1;
+            const nx = -dy / d;
+            const ny = dx / d;
+            const prog = idx / n;
+            const ruffle = Math.sin(t * 3 + this.arms[i].seed + idx * 0.7) * this.r * 0.02 * prog;
+            const half = this.r * 0.16 * (1 - prog) + ruffle;
+            const sgn = pass === 0 ? 1 : -1;
+            const X = p.x + nx * half * sgn;
+            const Y = p.y + ny * half * sgn;
+            if (pass === 0 && j === 0) ctx.moveTo(X, Y);
+            else ctx.lineTo(X, Y);
+          }
+        }
+        ctx.closePath();
+        ctx.fillStyle = rgba(s.bellA, 0.1 * a);
+        ctx.fill();
+      }
+    }
+
+    drawTentacles(a) {
+      const s = this.s;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < this.tentacles.length; i++) {
+        const pts = this.tentacles[i].pts;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let j = 1; j < pts.length - 1; j++) {
+          const mx = (pts[j].x + pts[j + 1].x) / 2;
+          const my = (pts[j].y + pts[j + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[j].x, pts[j].y, mx, my);
+        }
+        ctx.strokeStyle = rgba(s.bio, 0.26 * a);
+        ctx.lineWidth = Math.max(0.7, this.r * 0.042);
+        ctx.stroke();
+        ctx.strokeStyle = rgba(s.core, 0.3 * a);
+        ctx.lineWidth = Math.max(0.4, this.r * 0.016);
+        ctx.stroke();
+      }
+    }
+
+    drawBell(t, a) {
+      const s = this.s;
+      const c = this.contract;
+      const r = this.r;
+      const w = r * (1.32 - 0.4 * c);
+      const h = r * (0.92 + 0.55 * c);
+      const sh = clamp(this.vx * 0.02, -r * 0.26, r * 0.26);
+
+      const glowA = 0.16 * a * s.glow * (0.5 + this.flash);
+      if (glowA > 0.02) {
+        const R = r * 2.6;
+        const gg = ctx.createRadialGradient(0, -r * 0.3, r * 0.2, 0, -r * 0.3, R);
+        gg.addColorStop(0, rgba(s.bio, glowA));
+        gg.addColorStop(1, rgba(s.bio, 0));
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = gg;
+        ctx.beginPath();
+        ctx.arc(0, -r * 0.3, R, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.translate(this.x, this.y);
+
+      const g = ctx.createRadialGradient(sh * 0.4, -h * 0.5, r * 0.12, 0, -h * 0.15, w * 1.35);
+      g.addColorStop(0, rgba(s.bellA, (0.4 + 0.22 * this.flash) * a));
+      g.addColorStop(0.6, rgba(s.bellB, 0.18 * a));
+      g.addColorStop(1, rgba(s.bellB, 0));
+
+      ctx.beginPath();
+      ctx.moveTo(-w, 0);
+      ctx.bezierCurveTo(-w + sh * 0.3, -h * 1.08, -w * 0.5 + sh, -h * 1.32, sh * 0.6, -h * 1.3);
+      ctx.bezierCurveTo(w * 0.5 + sh, -h * 1.32, w + sh * 0.3, -h * 1.08, w, 0);
+      ctx.bezierCurveTo(w * 0.62, h * 0.16, w * 0.3, -h * 0.06, 0, h * 0.12);
+      ctx.bezierCurveTo(-w * 0.3, -h * 0.06, -w * 0.62, h * 0.16, -w, 0);
+      ctx.closePath();
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      ctx.strokeStyle = rgba(s.rim, (0.3 + 0.45 * this.flash) * a);
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+
+      if (this.band === 0) {
+        ctx.strokeStyle = rgba(s.rim, 0.45 * a);
+        ctx.lineWidth = Math.max(1, r * 0.05);
+        for (let i = 0; i < 4; i++) {
+          const gx = Math.cos(i * TAU / 4 + 0.6) * r * 0.34 + sh * 0.3;
+          const gy = -h * 0.35 + Math.sin(i * TAU / 4 + 0.6) * r * 0.12;
+          ctx.beginPath();
+          ctx.arc(gx, gy, r * 0.16, Math.PI * 0.15, Math.PI * 0.85);
+          ctx.stroke();
+        }
+      }
+
+      if (s.crown) {
+        ctx.setLineDash([3, 5]);
+        ctx.strokeStyle = rgba(s.bio, (0.35 + 0.5 * this.flash) * a);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(sh * 0.4, -h * 0.45, w * 0.55, h * 0.42, 0, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+    }
+  }
+
+  /* ---------- god rays ---------- */
+
+  const rays = [];
+
+  function initRays() {
+    rays.length = 0;
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      rays.push({
+        x: Math.random(),
+        w: 0.05 + Math.random() * 0.09,
+        sp: 0.05 + Math.random() * 0.09,
+        ph: Math.random() * TAU,
+        tilt: 0.16 + Math.random() * 0.24
+      });
+    }
+  }
+
+  function drawRays() {
+    const vis = clamp(1 - frac / 0.34, 0, 1);
+    if (vis <= 0.01) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < rays.length; i++) {
+      const r = rays[i];
+      const sway = MOTION ? Math.sin(tGlobal * r.sp + r.ph) * 0.06 : 0;
+      const flick = MOTION ? 0.05 * Math.sin(tGlobal * 0.7 + r.ph) : 0;
+      const a = vis * (0.055 + flick);
+      if (a <= 0.012) continue;
+      const x0 = r.x * W + sway * W * 0.2;
+      const g = ctx.createLinearGradient(0, 0, 0, H * 0.95);
+      g.addColorStop(0, 'rgba(150, 200, 255, ' + a.toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(150, 200, 255, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(x0 - W * r.w * 0.5, -20);
+      ctx.lineTo(x0 + W * r.w * 0.5, -20);
+      ctx.lineTo(x0 + H * r.tilt + W * r.w * 0.9, H * 0.95);
+      ctx.lineTo(x0 + H * r.tilt - W * r.w * 0.9, H * 0.95);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* ---------- marine snow ---------- */
+
+  const snow = [];
+
+  function initSnow() {
+    snow.length = 0;
+    const n = Math.round(clamp(W * H / 16000, 50, 150));
+    for (let i = 0; i < n; i++) {
+      snow.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        z: 0.35 + Math.random() * 0.65,
+        ph: Math.random() * TAU
+      });
+    }
+  }
+
+  function drawSnow(dt) {
+    const descend = (frac - prevFrac) * H;
+    for (let i = 0; i < snow.length; i++) {
+      const p = snow[i];
+      if (MOTION) {
+        p.y += (5 + p.z * 9) * dt - descend * p.z * 0.55;
+        p.x += Math.sin(tGlobal * 0.4 + p.ph) * 0.14;
+        if (p.y > H + 6) { p.y = -6; p.x = Math.random() * W; }
+        if (p.y < -8) { p.y = H + 6; p.x = Math.random() * W; }
+        if (p.x > W + 6) p.x = -6;
+        if (p.x < -6) p.x = W + 6;
+      }
+      ctx.fillStyle = 'rgba(207, 227, 255, ' + (0.07 + p.z * 0.2).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 0.6 + p.z * 1.5, 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  /* ---------- pulse rings ---------- */
+
+  function drawRings(dt) {
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const rg = rings[i];
+      rg.age += dt;
+      if (rg.age >= rg.life) {
+        rings.splice(i, 1);
+        continue;
+      }
+      const k = rg.age / rg.life;
+      const ease = 1 - Math.pow(1 - k, 3);
+      const R = rg.max * ease;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const g = ctx.createRadialGradient(rg.x, rg.y, Math.max(1, R * 0.5), rg.x, rg.y, R + 34);
+      g.addColorStop(0, 'rgba(125, 249, 255, 0)');
+      g.addColorStop(0.82, 'rgba(125, 249, 255, ' + (0.2 * (1 - k)).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(125, 249, 255, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(rg.x, rg.y, R + 34, 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(224, 240, 255, ' + (0.5 * (1 - k)).toFixed(3) + ')';
+      ctx.lineWidth = 1.5 + 2 * (1 - k);
+      ctx.beginPath();
+      ctx.arc(rg.x, rg.y, R, 0, TAU);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /* ---------- cast management ---------- */
+
+  const jellies = [];
+  let spawnCooldown = 0;
+  let initialPhase = true;
+
+  function targetCount() {
+    return 5 + Math.round(frac * 13);
+  }
+
+  function spawnOne() {
+    const base = bandAt(frac);
+    const band = Math.random() < 0.75 ? base : clamp(base + (Math.random() < 0.5 ? -1 : 1), 0, 3);
+    let x;
+    let y;
+    if (initialPhase) {
+      x = W * 0.12 + Math.random() * W * 0.76;
+      y = H * 0.2 + Math.random() * H * 0.6;
+    } else {
+      const roll = Math.random();
+      if (roll < 0.4) {
+        x = Math.random() * W;
+        y = -90;
+      } else if (roll < 0.8) {
+        x = Math.random() * W;
+        y = H + 90;
+      } else {
+        x = Math.random() < 0.5 ? -90 : W + 90;
+        y = Math.random() * H;
+      }
+    }
+    jellies.push(new Jelly(band, x, y));
+  }
+
+  function manageCast(dt) {
+    const target = targetCount();
+    const alive = jellies.filter((j) => !j.dying).length;
+    if (alive >= target) initialPhase = false;
+    spawnCooldown -= dt;
+    if (alive < target && spawnCooldown <= 0) {
+      spawnOne();
+      spawnCooldown = 0.35;
+    }
+    let excess = alive - target;
+    if (excess > 0) {
+      for (let i = 0; i < jellies.length && excess > 0; i++) {
+        if (!jellies[i].dying) {
+          jellies[i].dying = true;
+          excess--;
+        }
+      }
+    }
+    for (let i = jellies.length - 1; i >= 0; i--) {
+      if (jellies[i].dying && jellies[i].alpha <= 0) jellies.splice(i, 1);
+    }
+    jellies.sort((a, b) => a.r - b.r);
+  }
+
+  /* ---------- HUD ---------- */
+
+  function updateHud() {
+    const depth = Math.round(frac * MAX_DEPTH);
+    depthVal.textContent = String(depth).padStart(4, '0');
+    pressureVal.textContent = (1 + depth / 10).toFixed(1) + ' atm';
+    const temp = 17.5 * Math.pow(1 - frac, 1.6) + 2.2;
+    tempVal.textContent = temp.toFixed(1) + ' °C';
+    castVal.textContent = 'cast ' + jellies.filter((j) => !j.dying).length;
+    gaugeMarker.style.top = (frac * 100).toFixed(2) + '%';
+    const b = bandAt(frac);
+    if (b !== currentBand) setBand(b);
+  }
+
+  /* ---------- scene + loop ---------- */
+
+  function drawBackground() {
+    const k = clamp(frac * 1.35, 0, 1);
+    const top = mix3([16, 56, 100], [3, 11, 28], k);
+    const mid = mix3([10, 31, 61], [4, 12, 30], frac);
+    const bot = mix3([4, 14, 32], [2, 6, 16], frac);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, rgba(top, 1));
+    g.addColorStop(0.5, rgba(mid, 1));
+    g.addColorStop(1, rgba(bot, 1));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  let tGlobal = 0;
+  let last = performance.now();
+  let rafId = 0;
+
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.1) dt = 0.1;
+    if (dt < 0) dt = 0;
+    tGlobal += dt;
+
+    prevFrac = frac;
+    frac += (targetFrac - frac) * Math.min(1, dt * 3);
+
+    manageCast(dt);
+    for (let i = 0; i < jellies.length; i++) {
+      jellies[i].update(dt, tGlobal);
+    }
+
+    drawBackground();
+    drawRays();
+    drawSnow(dt);
+    for (let i = 0; i < jellies.length; i++) {
+      jellies[i].draw(tGlobal);
+    }
+    drawRings(dt);
+
+    updateHud();
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('scroll', readScroll, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) last = performance.now();
+  });
+  window.addEventListener('pagehide', () => {
+    cancelAnimationFrame(rafId);
+  });
+
+  resize();
+  readScroll();
+  frac = targetFrac;
+  rafId = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

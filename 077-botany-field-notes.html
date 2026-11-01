@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="FLORA INCOGNITA — a botanist's field notebook: pressed specimens that grow from seed to bloom under your cursor, scrubable lifecycle timelines, watercolor swatches, a ruler and a working loupe.">
+<meta name="theme-color" content="#f2ecdc">
+<title>Flora Incognita — A Botanist's Field Notebook</title>
+<style>
+  :root{
+    --paper:#f2ecdc;
+    --paper-deep:#eae2cc;
+    --sheet:#f7f2e3;
+    --ink:#3a352c;
+    --ink-soft:rgba(58,53,44,.62);
+    --ink-faint:rgba(58,53,44,.34);
+    --rule:rgba(58,53,44,.35);
+    --rule-soft:rgba(58,53,44,.16);
+    --green:#7d9b76;
+    --green-deep:#5c7a58;
+    --bloom:#c97b8e;
+    --bloom-deep:#a85a70;
+    --violet:#8a7ab0;
+    --poppy:#c0522f;
+    --twine:#b59a6a;
+    --tape:rgba(214,196,148,.55);
+    --stamp:rgba(163,60,42,.5);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,ui-serif,Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Courier New",Courier,monospace;
+    --italic-serif:"Iowan Old Style",Palatino,Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%}
+  body{
+    min-height:100vh;
+    color:var(--ink);
+    font-family:var(--serif);
+    background:
+      radial-gradient(1100px 700px at 15% -8%, rgba(255,255,255,.55), transparent 58%),
+      radial-gradient(900px 600px at 106% 112%, rgba(125,155,118,.10), transparent 60%),
+      var(--paper);
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--green);color:#f7f4e6}
+  body::-webkit-scrollbar{width:10px}
+  body::-webkit-scrollbar-track{background:var(--paper-deep)}
+  body::-webkit-scrollbar-thumb{background:#c3b58f;border:2px solid var(--paper-deep);border-radius:6px}
+
+  .notebook{
+    max-width:1180px;
+    margin:0 auto;
+    padding:clamp(16px,3vh,36px) clamp(14px,3vw,42px) 40px;
+  }
+
+  /* ————— masthead ————— */
+  .masthead{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:clamp(10px,1.8vh,16px);
+    position:relative;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(30px,5vw,54px);
+    letter-spacing:.06em;
+    line-height:1;
+  }
+  .masthead h1 i{color:var(--green-deep)}
+  .masthead .sub{
+    font-style:italic;
+    font-size:clamp(12px,1.7vw,16px);
+    color:var(--ink-soft);
+    margin-top:.55em;
+  }
+  .expedition{
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1.05vw,10.5px);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    text-align:right;
+    line-height:1.9;
+  }
+  .expedition b{font-weight:400;color:var(--ink)}
+
+  /* ————— desk strip: ruler + loupe parking ————— */
+  .desk{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin:clamp(10px,1.8vh,16px) 0 clamp(14px,2.4vh,22px);
+    flex-wrap:wrap;
+  }
+  .ruler{
+    flex:1 1 240px;
+    min-width:220px;
+    height:34px;
+    background:linear-gradient(180deg,#f4ead0,#e9dcba);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    box-shadow:0 2px 5px rgba(58,53,44,.18), inset 0 1px 0 rgba(255,255,255,.6);
+    position:relative;
+    overflow:hidden;
+  }
+  .ruler .ticks{
+    position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent 0 calc(10% - 1px), var(--ink-soft) calc(10% - 1px) 10%),
+      repeating-linear-gradient(90deg,
+        transparent 0 calc(2% - 1px), var(--ink-faint) calc(2% - 1px) 2%);
+    background-size:100% 55%,100% 26%;
+    background-position:0 100%,0 100%;
+    background-repeat:no-repeat;
+  }
+  .ruler .nums{
+    position:absolute;inset:0;
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    display:flex;
+  }
+  .ruler .nums span{flex:1 1 0;text-align:right;padding:3px 3px 0 0}
+  .desknote{
+    font-style:italic;
+    font-size:clamp(11px,1.5vw,13.5px);
+    color:var(--ink-soft);
+  }
+  .loupehint{
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  /* ————— specimen grid ————— */
+  .specimens{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:clamp(14px,2.4vw,24px);
+  }
+  .sheet{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 30%),
+      var(--sheet);
+    border:1px solid var(--rule);
+    box-shadow:0 8px 22px rgba(58,53,44,.16), 0 1px 3px rgba(58,53,44,.14);
+    padding:clamp(12px,1.8vw,18px);
+    position:relative;
+  }
+  .sheet:nth-child(1){transform:rotate(-.5deg)}
+  .sheet:nth-child(2){transform:rotate(.35deg)}
+  .sheet:nth-child(3){transform:rotate(-.3deg)}
+  .tape{
+    position:absolute;
+    width:74px;height:22px;
+    background:linear-gradient(180deg, rgba(228,212,164,.72), var(--tape));
+    box-shadow:0 1px 3px rgba(58,53,44,.2);
+    opacity:.9;
+  }
+  .tape.tl{top:-9px;left:18px;transform:rotate(-6deg)}
+  .tape.tr{top:-9px;right:18px;transform:rotate(5deg)}
+  .sheethead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:7px;
+    margin-bottom:8px;
+  }
+  .sheethead .latin{
+    font-style:italic;
+    font-size:clamp(15px,1.9vw,18.5px);
+    letter-spacing:.02em;
+  }
+  .sheethead .latin small{
+    display:block;
+    font-style:normal;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .sheethead .no{
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.16em;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .stagebox{
+    position:relative;
+    border:1px solid var(--rule-soft);
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(255,255,255,.55), transparent 60%),
+      linear-gradient(180deg, #f9f4e6, #f1e9d2);
+    cursor:pointer;
+    touch-action:pan-y;
+  }
+  .stagebox canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .soil{
+    position:absolute;left:0;right:0;bottom:0;height:14%;
+    background:linear-gradient(180deg, rgba(122,92,68,.12), rgba(122,92,68,.3));
+    border-top:1px dashed rgba(122,92,68,.4);
+    pointer-events:none;
+  }
+  .figlbl{
+    position:absolute;top:6px;left:8px;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.2em;
+    color:var(--ink-faint);
+    pointer-events:none;
+  }
+  .stamp{
+    position:absolute;top:8px;right:8px;
+    width:64px;height:64px;border-radius:50%;
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.18em;
+    text-align:center;
+    text-transform:uppercase;
+    transform:rotate(9deg);
+    pointer-events:none;
+    line-height:1.5;
+    opacity:.85;
+  }
+  .stamp::before{
+    content:"";
+    position:absolute;inset:5px;
+    border:1px solid var(--stamp);
+    border-radius:50%;
+    opacity:.7;
+  }
+
+  /* ————— timeline ————— */
+  .timeline{
+    margin-top:10px;
+  }
+  .stagecap{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .stagecap .stage{
+    color:var(--green-deep);
+    font-size:9.5px;
+  }
+  input.track{
+    -webkit-appearance:none;appearance:none;
+    width:100%;
+    height:24px;
+    background:transparent;
+    cursor:ew-resize;
+    display:block;
+  }
+  input.track::-webkit-slider-runnable-track{
+    height:2px;
+    background:
+      repeating-linear-gradient(90deg, var(--ink-faint) 0 1px, transparent 1px 20%),
+      linear-gradient(90deg, var(--rule), var(--rule));
+    background-size:100% 8px, 100% 2px;
+    background-position:0 100%, 0 100%;
+    background-repeat:no-repeat;
+    border-radius:1px;
+  }
+  input.track::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:13px;height:13px;border-radius:50%;
+    background:var(--green);
+    border:2px solid var(--sheet);
+    box-shadow:0 0 0 1.5px var(--green-deep), 0 2px 4px rgba(58,53,44,.3);
+    margin-top:-6px;
+  }
+  input.track::-moz-range-track{
+    height:2px;background:var(--rule);border-radius:1px;
+  }
+  input.track::-moz-range-thumb{
+    width:11px;height:11px;border-radius:50%;
+    background:var(--green);
+    border:2px solid var(--sheet);
+    box-shadow:0 0 0 1.5px var(--green-deep);
+  }
+  input.track:focus-visible{outline:2px solid var(--green-deep);outline-offset:3px;border-radius:4px}
+  .markers{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-top:2px;
+  }
+
+  /* ————— annotations ————— */
+  .notes{
+    margin-top:10px;
+    font-style:italic;
+    font-size:clamp(11px,1.4vw,12.5px);
+    line-height:1.6;
+    color:var(--ink-soft);
+    background:repeating-linear-gradient(180deg, transparent 0 21px, var(--rule-soft) 21px 22px);
+    padding-top:2px;
+  }
+  .notes b{
+    font-style:normal;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.14em;
+    color:var(--green-deep);
+    text-transform:uppercase;
+  }
+  .meta{
+    margin-top:9px;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:.1em;
+    color:var(--ink-soft);
+    line-height:1.85;
+  }
+  .meta .k{color:var(--ink-faint);text-transform:uppercase;letter-spacing:.18em;font-size:8px}
+
+  /* ————— swatches + observations band ————— */
+  .band{
+    margin-top:clamp(18px,3vh,28px);
+    display:grid;
+    grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+    gap:clamp(14px,2.4vw,24px);
+    align-items:stretch;
+  }
+  .obs{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0) 26%),
+      var(--sheet);
+    border:1px solid var(--rule);
+    box-shadow:0 8px 22px rgba(58,53,44,.14);
+    padding:clamp(14px,2vw,20px) clamp(16px,2.2vw,24px);
+    position:relative;
+  }
+  .obs h2{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(15px,2vw,19px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:8px;
+    margin-bottom:10px;
+  }
+  .obs h2 small{
+    font-family:var(--mono);
+    font-size:8.5px;
+    letter-spacing:.24em;
+    color:var(--ink-soft);
+    float:right;
+    margin-top:6px;
+  }
+  .obs p{
+    font-style:italic;
+    font-size:clamp(12px,1.55vw,14px);
+    line-height:1.85;
+    color:var(--ink-soft);
+    background:repeating-linear-gradient(180deg, transparent 0 26px, var(--rule-soft) 26px 27px);
+  }
+  .obs p b{font-style:normal;color:var(--ink)}
+  .twine{
+    position:absolute;
+    top:-8px;right:22px;
+    width:60px;height:34px;
+    pointer-events:none;
+  }
+  .swatchpanel{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,0) 26%),
+      var(--sheet);
+    border:1px solid var(--rule);
+    box-shadow:0 8px 22px rgba(58,53,44,.14);
+    padding:clamp(14px,2vw,20px);
+  }
+  .swatchpanel h2{
+    font-family:var(--serif);
+    font-weight:500;
+    font-size:clamp(14px,1.8vw,17px);
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:8px;
+    margin-bottom:12px;
+  }
+  .swatches{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px 14px;
+  }
+  .sw{
+    width:clamp(58px,6.5vw,72px);
+    text-align:center;
+  }
+  .sw .blob{
+    width:100%;
+    aspect-ratio:1;
+    border-radius:46% 54% 52% 48% / 55% 46% 54% 45%;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.55), transparent 42%),
+      radial-gradient(circle at 68% 74%, rgba(0,0,0,.10), transparent 46%),
+      var(--c,#7d9b76);
+    box-shadow:inset 0 -3px 8px rgba(0,0,0,.14), 0 3px 8px rgba(58,53,44,.2);
+    transition:transform .25s ease;
+  }
+  .sw:hover .blob,.sw:focus-visible .blob{transform:translateY(-3px) rotate(-3deg)}
+  .sw .nm{
+    font-style:italic;
+    font-size:10px;
+    margin-top:6px;
+    line-height:1.3;
+    color:var(--ink-soft);
+  }
+  .sw .cd{
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.16em;
+    color:var(--ink-faint);
+    margin-top:2px;
+  }
+  .swatchnote{
+    margin-top:12px;
+    font-style:italic;
+    font-size:11px;
+    color:var(--ink-faint);
+    line-height:1.6;
+  }
+
+  .colophon{
+    margin-top:clamp(20px,3.4vh,32px);
+    text-align:center;
+    font-family:var(--mono);
+    font-size:clamp(8.5px,1vw,10px);
+    letter-spacing:.28em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  /* ————— the loupe ————— */
+  .loupe{
+    position:fixed;
+    z-index:40;
+    width:clamp(120px,14vw,158px);
+    height:clamp(120px,14vw,158px);
+    border-radius:50%;
+    left:24px;top:120px;
+    cursor:grab;
+    touch-action:none;
+    filter:drop-shadow(0 10px 16px rgba(58,53,44,.35));
+    transition:filter .2s ease;
+  }
+  .loupe:active{cursor:grabbing}
+  .loupe .glass{
+    position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.75), rgba(255,255,255,.16) 34%, rgba(214,224,222,.18) 60%, rgba(160,176,170,.28) 100%);
+    box-shadow:
+      inset 0 0 0 5px #a8843c,
+      inset 0 0 0 7px #c9a75a,
+      inset 0 4px 14px rgba(255,255,255,.5),
+      inset 0 -8px 18px rgba(90,70,30,.25);
+    overflow:hidden;
+  }
+  .loupe canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .loupe .cross{
+    position:absolute;inset:0;pointer-events:none;
+    opacity:.5;
+  }
+  .loupe .cross::before,.loupe .cross::after{
+    content:"";
+    position:absolute;background:rgba(58,53,44,.5);
+  }
+  .loupe .cross::before{left:50%;top:18%;bottom:18%;width:1px}
+  .loupe .cross::after{top:50%;left:18%;right:18%;height:1px}
+  .loupe .readout{
+    position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
+    font-family:var(--mono);
+    font-size:7.5px;
+    letter-spacing:.14em;
+    color:var(--ink);
+    background:rgba(247,242,227,.85);
+    border:1px solid var(--rule-soft);
+    padding:2px 6px;
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .loupe .handle{
+    position:absolute;
+    right:-16%;bottom:-14%;
+    width:34%;height:16%;
+    transform:rotate(-38deg);
+    background:linear-gradient(180deg, #c9a75a, #8a6a2c 60%, #6d5322);
+    border-radius:8px;
+    box-shadow:0 3px 6px rgba(58,53,44,.35), inset 0 1px 0 rgba(255,240,200,.6);
+  }
+
+  .noscript{
+    margin:60px auto;max-width:460px;text-align:center;
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink-soft);
+    border:1px solid var(--rule);padding:18px;
+  }
+
+  @media (max-width:960px){
+    .specimens{grid-template-columns:repeat(2, minmax(0,1fr))}
+    .band{grid-template-columns:1fr}
+  }
+  @media (max-width:620px){
+    .specimens{grid-template-columns:1fr}
+    .sheet:nth-child(n){transform:none}
+    .loupe{display:none}
+    .expedition{text-align:left}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sw .blob{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<main class="notebook">
+
+  <header class="masthead">
+    <div>
+      <h1>Flora <i>Incognita</i></h1>
+      <p class="sub">Field notes from the long meadow &mdash; three specimens pressed, observed &amp; persuaded to grow again</p>
+    </div>
+    <p class="expedition">Expedition <b>IV</b> &#183; Sheet <b>22 of 60</b><br>Collected <b>14&#8211;19 May</b> &#183; Lat <b>46.52&#176; N</b><br>Botanist: <b> oneself, unwashed</b></p>
+  </header>
+
+  <div class="desk">
+    <div class="ruler" aria-hidden="true">
+      <span class="ticks"></span>
+      <span class="nums"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></span>
+    </div>
+    <p class="desknote">Hover a specimen and it lives its whole season beneath your eye; the timeline beneath each sheet may be slowed, stopped &amp; read backwards.</p>
+    <p class="loupehint">The loupe travels &#8212; drag it over a sheet</p>
+  </div>
+
+  <section class="specimens" aria-label="Pressed specimen sheets">
+
+    <article class="sheet" data-species="0">
+      <span class="tape tl" aria-hidden="true"></span>
+      <span class="tape tr" aria-hidden="true"></span>
+      <header class="sheethead">
+        <h3 class="latin">Silena vesperis<small>Meadow catchfly &#183; pink</small></h3>
+        <span class="no">Sheet N&ordm; 22-1</span>
+      </header>
+      <div class="stagebox">
+        <canvas tabindex="0" aria-label="Lifecycle of Silena vesperis. Press enter to grow, or use the timeline below."></canvas>
+        <span class="soil" aria-hidden="true"></span>
+        <span class="figlbl">fig. 1 &#8212; live</span>
+        <span class="stamp" aria-hidden="true">Herbarium<br>MMXXVI<br>meadow iv</span>
+      </div>
+      <div class="timeline">
+        <div class="stagecap">
+          <span class="stage" id="stage0">SEED &#183; day 0</span>
+          <span id="pct0">0%</span>
+        </div>
+        <input class="track" id="track0" type="range" min="0" max="1000" value="0" aria-label="Lifecycle timeline for Silena vesperis">
+        <div class="markers"><span>seed</span><span>sprout</span><span>leaf</span><span>bud</span><span>bloom</span><span>fruit</span></div>
+      </div>
+      <p class="notes"><b>Obs.</b> &mdash; opens only at dusk; the five petals blush deeper where the light has been. Stem hairy, bends east by morning.</p>
+      <p class="meta"><span class="k">Habit</span> 34&#8211;41 cm &#183; <span class="k">Corolla</span> 5-merous &#183; <span class="k">Bloom</span> IX&#8211;VI</p>
+    </article>
+
+    <article class="sheet" data-species="1">
+      <span class="tape tl" aria-hidden="true"></span>
+      <span class="tape tr" aria-hidden="true"></span>
+      <header class="sheethead">
+        <h3 class="latin">Aquilegia incognita<small>Unknown columbine &#183; violet</small></h3>
+        <span class="no">Sheet N&ordm; 22-2</span>
+      </header>
+      <div class="stagebox">
+        <canvas tabindex="0" aria-label="Lifecycle of Aquilegia incognita. Press enter to grow, or use the timeline below."></canvas>
+        <span class="soil" aria-hidden="true"></span>
+        <span class="figlbl">fig. 2 &#8212; live</span>
+      </div>
+      <div class="timeline">
+        <div class="stagecap">
+          <span class="stage" id="stage1">SEED &#183; day 0</span>
+          <span id="pct1">0%</span>
+        </div>
+        <input class="track" id="track1" type="range" min="0" max="1000" value="0" aria-label="Lifecycle timeline for Aquilegia incognita">
+        <div class="markers"><span>seed</span><span>sprout</span><span>leaf</span><span>bud</span><span>bloom</span><span>fruit</span></div>
+      </div>
+      <p class="notes"><b>Obs.</b> &mdash; spurs too long for any bee I know; suspect the hawkmoth. Leaf tri-lobed, glaucous beneath, nods like a sleeper.</p>
+      <p class="meta"><span class="k">Habit</span> 48&#8211;60 cm &#183; <span class="k">Corolla</span> spurred 22 mm &#183; <span class="k">Bloom</span> V&#8211;VII</p>
+    </article>
+
+    <article class="sheet" data-species="2">
+      <span class="tape tl" aria-hidden="true"></span>
+      <span class="tape tr" aria-hidden="true"></span>
+      <header class="sheethead">
+        <h3 class="latin">Papaver errans<small>Wanderer&rsquo;s poppy &#183; scarlet</small></h3>
+        <span class="no">Sheet N&ordm; 22-3</span>
+      </header>
+      <div class="stagebox">
+        <canvas tabindex="0" aria-label="Lifecycle of Papaver errans. Press enter to grow, or use the timeline below."></canvas>
+        <span class="soil" aria-hidden="true"></span>
+        <span class="figlbl">fig. 3 &#8212; live</span>
+      </div>
+      <div class="timeline">
+        <div class="stagecap">
+          <span class="stage" id="stage2">SEED &#183; day 0</span>
+          <span id="pct2">0%</span>
+        </div>
+        <input class="track" id="track2" type="range" min="0" max="1000" value="0" aria-label="Lifecycle timeline for Papaver errans">
+        <div class="markers"><span>seed</span><span>sprout</span><span>leaf</span><span>bud</span><span>bloom</span><span>fruit</span></div>
+      </div>
+      <p class="notes"><b>Obs.</b> &mdash; four petals the colour of brick dust; the bud bows until the very morning it opens, then stands like a soldier.</p>
+      <p class="meta"><span class="k">Habit</span> 28&#8211;36 cm &#183; <span class="k">Capsule</span> glabrous &#183; <span class="k">Bloom</span> IV&#8211;VI</p>
+    </article>
+
+  </section>
+
+  <section class="band">
+    <article class="obs">
+      <svg class="twine" viewBox="0 0 60 34" aria-hidden="true">
+        <path d="M4 12 C14 2, 26 4, 30 12 C34 4, 46 2, 56 12" fill="none" stroke="#b59a6a" stroke-width="3.4" stroke-linecap="round"/>
+        <path d="M30 12 C28 20, 22 24, 18 30 M30 12 C32 20, 38 24, 42 30" fill="none" stroke="#b59a6a" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <h2>Observations <small>continuous</small></h2>
+      <p><b>19 May, evening.</b> The meadow keeps its own ledger. The catchfly opens as the light fails &#8212; five petals, a small pale lamp. The columbine will not open for me at all; it waits, I think, for a moth I have never met. The poppy spends itself in a single morning and calls the expense reasonable.
+      <br><b>20 May, rain.</b> Pressed all three between the pages of this book. Under the loupe the hairs on the stem stand like a forest; a whole weather of their own. What the eye reads as green is a parliament of greens &#8212; see the swatches, mixed from the crushed leaf and the crushed honesty of naming them.</p>
+    </article>
+    <aside class="swatchpanel" aria-label="Watercolor swatches">
+      <h2>Pigments of the meadow</h2>
+      <div class="swatches">
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#7d9b76"></span><span class="nm">Leaf Green</span><span class="cd">FL-01</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#5c7a58"></span><span class="nm">Bryophyte</span><span class="cd">FL-02</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#c97b8e"></span><span class="nm">Catchfly</span><span class="cd">FL-03</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#8a7ab0"></span><span class="nm">Columbine</span><span class="cd">FL-04</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#c0522f"></span><span class="nm">Poppy Red</span><span class="cd">FL-05</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#b59a6a"></span><span class="nm">Twine</span><span class="cd">FL-06</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#d9c89a"></span><span class="nm">Pollen</span><span class="cd">FL-07</span></div>
+        <div class="sw" tabindex="0"><span class="blob" style="--c:#6b5d3a"></span><span class="nm">Loam</span><span class="cd">FL-08</span></div>
+      </div>
+      <p class="swatchnote">Ground by hand on glass; each wash laid in two passes while the paper was still damp from the morning.</p>
+    </aside>
+  </section>
+
+  <p class="colophon">Pressed &#183; observed &#183; watercolored &#183; and persuaded to grow again on canvas &#183; MMXXVI</p>
+
+</main>
+
+<aside class="loupe" id="loupe" aria-hidden="true">
+  <span class="glass">
+    <canvas id="loupeCanvas"></canvas>
+    <span class="cross"></span>
+  </span>
+  <span class="readout" id="loupeOut">no specimen</span>
+  <span class="handle" aria-hidden="true"></span>
+</aside>
+
+<div class="noscript" id="noscript" hidden>
+  The specimens grow on canvas &#8212; JavaScript required to coax them.
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   FLORA INCOGNITA — three procedural plants drawn on canvas.
+   A lifecycle parameter t in [0,1] drives seed -> sprout ->
+   leaf -> bud -> bloom -> fruit for each species. Hovering a
+   sheet plays the season forward; the timeline scrubs it by
+   hand. The brass loupe is draggable and magnifies whatever
+   sheet it rests upon.
+   ============================================================ */
+
+var REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var DPR = Math.min(2, window.devicePixelRatio || 1);
+
+/* ————— species recipes ————— */
+
+var SPECIES = [
+  {
+    latin: "S. vesperis",
+    stemH: 0.66, curve: 0.16, hairy: true,
+    leaves: 5, leafLen: 0.30,
+    petals: 5, petalColor: "#c97b8e", petalDeep: "#a85a70",
+    flower: "open", core: "#d9c89a",
+    budColor: "#b98aa0", stemColor: "#6f8f68"
+  },
+  {
+    latin: "A. incognita",
+    stemH: 0.78, curve: -0.12, hairy: false,
+    leaves: 4, leafLen: 0.34,
+    petals: 5, petalColor: "#8a7ab0", petalDeep: "#6a5a92",
+    flower: "spurred", core: "#e8d9a0",
+    budColor: "#9a8ac0", stemColor: "#6b8a64"
+  },
+  {
+    latin: "P. errans",
+    stemH: 0.6, curve: 0.05, hairy: true,
+    leaves: 4, leafLen: 0.26,
+    petals: 4, petalColor: "#c0522f", petalDeep: "#9a3a1e",
+    flower: "cup", core: "#3a352c",
+    budColor: "#7d9b76", stemColor: "#7d9b76"
+  }
+];
+
+/* ————— stage naming ————— */
+
+function stageName(t){
+  if (t < 0.10) return "SEED";
+  if (t < 0.28) return "SPROUT";
+  if (t < 0.48) return "LEAF";
+  if (t < 0.62) return "BUD";
+  if (t < 0.88) return "BLOOM";
+  return "FRUIT";
+}
+function dayOf(t){
+  return Math.round(t * 92);
+}
+
+/* ————— plant renderer —————
+   Everything is drawn in a normalized box (w,h) with the soil
+   line at y0. Deterministic per species: no randomness needed. */
+
+function ease(p){ return p < 0 ? 0 : p > 1 ? 1 : p * p * (3 - 2 * p); }
+
+function drawPlant(ctx, w, h, t, si, opts){
+  opts = opts || {};
+  var sp = SPECIES[si];
+  var zoom = opts.zoom || 1;
+  var soilY = h * 0.86;
+
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
+
+  /* slight paper texture inside stage handled by CSS; draw shadow of stem */
+  var baseX = w / 2 + sp.curve * w * 0.4;
+
+  /* — seed & radicle — */
+  var seedP = ease(t / 0.10);
+  if (t < 0.16){
+    ctx.fillStyle = "#6b5d3a";
+    ctx.beginPath();
+    ctx.ellipse(baseX, soilY - 3, 5.2, 3.8, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    if (seedP > 0.15){
+      ctx.strokeStyle = "#c8b98a";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(baseX + 1.5, soilY - 4);
+      ctx.quadraticCurveTo(baseX + 4, soilY + 1, baseX + 6 * seedP, soilY + 5 * seedP);
+      ctx.stroke();
+    }
+  }
+
+  /* — stem — */
+  var stemP = ease((t - 0.08) / 0.42);
+  var stemLen = sp.stemH * h * stemP;
+  var sway = Math.sin(t * 12.4) * (opts.breeze ? 2.2 : 0);
+  var tipX = baseX + sp.curve * w * stemP + sway;
+  var tipY = soilY - stemLen;
+
+  if (stemP > 0){
+    ctx.strokeStyle = sp.stemColor;
+    ctx.lineWidth = Math.max(1.6, w * 0.012);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(baseX, soilY);
+    ctx.quadraticCurveTo(baseX + sp.curve * w * stemP * 0.5, soilY - stemLen * 0.55, tipX, tipY);
+    ctx.stroke();
+    /* hairs */
+    if (sp.hairy && zoom > 1.4){
+      ctx.strokeStyle = "rgba(111,143,104,.5)";
+      ctx.lineWidth = 0.8;
+      for (var hh = 0.15; hh < stemP; hh += 0.07){
+        var hx = baseX + sp.curve * w * hh;
+        var hy = soilY - sp.stemH * h * hh;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(hx + (hh * 7 % 2 < 1 ? 3.4 : -3.4), hy - 2.6);
+        ctx.stroke();
+      }
+    }
+  }
+
+  /* — leaves unfurling upward along the stem — */
+  for (var li = 0; li < sp.leaves; li++){
+    var appear = 0.16 + li * 0.055;
+    var lp = ease((t - appear) / 0.14);
+    if (lp <= 0) continue;
+    var along = 0.14 + li * (0.5 / sp.leaves);
+    if (along > stemP) continue;
+    var ax = baseX + sp.curve * w * along;
+    var ay = soilY - sp.stemH * h * along;
+    var side = li % 2 === 0 ? 1 : -1;
+    var L = sp.leafLen * w * lp;
+    drawLeaf(ctx, ax, ay, side, L, sp, lp);
+  }
+
+  /* — bud — */
+  var budP = ease((t - 0.48) / 0.14);
+  if (budP > 0 && t < 0.88){
+    var bow = (1 - budP) * 0.8;
+    ctx.save();
+    ctx.translate(tipX, tipY);
+    ctx.rotate(bow * 0.5);
+    ctx.fillStyle = sp.budColor;
+    ctx.beginPath();
+    ctx.ellipse(0, -5 * budP, 5 * budP + 1, 8 * budP + 1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    /* sepals */
+    ctx.strokeStyle = sp.stemColor;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-4 * budP, 1);
+    ctx.quadraticCurveTo(-2, -6 * budP, 0, -2);
+    ctx.quadraticCurveTo(2, -6 * budP, 4 * budP, 1);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* — bloom — */
+  var bloomP = ease((t - 0.60) / 0.24);
+  var wiltP = ease((t - 0.88) / 0.12);
+  if (bloomP > 0 && wiltP < 1){
+    var open = bloomP * (1 - wiltP);
+    drawFlower(ctx, tipX, tipY - 4, open, sp, zoom);
+  }
+
+  /* — fruit: seed head — */
+  if (wiltP > 0){
+    var fp = wiltP;
+    ctx.save();
+    ctx.translate(tipX, tipY - 2);
+    ctx.fillStyle = "#8a7a4a";
+    if (sp.flower === "cup"){
+      /* poppy capsule */
+      ctx.beginPath();
+      ctx.ellipse(0, -2, 5.4 * fp + 1, 7.6 * fp + 1, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#6b5d3a";
+      ctx.lineWidth = 1;
+      for (var rid = -2; rid <= 2; rid++){
+        ctx.beginPath();
+        ctx.moveTo(rid * 2.1, -8 * fp);
+        ctx.lineTo(rid * 2.6, 4 * fp);
+        ctx.stroke();
+      }
+    } else {
+      /* follicles + scattered seed */
+      ctx.strokeStyle = "#8a7a4a";
+      ctx.lineWidth = 1.6;
+      for (var f2 = -1; f2 <= 1; f2++){
+        ctx.beginPath();
+        ctx.moveTo(0, 2);
+        ctx.quadraticCurveTo(f2 * 7 * fp, -8 * fp, f2 * 11 * fp, -14 * fp);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#3a352c";
+      for (var s2 = 0; s2 < 6; s2++){
+        var ang = s2 * 1.05 + 0.6;
+        var rr = (5 + s2 * 1.9) * fp;
+        ctx.beginPath();
+        ctx.arc(Math.cos(ang) * rr, Math.sin(ang) * rr - 4, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawLeaf(ctx, x, y, side, len, sp, lp){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(side * (-0.62 - 0.1 * lp));
+  ctx.fillStyle = lp > 0.6 ? sp.stemColor : "rgba(125,155,118,.75)";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(len * 0.5, -len * 0.34, len, -len * 0.1);
+  ctx.quadraticCurveTo(len * 0.5, len * 0.16, 0, 0);
+  ctx.fill();
+  /* midrib */
+  ctx.strokeStyle = "rgba(58,53,44,.28)";
+  ctx.lineWidth = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(2, -1);
+  ctx.quadraticCurveTo(len * 0.5, -len * 0.12, len * 0.92, -len * 0.1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFlower(ctx, x, y, open, sp, zoom){
+  if (open <= 0.02) return;
+  var R = (sp.flower === "cup" ? 20 : 15) * (0.5 + open * 0.7);
+  ctx.save();
+  ctx.translate(x, y);
+  var nod = sp.flower === "spurred" ? 0.35 : (sp.flower === "cup" ? -0.08 : 0.12);
+  ctx.rotate(nod);
+  for (var p = 0; p < sp.petals; p++){
+    var a = (p / sp.petals) * Math.PI * 2 + 0.3;
+    var spread = open * (0.65 + 0.35 * Math.sin(a * 2 + 1));
+    ctx.save();
+    ctx.rotate(a);
+    var L = R * (0.85 + 0.3 * spread);
+    var g = ctx.createLinearGradient(0, 0, L, 0);
+    g.addColorStop(0, sp.petalDeep);
+    g.addColorStop(1, sp.petalColor);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    if (sp.flower === "cup"){
+      /* poppy: broad crinkled cup petals */
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(L * 0.55, -L * 0.5, L, -L * 0.16);
+      ctx.quadraticCurveTo(L * 0.7, L * 0.28, 0, 0);
+    } else if (sp.flower === "spurred"){
+      /* columbine: petal with a spur behind */
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(L * 0.6, -L * 0.42, L, -L * 0.05);
+      ctx.quadraticCurveTo(L * 0.55, L * 0.3, 0, 0);
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-L * 0.42, -L * 0.18, -L * 0.66, -L * 0.4 * spread);
+      ctx.strokeStyle = sp.petalDeep;
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    } else {
+      /* catchfly: notched petals */
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(L * 0.5, -L * 0.44, L * 0.9, -L * 0.12);
+      ctx.lineTo(L * 0.78, 0);
+      ctx.lineTo(L * 0.9, L * 0.1);
+      ctx.quadraticCurveTo(L * 0.5, L * 0.3, 0, 0);
+    }
+    ctx.fill();
+    ctx.restore();
+  }
+  /* core */
+  ctx.fillStyle = sp.core;
+  ctx.beginPath();
+  ctx.arc(0, 0, Math.max(1.6, R * 0.2 * open), 0, Math.PI * 2);
+  ctx.fill();
+  /* stamens for the open type */
+  if (sp.flower === "open" && zoom > 1.3){
+    ctx.strokeStyle = "rgba(217,200,154,.9)";
+    ctx.lineWidth = 0.9;
+    for (var s = 0; s < 7; s++){
+      var sa = s / 7 * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(sa) * R * 0.42 * open, Math.sin(sa) * R * 0.42 * open);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+/* ————— sheet wiring ————— */
+
+var sheets = [];
+var sheetEls = document.querySelectorAll(".sheet");
+var autoSpeed = 0.06;   /* lifecycle fraction per second */
+
+for (var i = 0; i < sheetEls.length; i++){
+  (function(idx){
+    var el = sheetEls[idx];
+    var canvas = el.querySelector("canvas");
+    var track = el.querySelector("input.track");
+    var stageEl = document.getElementById("stage" + idx);
+    var pctEl = document.getElementById("pct" + idx);
+    var S = {
+      idx: idx,
+      el: el,
+      canvas: canvas,
+      ctx: canvas.getContext("2d"),
+      track: track,
+      stageEl: stageEl,
+      pctEl: pctEl,
+      t: 0,
+      playing: false,
+      manual: false,
+      W: 0, H: 0
+    };
+    sheets.push(S);
+
+    function resize(){
+      var r = canvas.parentElement.getBoundingClientRect();
+      S.W = Math.max(160, Math.round(r.width));
+      S.H = Math.max(140, Math.round(r.height));
+      canvas.width = Math.round(S.W * DPR);
+      canvas.height = Math.round(S.H * DPR);
+      S.ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      renderSheet(S);
+    }
+    S.resize = resize;
+
+    function renderSheet(){
+      drawPlant(S.ctx, S.W, S.H, S.t, S.idx, { breeze: S.playing && !REDUCED });
+      var st = stageName(S.t);
+      if (S.stageEl){
+        S.stageEl.textContent = st + " \u00B7 day " + dayOf(S.t);
+        S.pctEl.textContent = Math.round(S.t * 100) + "%";
+      }
+      if (S.track && document.activeElement !== S.track){
+        S.track.value = Math.round(S.t * 1000);
+      }
+    }
+    S.render = renderSheet;
+
+    el.addEventListener("pointerenter", function(){
+      if (REDUCED) return;
+      S.playing = true;
+    });
+    el.addEventListener("pointerleave", function(){
+      S.playing = false;
+    });
+    canvas.addEventListener("click", function(){
+      if (REDUCED){ S.t = (S.t + 0.34) % 1.0001; if (S.t > 1) S.t = 0; renderSheet(); return; }
+      S.playing = !S.playing;
+    });
+    canvas.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        S.t = (S.t + 0.2) % 1.0001; if (S.t > 1) S.t = 0;
+        renderSheet();
+      }
+    });
+    track.addEventListener("input", function(){
+      S.t = parseInt(track.value, 10) / 1000;
+      S.playing = false;
+      renderSheet();
+    });
+    track.addEventListener("pointerdown", function(){ S.playing = false; });
+
+    resize();
+  })(i);
+}
+
+/* ————— master loop ————— */
+
+var raf = null;
+var tPrev = 0;
+var anyPlaying = false;
+
+function loop(now){
+  var dt = Math.min(0.05, (now - tPrev) / 1000 || 0.016);
+  tPrev = now;
+  anyPlaying = false;
+  for (var i = 0; i < sheets.length; i++){
+    var S = sheets[i];
+    if (S.playing){
+      S.t += dt * autoSpeed;
+      if (S.t >= 1){ S.t = 1; S.playing = false; }
+      S.render();
+      anyPlaying = true;
+    }
+  }
+  updateLoupe(dt);
+  raf = requestAnimationFrame(loop);
+}
+
+/* ————— the loupe ————— */
+
+var loupe = document.getElementById("loupe");
+var loupeCanvas = document.getElementById("loupeCanvas");
+var lctx = loupeCanvas.getContext("2d");
+var loupeOut = document.getElementById("loupeOut");
+var LW = 0, LH = 0;
+
+function loupeSize(){
+  var r = loupe.getBoundingClientRect();
+  LW = Math.max(80, Math.round(r.width));
+  LH = Math.max(80, Math.round(r.height));
+  loupeCanvas.width = Math.round(LW * DPR);
+  loupeCanvas.height = Math.round(LH * DPR);
+  lctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+/* loupe position in viewport px */
+var lpos = { x: 90, y: 160 };
+var dragging = false;
+var grabOff = { x: 0, y: 0 };
+
+function placeLoupe(){
+  loupe.style.left = lpos.x + "px";
+  loupe.style.top = lpos.y + "px";
+}
+
+loupe.addEventListener("pointerdown", function(e){
+  dragging = true;
+  grabOff.x = e.clientX - lpos.x;
+  grabOff.y = e.clientY - lpos.y;
+  loupe.setPointerCapture(e.pointerId);
+});
+loupe.addEventListener("pointermove", function(e){
+  if (!dragging) return;
+  lpos.x = e.clientX - grabOff.x;
+  lpos.y = e.clientY - grabOff.y;
+  placeLoupe();
+});
+loupe.addEventListener("pointerup", function(){ dragging = false; });
+loupe.addEventListener("pointercancel", function(){ dragging = false; });
+
+function sheetUnderLoupe(){
+  var cx = lpos.x + LW / 2;
+  var cy = lpos.y + LH / 2;
+  for (var i = 0; i < sheets.length; i++){
+    var r = sheets[i].canvas.getBoundingClientRect();
+    if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom){
+      return { S: sheets[i], rect: r };
+    }
+  }
+  return null;
+}
+
+function updateLoupe(dt){
+  var hit = sheetUnderLoupe();
+  if (!hit){
+    if (loupeOut.textContent !== "no specimen"){
+      loupeOut.textContent = "no specimen";
+      lctx.clearRect(0, 0, LW, LH);
+    }
+    /* keep the hovered sheet animating only by hover, not loupe */
+    return;
+  }
+  var S = hit.S;
+  /* loupe rests on a sheet: magnify the plant there, keep it alive */
+  if (!REDUCED) S.playing = true;
+  var r = hit.rect;
+  var cx = lpos.x + LW / 2 - r.left;   /* center in sheet coords */
+  var cy = lpos.y + LH / 2 - r.top;
+  var ZOOM = 2.1;
+  lctx.clearRect(0, 0, LW, LH);
+  lctx.save();
+  lctx.beginPath();
+  lctx.arc(LW / 2, LH / 2, LW / 2 - 6, 0, Math.PI * 2);
+  lctx.clip();
+  lctx.fillStyle = "#f6f1e1";
+  lctx.fillRect(0, 0, LW, LH);
+  lctx.translate(LW / 2 - cx * ZOOM, LH / 2 - cy * ZOOM);
+  lctx.scale(ZOOM, ZOOM);
+  drawPlant(lctx, S.W, S.H, S.t, S.idx, { zoom: ZOOM, breeze: false });
+  lctx.restore();
+  loupeOut.textContent = SPECIES[S.idx].latin + " \u00B7 " + stageName(S.t) + " d" + dayOf(S.t);
+}
+
+/* ————— lifecycle ————— */
+
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){
+    if (raf){ cancelAnimationFrame(raf); raf = null; }
+  } else {
+    if (!raf){ tPrev = performance.now(); raf = requestAnimationFrame(loop); }
+  }
+});
+
+var resizeTimer = null;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    for (var i = 0; i < sheets.length; i++) sheets[i].resize();
+    loupeSize();
+  }, 140);
+});
+
+if (!document.getElementById("loupeCanvas").getContext){
+  document.getElementById("noscript").hidden = false;
+}
+
+loupeSize();
+placeLoupe();
+for (var r0 = 0; r0 < sheets.length; r0++) sheets[r0].render();
+
+/* open with a gentle teaser: the middle specimen at first leaf */
+sheets[1].t = 0.34;
+sheets[1].render();
+
+if (REDUCED){
+  /* no autoplay; scrubbing and click-step still work */
+  tPrev = performance.now();
+  raf = requestAnimationFrame(loop);
+} else {
+  tPrev = performance.now();
+  raf = requestAnimationFrame(loop);
+}
+
+})();
+</script>
+</body>
+</html>

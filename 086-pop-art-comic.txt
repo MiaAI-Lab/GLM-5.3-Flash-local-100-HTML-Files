@@ -1,0 +1,26 @@
+TITLE: Pow!
+DESCRIPTION: A pop-art comic strip in four panels: ben-day dot overlays, bold 5px black outlines, hard offset shadows, halftone starburst explosions carrying onomatopoeia (POW! ZAP! WOOM! SPLAT!), editable speech bubbles with comic lettering, and italic panel captions on newsprint footers. Clicking a panel detonates its burst with a springy pop, a screen shake, and a brief swirl of its dot pattern; a running "bursts fired" counter keeps score. Fire-all chains the beats, Shuffle words remixes the onomatopoeia, and Print-run poster mode collapses the strip into a single tall column for poster viewing.
+TECHNIQUES:
+- Ben-day shading: radial-gradient dot fields (background-size 9px) multiply-blended over per-panel gradient scenes, brightening and swirling on hover/burst via background-position stepping
+- Onomatopoeia bursts as inline SVG star polygons (per-panel unique vertices, panel palette fills) with paint-order stroke-outlined display text that scales in with overshoot spring keyframes
+- Screen shake via a translate keyframe cascade on the strip wrapper, retriggered by class remove/void-offsetWidth/add
+- Editable speech bubbles: contenteditable spans inside bordered bubble divs with CSS triangle tails (flip variant), an empty-state "type…" placeholder
+- Hard-shadow neo-retro UI: 4–5px black borders, 6–9px offset shadows, press-down active states, stroked masthead headline with red drop block
+- Reduced-motion fallback: bursts swap words instantly with no shake or dot swirl
+INTERACTION:
+- Clicking a panel (or Enter/Space when focused) fires its action beat: the starburst scales in with rotation, the panel pops, the page shakes, the dots swirl diagonally, and the counter increments — occasionally swapping in a surprise word from the ten-word pool
+- Speech-bubble text is editable inline: click into any bubble and type new dialogue (editing clicks don't detonate the panel); the empty state shows a ghost prompt
+- FIRE ALL FOUR staggers all bursts 130ms apart for a full-page rumble; SHUFFLE WORDS deals fresh onomatopoeia into the four panels; PRINT-RUN POSTER toggles a single-column tall-panel poster mode that hides the masthead and controls
+- Hovering a panel brightens its ben-day overlay and spins a dashed swirl badge; keyboard focus gets a thick red outline
+PROMPT:
+Build a single-file HTML pop-art comic strip titled "POW!". Palette: comic yellow #ffd60a, red #e63946, blue #118ab2, ben-day pink #f7a8c4, newsprint #f7f3e8, ink #111. Type: heavy system-ui 900 display caps (with -webkit-text-stroke outlines on the masthead and burst words) and ui-monospace for issue stamps and panel numbers. Whole page sits on speckled newsprint.
+
+Masthead: a yellow band (5px black border, 9px offset shadow, −0.5° rotate) with a giant outlined "POW!" headline (text-shadow 6px 6px 0 red, −1.4° rotate) and a right-aligned issue block — "ISSUE № 086 · FOUR PANELS OF CONSEQUENCE", "THE GALLERY OF 100 · ROOM 86", and a rotated red price chip "10¢ — STILL A BARGAIN".
+
+Strip: a 2×2 grid (single column under 720px) of four bordered panels, each with a unique gradient scene (blue sky, red/pink, midnight ink, blue/teal), a multiply-blended ben-day dot overlay at ~50% opacity, a dashed swirl badge that spins in on hover, an SVG starburst hidden at scale 0, one editable speech bubble with a triangle tail (left or flipped right), and a newsprint footer bar with a mono panel number and italic caption. Captions: "Our hero declines the elevator, on principle." / "The auxiliary zipper, misjudged since 1962." / "Somewhere below, a kettle regrets everything." / "The custard arrives ahead of schedule." Bubbles read "Hold my gloves.", "Not the face — it's load-bearing.", "Was that the load-bearing wall?", "Dessert is served early."
+
+Signature moment: clicking a panel detonates it — the panel's starburst (unique polygon per panel, filled in the panel's accent color, outlined black, word stroked in newsprint) springs in from scale 0 with overshoot and slight rotation; the panel itself pops (scale 0.94→1.035→1 with tilt); the whole strip shakes in a seven-step translate cascade; and the ben-day dots visibly swirl diagonally for ~300ms (background-position stepped via JS). Every fifth-ish burst surprises with a word from the pool: POW! ZAP! WOOM! SPLAT! BAM! KRUNK! THWOCK! BLORT! KA-POW! OOMPH! A counter chip tracks BURSTS FIRED.
+
+Controls row: three press-down buttons — red FIRE ALL FOUR (staggered 130ms chain), yellow SHUFFLE WORDS (deals four distinct words into the panels), blue PRINT-RUN POSTER (toggles a poster mode: strip becomes one 720px column of 420px-tall 7px-bordered panels, masthead/controls/hints hide) — plus the counter chip. A how-to strip of three boxed mono hints sits beneath. Speech bubbles: click into the text to edit (contenteditable, spellcheck off); clicks on bubbles never detonate panels; each has a ghost "type…" empty state.
+
+Details: press-down active states on everything (translate 4px, shadow 2px), red 4px focus outlines for keyboard users, panel role=button with Enter/Space support, reduced-motion disables shake/pop/swirl but still swaps words instantly. No network, no images — dots are gradients, bursts are inline SVG, shake is CSS.

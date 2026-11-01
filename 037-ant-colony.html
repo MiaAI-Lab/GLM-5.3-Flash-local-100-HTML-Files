@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="FORMICA — a living ant colony in cross-section. Drop food, watch pheromone trails strengthen, compete and evaporate, and tune the colony while emergent highways form before your eyes.">
+<title>FORMICA · Work Nº 037 — a living ant colony</title>
+<style>
+/* ============================================================
+   FORMICA — Work Nº 037
+   Nobody programs the highways. The ants do.
+   ============================================================ */
+:root{
+  --soil-hi:   #59402c;
+  --soil:      #3a2a1d;
+  --soil-lo:   #241a11;
+  --sand:      #c8a97e;
+  --ant:       #171310;
+  --trail:     #7fd1c0;
+  --food:      #d9553f;
+  --bark:      #4a3a2c;
+  --card:      rgba(20,14,9,.78);
+  --card-edge: rgba(200,169,126,.16);
+  --cream:     #ecdfc8;
+  --cream-dim: rgba(236,223,200,.62);
+  --cream-fnt: rgba(236,223,200,.34);
+  --serif:     Georgia, 'Iowan Old Style', 'Palatino Linotype', ui-serif, serif;
+  --mono:      ui-monospace, 'SF Mono', 'Cascadia Mono', 'Courier New', monospace;
+  --sans:      system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow:hidden;
+  font-family:var(--sans);
+  color:var(--cream);
+  background:linear-gradient(180deg, #201811, #171008 70%);
+  -webkit-tap-highlight-color:transparent;
+}
+::selection{ background:var(--food); color:#fff3ec; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px solid rgba(127,209,192,.7); outline-offset:2px; border-radius:8px; }
+
+/* ------------------------------ stage -------------------------------- */
+.habitat{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(250px, 24vw, 328px);
+}
+@media (max-width:860px){
+  body{ overflow:auto; }
+  .habitat{ grid-template-columns:1fr; height:auto; min-height:100%; }
+  .field-bay{ height:62vh; min-height:420px; }
+}
+
+/* ------------------------------ field -------------------------------- */
+.field-bay{
+  position:relative;
+  min-width:0;
+  min-height:0;
+}
+#field{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  display:block;
+  cursor:crosshair;
+  touch-action:none;
+}
+.field-top{
+  position:absolute; z-index:4;
+  top:clamp(14px,2.6vh,28px);
+  left:clamp(16px,2.4vw,34px);
+  pointer-events:none;
+  user-select:none;
+  text-shadow:0 2px 12px rgba(0,0,0,.6);
+}
+.mark-no{
+  margin:0 0 8px;
+  font:500 9.5px/1 var(--mono);
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.mark-word{
+  margin:0;
+  font-family:var(--serif);
+  font-weight:400;
+  font-size:clamp(30px,4.2vw,54px);
+  line-height:1;
+  letter-spacing:.02em;
+  color:var(--cream);
+}
+.mark-word em{ font-style:italic; }
+.mark-sub{
+  margin:9px 0 0;
+  font:italic 400 clamp(11px,1.3vw,13.5px)/1.55 var(--serif);
+  color:var(--cream-dim);
+  max-width:42ch;
+}
+.cursor-note{
+  position:absolute; z-index:4;
+  bottom:clamp(14px,2.6vh,26px);
+  left:clamp(16px,2.4vw,34px);
+  font:600 9.5px/1.7 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  pointer-events:none;
+  text-shadow:0 1px 8px rgba(0,0,0,.7);
+}
+.cursor-note em{ font-style:normal; color:var(--cream-dim); }
+
+/* pinch label that follows the newest food drop */
+.drop-tag{
+  position:absolute; z-index:3;
+  pointer-events:none;
+  font:700 9px/1 var(--mono);
+  letter-spacing:.22em;
+  color:var(--trail);
+  text-shadow:0 1px 6px rgba(0,0,0,.8);
+  transform:translate(-50%, -130%);
+  transition:opacity .4s ease;
+  opacity:0;
+}
+.drop-tag.show{ opacity:1; }
+
+/* ------------------------------ console ------------------------------ */
+.console-col{
+  position:relative;
+  z-index:5;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #221910, #170f08);
+  border-left:1px solid rgba(200,169,126,.14);
+  padding:clamp(14px,2.2vh,24px) clamp(14px,1.8vw,22px);
+  display:flex; flex-direction:column; gap:14px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(127,209,192,.3) transparent;
+}
+.console-col::-webkit-scrollbar{ width:8px; }
+.console-col::-webkit-scrollbar-thumb{ background:rgba(127,209,192,.25); border-radius:4px; }
+.console-col::-webkit-scrollbar-track{ background:rgba(0,0,0,.3); }
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--card-edge);
+  border-radius:12px;
+  padding:14px 14px 13px;
+  box-shadow:0 14px 30px rgba(0,0,0,.4);
+}
+.panel-k{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font:700 9px/1 var(--mono);
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--cream-fnt);
+  margin:0 0 11px;
+}
+.panel-k b{ color:var(--trail); font-weight:700; letter-spacing:.2em; }
+
+/* big stat */
+.lead-stat{
+  display:flex; align-items:baseline; gap:10px;
+}
+.lead-stat .num{
+  font:700 clamp(34px,3.6vw,44px)/1 var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--cream);
+  text-shadow:0 0 18px rgba(127,209,192,.15);
+}
+.lead-stat .lab{
+  font:600 9px/1.5 var(--mono);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.stat-grid{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:9px 12px;
+  margin-top:12px;
+}
+.stat{
+  font:600 9.5px/1.7 var(--mono);
+  letter-spacing:.16em; text-transform:uppercase;
+  color:var(--cream-fnt);
+}
+.stat b{
+  display:block;
+  font:700 15px/1.2 var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--cream-dim);
+}
+.stat b.hot{ color:var(--food); }
+.stat b.trail{ color:var(--trail); }
+
+/* sliders */
+.ctl{ margin:0 0 13px; }
+.ctl:last-child{ margin-bottom:2px; }
+.ctl-l{
+  display:flex; justify-content:space-between;
+  font:600 9px/1 var(--mono);
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--cream-dim);
+  margin:0 0 6px;
+}
+.ctl-l b{ color:var(--trail); font-variant-numeric:tabular-nums; }
+input[type="range"]{
+  appearance:none; -webkit-appearance:none;
+  width:100%; height:26px;
+  background:transparent;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+input[type="range"]::-webkit-slider-runnable-track{
+  height:4px; border-radius:2px;
+  background:linear-gradient(90deg, rgba(127,209,192,.5), rgba(200,169,126,.2));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:17px; height:17px; margin-top:-6.5px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #d8f5ec, var(--trail) 55%, #2c6c5f);
+  box-shadow:0 2px 5px rgba(0,0,0,.55), inset 0 1px 1px rgba(255,255,255,.5);
+}
+input[type="range"]::-moz-range-track{
+  height:4px; border-radius:2px;
+  background:linear-gradient(90deg, rgba(127,209,192,.5), rgba(200,169,126,.2));
+}
+input[type="range"]::-moz-range-thumb{
+  width:17px; height:17px; border:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #d8f5ec, var(--trail) 55%, #2c6c5f);
+  box-shadow:0 2px 5px rgba(0,0,0,.55);
+}
+
+/* buttons */
+.btns{ display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  appearance:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  min-height:40px;
+  padding:10px 13px;
+  border-radius:9px;
+  border:1px solid rgba(200,169,126,.25);
+  background:linear-gradient(180deg, rgba(200,169,126,.1), rgba(200,169,126,.03));
+  color:var(--cream);
+  font:700 9.5px/1 var(--mono);
+  letter-spacing:.2em; text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .1s ease, box-shadow .1s ease, filter .18s ease;
+  touch-action:manipulation;
+  flex:1;
+}
+.btn svg{ width:12px; height:12px; }
+@media (hover:hover){ .btn:hover{ filter:brightness(1.25); } }
+.btn:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.45); }
+.btn[aria-pressed="true"]{
+  border-color:rgba(127,209,192,.5);
+  color:var(--trail);
+  background:linear-gradient(180deg, rgba(127,209,192,.16), rgba(127,209,192,.05));
+}
+.btn.warn{ border-color:rgba(217,85,63,.4); color:#f0b3a6; }
+
+/* field notes */
+.notes{
+  margin:0;
+  font:400 11px/1.75 var(--mono);
+  color:var(--cream-dim);
+}
+.notes b{ color:var(--cream); font-weight:700; }
+.notes i{ color:var(--trail); font-style:normal; }
+kbd{
+  font:600 8.5px/1 var(--mono);
+  color:var(--cream-dim);
+  border:1px solid rgba(236,223,200,.24);
+  border-bottom-width:2px;
+  border-radius:4px;
+  padding:2px 4px;
+  background:rgba(236,223,200,.05);
+}
+
+/* toast */
+.toast{
+  position:fixed; z-index:40;
+  left:50%; bottom:clamp(16px,3.4vh,30px);
+  transform:translate(-50%,10px);
+  background:rgba(16,11,6,.92);
+  border:1px solid rgba(127,209,192,.4);
+  color:var(--trail);
+  font:600 10px/1 var(--mono);
+  letter-spacing:.16em;
+  padding:11px 16px;
+  border-radius:999px;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 32px);
+  text-align:center;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.no-js{
+  position:fixed; inset:0; z-index:50;
+  display:grid; place-items:center;
+  background:#241a11; color:var(--cream-dim);
+  font:italic 400 16px/1.6 var(--serif);
+  text-align:center; padding:32px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="habitat">
+
+  <div class="field-bay">
+    <canvas id="field" role="img"
+      aria-label="A soil cross-section with an ant nest, foraging ants and glowing pheromone trails. Click anywhere to drop a cache of food and watch the colony build a trail to it."></canvas>
+    <div class="field-top">
+      <p class="mark-no">The Gallery of 100 · Work Nº 037 · colony observation</p>
+      <h1 class="mark-word">Formica <em>vulgaris</em></h1>
+      <p class="mark-sub">No one plans the roads. An ant leaves a whisper; a thousand ants repeat it until the dirt itself remembers the way.</p>
+    </div>
+    <p class="cursor-note"><em>Click</em> to drop food · <em>hold shift-click</em> to drop a feast · watch the trails argue</p>
+    <span class="drop-tag" id="dropTag">+ FOOD</span>
+  </div>
+
+  <aside class="console-col" aria-label="Colony controls and statistics">
+
+    <section class="panel" aria-label="Colony census">
+      <p class="panel-k"><span>Census</span><b id="censusNote">LIVE</b></p>
+      <div class="lead-stat">
+        <span class="num" id="stDelivered">0</span>
+        <span class="lab">crumbs<br>delivered</span>
+      </div>
+      <div class="stat-grid">
+        <span class="stat">Foraging <b id="stOut">0</b></span>
+        <span class="stat">Hauling <b class="hot" id="stHauling">0</b></span>
+        <span class="stat">Food piles <b class="hot" id="stPiles">0</b></span>
+        <span class="stat">Trail strength <b class="trail" id="stTrail">0%</b></span>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Colony tuning">
+      <p class="panel-k"><span>Tuning</span><span>KEEPER</span></p>
+      <div class="ctl">
+        <p class="ctl-l"><span>Population</span><b id="popVal">140 ants</b></p>
+        <input type="range" id="pop" min="20" max="240" step="10" value="140" aria-label="Ant population">
+      </div>
+      <div class="ctl">
+        <p class="ctl-l"><span>Evaporation</span><b id="evapVal">medium</b></p>
+        <input type="range" id="evap" min="1" max="5" step="1" value="3" aria-label="Pheromone evaporation rate">
+      </div>
+      <div class="ctl">
+        <p class="ctl-l"><span>Urgency</span><b id="spdVal">1.0×</b></p>
+        <input type="range" id="spd" min="0.5" max="2" step="0.1" value="1" aria-label="Ant speed">
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Colony actions">
+      <p class="panel-k"><span>Actions</span><span>FIELD KIT</span></p>
+      <div class="btns">
+        <button class="btn" id="feastBtn" title="Drop a big cache at the colony's favorite spot">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.6" fill="currentColor"></circle><circle cx="2.6" cy="7.4" r="1.2" fill="currentColor"></circle><circle cx="9.2" cy="7.6" r="1.2" fill="currentColor"></circle><circle cx="5" cy="2.8" r="1.2" fill="currentColor"></circle><circle cx="8.6" cy="3.4" r="1" fill="currentColor"></circle></svg>
+          Feast
+        </button>
+        <button class="btn" id="trailBtn" aria-pressed="true" title="Show or hide the pheromone field (T)">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1.5 9c2.5 0 2.5-6 5-6s2.5 6 4 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+          Trails
+        </button>
+        <button class="btn" id="pauseBtn" aria-pressed="false" title="Pause the colony (Space)">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2.5v7M8 2.5v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>
+          Pause
+        </button>
+        <button class="btn warn" id="resetBtn" title="Flood the nest and start again">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6a4 4 0 1 1-1.2-2.8M10 1v2.4H7.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          New colony
+        </button>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Field notes">
+      <p class="panel-k"><span>Field notes</span><span>NATURALIST</span></p>
+      <p class="notes">
+        Returning ants lay <i>trail</i>; foragers follow the strongest whiff they can
+        smell ahead. Short routes win because their scent survives evaporation —
+        watch competing paths fade until one <b>highway</b> remains.
+        <br><br>
+        <kbd>space</kbd> pause · <kbd>t</kbd> trails · <kbd>f</kbd> feast ·
+        <kbd>n</kbd> new colony. Evaporation high = amnesiac colony; low = stubborn ruts.
+      </p>
+    </section>
+
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p class="no-js">The colony stirs only with JavaScript — please open the formicarium.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ============================== helpers ============================== */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const lerp = (a,b,t) => a+(b-a)*t;
+const rand = (a,b) => a+Math.random()*(b-a);
+const irand = (a,b) => Math.floor(rand(a,b+1));
+const TAU = Math.PI*2;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ui = {
+  field: $('field'), toast: $('toast'), dropTag: $('dropTag'),
+  stDelivered: $('stDelivered'), stOut: $('stOut'), stHauling: $('stHauling'),
+  stPiles: $('stPiles'), stTrail: $('stTrail'), censusNote: $('censusNote'),
+  pop: $('pop'), popVal: $('popVal'), evap: $('evap'), evapVal: $('evapVal'),
+  spd: $('spd'), spdVal: $('spdVal'),
+  feastBtn: $('feastBtn'), trailBtn: $('trailBtn'), pauseBtn: $('pauseBtn'),
+  resetBtn: $('resetBtn'),
+};
+const ctx = ui.field.getContext('2d');
+let W = 0, H = 0, dpr = 1;
+
+/* ============================== audio ================================ */
+let AC = null, master = null;
+let soundOn = false;
+function ensureAudio(){
+  if (!AC){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return false;
+    AC = new Ctx();
+    master = AC.createGain();
+    master.gain.value = 0.35;
+    master.connect(AC.destination);
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return true;
+}
+function dropBlip(){
+  if (!soundOn || !ensureAudio()) return;
+  const t0 = AC.currentTime;
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(320, t0);
+  o.frequency.exponentialRampToValueAtTime(180, t0 + 0.12);
+  g.gain.setValueAtTime(0.25, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0 + 0.2);
+}
+addEventListener('pointerdown', function arm(){
+  soundOn = true;
+  ensureAudio();
+  removeEventListener('pointerdown', arm);
+}, { once: true });
+
+/* ============================== pheromone field ====================== */
+const CELL = 6;
+let gw = 0, gh = 0;
+let trail = null;               /* Float32Array */
+const trailCanvas = document.createElement('canvas');
+const tctx = trailCanvas.getContext('2d');
+let trailImg = null;
+const EVAP_STEPS = { 1: 0.9975, 2: 0.994, 3: 0.985, 4: 0.972, 5: 0.955 };
+let evapFactor = EVAP_STEPS[3];
+let showTrails = true;
+let trailPeak = 0;
+
+function sizeField(){
+  gw = Math.max(8, Math.ceil(W / CELL));
+  gh = Math.max(8, Math.ceil(H / CELL));
+  trail = new Float32Array(gw * gh);
+  trailCanvas.width = gw;
+  trailCanvas.height = gh;
+  trailImg = tctx.createImageData(gw, gh);
+}
+
+function deposit(x, y, amount){
+  const cx = clamp(Math.floor(x / CELL), 0, gw - 1);
+  const cy = clamp(Math.floor(y / CELL), 0, gh - 1);
+  const i = cy * gw + cx;
+  trail[i] = Math.min(3, trail[i] + amount);
+}
+function sampleTrail(x, y){
+  const cx = clamp(Math.floor(x / CELL), 0, gw - 1);
+  const cy = clamp(Math.floor(y / CELL), 0, gh - 1);
+  return trail[cy * gw + cx];
+}
+function decayTrails(){
+  const f = evapFactor;
+  let peak = 0;
+  for (let i = 0; i < trail.length; i++){
+    const v = trail[i] * f;
+    trail[i] = v < 0.004 ? 0 : v;
+    if (v > peak) peak = v;
+  }
+  trailPeak = peak;
+}
+function renderTrail(){
+  if (!showTrails){ return; }
+  const d = trailImg.data;
+  for (let i = 0, p = 0; i < trail.length; i++, p += 4){
+    const v = trail[i];
+    if (v <= 0.004){
+      d[p+3] = 0;
+      continue;
+    }
+    const a = Math.min(1, v * 1.5);
+    d[p]   = 127;
+    d[p+1] = 209;
+    d[p+2] = 192;
+    d[p+3] = (a * 190) | 0;
+  }
+  tctx.putImageData(trailImg, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(trailCanvas, 0, 0, gw * CELL, gh * CELL);
+}
+
+/* ============================== background =========================== */
+const bg = document.createElement('canvas');
+const bgctx = bg.getContext('2d');
+let nest = { x: 0, y: 0 };
+
+function drawBackground(){
+  bg.width = Math.round(W * dpr);
+  bg.height = Math.round(H * dpr);
+  bgctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const g = bgctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#59402c');
+  g.addColorStop(0.16, '#4a3522');
+  g.addColorStop(0.5, '#3a2a1d');
+  g.addColorStop(1, '#241a11');
+  bgctx.fillStyle = g;
+  bgctx.fillRect(0, 0, W, H);
+
+  /* soil speckle */
+  for (let i = 0; i < (W * H) / 320; i++){
+    const x = rand(0, W), y = rand(0, H), r = rand(0.6, 2.4);
+    bgctx.fillStyle = Math.random() < 0.5
+      ? 'rgba(200,169,126,.10)'
+      : 'rgba(0,0,0,.16)';
+    bgctx.beginPath();
+    bgctx.arc(x, y, r, 0, TAU);
+    bgctx.fill();
+  }
+  /* strata bands */
+  bgctx.globalAlpha = 0.08;
+  for (let i = 0; i < 7; i++){
+    const y = (H / 7) * i + rand(-6, 6);
+    bgctx.fillStyle = i % 2 ? '#c8a97e' : '#000';
+    bgctx.fillRect(0, y, W, rand(1.5, 4));
+  }
+  bgctx.globalAlpha = 1;
+
+  /* stones */
+  for (let i = 0; i < 14; i++){
+    const x = rand(W*0.06, W*0.94), y = rand(H*0.3, H*0.95), r = rand(6, 20);
+    bgctx.fillStyle = 'rgba(90,74,54,.8)';
+    bgctx.beginPath();
+    bgctx.ellipse(x, y, r, r * rand(0.55, 0.8), rand(0, TAU), 0, TAU);
+    bgctx.fill();
+    bgctx.fillStyle = 'rgba(200,169,126,.14)';
+    bgctx.beginPath();
+    bgctx.ellipse(x - r*0.2, y - r*0.25, r*0.5, r*0.28, rand(0, TAU), 0, TAU);
+    bgctx.fill();
+  }
+
+  /* nest chambers + tunnels (left-of-center) */
+  nest.x = W * 0.18;
+  nest.y = H * 0.62;
+  const chW = Math.min(240, W * 0.2);
+  bgctx.strokeStyle = 'rgba(200,169,126,.28)';
+  bgctx.lineCap = 'round';
+  /* tunnels */
+  const tunnelPaths = [
+    [nest.x, nest.y + 8, nest.x + chW*0.55, nest.y + 30],
+    [nest.x + chW*0.55, nest.y + 30, nest.x + chW*1.15, nest.y + 10],
+    [nest.x + chW*0.3, nest.y + 20, nest.x + chW*0.42, nest.y + 78],
+    [nest.x + chW*0.42, nest.y + 78, nest.x + chW*0.95, nest.y + 96],
+    [nest.x, nest.y + 8, nest.x - 26, nest.y + 62],
+  ];
+  bgctx.lineWidth = 9;
+  bgctx.strokeStyle = 'rgba(200,169,126,.2)';
+  for (const tp of tunnelPaths){
+    bgctx.beginPath();
+    bgctx.moveTo(tp[0], tp[1]);
+    bgctx.quadraticCurveTo((tp[0]+tp[2])/2 + rand(-14, 14), (tp[1]+tp[3])/2 + rand(-10, 10), tp[2], tp[3]);
+    bgctx.stroke();
+  }
+  /* chambers */
+  const chambers = [
+    [nest.x + chW*0.55, nest.y + 30, 26, 15],
+    [nest.x + chW*1.15, nest.y + 10, 20, 12],
+    [nest.x + chW*0.42, nest.y + 78, 24, 14],
+    [nest.x + chW*0.95, nest.y + 96, 18, 11],
+    [nest.x - 26, nest.y + 62, 15, 10],
+  ];
+  for (const ch of chambers){
+    bgctx.fillStyle = 'rgba(12,8,5,.85)';
+    bgctx.beginPath();
+    bgctx.ellipse(ch[0], ch[1], ch[2], ch[3], rand(-0.2, 0.2), 0, TAU);
+    bgctx.fill();
+    bgctx.strokeStyle = 'rgba(200,169,126,.25)';
+    bgctx.lineWidth = 1.5;
+    bgctx.stroke();
+  }
+  /* nest mound */
+  const mound = bgctx.createRadialGradient(nest.x, nest.y - 26, 2, nest.x, nest.y - 20, 64);
+  mound.addColorStop(0, 'rgba(200,169,126,.55)');
+  mound.addColorStop(1, 'rgba(200,169,126,0)');
+  bgctx.fillStyle = mound;
+  bgctx.beginPath();
+  bgctx.ellipse(nest.x, nest.y - 18, 62, 30, 0, 0, TAU);
+  bgctx.fill();
+  /* entrance hole */
+  bgctx.fillStyle = '#0c0805';
+  bgctx.beginPath();
+  bgctx.ellipse(nest.x, nest.y - 2, 13, 7, 0, 0, TAU);
+  bgctx.fill();
+  bgctx.strokeStyle = 'rgba(200,169,126,.4)';
+  bgctx.lineWidth = 1.5;
+  bgctx.stroke();
+  /* engraved label */
+  bgctx.fillStyle = 'rgba(236,223,200,.4)';
+  bgctx.font = '700 9px ui-monospace, "Courier New", monospace';
+  bgctx.textAlign = 'left';
+  bgctx.fillText('NEST · FORMICA VULGARIS', nest.x - 40, nest.y + 128);
+}
+
+/* ============================== food ================================= */
+let piles = [];
+function dropFood(x, y, big){
+  const n = big ? 70 : 26;
+  const crumbs = [];
+  for (let i = 0; i < n; i++){
+    const a = rand(0, TAU), d = rand(0, big ? 46 : 24);
+    crumbs.push({
+      x: clamp(x + Math.cos(a) * d, 4, W - 4),
+      y: clamp(y + Math.sin(a) * d, 4, H - 4),
+      r: rand(1.6, 3.4),
+    });
+  }
+  piles.push({ x, y, crumbs });
+  dropBlip();
+  /* announce it with a scent burst */
+  for (let i = 0; i < 8; i++){
+    deposit(x + rand(-30, 30), y + rand(-30, 30), 0.5);
+  }
+  const tag = ui.dropTag;
+  tag.textContent = '+ ' + n + ' CRUMBS';
+  tag.style.left = x + 'px';
+  tag.style.top = (y - 8) + 'px';
+  tag.classList.add('show');
+  setTimeout(() => tag.classList.remove('show'), 1100);
+  toast('Food dropped — the scouts will find it');
+}
+function nearestCrumb(x, y, maxD){
+  for (const pile of piles){
+    for (let i = 0; i < pile.crumbs.length; i++){
+      const c = pile.crumbs[i];
+      if (Math.hypot(c.x - x, c.y - y) < maxD) return { pile, i };
+    }
+  }
+  return null;
+}
+
+/* ============================== ants ================================= */
+let ants = [];
+let population = 140;
+let speedMul = 1;
+let delivered = 0;
+
+function makeAnt(i){
+  const a = {
+    x: nest.x + rand(-8, 8),
+    y: nest.y + rand(-4, 4),
+    ang: rand(0, TAU),
+    carrying: false,
+    wobble: rand(0.18, 0.42),
+    speed: rand(0.9, 1.25),
+    deposit: rand(0.28, 0.5),
+    probe: rand(9, 14),
+    born: i,
+  };
+  return a;
+}
+function syncPopulation(){
+  while (ants.length < population) ants.push(makeAnt(ants.length));
+  if (ants.length > population) ants.length = population;
+}
+function turnToward(ant, target, maxTurn){
+  let d = target - ant.ang;
+  while (d > Math.PI) d -= TAU;
+  while (d < -Math.PI) d += TAU;
+  ant.ang += clamp(d, -maxTurn, maxTurn);
+}
+function stepAnt(ant, dt){
+  const step = ant.speed * 62 * dt * speedMul;
+  if (ant.carrying){
+    /* head home, laying trail */
+    const want = Math.atan2(nest.y - 6 - ant.y, nest.x - ant.x);
+    turnToward(ant, want, 0.09);
+    ant.ang += rand(-ant.wobble, ant.wobble) * 0.4;
+    deposit(ant.x, ant.y, ant.deposit);
+    if (Math.hypot(ant.x - nest.x, ant.y - (nest.y - 6)) < 16){
+      ant.carrying = false;
+      delivered++;
+      ant.ang = Math.atan2(ant.y - nest.y, ant.x - nest.x) + rand(-0.6, 0.6);
+    }
+  } else {
+    /* follow the strongest scent of three probes */
+    const p = ant.probe;
+    const c = sampleTrail(ant.x + Math.cos(ant.ang) * p, ant.y + Math.sin(ant.ang) * p);
+    const l = sampleTrail(ant.x + Math.cos(ant.ang - 0.55) * p, ant.y + Math.sin(ant.ang - 0.55) * p);
+    const r = sampleTrail(ant.x + Math.cos(ant.ang + 0.55) * p, ant.y + Math.sin(ant.ang + 0.55) * p);
+    const smell = Math.max(c, l, r);
+    if (smell > 0.02){
+      if (l > c && l >= r) ant.ang -= 0.16;
+      else if (r > c && r > l) ant.ang += 0.16;
+      ant.ang += rand(-ant.wobble, ant.wobble) * 0.35;
+    } else {
+      ant.ang += rand(-ant.wobble, ant.wobble);
+    }
+    /* weak outward bias so the colony spreads */
+    const toEdge = Math.atan2(ant.y - nest.y, ant.x - nest.x);
+    turnToward(ant, toEdge, 0.012);
+    /* found food? */
+    const hit = nearestCrumb(ant.x, ant.y, 9);
+    if (hit){
+      const crumb = hit.pile.crumbs[hit.i];
+      hit.pile.crumbs.splice(hit.i, 1);
+      if (!hit.pile.crumbs.length) piles.splice(piles.indexOf(hit.pile), 1);
+      ant.carrying = true;
+      ant.ang += Math.PI + rand(-0.5, 0.5);
+      deposit(ant.x, ant.y, 0.8);
+    }
+  }
+  /* keep in bounds */
+  ant.x += Math.cos(ant.ang) * step;
+  ant.y += Math.sin(ant.ang) * step;
+  const m = 10;
+  if (ant.x < m || ant.x > W - m || ant.y < m + H*0.06 || ant.y > H - m){
+    ant.x = clamp(ant.x, m, W - m);
+    ant.y = clamp(ant.y, m + H*0.06, H - m);
+    ant.ang = Math.atan2(H/2 - ant.y, W/2 - ant.x) + rand(-0.8, 0.8);
+  }
+}
+function drawAnts(){
+  ctx.fillStyle = '#171310';
+  for (const a of ants){
+    const ca = Math.cos(a.ang), sa = Math.sin(a.ang);
+    /* body: three segments along heading */
+    ctx.beginPath();
+    ctx.ellipse(a.x - ca*3.2, a.y - sa*3.2, 1.7, 1.3, a.ang, 0, TAU);   /* gaster */
+    ctx.ellipse(a.x, a.y, 1.35, 1.1, a.ang, 0, TAU);                    /* thorax */
+    ctx.ellipse(a.x + ca*2.4, a.y + sa*2.4, 1.1, 0.95, a.ang, 0, TAU);  /* head */
+    ctx.fill();
+    if (a.carrying){
+      ctx.fillStyle = '#d9553f';
+      ctx.beginPath();
+      ctx.arc(a.x + ca*5.4, a.y + sa*5.4, 2.1, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = '#171310';
+    }
+  }
+}
+function drawPiles(){
+  for (const pile of piles){
+    for (const c of pile.crumbs){
+      ctx.fillStyle = '#d9553f';
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,190,170,.55)';
+      ctx.beginPath();
+      ctx.arc(c.x - c.r*0.3, c.y - c.r*0.35, c.r*0.32, 0, TAU);
+      ctx.fill();
+    }
+  }
+}
+function drawNestTop(){
+  /* soft glow at the entrance so returns read clearly */
+  const glow = ctx.createRadialGradient(nest.x, nest.y - 4, 1, nest.x, nest.y - 4, 26);
+  glow.addColorStop(0, 'rgba(200,169,126,.28)');
+  glow.addColorStop(1, 'rgba(200,169,126,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(nest.x, nest.y - 4, 26, 0, TAU);
+  ctx.fill();
+}
+
+/* ============================== input ================================ */
+ui.field.addEventListener('pointerdown', e => {
+  const r = ui.field.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  ensureAudio();
+  dropFood(x, y, e.shiftKey);
+});
+
+/* ============================== controls ============================= */
+let toastT = 0;
+function toast(msg){
+  ui.toast.textContent = msg;
+  ui.toast.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => ui.toast.classList.remove('show'), 2100);
+}
+const EVAP_NAMES = { 1: 'glacial', 2: 'low', 3: 'medium', 4: 'high', 5: 'amnesiac' };
+ui.pop.addEventListener('input', () => {
+  population = parseInt(ui.pop.value, 10);
+  ui.popVal.textContent = population + ' ants';
+  syncPopulation();
+});
+ui.evap.addEventListener('input', () => {
+  const v = parseInt(ui.evap.value, 10);
+  evapFactor = EVAP_STEPS[v];
+  ui.evapVal.textContent = EVAP_NAMES[v];
+});
+ui.spd.addEventListener('input', () => {
+  speedMul = parseFloat(ui.spd.value);
+  ui.spdVal.textContent = speedMul.toFixed(1) + '×';
+});
+ui.feastBtn.addEventListener('click', () => {
+  /* drop a feast at the centroid of current trails or near the last pile */
+  let x, y;
+  if (piles.length){
+    const last = piles[piles.length - 1];
+    x = clamp(last.x + rand(-80, 80), 30, W - 30);
+    y = clamp(last.y + rand(-60, 60), H*0.2, H - 30);
+  } else {
+    x = W * rand(0.55, 0.85);
+    y = H * rand(0.4, 0.8);
+  }
+  dropFood(x, y, true);
+});
+ui.trailBtn.addEventListener('click', () => {
+  showTrails = !showTrails;
+  ui.trailBtn.setAttribute('aria-pressed', String(showTrails));
+  toast(showTrails ? 'Trails visible — read the colony\u2019s mind'
+                   : 'Trails hidden — the ants know something you don\u2019t');
+});
+ui.pauseBtn.addEventListener('click', () => {
+  paused = !paused;
+  ui.pauseBtn.setAttribute('aria-pressed', String(paused));
+  ui.censusNote.textContent = paused ? 'PAUSED' : 'LIVE';
+  toast(paused ? 'The colony holds its breath' : 'The colony resumes');
+});
+ui.resetBtn.addEventListener('click', () => {
+  trail = new Float32Array(gw * gh);
+  piles = [];
+  ants = [];
+  delivered = 0;
+  syncPopulation();
+  toast('New colony — same dirt, different destiny');
+});
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' '){ e.preventDefault(); ui.pauseBtn.click(); }
+  else if (k === 't') ui.trailBtn.click();
+  else if (k === 'f') ui.feastBtn.click();
+  else if (k === 'n') ui.resetBtn.click();
+});
+
+/* ============================== stats ================================ */
+let statAcc = 0;
+function updateStats(){
+  let hauling = 0;
+  for (const a of ants) if (a.carrying) hauling++;
+  let crumbs = 0;
+  for (const p of piles) crumbs += p.crumbs.length;
+  ui.stDelivered.textContent = String(delivered);
+  ui.stOut.textContent = String(ants.length - hauling);
+  ui.stHauling.textContent = String(hauling);
+  ui.stPiles.textContent = String(piles.length) + ' / ' + crumbs;
+  ui.stTrail.textContent = Math.round(clamp(trailPeak / 3, 0, 1) * 100) + '%';
+}
+
+/* ============================== loop ================================= */
+let raf = 0, running = true, last = performance.now();
+let paused = false;
+function frame(now){
+  raf = requestAnimationFrame(frame);
+  const dt = clamp((now - last) / 1000, 0.001, 0.05);
+  last = now;
+
+  /* paint static soil */
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(bg, 0, 0, W, H);
+
+  if (!paused){
+    decayTrails();
+    for (const a of ants) stepAnt(a, dt);
+  }
+  renderTrail();
+  drawPiles();
+  drawNestTop();
+  drawAnts();
+
+  statAcc += dt;
+  if (statAcc > 0.25){
+    statAcc = 0;
+    updateStats();
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden){
+    running = false;
+    cancelAnimationFrame(raf);
+  } else if (!running){
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+});
+let resizeQ = false;
+addEventListener('resize', () => {
+  if (resizeQ) return;
+  resizeQ = true;
+  requestAnimationFrame(() => {
+    resizeQ = false;
+    sizeCanvas();
+    drawBackground();
+    sizeField();
+    trail = new Float32Array(gw * gh);
+    piles = [];
+    for (const a of ants){
+      a.x = clamp(a.x, 10, W - 10);
+      a.y = clamp(a.y, 10 + H * 0.06, H - 10);
+    }
+  });
+});
+
+/* ============================== init ================================= */
+function sizeCanvas(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  W = ui.field.clientWidth;
+  H = ui.field.clientHeight;
+  ui.field.width = Math.round(W * dpr);
+  ui.field.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+sizeCanvas();
+drawBackground();
+sizeField();
+syncPopulation();
+/* a starter cache so the first highway forms quickly */
+dropFood(W * 0.78, H * 0.55, true);
+piles[piles.length - 1].crumbs.length = 40;   /* modest starter */
+ui.stTrail.textContent = '0%';
+raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WAVE LAB · №100 — An Interference Laboratory · The Gallery of 100</title>
+<style>
+:root{
+  --water-a:   #0b2b3a;
+  --water-b:   #071e29;
+  --crest:     #7fd1c0;
+  --light-a:   #14101f;
+  --light-b:   #0c0a15;
+  --sound-a:   #241a10;
+  --sound-b:   #17100a;
+  --amber:     #e8b45a;
+  --panel:     rgba(16,20,28,.88);
+  --cream:     #f2efe4;
+  --txt:       #b9c2c9;
+  --txt-dim:   #77828c;
+  --hairline:  rgba(242,239,228,.16);
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, "Courier New", monospace;
+}
+body[data-lab="water"]{ --pool-a:var(--water-a); --pool-b:var(--water-b); --accent:var(--crest); }
+body[data-lab="light"]{ --pool-a:var(--light-a); --pool-b:var(--light-b); --accent:#a48fff; }
+body[data-lab="sound"]{ --pool-a:var(--sound-a); --pool-b:var(--sound-b); --accent:var(--amber); }
+body{ --pool-a:var(--water-a); --pool-b:var(--water-b); --accent:var(--crest); }
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:var(--serif);
+  background:var(--pool-b);
+  color:var(--txt);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background 1s ease;
+}
+::selection{ background:var(--accent); color:#0a0d12; }
+:focus{ outline:none; }
+:focus-visible{ outline:2px dashed var(--accent); outline-offset:3px; }
+button{ font-family:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+#pool{
+  position:fixed; inset:0; display:block;
+  touch-action:none;
+  cursor:crosshair;
+}
+#pool.adding{ cursor:copy; }
+
+/* ---------- lab plate ---------- */
+.plate{
+  position:fixed; top:clamp(12px,2.6vh,26px); left:clamp(14px,2.6vw,30px);
+  z-index:6;
+  background:var(--panel);
+  border:1px solid var(--hairline);
+  border-radius:10px;
+  padding:16px 20px 14px;
+  max-width:min(340px, 82vw);
+  backdrop-filter:blur(6px);
+  box-shadow:0 20px 44px -22px rgba(0,0,0,.8);
+}
+.plate .kicker{
+  font-family:var(--mono); font-size:.52rem; letter-spacing:.4em; text-transform:uppercase;
+  color:var(--txt-dim);
+}
+.plate h1{
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:clamp(1.5rem,3.4vw,2.2rem);
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream);
+  margin-top:4px;
+  line-height:1.15;
+}
+.plate h1 .no{
+  display:inline-block;
+  font-family:var(--mono); font-size:.5em; letter-spacing:.16em;
+  color:var(--accent);
+  vertical-align:super;
+  transition:color .8s ease;
+}
+.plate .sub{
+  margin-top:6px;
+  font-style:italic; font-size:.85rem; line-height:1.6; color:var(--txt-dim);
+}
+.plate .rule{
+  margin-top:11px; padding-top:9px;
+  border-top:1px solid var(--hairline);
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.18em; line-height:2;
+  color:var(--txt-dim); text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+}
+.plate .rule b{ color:var(--accent); font-weight:400; transition:color .8s ease; }
+
+/* ---------- console ---------- */
+.console{
+  position:fixed; right:clamp(14px,2.6vw,30px); top:clamp(12px,2.6vh,26px);
+  z-index:6;
+  display:flex; flex-direction:column; gap:10px;
+  width:min(300px, 78vw);
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--hairline);
+  border-radius:10px;
+  padding:13px 15px;
+  backdrop-filter:blur(6px);
+  box-shadow:0 20px 44px -22px rgba(0,0,0,.8);
+}
+.card .ctitle{
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.32em; text-transform:uppercase;
+  color:var(--txt-dim);
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:10px;
+}
+.card .ctitle b{ color:var(--accent); font-weight:400; transition:color .8s ease; }
+
+/* physics modes */
+.modes{ display:flex; gap:6px; }
+.mode-btn{
+  flex:1;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--txt);
+  border:1px solid var(--hairline);
+  border-radius:7px;
+  padding:10px 4px;
+  text-align:center;
+  transition:border-color .3s ease, color .3s ease, background .3s ease;
+  touch-action:manipulation;
+}
+.mode-btn:hover{ border-color:var(--txt-dim); }
+.mode-btn.on{ border-color:var(--accent); color:var(--cream); background:rgba(255,255,255,.05); }
+
+/* sliders */
+.sl{ display:grid; gap:9px; }
+.sl-row{ display:grid; grid-template-columns:64px 1fr 52px; align-items:center; gap:10px; }
+.sl-row .lab{
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--txt-dim);
+}
+.sl-row .val{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.06em;
+  color:var(--cream); text-align:right; font-variant-numeric:tabular-nums;
+}
+input[type="range"].wsl{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:22px; background:transparent; cursor:pointer; touch-action:none;
+}
+input[type="range"].wsl::-webkit-slider-runnable-track{
+  height:3px; border-radius:2px;
+  background:linear-gradient(90deg, rgba(242,239,228,.14), var(--accent));
+}
+input[type="range"].wsl::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; margin-top:-6.5px; border-radius:50%;
+  background:var(--cream);
+  border:2px solid var(--accent);
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+input[type="range"].wsl::-moz-range-track{ height:3px; border-radius:2px; background:rgba(242,239,228,.2); }
+input[type="range"].wsl::-moz-range-thumb{ width:14px; height:14px; border-radius:50%; background:var(--cream); border:2px solid var(--accent); }
+
+/* source buttons */
+.btnrow{ display:flex; gap:6px; }
+.wbtn{
+  flex:1;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--txt);
+  border:1px solid var(--hairline);
+  border-radius:7px;
+  padding:10px 4px;
+  text-align:center;
+  transition:border-color .3s ease, color .3s ease, background .3s ease;
+  touch-action:manipulation;
+}
+.wbtn:hover{ border-color:var(--txt-dim); color:var(--cream); }
+.wbtn.on{ border-color:var(--accent); color:var(--cream); background:rgba(255,255,255,.05); }
+
+/* source readout list */
+.srcs{
+  display:grid; gap:5px;
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.1em; line-height:1.5;
+  color:var(--txt-dim);
+  font-variant-numeric:tabular-nums;
+}
+.srcs .sr{ display:flex; justify-content:space-between; gap:8px; }
+.srcs .sr b{ color:var(--cream); font-weight:400; }
+.srcs .empty{ font-style:italic; font-family:var(--serif); text-transform:none; letter-spacing:.03em; font-size:.78rem; }
+
+/* ---------- footer strip ---------- */
+.foot{
+  position:fixed; left:clamp(14px,2.6vw,30px); bottom:clamp(12px,2.4vh,24px);
+  z-index:6;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--txt-dim);
+  line-height:2;
+  pointer-events:none;
+}
+.foot em{ font-style:normal; color:var(--accent); transition:color .8s ease; }
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:clamp(16px,4vh,40px);
+  transform:translate(-50%,8px);
+  z-index:10;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--cream);
+  background:rgba(10,13,18,.92);
+  border:1px solid var(--hairline);
+  border-radius:999px;
+  padding:9px 18px;
+  opacity:0; transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+@media (max-width:900px){
+  .plate{ max-width:min(300px,74vw); padding:12px 15px 11px; }
+  .console{ width:min(260px,72vw); }
+  .foot{ display:none; }
+}
+@media (max-width:620px){
+  .plate{ position:static; margin:10px auto 0; width:min(340px,92vw); }
+  .console{ top:auto; bottom:clamp(10px,2vh,20px); right:10px; }
+  .card.opt{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .toast{ transition:none; }
+  .mode-btn, .wbtn{ transition:none; }
+}
+</style>
+</head>
+<body data-lab="water">
+
+<canvas id="pool" role="img" aria-label="Wave interference laboratory — place sources and watch the patterns interfere"></canvas>
+
+<div class="plate">
+  <span class="kicker">INTERFERENCE BENCH · CLOSING EXHIBIT</span>
+  <h1>Wave Lab <span class="no">№100</span></h1>
+  <p class="sub">place sources on the pool; where the rings agree, the surface shines; where they argue, it goes dark.</p>
+  <div class="rule">
+    SOURCES <b id="roSrc">0 / 5</b> · λ <b id="roL">28</b> PX · f <b id="roF">1.0</b> HZ<br>
+    FIELD — <b id="roMode">WATER</b> · <span id="roHint">TAP TO PLACE A SOURCE</span>
+  </div>
+</div>
+
+<div class="console">
+  <div class="card">
+    <div class="ctitle">Physics <b id="labRead">WATER</b></div>
+    <div class="modes" role="group" aria-label="Physics mode">
+      <button class="mode-btn on" type="button" data-l="water" aria-pressed="true">Water</button>
+      <button class="mode-btn" type="button" data-l="light" aria-pressed="false">Light</button>
+      <button class="mode-btn" type="button" data-l="sound" aria-pressed="false">Sound</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Field <b>CONTINUOUS</b></div>
+    <div class="sl">
+      <div class="sl-row">
+        <span class="lab">λ wave</span>
+        <input type="range" class="wsl" id="lamSl" min="10" max="80" step="1" value="28" aria-label="Wavelength in pixels">
+        <span class="val" id="lamVal">28 px</span>
+      </div>
+      <div class="sl-row">
+        <span class="lab">f freq</span>
+        <input type="range" class="wsl" id="freqSl" min="0.2" max="3" step="0.1" value="1" aria-label="Frequency in hertz">
+        <span class="val" id="freqVal">1.0 Hz</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Sources <b id="srcCount2">0 / 5</b></div>
+    <div class="btnrow">
+      <button class="wbtn on" type="button" id="addBtn" aria-pressed="true">Place</button>
+      <button class="wbtn" type="button" id="moveBtn" aria-pressed="false">Move</button>
+      <button class="wbtn" type="button" id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="card opt">
+    <div class="ctitle">Source data</div>
+    <div class="srcs" id="srcList">
+      <p class="empty">no sources yet — the pool sleeps flat and patient.</p>
+    </div>
+  </div>
+</div>
+
+<div class="foot" aria-hidden="true">
+  <div>WAVE LAB · №100 OF 100 · THE GALLERY OF 100</div>
+  <div>DRAG TWO SOURCES TOGETHER — <em>THE RINGS BEAT</em></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var clamp = function(v,a,b){ return Math.max(a, Math.min(b, v)); };
+var lerp = function(a,b,t){ return a + (b-a)*t; };
+var TAU = Math.PI * 2;
+var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+/* ================= dom ================= */
+var cv = document.getElementById("pool");
+var ctx = cv.getContext("2d");
+var els = {
+  roSrc: document.getElementById("roSrc"),
+  roL: document.getElementById("roL"),
+  roF: document.getElementById("roF"),
+  roMode: document.getElementById("roMode"),
+  roHint: document.getElementById("roHint"),
+  labRead: document.getElementById("labRead"),
+  lamSl: document.getElementById("lamSl"),
+  freqSl: document.getElementById("freqSl"),
+  lamVal: document.getElementById("lamVal"),
+  freqVal: document.getElementById("freqVal"),
+  srcCount2: document.getElementById("srcCount2"),
+  addBtn: document.getElementById("addBtn"),
+  moveBtn: document.getElementById("moveBtn"),
+  clearBtn: document.getElementById("clearBtn"),
+  srcList: document.getElementById("srcList"),
+  toast: document.getElementById("toast")
+};
+
+/* ================= state ================= */
+var W = 0, H = 0, DPR = 1;
+var sources = [];           /* {x,y,phase} max 5 */
+var MAX_SRC = 5;
+var lambda = 28;
+var freq = 1;
+var lab = "water";
+var tool = "place";         /* place | move */
+var dragSrc = -1;
+var time = 0;
+var raf = 0, running = true, lastT = 0, frame = 0;
+/* render resolution: field computed on a coarse grid, upscaled */
+var FW = 0, FH = 0, CELL = 4;
+var field = null;           /* Float32Array of last computed intensities */
+
+/* ================= physics ================= */
+function fieldAt(x, y, t){
+  var sum = 0;
+  for (var i = 0; i < sources.length; i++){
+    var s = sources[i];
+    var dx = x - s.x, dy = y - s.y;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    /* outward travelling wave, decaying with distance */
+    var arg = d / lambda - t * freq - s.phase;
+    var env = 26 / (26 + d);
+    sum += Math.sin(arg * TAU) * env;
+  }
+  return sources.length ? sum / sources.length : 0;
+}
+
+/* ================= sources ================= */
+function addSource(x, y){
+  if (sources.length >= MAX_SRC){
+    toast("BENCH FULL — FIVE SOURCES IS THE LAW OF THIS LAB");
+    return false;
+  }
+  sources.push({ x: x, y: y, phase: 0 });
+  refreshSources();
+  return true;
+}
+function refreshSources(){
+  var n = sources.length;
+  els.roSrc.textContent = n + " / " + MAX_SRC;
+  els.srcCount2.textContent = n + " / " + MAX_SRC;
+  if (n === 0){
+    els.srcList.innerHTML = '<p class="empty">no sources yet — the pool sleeps flat and patient.</p>';
+    els.roHint.textContent = "TAP TO PLACE A SOURCE";
+    return;
+  }
+  var html = "";
+  for (var i = 0; i < n; i++){
+    var s = sources[i];
+    html += '<div class="sr"><span>S' + (i + 1) + ' — φ' + (s.phase * 12).toFixed(1) + '°</span><b>' +
+      Math.round(s.x) + "," + Math.round(s.y) + '</b></div>';
+  }
+  els.srcList.innerHTML = html;
+  els.roHint.textContent = tool === "place" ? "TAP TO PLACE ANOTHER · DRAG TO TUNE" : "DRAG A SOURCE · TAP EMPTY TO PLACE";
+}
+
+/* ================= rendering ================= */
+function palette(){
+  if (lab === "water"){
+    return {
+      deep: [11, 43, 58],
+      deep2: [6, 22, 30],
+      crest: [127, 209, 192],
+      trough: [9, 26, 34],
+      spec: function(v, t){
+        /* spectral shimmer for light mode only */
+        return null;
+      }
+    };
+  }
+  if (lab === "light"){
+    return {
+      deep: [20, 16, 31],
+      deep2: [12, 10, 21],
+      crest: [190, 160, 255],
+      trough: [10, 8, 16],
+      spec: spectral
+    };
+  }
+  return {
+    deep: [36, 26, 16],
+    deep2: [23, 16, 10],
+    crest: [232, 180, 90],
+    trough: [18, 12, 8],
+    spec: null
+  };
+}
+function spectral(v){
+  /* map -1..1 across a violet→red spectral band (cheap HSL sweep) */
+  var h = 260 + v * 140;
+  var c = 0.55, l = 0.5 + v * 0.24;
+  var a = c * Math.min(l, 1 - l);
+  var k = (h / 30) % 12;
+  var r = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+  var g = l - a * Math.max(-1, Math.min(1, Math.min(k < 3 ? k + 9 : 9 - k)));
+  var b = l - a * Math.max(-1, Math.min(7 - k, k + 1, 1));
+  r = clamp(r, 0, 1); g = clamp(g, 0, 1); b = clamp(b, 0, 1);
+  return [ Math.round(r * 255), Math.round(g * 255), Math.round(b * 255) ];
+}
+
+function computeField(t){
+  FW = Math.max(8, Math.ceil(W / CELL));
+  FH = Math.max(8, Math.ceil(H / CELL));
+  if (!field || field.length < FW * FH){
+    field = new Float32Array(FW * FH);
+  }
+  var n = sources.length;
+  if (n === 0){
+    field.fill(0);
+    return;
+  }
+  var invL = 1 / lambda;
+  var invN = 1 / n;
+  for (var fy = 0; fy < FH; fy++){
+    var y = fy * CELL + CELL / 2;
+    for (var fx = 0; fx < FW; fx++){
+      var x = fx * CELL + CELL / 2;
+      var sum = 0;
+      for (var i = 0; i < n; i++){
+        var s = sources[i];
+        var dx = x - s.x, dy = y - s.y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        var arg = d * invL - t * freq - s.phase;
+        var env = 26 / (26 + d);
+        sum += Math.sin(arg * TAU) * env;
+      }
+      field[fy * FW + fx] = sum * invN;
+    }
+  }
+}
+
+function drawField(t){
+  var pal = palette();
+  /* base */
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "rgb(" + pal.deep[0] + "," + pal.deep[1] + "," + pal.deep[2] + ")");
+  bg.addColorStop(1, "rgb(" + pal.deep2[0] + "," + pal.deep2[1] + "," + pal.deep2[2] + ")");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  if (!sources.length) return;
+
+  /* coarse field → ImageData for speed */
+  if (!imgData || imgW !== FW || imgH !== FH){
+    imgCv = document.createElement("canvas");
+    imgCv.width = FW; imgCv.height = FH;
+    imgCtx = imgCv.getContext("2d");
+    imgData = imgCtx.createImageData(FW, FH);
+    imgW = FW; imgH = FH;
+  }
+  var d = imgData.data;
+  for (var i = 0; i < FW * FH; i++){
+    var v = field[i];
+    var av = Math.abs(v);
+    var col;
+    if (pal.spec){
+      col = pal.spec(v);
+      var mixT = 0.25 + av * 0.55;
+      d[i*4]   = Math.round(lerp(pal.deep[0], col[0], mixT));
+      d[i*4+1] = Math.round(lerp(pal.deep[1], col[1], mixT));
+      d[i*4+2] = Math.round(lerp(pal.deep[2], col[2], mixT));
+    } else {
+      var amp = Math.pow(av, 1.5);
+      var r = Math.round(lerp(pal.trough[0], pal.crest[0], amp));
+      var g = Math.round(lerp(pal.trough[1], pal.crest[1], amp));
+      var b = Math.round(lerp(pal.trough[2], pal.crest[2], amp));
+      d[i*4] = r; d[i*4+1] = g; d[i*4+2] = b;
+    }
+    d[i*4+3] = 255;
+  }
+  imgCtx.putImageData(imgData, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(imgCv, 0, 0, FW, FH, 0, 0, FW * CELL, FH * CELL);
+
+  /* crest lines: draw thin highlight where v crosses near-max, for texture */
+  ctx.globalCompositeOperation = "lighter";
+  ctx.strokeStyle = "rgba(" + pal.crest[0] + "," + pal.crest[1] + "," + pal.crest[2] + ",.10)";
+  ctx.lineWidth = 1;
+  for (var yy = 0; yy < FH; yy++){
+    ctx.beginPath();
+    var started = false;
+    for (var xx = 0; xx < FW; xx++){
+      var v2 = field[yy * FW + xx];
+      if (v2 > 0.52){
+        var px = xx * CELL, py = yy * CELL;
+        if (!started){ ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      } else if (started){
+        started = false;
+      }
+    }
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+var imgCv = null, imgCtx = null, imgData = null, imgW = 0, imgH = 0;
+
+function drawSources(t){
+  var accent = getComputedStyle(document.body).getPropertyValue("--accent").trim() || "#7fd1c0";
+  for (var i = 0; i < sources.length; i++){
+    var s = sources[i];
+    var pulse = 0.75 + 0.25 * Math.sin(t * freq * TAU + s.phase * TAU);
+    /* emission ring */
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = 0.5 * pulse;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 9 + pulse * 4, 0, TAU);
+    ctx.stroke();
+    /* core */
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 5, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = "#0a0d12";
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 2, 0, TAU);
+    ctx.fill();
+    /* label */
+    ctx.font = "600 10px ui-monospace, Menlo, monospace";
+    ctx.fillStyle = "rgba(242,239,228,.8)";
+    ctx.fillText("S" + (i + 1), s.x + 11, s.y - 9);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ================= interaction ================= */
+function localXY(e){
+  return { x: e.clientX, y: e.clientY };
+}
+function nearestSource(x, y, r){
+  var best = -1, bd = r * r;
+  for (var i = 0; i < sources.length; i++){
+    var s = sources[i];
+    var d = (s.x - x) * (s.x - x) + (s.y - y) * (s.y - y);
+    if (d < bd){ bd = d; best = i; }
+  }
+  return best;
+}
+cv.addEventListener("pointerdown", function(e){
+  var p = localXY(e);
+  var hit = nearestSource(p.x, p.y, 26);
+  if (tool === "move" && hit > -1){
+    dragSrc = hit;
+  } else if (hit > -1){
+    dragSrc = hit;
+  } else {
+    if (addSource(p.x, p.y)){
+      beep(660, 0.07, 0.05);
+      toast("SOURCE S" + sources.length + " PLACED — WATCH THE RINGS ARGUE");
+    }
+  }
+  try { cv.setPointerCapture(e.pointerId); } catch(err){}
+});
+cv.addEventListener("pointermove", function(e){
+  if (dragSrc < 0) return;
+  var p = localXY(e);
+  var s = sources[dragSrc];
+  s.x = clamp(p.x, 0, W);
+  s.y = clamp(p.y, 0, H);
+  refreshSources();
+  /* if two sources are close, that's the beating pair */
+  for (var i = 0; i < sources.length; i++){
+    if (i === dragSrc) continue;
+    var o = sources[i];
+    var d = Math.sqrt((o.x - s.x) * (o.x - s.x) + (o.y - s.y) * (o.y - s.y));
+    if (d < lambda * 1.6 && !beatNote){
+      beatNote = true;
+      toast("TWO SOURCES, ONE HEARTBEAT — COUNT THE ANTI NODES");
+      setTimeout(function(){ beatNote = false; }, 4000);
+    }
+  }
+});
+var endDrag = function(e){
+  if (dragSrc < 0) return;
+  dragSrc = -1;
+  try { cv.releasePointerCapture(e.pointerId); } catch(err){}
+};
+var beatNote = false;
+cv.addEventListener("pointerup", endDrag);
+cv.addEventListener("pointercancel", endDrag);
+
+function setTool(t){
+  tool = t;
+  els.addBtn.classList.toggle("on", t === "place");
+  els.moveBtn.classList.toggle("on", t === "move");
+  els.addBtn.setAttribute("aria-pressed", t === "place" ? "true" : "false");
+  els.moveBtn.setAttribute("aria-pressed", t === "move" ? "true" : "false");
+  cv.classList.toggle("adding", t === "place");
+  refreshSources();
+}
+els.addBtn.addEventListener("click", function(){ setTool("place"); });
+els.moveBtn.addEventListener("click", function(){ setTool("move"); toast("MOVE — DRAG ANY SOURCE, THE FIELD OBEYS"); });
+els.clearBtn.addEventListener("click", function(){
+  sources = [];
+  refreshSources();
+  toast("POOL CLEARED — SILENCE, OF A KIND");
+});
+
+function setLab(l){
+  lab = l;
+  document.body.setAttribute("data-lab", l);
+  Array.prototype.forEach.call(document.querySelectorAll(".mode-btn"), function(b){
+    var on = b.getAttribute("data-l") === l;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  els.labRead.textContent = l.toUpperCase();
+  els.roMode.textContent = l.toUpperCase();
+  toast("PHYSICS — " + l.toUpperCase() + " · SAME MATH, NEW LIGHT");
+}
+Array.prototype.forEach.call(document.querySelectorAll(".mode-btn"), function(b){
+  b.addEventListener("click", function(){ setLab(b.getAttribute("data-l")); });
+});
+
+els.lamSl.addEventListener("input", function(){
+  lambda = parseInt(els.lamSl.value, 10);
+  els.lamVal.textContent = lambda + " px";
+  els.roL.textContent = String(lambda);
+});
+els.freqSl.addEventListener("input", function(){
+  freq = parseFloat(els.freqSl.value);
+  els.freqVal.textContent = freq.toFixed(1) + " Hz";
+  els.roF.textContent = freq.toFixed(1);
+});
+
+window.addEventListener("keydown", function(e){
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+  if (e.key === "c" || e.key === "C") els.clearBtn.click();
+  if (e.key === "m" || e.key === "M") setTool(tool === "move" ? "place" : "move");
+  var n = parseInt(e.key, 10);
+  if (n >= 1 && n <= 5){
+    setLab(["water", "light", "sound"][n - 1] || lab);
+  }
+});
+
+/* ================= audio (optional drone, user-initiated via M key? keep silent) */
+function beep(f, dur, vol){
+  /* tiny UI blip; only after user enabled audio via first click is AC created on demand */
+  if (!AC) return;
+  var o = AC.createOscillator();
+  o.type = "sine";
+  o.frequency.value = f;
+  var g = AC.createGain();
+  var t = AC.currentTime;
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+  o.connect(g); g.connect(AC.destination);
+  o.start(t); o.stop(t + dur + 0.06);
+}
+var AC = null;
+function ensureAudio(){
+  if (AC) return true;
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return false;
+  AC = new Ctor();
+  return true;
+}
+/* first pointerdown primes audio lazily (still user-initiated) */
+cv.addEventListener("pointerdown", function(){
+  ensureAudio();
+  if (AC && AC.state === "suspended") AC.resume();
+}, { once:true });
+
+/* ================= toast ================= */
+var toastTimer = 0;
+function toast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 1900);
+}
+
+/* ================= loop ================= */
+var gridEvery = 0;
+function loop(now){
+  if (!running) return;
+  raf = requestAnimationFrame(loop);
+  var dt = clamp((now - lastT) / 1000, 0, 0.05);
+  lastT = now;
+  time += dt * (reduced.matches ? 0.35 : 1);
+  frame++;
+  computeField(time);
+  drawField(time);
+  drawSources(time);
+}
+
+/* ================= fit ================= */
+function fit(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  cv.width = Math.round(W * DPR);
+  cv.height = Math.round(H * DPR);
+  cv.style.width = W + "px";
+  cv.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  imgData = null;
+  CELL = W > 1500 ? 5 : 4;
+}
+var resizeTimer = 0;
+window.addEventListener("resize", function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    fit();
+    for (var i = 0; i < sources.length; i++){
+      sources[i].x = clamp(sources[i].x, 0, W);
+      sources[i].y = clamp(sources[i].y, 0, H);
+    }
+  }, 160);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ running = false; cancelAnimationFrame(raf); }
+  else if (!running){ running = true; lastT = performance.now(); raf = requestAnimationFrame(loop); }
+});
+window.addEventListener("pagehide", function(){
+  running = false;
+  cancelAnimationFrame(raf);
+  if (AC){ try { AC.close(); } catch(e){} }
+});
+
+/* ================= boot ================= */
+fit();
+refreshSources();
+/* seed two sources for an immediate standing-wave welcome */
+addSource(W * 0.38, H * 0.5);
+addSource(W * 0.62, H * 0.5);
+lastT = performance.now();
+raf = requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

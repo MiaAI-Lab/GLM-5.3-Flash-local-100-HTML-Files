@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Torn &amp; Assembled — a mixed-media collage wall of torn paper, magazine letters, tape, thread and staples. Drag the scraps; shuffle recomposes the wall.">
+<title>Torn &amp; Assembled — Collage Wall No. 3</title>
+<style>
+  :root{
+    --kraft:#c9a875;
+    --kraft-2:#b8925c;
+    --board:#a8875a;
+    --board-2:#8f7046;
+    --torn-white:#f6f2e8;
+    --neon-pink:#ff2f92;
+    --neon-lime:#c8f04c;
+    --neon-cyan:#37d3e0;
+    --cobalt:#2b44ff;
+    --ink:#241d14;
+    --news:#e9e2cf;
+    --tape:#efe8c8;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  ::selection{ background:var(--cobalt); color:#fff; }
+  html{ scrollbar-color:var(--board-2) #6b5232; }
+  ::-webkit-scrollbar{ width:12px; }
+  ::-webkit-scrollbar-track{ background:#6b5232; }
+  ::-webkit-scrollbar-thumb{ background:linear-gradient(var(--kraft-2), var(--board-2)); border-radius:6px; border:2px solid #6b5232; }
+
+  body{
+    min-height:100vh;
+    font-family:Georgia, "Times New Roman", ui-serif, serif;
+    color:var(--ink);
+    background:
+      radial-gradient(130% 100% at 50% 0%, #c39b66 0%, var(--kraft) 42%, var(--board) 78%, var(--board-2) 100%);
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* corkboard speckle + room light */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(1.2px 1.2px at 14% 22%, rgba(60,42,24,.5), transparent 60%),
+      radial-gradient(1px 1px at 38% 64%, rgba(60,42,24,.42), transparent 60%),
+      radial-gradient(1.4px 1.4px at 62% 30%, rgba(60,42,24,.4), transparent 60%),
+      radial-gradient(1px 1px at 82% 74%, rgba(60,42,24,.46), transparent 60%),
+      radial-gradient(1.2px 1.2px at 48% 88%, rgba(60,42,24,.4), transparent 60%),
+      radial-gradient(60% 40% at 50% -8%, rgba(255,244,214,.22), transparent 70%);
+  }
+  header.tape-header, main, footer.foot{ position:relative; z-index:1; }
+
+  header.tape-header{
+    text-align:center;
+    padding:clamp(20px, 3.6vw, 46px) 16px 0;
+  }
+  .ransom{
+    display:inline-flex; flex-wrap:wrap; justify-content:center; gap:clamp(2px, .5vw, 6px);
+    font-weight:700;
+    line-height:1;
+  }
+  .ransom span{
+    display:inline-block;
+    padding:.08em .12em .1em;
+    background-size:cover;
+    box-shadow:0 2px 4px rgba(30,20,10,.35);
+    border-radius:1px;
+  }
+  /* ransom letters: varied fills, fonts, rotations */
+  .ransom span:nth-child(4n+1){ background:var(--torn-white); color:#1d3bb8; font-family:ui-monospace, "Courier New", monospace; transform:rotate(-2.4deg); }
+  .ransom span:nth-child(4n+2){ background:var(--neon-pink); color:#fff; font-family:system-ui, Helvetica, Arial, sans-serif; font-weight:900; transform:rotate(1.8deg); }
+  .ransom span:nth-child(4n+3){ background:#1d2b1f; color:var(--neon-lime); font-family:Georgia, serif; font-style:italic; transform:rotate(-1.2deg); }
+  .ransom span:nth-child(4n+0){ background:var(--news); color:var(--cobalt); font-family:Georgia, serif; transform:rotate(2.6deg); }
+  .ransom span:nth-child(5n+2){ font-size:1.16em; }
+  .ransom span:nth-child(7n+3){ transform:rotate(-4deg) translateY(-2px); }
+  .ransom .gap{ background:none; box-shadow:none; width:.5em; padding:0; }
+  h1{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .desk-sub{
+    margin-top:12px;
+    font-style:italic;
+    font-size:clamp(.84rem, 2vw, 1rem);
+    color:rgba(36,29,20,.75);
+    max-width:60ch; margin-left:auto; margin-right:auto; line-height:1.7;
+  }
+  .desk-bar{
+    display:inline-flex; gap:10px; flex-wrap:wrap; justify-content:center;
+    margin-top:14px;
+  }
+  .desk-btn{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.64rem, 1.5vw, .74rem);
+    letter-spacing:.2em; text-transform:uppercase;
+    color:var(--ink);
+    background:var(--tape);
+    border:none;
+    border-radius:2px;
+    padding:10px 18px;
+    cursor:pointer;
+    box-shadow:0 3px 8px rgba(30,20,10,.35), inset 0 0 0 1px rgba(120,100,60,.4);
+    clip-path:polygon(3% 8%, 97% 0%, 100% 88%, 1% 100%);
+    transition:transform .18s ease, filter .18s ease;
+    touch-action:manipulation;
+    min-height:40px;
+  }
+  .desk-btn:hover{ transform:translateY(-2px) rotate(-.6deg); filter:brightness(1.06); }
+  .desk-btn:focus-visible{ outline:2px dashed var(--cobalt); outline-offset:3px; }
+  .desk-btn[aria-pressed="true"]{ filter:brightness(1.1); box-shadow:0 3px 8px rgba(30,20,10,.5), inset 0 0 0 2px var(--cobalt); }
+
+  main{
+    max-width:1240px; margin:0 auto;
+    padding:clamp(16px, 2.6vw, 34px) clamp(10px, 2vw, 24px) clamp(40px, 6vw, 70px);
+  }
+  .wall{
+    position:relative;
+    border-radius:10px;
+    min-height:clamp(560px, 78vw, 820px);
+    background:
+      repeating-linear-gradient(45deg, rgba(120,90,50,.05) 0 2px, transparent 2px 6px),
+      repeating-linear-gradient(-45deg, rgba(120,90,50,.05) 0 2px, transparent 2px 6px),
+      linear-gradient(160deg, var(--kraft) 0%, var(--kraft-2) 55%, var(--board-2) 100%);
+    box-shadow:
+      inset 0 3px 14px rgba(60,42,24,.35),
+      inset 0 -3px 14px rgba(60,42,24,.3),
+      0 30px 70px rgba(40,26,12,.55);
+    overflow:hidden;
+    touch-action:none;
+  }
+  .wall::after{ /* ruled pencil guides */
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 55px, rgba(36,29,20,.07) 55px 56px);
+  }
+
+  /* ============ SCRAPS ============ */
+  .scrap{
+    position:absolute;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-select:none;
+    transition:box-shadow .25s ease, filter .2s ease;
+    will-change:transform;
+    touch-action:none;
+  }
+  .scrap:active{ cursor:grabbing; }
+  .scrap:focus-visible{ outline:2px dashed var(--cobalt); outline-offset:5px; }
+  .scrap.lifted{
+    z-index:400 !important;
+    filter:drop-shadow(0 26px 30px rgba(30,18,8,.45));
+  }
+  .scrap canvas{ display:block; pointer-events:none; }
+  .scrap .hit{ position:absolute; inset:0; }
+  .torn{
+    position:relative;
+    background:var(--torn-white);
+    box-shadow:0 10px 24px rgba(30,18,8,.4);
+  }
+  .torn::before{
+    content:""; position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(92deg, rgba(120,100,70,.05) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(2deg, rgba(120,100,70,.04) 0 1px, transparent 1px 4px);
+    pointer-events:none;
+  }
+  .snip{
+    position:relative;
+    box-shadow:0 6px 14px rgba(30,18,8,.35);
+    overflow:hidden;
+  }
+  .tape-strip{
+    position:absolute;
+    width:84px; height:26px;
+    background:
+      repeating-linear-gradient(180deg, rgba(160,140,90,.16) 0 2px, transparent 2px 5px),
+      linear-gradient(180deg, rgba(239,232,200,.92), rgba(226,216,180,.86));
+    box-shadow:0 3px 8px rgba(30,18,8,.35);
+    clip-path:polygon(0 12%, 4% 0, 100% 4%, 98% 92%, 94% 100%, 0 96%);
+    pointer-events:none;
+  }
+  .staple{
+    position:absolute; width:16px; height:7px;
+    border:2px solid #6a6a6a; border-bottom:none;
+    border-radius:2px 2px 0 0;
+    pointer-events:none;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));
+  }
+  .caption-typewritten{
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:clamp(.56rem, 1.3vw, .68rem);
+    letter-spacing:.04em;
+    color:var(--ink);
+    white-space:pre-wrap;
+  }
+  .mag-letter{
+    display:inline-block;
+    font-weight:900;
+    line-height:1;
+    padding:1px 2px;
+    margin:0 .5px;
+    box-shadow:0 1px 2px rgba(30,18,8,.4);
+  }
+
+  .board-caption{
+    max-width:1240px; margin:14px auto 0;
+    display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-size:.62rem; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(36,29,20,.7);
+  }
+
+  footer.foot{
+    max-width:1240px; margin:0 auto;
+    padding:0 16px clamp(30px, 5vw, 56px);
+    text-align:center;
+    font-style:italic; font-size:.84rem;
+    color:rgba(36,29,20,.65);
+  }
+  footer.foot .sig{
+    display:block; margin-top:8px;
+    font-family:ui-monospace, "Courier New", monospace;
+    font-style:normal; font-size:.6rem; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(43,68,255,.55);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .scrap{ transition:none; }
+    .desk-btn{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="tape-header">
+  <div class="ransom" aria-hidden="true">
+    <span>T</span><span>O</span><span>R</span><span>N</span><span class="gap">&nbsp;</span><span>&amp;</span><span class="gap">&nbsp;</span><span>A</span><span>S</span><span>S</span><span>E</span><span>M</span><span>B</span><span>L</span><span>E</span><span>D</span>
+  </div>
+  <h1>Torn &amp; Assembled — Collage Wall No. 3</h1>
+  <p class="desk-sub">Everything on this wall was cut, torn or stolen: magazine caps, a receipt, the back of an envelope, one sheet of graph paper, a photo booth strip that kept its secrets. The cobalt thread is mine. Drag anything anywhere — the tape will complain a little.</p>
+  <div class="desk-bar">
+    <button class="desk-btn" id="shuffleBtn" type="button">Shuffle the Wall</button>
+    <button class="desk-btn" id="tidyBtn" type="button" aria-pressed="false">Tidy Grid: Off</button>
+    <button class="desk-btn" id="threadBtn" type="button" aria-pressed="true">Thread: On</button>
+  </div>
+</header>
+
+<main>
+  <section class="wall" id="wall" aria-label="Collage wall of draggable scraps"></section>
+  <div class="board-caption">
+    <span>Wall No. 3 · assembled over three winters</span>
+    <span id="capNote">16 scraps · 1 thread · do not disturb before coffee</span>
+    <span>drag to rearrange · pieces remember where they were</span>
+  </div>
+</main>
+
+<footer class="foot">
+  Glue is for cowards; this whole wall is held up by tape, staples and wishful thinking.
+  <span class="sig">Cut with mathematics · arranged by hand · one cobalt thread</span>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var wall = document.getElementById("wall");
+  var capNote = document.getElementById("capNote");
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+
+  function mulberry32(seed) {
+    var a = seed | 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- torn edge path generator ---------- */
+  function tornPath(w, h, teeth, seed) {
+    var r = mulberry32(seed);
+    var pts = [];
+    var i, t;
+    for (i = 0; i <= teeth; i++) {
+      t = i / teeth;
+      pts.push([t * w + (r() - 0.5) * w * 0.045, -r() * h * 0.05]);
+    }
+    for (i = 0; i <= teeth; i++) {
+      t = i / teeth;
+      pts.push([w + r() * w * 0.05, t * h + (r() - 0.5) * h * 0.045]);
+    }
+    for (i = 0; i <= teeth; i++) {
+      t = i / teeth;
+      pts.push([w - t * w + (r() - 0.5) * w * 0.05, h + r() * h * 0.05]);
+    }
+    for (i = 0; i <= teeth; i++) {
+      t = i / teeth;
+      pts.push([-r() * w * 0.05, h - t * h + (r() - 0.5) * h * 0.045]);
+    }
+    var d = "M " + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+    for (i = 1; i < pts.length; i++) {
+      var prev = pts[i - 1], cur = pts[i];
+      var mx = (prev[0] + cur[0]) / 2, my = (prev[1] + cur[1]) / 2;
+      d += " Q " + prev[0].toFixed(1) + " " + prev[1].toFixed(1) + " " + mx.toFixed(1) + " " + my.toFixed(1);
+    }
+    d += " Z";
+    return d;
+  }
+
+  /* ---------- scrap painters ---------- */
+  var PAINTERS = {
+    receipt: function (ctx, w, h, r) {
+      ctx.fillStyle = "#f6f2e8";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#3a3126";
+      ctx.font = "700 " + Math.round(h * 0.085) + "px 'Courier New', monospace";
+      ctx.fillText("GENERAL STORE", w * 0.1, h * 0.16);
+      ctx.font = Math.round(h * 0.062) + "px 'Courier New', monospace";
+      var lines = ["1 twine ball .... 1.10", "2 hooks ........ 0.44", "1 bread ......... 0.62", "tacks (box) ..... 0.30", "----------------------", "total .......... 2.46"];
+      lines.forEach(function (ln, i) {
+        ctx.fillText(ln, w * 0.1, h * (0.3 + i * 0.09));
+      });
+      ctx.fillStyle = "rgba(122,31,43,.75)";
+      ctx.font = "italic " + Math.round(h * 0.07) + "px Georgia, serif";
+      ctx.save();
+      ctx.translate(w * 0.52, h * 0.55);
+      ctx.rotate(-0.16);
+      ctx.fillText("paid in coin", 0, 0);
+      ctx.restore();
+    },
+    envelope: function (ctx, w, h, r) {
+      ctx.fillStyle = "#efe6cd";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "rgba(58,49,38,.5)";
+      ctx.lineWidth = 1;
+      var i;
+      for (i = 0; i < 5; i++) {
+        ctx.beginPath();
+        ctx.moveTo(w * 0.08, h * (0.25 + i * 0.15));
+        ctx.lineTo(w * 0.92, h * (0.25 + i * 0.15));
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#3a3126";
+      ctx.font = "italic " + Math.round(h * 0.14) + "px Georgia, serif";
+      ctx.fillText("for the wall,", w * 0.09, h * 0.18);
+      ctx.font = Math.round(h * 0.09) + "px 'Courier New', monospace";
+      ctx.fillText("MR. ALDER — 4th door on the left", w * 0.09, h * 0.95);
+      ctx.fillStyle = "rgba(43,68,255,.8)";
+      ctx.beginPath();
+      ctx.arc(w * 0.78, h * 0.2, w * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#efe6cd";
+      ctx.font = "700 " + Math.round(h * 0.09) + "px Georgia, serif";
+      ctx.fillText("3", w * 0.755, h * 0.23);
+    },
+    graph: function (ctx, w, h, r) {
+      ctx.fillStyle = "#f0ecdc";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "rgba(58,110,80,.4)";
+      ctx.lineWidth = 1;
+      var step = Math.max(9, w / 14), i;
+      for (i = 0; i <= 14; i++) {
+        ctx.beginPath(); ctx.moveTo(i * step, 0); ctx.lineTo(i * step, h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * step); ctx.lineTo(w, i * step); ctx.stroke();
+      }
+      /* a red plotted curve */
+      ctx.strokeStyle = "rgba(158,42,58,.85)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (i = 0; i <= 20; i++) {
+        var x = (i / 20) * w;
+        var y = h * 0.55 - Math.sin(i / 20 * Math.PI) * h * 0.3 + Math.sin(i * 1.7) * 4;
+        if (i === 0) { ctx.moveTo(x, y); } else { ctx.lineTo(x, y); }
+      }
+      ctx.stroke();
+      ctx.fillStyle = "#3a3126";
+      ctx.font = Math.round(h * 0.07) + "px 'Courier New', monospace";
+      ctx.fillText("fig. 7 — the argument", w * 0.08, h * 0.94);
+    },
+    headline: function (ctx, w, h, r) {
+      ctx.fillStyle = "#e9e2cf";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#241d14";
+      var fs = h * 0.19;
+      ctx.font = "900 " + fs + "px Georgia, serif";
+      ctx.fillText("DUSK", w * 0.08, h * 0.34);
+      ctx.font = "900 " + (fs * 0.62) + "px Georgia, serif";
+      ctx.fillText("COMES EARLY", w * 0.08, h * 0.58);
+      ctx.font = Math.round(h * 0.075) + "px 'Courier New', monospace";
+      ctx.fillText("— column 4, page 11, cut crooked", w * 0.08, h * 0.8);
+      ctx.strokeStyle = "rgba(36,29,20,.5)";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(w * 0.06, h * 0.14); ctx.lineTo(w * 0.94, h * 0.14); ctx.stroke();
+      ctx.fillStyle = "rgba(36,29,20,.25)";
+      for (var i = 0; i < 6; i++) {
+        ctx.fillRect(w * 0.08, h * (0.64 + i * 0.035), w * (0.5 + r() * 0.3), 1.4);
+      }
+    },
+    booth: function (ctx, w, h, r) {
+      var fh = h / 4;
+      for (var i = 0; i < 4; i++) {
+        var g = ctx.createLinearGradient(0, i * fh, w, (i + 1) * fh);
+        var tone = [198, 168, 142, 118][i];
+        g.addColorStop(0, "rgb(" + (tone + 24) + "," + (tone + 10) + "," + tone + ")");
+        g.addColorStop(1, "rgb(" + (tone - 18) + "," + (tone - 26) + "," + (tone - 22) + ")");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, i * fh, w, fh);
+        /* head silhouette */
+        ctx.fillStyle = "rgba(30,22,16,.82)";
+        ctx.beginPath();
+        ctx.arc(w * (0.36 + (i % 2) * 0.3), i * fh + fh * 0.42, fh * 0.17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(w * (0.36 + (i % 2) * 0.3), i * fh + fh * 0.86, fh * 0.3, fh * 0.34, 0, 0, Math.PI * 2);
+        ctx.fill();
+        /* flash glare */
+        ctx.fillStyle = "rgba(255,250,230,.14)";
+        ctx.beginPath();
+        ctx.arc(w * (0.2 + r() * 0.6), i * fh + fh * 0.3, fh * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "rgba(36,29,20,.75)";
+      ctx.font = Math.round(fh * 0.28) + "px 'Courier New', monospace";
+      ctx.fillText("4 shots · one smile", w * 0.08, h * 0.985);
+    },
+    neon: function (ctx, w, h, r) {
+      ctx.fillStyle = r() < 0.5 ? "#ff2f92" : "#37d3e0";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(255,255,255,.2)";
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.lineTo(w * 0.5, 0); ctx.lineTo(0, h * 0.7);
+      ctx.closePath(); ctx.fill();
+    },
+    bigletter: function (ctx, w, h, r, arg) {
+      var bg = ["#f6f2e8", "#e9e2cf", "#c8f04c", "#37d3e0", "#ff2f92"][r() * 5 | 0];
+      var fg = ["#2b44ff", "#241d14", "#9e2a3a", "#1d5c38"][r() * 4 | 0];
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = fg;
+      var fonts = ["900 " + h * 0.9 + "px Georgia, serif", "900 " + h * 0.85 + "px Helvetica, Arial, sans-serif", "700 " + h * 0.8 + "px 'Courier New', monospace", "italic 700 " + h * 0.88 + "px Georgia, serif"];
+      ctx.font = fonts[r() * 4 | 0];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(arg, w / 2, h * 0.54);
+      ctx.textAlign = "start";
+      ctx.textBaseline = "alphabetic";
+    },
+    threadcard: function (ctx, w, h, r) {
+      ctx.fillStyle = "#efe6cd";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#3a3126";
+      ctx.font = Math.round(h * 0.08) + "px 'Courier New', monospace";
+      ctx.fillText("cobalt, no. 12 — keep", w * 0.08, h * 0.16);
+      ctx.strokeStyle = "rgba(43,68,255,.85)";
+      ctx.lineWidth = 1.4;
+      var i;
+      for (i = 0; i < 9; i++) {
+        ctx.beginPath();
+        ctx.moveTo(w * 0.1, h * (0.3 + i * 0.07));
+        ctx.lineTo(w * 0.9, h * (0.3 + i * 0.07));
+        ctx.stroke();
+      }
+    }
+  };
+
+  /* ---------- scrap definitions ---------- */
+  var SCRAP_DEFS = [
+    { kind: "torn", painter: "receipt", w: 150, h: 190, rot: -7 },
+    { kind: "torn", painter: "envelope", w: 190, h: 120, rot: 4 },
+    { kind: "torn", painter: "graph", w: 170, h: 150, rot: 3 },
+    { kind: "torn", painter: "headline", w: 230, h: 110, rot: -3 },
+    { kind: "torn", painter: "booth", w: 120, h: 180, rot: 6 },
+    { kind: "snip", painter: "neon", w: 110, h: 80, rot: -12 },
+    { kind: "snip", painter: "neon", w: 90, h: 70, rot: 9 },
+    { kind: "snip", painter: "bigletter", arg: "A", w: 84, h: 84, rot: -5 },
+    { kind: "snip", painter: "bigletter", arg: "N", w: 84, h: 84, rot: 7 },
+    { kind: "snip", painter: "bigletter", arg: "X", w: 84, h: 84, rot: -9 },
+    { kind: "snip", painter: "bigletter", arg: "!", w: 70, h: 84, rot: 4 },
+    { kind: "torn", painter: "threadcard", w: 200, h: 100, rot: 2 },
+    { kind: "tape-card", painter: "envelope", w: 150, h: 96, rot: -4, tape: true, caption: "the good tape —\ndo not use for\n parcels" },
+    { kind: "stapled", painter: "headline", w: 210, h: 100, rot: 5, staple: true, caption: "found under the mat" },
+    { kind: "torn", painter: "receipt", w: 130, h: 170, rot: 8 },
+    { kind: "snip", painter: "bigletter", arg: "O", w: 84, h: 84, rot: -3 }
+  ];
+
+  /* ---------- build scraps ---------- */
+  var scraps = [];
+  var zTop = 100;
+  var r0 = mulberry32(47);
+
+  function paintCanvas(kind, def, seed, arg) {
+    var c = document.createElement("canvas");
+    var scale = dpr;
+    c.width = def.w * scale; c.height = def.h * scale;
+    c.style.width = def.w + "px"; c.style.height = def.h + "px";
+    var ctx = c.getContext("2d");
+    ctx.scale(scale, scale);
+    var rr = mulberry32(seed);
+    PAINTERS[def.painter](ctx, def.w, def.h, rr, arg);
+    return c;
+  }
+
+  function buildScrap(def, i, pos) {
+    var seed = 1000 + i * 77;
+    var el = document.createElement("div");
+    el.className = "scrap";
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-label", "Collage piece " + (i + 1) + " — " + def.painter + (def.arg ? ", letter " + def.arg : "") + ". Arrow keys nudge, Enter lifts.");
+    var rr = mulberry32(seed + 5);
+
+    if (def.kind === "torn" || def.kind === "tape-card" || def.kind === "stapled") {
+      var inner = document.createElement("div");
+      inner.className = "torn";
+      inner.style.width = def.w + "px";
+      inner.style.height = def.h + "px";
+      var dPath = tornPath(def.w, def.h, 7, seed);
+      inner.style.clipPath = "path('" + dPath + "')";
+      inner.style.webkitClipPath = "path('" + dPath + "')";
+      var cv = paintCanvas(def.kind, def, seed, def.arg);
+      inner.appendChild(cv);
+      if (def.caption) {
+        var cap = document.createElement("div");
+        cap.className = "caption-typewritten";
+        cap.style.position = "absolute";
+        cap.style.left = "8px";
+        cap.style.bottom = "6px";
+        cap.textContent = def.caption;
+        inner.appendChild(cap);
+      }
+      el.appendChild(inner);
+      if (def.tape) {
+        var t1 = document.createElement("div");
+        t1.className = "tape-strip";
+        t1.style.left = (def.w * 0.5 - 42) + "px";
+        t1.style.top = "-12px";
+        t1.style.transform = "rotate(" + (rr() * 8 - 4).toFixed(1) + "deg)";
+        el.appendChild(t1);
+        var t2 = document.createElement("div");
+        t2.className = "tape-strip";
+        t2.style.left = (def.w * 0.5 - 42) + "px";
+        t2.style.bottom = "-12px";
+        t2.style.transform = "rotate(" + (rr() * 8 - 4).toFixed(1) + "deg)";
+        el.appendChild(t2);
+      }
+      if (def.staple) {
+        var st = document.createElement("div");
+        st.className = "staple";
+        st.style.left = (def.w * 0.4) + "px";
+        st.style.top = "-5px";
+        st.style.transform = "rotate(" + (rr() * 14 - 7).toFixed(1) + "deg)";
+        el.appendChild(st);
+      }
+    } else {
+      /* snip: straight-cut with slight rotation, shadow */
+      var snip = document.createElement("div");
+      snip.className = "snip";
+      snip.style.width = def.w + "px";
+      snip.style.height = def.h + "px";
+      snip.appendChild(paintCanvas(def.kind, def, seed, def.arg));
+      el.appendChild(snip);
+    }
+
+    el.style.left = pos.x + "px";
+    el.style.top = pos.y + "px";
+    el.style.transform = "rotate(" + def.rot + "deg)";
+    el.style.zIndex = String(10 + i);
+    wall.appendChild(el);
+
+    var scrap = {
+      el: el, def: def, i: i,
+      x: pos.x, y: pos.y, rot: def.rot,
+      w: def.w, h: def.h,
+      wobT: 0, wob: 0
+    };
+    scraps.push(scrap);
+
+    el.addEventListener("pointerdown", function (e) {
+      startDrag(scrap, e);
+    });
+    el.addEventListener("keydown", function (e) {
+      var step = e.shiftKey ? 24 : 6;
+      if (e.key === "ArrowLeft") { scrap.x -= step; apply(scrap); e.preventDefault(); }
+      if (e.key === "ArrowRight") { scrap.x += step; apply(scrap); e.preventDefault(); }
+      if (e.key === "ArrowUp") { scrap.y -= step; apply(scrap); e.preventDefault(); }
+      if (e.key === "ArrowDown") { scrap.y += step; apply(scrap); e.preventDefault(); }
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        scrap.rot += (rr() < 0.5 ? -4 : 4);
+        apply(scrap);
+      }
+    });
+  }
+
+  function layoutPositions() {
+    var W = wall.clientWidth, H = wall.clientHeight;
+    var cols = W < 700 ? 3 : 4;
+    var out = [];
+    var r = mulberry32(97);
+    SCRAP_DEFS.forEach(function (def, i) {
+      var col = i % cols, row = (i / cols) | 0;
+      var cellW = (W - 40) / cols;
+      var x = 20 + col * cellW + (r() - 0.5) * cellW * 0.4;
+      var y = 16 + row * (H / Math.ceil(SCRAP_DEFS.length / cols)) + (r() - 0.5) * 36;
+      x = Math.max(6, Math.min(W - def.w - 6, x));
+      y = Math.max(6, Math.min(H - def.h - 20, y));
+      out.push({ x: x, y: y });
+    });
+    return out;
+  }
+
+  function buildWall() {
+    scraps.forEach(function (s) { if (s.el.parentNode) { s.el.parentNode.removeChild(s.el); } });
+    scraps = [];
+    threadEls = [];
+    var pos = layoutPositions();
+    SCRAP_DEFS.forEach(function (def, i) { buildScrap(def, i, pos[i]); });
+    drawThread();
+  }
+
+  /* ---------- cobalt thread through the scraps ---------- */
+  var threadCanvas = null;
+  var threadEls = [];
+  var threadOn = true;
+  function ensureThreadCanvas() {
+    if (!threadCanvas) {
+      threadCanvas = document.createElement("canvas");
+      threadCanvas.style.position = "absolute";
+      threadCanvas.style.inset = "0";
+      threadCanvas.style.width = "100%";
+      threadCanvas.style.height = "100%";
+      threadCanvas.style.pointerEvents = "none";
+      threadCanvas.style.zIndex = "500";
+      wall.appendChild(threadCanvas);
+    }
+  }
+  function drawThread() {
+    ensureThreadCanvas();
+    threadCanvas.width = wall.clientWidth * dpr;
+    threadCanvas.height = wall.clientHeight * dpr;
+    var ctx = threadCanvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, wall.clientWidth, wall.clientHeight);
+    if (!threadOn || scraps.length < 3) { return; }
+    var anchors = [2, 6, 4, 9, 14].map(function (i) { return scraps[i % scraps.length]; });
+    ctx.strokeStyle = "rgba(43,68,255,.8)";
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = "round";
+    var t = performance.now() / 1000;
+    ctx.beginPath();
+    anchors.forEach(function (s, i) {
+      var x = s.x + s.w * 0.5 + Math.sin(t * 0.8 + i) * 3;
+      var y = s.y + s.h * 0.12 + Math.cos(t * 0.6 + i * 1.3) * 2.5;
+      if (i === 0) { ctx.moveTo(x, y); }
+      else {
+        var px = anchors[i - 1];
+        var mx = (px.x + px.w * 0.5 + x) / 2 + Math.sin(t + i) * 9;
+        var my = (px.y + px.h * 0.12 + y) / 2 + Math.abs(Math.sin(t * 1.4 + i)) * 16 + 8;
+        ctx.quadraticCurveTo(mx, my, x, y);
+      }
+    });
+    ctx.stroke();
+    /* needle */
+    var lastS = anchors[anchors.length - 1];
+    var nx = lastS.x + lastS.w * 0.5, ny = lastS.y + lastS.h * 0.12;
+    ctx.strokeStyle = "rgba(43,68,255,.9)";
+    ctx.beginPath();
+    ctx.moveTo(nx, ny);
+    ctx.lineTo(nx + 26, ny - 9);
+    ctx.stroke();
+  }
+
+  /* ---------- dragging ---------- */
+  var drag = null;
+  function startDrag(scrap, e) {
+    e.preventDefault();
+    var wallRect = wall.getBoundingClientRect();
+    var sx = e.clientX - wallRect.left - scrap.x;
+    var sy = e.clientY - wallRect.top - scrap.y;
+    zTop += 1;
+    scrap.el.style.zIndex = String(zTop);
+    scrap.el.classList.add("lifted");
+    scrap.grabRot = scrap.rot;
+    drag = { scrap: scrap, sx: sx, sy: sy, wallRect: wallRect };
+    if (!RM) { scrap.wob = 1; }
+    scrap.el.setPointerCapture(e.pointerId);
+  }
+  function apply(scrap) {
+    scrap.el.style.left = scrap.x + "px";
+    scrap.el.style.top = scrap.y + "px";
+    var rot = scrap.rot + scrap.wob * Math.sin(scrap.wobT * 14) * 2.4;
+    scrap.el.style.transform = "rotate(" + rot.toFixed(2) + "deg)";
+    scrap.el.style.width = "";
+  }
+  wall.addEventListener("pointermove", function (e) {
+    if (!drag) { return; }
+    var s = drag.scrap;
+    var wallRect = wall.getBoundingClientRect();
+    s.x = Math.max(-s.w * 0.3, Math.min(wall.clientWidth - s.w * 0.7, e.clientX - wallRect.left - drag.sx));
+    s.y = Math.max(-s.h * 0.3, Math.min(wall.clientHeight - s.h * 0.4, e.clientY - wallRect.top - drag.sy));
+    apply(s);
+    capNote.textContent = "piece " + (s.i + 1) + " in motion · thread follows · " + scraps.length + " scraps on the wall";
+  });
+  function endDrag() {
+    if (!drag) { return; }
+    drag.scrap.el.classList.remove("lifted");
+    drag = null;
+  }
+  wall.addEventListener("pointerup", endDrag);
+  wall.addEventListener("pointercancel", endDrag);
+
+  /* ---------- wobble loop ---------- */
+  var lastW = performance.now();
+  function wobbleLoop(now) {
+    var dt = (now - lastW) / 1000;
+    lastW = now;
+    scraps.forEach(function (s) {
+      if (s.wob > 0.01) {
+        s.wobT += dt * 3;
+        s.wob *= Math.pow(0.14, dt);
+        apply(s);
+      } else if (s.wob !== 0) {
+        s.wob = 0;
+        apply(s);
+      }
+    });
+    if (threadOn) { drawThread(); }
+    requestAnimationFrame(wobbleLoop);
+  }
+  if (!RM) {
+    requestAnimationFrame(wobbleLoop);
+  } else {
+    drawThread();
+  }
+
+  /* ---------- buttons ---------- */
+  var shuffleBtn = document.getElementById("shuffleBtn");
+  shuffleBtn.addEventListener("click", function () {
+    var r = mulberry32((Math.random() * 4294967295) | 0);
+    scraps.forEach(function (s) {
+      s.x = 8 + r() * Math.max(30, wall.clientWidth - s.w - 16);
+      s.y = 8 + r() * Math.max(30, wall.clientHeight - s.h - 24);
+      s.rot = (r() - 0.5) * 26;
+      s.wob = RM ? 0 : 1;
+      s.wobT = 0;
+      apply(s);
+    });
+    capNote.textContent = "wall shuffled · same scraps, new argument · thread re-pinned";
+  });
+
+  var tidyBtn = document.getElementById("tidyBtn");
+  var tidy = false;
+  tidyBtn.addEventListener("click", function () {
+    tidy = !tidy;
+    tidyBtn.setAttribute("aria-pressed", String(tidy));
+    tidyBtn.textContent = "Tidy Grid: " + (tidy ? "On" : "Off");
+    var W = wall.clientWidth, H = wall.clientHeight;
+    var cols = W < 700 ? 3 : 4;
+    scraps.forEach(function (s, i) {
+      var col = i % cols, row = (i / cols) | 0;
+      var cellW = (W - 32) / cols;
+      var cellH = (H - 24) / Math.ceil(scraps.length / cols);
+      s.x = 16 + col * cellW + (cellW - s.w) / 2;
+      s.y = 12 + row * cellH + Math.max(0, (cellH - s.h) / 3);
+      s.rot = 0;
+      apply(s);
+    });
+    capNote.textContent = tidy ? "tidied — it will not last" : "released from the grid";
+  });
+
+  var threadBtn = document.getElementById("threadBtn");
+  threadBtn.addEventListener("click", function () {
+    threadOn = !threadOn;
+    threadBtn.setAttribute("aria-pressed", String(threadOn));
+    threadBtn.textContent = "Thread: " + (threadOn ? "On" : "Off");
+    if (RM) { drawThread(); }
+  });
+
+  window.addEventListener("resize", function () {
+    threadCanvas = null;
+    buildWall();
+  });
+
+  buildWall();
+})();
+</script>
+</body>
+</html>

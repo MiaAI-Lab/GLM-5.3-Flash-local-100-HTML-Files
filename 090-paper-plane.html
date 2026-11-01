@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FLIGHT SCHOOL — Paper Plane Physics</title>
+<meta name="description" content="Drag back and release to throw a paper plane across a classroom sky. Updraft fans, a wind slider, dotted flight paths, crumple-on-crash, and a best-distance record on the wall.">
+<style>
+/* ============================================================
+   FLIGHT SCHOOL — 090
+   every desk has one pilot. the sky keeps the records.
+   ============================================================ */
+
+:root {
+  --sky-a: #bfe3f2;
+  --sky-b: #e8f6fc;
+  --wall: #efe9dc;
+  --wall-deep: #e3dbc8;
+  --chalk: #2b6cb0;
+  --grass: #9bc53d;
+  --grass-deep: #7ba32e;
+  --plane: #ffffff;
+  --plane-shade: #d9e4ee;
+  --ink: #33414e;
+  --ink-soft: rgba(51, 65, 78, 0.6);
+  --ink-faint: rgba(51, 65, 78, 0.35);
+  --wood: #c9a468;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--sky-b);
+}
+
+body {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, var(--sky-a) 0%, var(--sky-b) 55%, var(--sky-b) 100%);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--chalk);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--chalk);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   CLASSROOM SCENE (full viewport)
+   ------------------------------------------------------------ */
+
+.room {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+/* poster header */
+.poster {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: clamp(10px, 2vh, 22px) clamp(14px, 3vw, 34px) clamp(8px, 1.4vh, 14px);
+  background: var(--wall);
+  border-bottom: 4px solid var(--wood);
+  box-shadow: 0 4px 14px rgba(51, 65, 78, 0.12);
+}
+
+.poster .t-block {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.poster h1 {
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4.2vw, 2.7rem);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.poster h1 .blue {
+  color: var(--chalk);
+  font-style: italic;
+}
+
+.poster .sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.record-plaque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 2px solid var(--wood);
+  background: var(--wall-deep);
+  box-shadow: 3px 3px 0 rgba(51, 65, 78, 0.18);
+}
+
+.record-plaque .lbl {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.record-plaque .val {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--chalk);
+}
+
+/* ------------------------------------------------------------
+   YARD
+   ------------------------------------------------------------ */
+
+.yard {
+  position: relative;
+  overflow: hidden;
+}
+
+#sky {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* wall strip along the top of the yard (classroom wall above the sky?) — actually
+   the yard IS the sky out the window; keep clean. Console at bottom: */
+
+.console {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 22px);
+  flex-wrap: wrap;
+  padding: 10px clamp(14px, 3vw, 34px) calc(10px + env(safe-area-inset-bottom));
+  background: var(--wall);
+  border-top: 4px solid var(--wood);
+  box-shadow: 0 -4px 14px rgba(51, 65, 78, 0.1);
+}
+
+.console .grp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.console .lbl {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+input[type="range"].wind {
+  -webkit-appearance: none;
+  appearance: none;
+  width: clamp(110px, 17vw, 190px);
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].wind::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #cfe3ef, var(--chalk));
+}
+
+input[type="range"].wind::-moz-range-track {
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #cfe3ef, var(--chalk));
+}
+
+input[type="range"].wind::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 17px;
+  height: 17px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--plane);
+  border: 3px solid var(--chalk);
+  box-shadow: 0 2px 5px rgba(51, 65, 78, 0.3);
+}
+
+input[type="range"].wind::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--plane);
+  border: 3px solid var(--chalk);
+  box-shadow: 0 2px 5px rgba(51, 65, 78, 0.3);
+}
+
+.wind-val {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--chalk);
+  min-width: 7ch;
+}
+
+.console .readout {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.console .readout b {
+  color: var(--chalk);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ctl-btn {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 10px 15px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: var(--plane);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.ctl-btn:hover {
+  background: #f2f8fd;
+}
+
+.ctl-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.ctl-btn.fan {
+  background: #fdf3d8;
+  border-color: var(--wood);
+  box-shadow: 0 3px 0 var(--wood);
+}
+
+.ctl-btn.fan:active {
+  box-shadow: 0 0 0 var(--wood);
+}
+
+/* mode indicator chips */
+.mode-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.mode-chip {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink-faint);
+  color: var(--ink-soft);
+  transition: all 0.2s;
+}
+
+.mode-chip.on {
+  border-color: var(--chalk);
+  color: #fff;
+  background: var(--chalk);
+}
+
+/* ------------------------------------------------------------
+   TOAST
+   ------------------------------------------------------------ */
+
+.toast {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  z-index: 10;
+  padding: 10px 20px;
+  background: var(--wall);
+  border: 2px solid var(--wood);
+  box-shadow: 4px 4px 0 rgba(51, 65, 78, 0.2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE + MOTION
+   ------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+  .poster .sub {
+    display: none;
+  }
+  .console .readout {
+    display: none;
+  }
+  .mode-chips {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: opacity 0.25s;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="room">
+
+  <header class="poster">
+    <div class="t-block">
+      <h1>FLIGHT <span class="blue">school</span></h1>
+      <p class="sub">room 90 · drag back, release, believe</p>
+    </div>
+    <div class="record-plaque">
+      <span class="lbl">Best distance</span>
+      <span class="val" id="recordVal">0.0 m</span>
+    </div>
+  </header>
+
+  <div class="yard">
+    <canvas id="sky" aria-label="Paper plane flight school — drag back from the plane and release to throw"></canvas>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <footer class="console">
+    <div class="grp">
+      <label class="lbl" for="windSlider">Wind</label>
+      <input class="wind" id="windSlider" type="range" min="-40" max="40" value="8" aria-label="Wind strength, negative is a headwind">
+      <span class="wind-val" id="windVal">+0.8</span>
+    </div>
+    <button class="ctl-btn fan" id="fanBtn" type="button">Place updraft</button>
+    <button class="ctl-btn" id="clearFanBtn" type="button">Clear fans</button>
+    <button class="ctl-btn" id="resetBtn" type="button">New plane</button>
+    <div class="mode-chips" aria-hidden="true">
+      <span class="mode-chip on" id="chipReady">Ready</span>
+      <span class="mode-chip" id="chipAim">Aiming</span>
+      <span class="mode-chip" id="chipFly">In flight</span>
+    </div>
+    <p class="readout">Last throw <b id="lastVal">0.0 m</b> · Throws <b id="throwCount">0</b></p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     STATE
+     ============================================================ */
+  var cv = document.getElementById("sky");
+  var ctx = cv.getContext("2d");
+  var vw = 0, vh = 0;
+  var groundY = 0;
+
+  var plane = {
+    x: 0, y: 0,
+    vx: 0, vy: 0,
+    ang: 0,
+    flying: false,
+    landed: false,
+    crumpled: false,
+    rest: 0
+  };
+
+  var fans = [];            /* updraft columns {x, w, power} */
+  var placingFan = false;
+  var wind = 0.08;          /* -0.4 .. 0.4 */
+  var path = [];            /* dotted trail */
+  var throws = 0;
+  var best = 0;
+  var startX = 0, startY = 0;
+  var aiming = false;
+  var clouds = [];
+  var motes = [];
+
+  var recordEl = document.getElementById("recordVal");
+  var lastEl = document.getElementById("lastVal");
+  var throwEl = document.getElementById("throwCount");
+  var toastEl = document.getElementById("toast");
+  var chipReady = document.getElementById("chipReady");
+  var chipAim = document.getElementById("chipAim");
+  var chipFly = document.getElementById("chipFly");
+  var toastTimer = 0;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2100);
+  }
+
+  function setMode(m) {
+    chipReady.classList.toggle("on", m === "ready");
+    chipAim.classList.toggle("on", m === "aim");
+    chipFly.classList.toggle("on", m === "fly");
+  }
+
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s * 1664525 + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+  }
+
+  /* ============================================================
+     SIZE
+     ============================================================ */
+  function sizeCanvas() {
+    vw = window.innerWidth;
+    vh = window.innerHeight;
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    groundY = vh - Math.max(64, vh * 0.1);
+    if (!plane.flying) {
+      plane.x = Math.max(60, vw * 0.1);
+      plane.y = groundY - 90;
+      plane.ang = 0;
+    }
+    seedClouds();
+  }
+
+  function seedClouds() {
+    var r = rng(9022);
+    clouds = [];
+    var n = Math.max(4, Math.round(vw / 340));
+    for (var i = 0; i < n; i++) {
+      clouds.push({
+        x: r() * vw,
+        y: vh * (0.08 + r() * 0.4),
+        s: 0.6 + r() * 1.2,
+        sp: 4 + r() * 8
+      });
+    }
+  }
+
+  /* ============================================================
+     DRAWING
+     ============================================================ */
+  function drawSky(t) {
+    /* sky gradient */
+    var g = ctx.createLinearGradient(0, 0, 0, vh);
+    g.addColorStop(0, "#a5d8ee");
+    g.addColorStop(0.5, "#c8e8f6");
+    g.addColorStop(1, "#e8f6fc");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, vw, vh);
+
+    /* sun */
+    var sunX = vw * 0.86, sunY = vh * 0.14;
+    var sg = ctx.createRadialGradient(sunX, sunY, 4, sunX, sunY, vh * 0.16);
+    sg.addColorStop(0, "rgba(255,246,214,0.9)");
+    sg.addColorStop(1, "rgba(255,246,214,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, vh * 0.16, 0, 6.2832);
+    ctx.fill();
+
+    /* clouds */
+    if (!reduced) {
+      for (var ci = 0; ci < clouds.length; ci++) {
+        var c = clouds[ci];
+        c.x += c.sp * 0.016;
+        if (c.x > vw + 120) c.x = -120;
+        drawCloud(c.x, c.y, c.s);
+      }
+    } else {
+      clouds.forEach(function (c) { drawCloud(c.x, c.y, c.s); });
+    }
+
+    /* classroom wall strip behind (top band) */
+    ctx.fillStyle = "rgba(239,233,220,0.0)";
+    ctx.fillRect(0, 0, vw, 1);
+
+    /* ground: grass */
+    var gg = ctx.createLinearGradient(0, groundY, 0, vh);
+    gg.addColorStop(0, "#9bc53d");
+    gg.addColorStop(1, "#7ba32e");
+    ctx.fillStyle = gg;
+    ctx.fillRect(0, groundY, vw, vh - groundY);
+    /* grass blades */
+    ctx.strokeStyle = "rgba(88,124,28,0.5)";
+    ctx.lineWidth = 1.4;
+    var bladeGap = 26;
+    for (var bx = 6; bx < vw; bx += bladeGap) {
+      var bh2 = 5 + ((bx * 7) % 9);
+      ctx.beginPath();
+      ctx.moveTo(bx, groundY + 3);
+      ctx.quadraticCurveTo(bx + 3, groundY - bh2 * 0.6, bx + 5, groundY - bh2);
+      ctx.stroke();
+    }
+    /* ground top line */
+    ctx.strokeStyle = "rgba(88,124,28,0.8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY + 1);
+    ctx.lineTo(vw, groundY + 1);
+    ctx.stroke();
+
+    /* distance markers on the ground (every 10 m) */
+    ctx.fillStyle = "rgba(51,65,78,0.45)";
+    ctx.font = "700 9px ui-monospace, 'Courier New', monospace";
+    ctx.textAlign = "center";
+    for (var m = 10; m * 10 < vw; m += 1) {
+      var mx = m * 10;
+      ctx.fillRect(mx - 1, groundY + 4, 2, 7);
+      if (m % 2 === 0) ctx.fillText((m) + "m", mx, groundY + 22);
+    }
+    ctx.textAlign = "left";
+  }
+
+  function drawCloud(x, y, s) {
+    ctx.fillStyle = "rgba(255,255,255,0.82)";
+    ctx.beginPath();
+    ctx.arc(x, y, 17 * s, 0, 6.2832);
+    ctx.arc(x + 20 * s, y - 8 * s, 21 * s, 0, 6.2832);
+    ctx.arc(x + 44 * s, y, 15 * s, 0, 6.2832);
+    ctx.arc(x + 22 * s, y + 7 * s, 17 * s, 0, 6.2832);
+    ctx.fill();
+  }
+
+  function drawFan(f, t) {
+    /* rising shimmer column */
+    var grd = ctx.createLinearGradient(f.x, groundY, f.x, groundY - f.h);
+    grd.addColorStop(0, "rgba(120,200,235,0.30)");
+    grd.addColorStop(1, "rgba(120,200,235,0)");
+    ctx.fillStyle = grd;
+    ctx.fillRect(f.x - f.w / 2, groundY - f.h, f.w, f.h);
+    /* rising arrows */
+    if (!reduced) {
+      ctx.strokeStyle = "rgba(43,108,176,0.6)";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      for (var a = 0; a < 3; a++) {
+        var at = ((t * 0.5 + a * 0.33) % 1);
+        var ay = groundY - at * f.h;
+        var ax = f.x + Math.sin(at * 6 + a) * f.w * 0.2;
+        var alpha = Math.sin(at * 3.14);
+        ctx.strokeStyle = "rgba(43,108,176," + (0.55 * alpha).toFixed(2) + ")";
+        ctx.beginPath();
+        ctx.moveTo(ax - 5, ay + 7);
+        ctx.lineTo(ax, ay);
+        ctx.lineTo(ax + 5, ay + 7);
+        ctx.stroke();
+      }
+    }
+    /* base unit */
+    ctx.fillStyle = "#c9a468";
+    ctx.fillRect(f.x - f.w / 2 - 6, groundY - 10, f.w + 12, 10);
+    ctx.fillStyle = "#8a6a3c";
+    ctx.fillRect(f.x - f.w / 2 - 6, groundY - 10, f.w + 12, 3);
+    /* fan grill */
+    ctx.strokeStyle = "rgba(51,65,78,0.5)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(f.x, groundY - 5, 6, 0, 6.2832);
+    ctx.stroke();
+  }
+
+  function drawPath() {
+    if (path.length < 2) return;
+    ctx.strokeStyle = "rgba(43,108,176,0.65)";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([1.5, 7]);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (var i = 1; i < path.length; i++) {
+      ctx.lineTo(path[i].x, path[i].y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    /* launch point */
+    ctx.fillStyle = "rgba(43,108,176,0.85)";
+    ctx.beginPath();
+    ctx.arc(path[0].x, path[0].y, 3.4, 0, 6.2832);
+    ctx.fill();
+  }
+
+  function drawPlane(t) {
+    var p = plane;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.ang);
+
+    if (p.crumpled) {
+      /* crumpled ball */
+      ctx.fillStyle = "#e8e2d2";
+      ctx.beginPath();
+      for (var cI = 0; cI < 9; cI++) {
+        var ca = (cI / 9) * 6.2832;
+        var cr = 9 + Math.sin(cI * 3 + p.rest) * 3.4;
+        var cx2 = Math.cos(ca) * cr;
+        var cy2 = Math.sin(ca) * cr;
+        if (cI === 0) ctx.moveTo(cx2, cy2);
+        else ctx.lineTo(cx2, cy2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(51,65,78,0.5)";
+      ctx.lineWidth = 1.2;
+      /* crease lines */
+      for (var k2 = 0; k2 < 4; k2++) {
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(k2 * 1.7) * 8, Math.sin(k2 * 1.7) * 8);
+        ctx.lineTo(Math.cos(k2 * 1.7 + 2.4) * 7, Math.sin(k2 * 1.7 + 2.4) * 7);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return;
+    }
+
+    /* paper plane: dart shape */
+    var L = 26, W = 15;
+    /* shadow side (left wing) */
+    ctx.fillStyle = "#d9e4ee";
+    ctx.beginPath();
+    ctx.moveTo(L, 0);
+    ctx.lineTo(-L * 0.55, -W * 0.7);
+    ctx.lineTo(-L * 0.2, 0);
+    ctx.closePath();
+    ctx.fill();
+    /* top wing */
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(L, 0);
+    ctx.lineTo(-L * 0.55, W * 0.55);
+    ctx.lineTo(-L * 0.2, 0);
+    ctx.closePath();
+    ctx.fill();
+    /* fold line */
+    ctx.strokeStyle = "rgba(51,65,78,0.55)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(L, 0);
+    ctx.lineTo(-L * 0.2, 0);
+    ctx.stroke();
+    /* nose accent */
+    ctx.fillStyle = "rgba(43,108,176,0.35)";
+    ctx.beginPath();
+    ctx.moveTo(L, 0);
+    ctx.lineTo(L - 8, -2.6);
+    ctx.lineTo(L - 8, 2.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawAim() {
+    if (!aiming) return;
+    var dx = plane.x - startX;
+    var dy = plane.y - startY;
+    ctx.strokeStyle = "rgba(224,90,60,0.85)";
+    ctx.lineWidth = 2.4;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(plane.x, plane.y);
+    ctx.lineTo(startX, startY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    /* power ring at pull point */
+    var power = Math.min(1, Math.hypot(dx, dy) / 240);
+    ctx.strokeStyle = "rgba(224,90,60,0.9)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(startX, startY, 8 + power * 10, 0, 6.2832);
+    ctx.stroke();
+    /* projected hint arc */
+    ctx.strokeStyle = "rgba(43,108,176,0.4)";
+    ctx.setLineDash([2, 6]);
+    ctx.beginPath();
+    var hx = plane.x, hy = plane.y;
+    var hvx = dx * 0.055, hvy = dy * 0.055;
+    for (var s2 = 0; s2 < 24; s2++) {
+      hvx += wind * 0.4;
+      hvy += 0.16;
+      hx += hvx * 4;
+      hy += hvy * 4;
+      if (s2 === 0) ctx.moveTo(hx, hy);
+      else ctx.lineTo(hx, hy);
+      if (hy > groundY) break;
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  /* ============================================================
+     PHYSICS
+     ============================================================ */
+  function launch(dx, dy) {
+    var power = Math.min(1, Math.hypot(dx, dy) / 240);
+    var dirX = dx / (Math.hypot(dx, dy) || 1);
+    var dirY = dy / (Math.hypot(dx, dy) || 1);
+    plane.vx = dirX * (260 + power * 520);
+    plane.vy = dirY * (200 + power * 420);
+    plane.flying = true;
+    plane.landed = false;
+    plane.crumpled = false;
+    plane.rest = 0;
+    path = [{ x: plane.x, y: plane.y }];
+    throws += 1;
+    throwEl.textContent = String(throws);
+    setMode("fly");
+  }
+
+  function stepFlight(dt) {
+    var p = plane;
+    /* gravity, lighter while fast (glide) */
+    var speed = Math.hypot(p.vx, p.vy);
+    var grav = 300 + Math.max(0, 260 - speed * 0.55);
+    p.vy += grav * dt;
+
+    /* wind */
+    p.vx += wind * 60 * dt;
+
+    /* updraft fans */
+    for (var fi = 0; fi < fans.length; fi++) {
+      var f = fans[fi];
+      if (Math.abs(p.x - f.x) < f.w / 2 + 14 && p.y > groundY - f.h) {
+        p.vy -= f.power * dt * (1 - Math.abs(p.x - f.x) / (f.w / 2 + 14) * 0.4);
+      }
+    }
+
+    /* orientation follows velocity */
+    p.ang = Math.atan2(p.vy, p.vx) * 0.6;
+
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    /* dotted path */
+    var lp = path[path.length - 1];
+    if (!lp || Math.hypot(p.x - lp.x, p.y - lp.y) > 9) {
+      path.push({ x: p.x, y: p.y });
+      if (path.length > 260) path.shift();
+    }
+
+    /* ceiling */
+    if (p.y < 8) { p.y = 8; p.vy = Math.abs(p.vy) * 0.3; }
+    /* back wall */
+    if (p.x < 8) { p.x = 8; p.vx = Math.abs(p.vx) * 0.4; }
+
+    /* ground contact */
+    if (p.y >= groundY - 6) {
+      p.y = groundY - 6;
+      var speedG = Math.hypot(p.vx, p.vy);
+      if (speedG > 130 && !p.crumpled) {
+        p.crumpled = true;
+        p.vx *= 0.16;
+        p.vy = -Math.abs(p.vy) * 0.24;
+        toast("Crumpled on impact — the sky remembers");
+      } else {
+        p.vy = -Math.abs(p.vy) * 0.35;
+        p.vx *= 0.72;
+        if (Math.abs(p.vx) < 12 && Math.abs(p.vy) < 14) {
+          p.flying = false;
+          p.landed = true;
+          finishThrow();
+        }
+      }
+    }
+    /* out the right side: counts as the throw of a lifetime */
+    if (p.x > vw + 40) {
+      p.flying = false;
+      p.landed = true;
+      finishThrow(true);
+    }
+  }
+
+  function finishThrow(offscreen) {
+    var dist = ((plane.x - path[0].x) / 10);
+    var distM = Math.max(0, dist);
+    lastEl.textContent = distM.toFixed(1) + " m";
+    if (distM > best) {
+      best = distM;
+      recordEl.textContent = best.toFixed(1) + " m";
+      toast(offscreen
+        ? "Off the chart! " + best.toFixed(1) + " m — new school record"
+        : "New record: " + best.toFixed(1) + " m");
+    } else {
+      toast("Thrown " + distM.toFixed(1) + " m — best stays " + best.toFixed(1) + " m");
+    }
+    setMode("ready");
+    /* respawn plane at rest position after a beat */
+    setTimeout(function () {
+      if (!plane.flying) {
+        plane.x = Math.max(60, vw * 0.1);
+        plane.y = groundY - 90;
+        plane.ang = 0;
+        plane.crumpled = false;
+      }
+    }, 900);
+  }
+
+  /* ============================================================
+     POINTER
+     ============================================================ */
+  cv.addEventListener("pointerdown", function (e) {
+    var rect = cv.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+
+    if (placingFan) {
+      fans.push({ x: x, y: groundY, w: 110, h: Math.min(260, groundY - y + 40), power: 420 });
+      if (fans.length > 5) fans.shift();
+      placingFan = false;
+      toast("Updraft placed — planes ride it upward");
+      return;
+    }
+
+    /* grab the plane (or near it) */
+    if (!plane.flying && Math.hypot(x - plane.x, y - plane.y) < 64) {
+      aiming = true;
+      startX = x;
+      startY = y;
+      cv.setPointerCapture(e.pointerId);
+      setMode("aim");
+    }
+  });
+
+  cv.addEventListener("pointermove", function (e) {
+    if (!aiming) return;
+    var rect = cv.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    /* aim the nose backwards along the pull */
+    var dx = plane.x - startX;
+    var dy = plane.y - startY;
+    if (Math.hypot(dx, dy) > 6) {
+      plane.ang = Math.atan2(dy, dx) * 0.5;
+    }
+  });
+
+  function releaseAim() {
+    if (!aiming) return;
+    aiming = false;
+    var dx = plane.x - startX;
+    var dy = plane.y - startY;
+    if (Math.hypot(dx, dy) > 24) {
+      launch(dx, dy);
+    } else {
+      plane.ang = 0;
+      setMode("ready");
+    }
+  }
+  cv.addEventListener("pointerup", releaseAim);
+  cv.addEventListener("pointercancel", releaseAim);
+
+  /* ============================================================
+     CONTROLS
+     ============================================================ */
+  var windSlider = document.getElementById("windSlider");
+  var windVal = document.getElementById("windVal");
+  windSlider.addEventListener("input", function () {
+    wind = windSlider.value / 100;
+    windVal.textContent = (wind >= 0 ? "+" : "") + wind.toFixed(1);
+  });
+
+  document.getElementById("fanBtn").addEventListener("click", function () {
+    placingFan = !placingFan;
+    toast(placingFan ? "Click the yard to place an updraft fan" : "Fan placement off");
+  });
+
+  document.getElementById("clearFanBtn").addEventListener("click", function () {
+    fans.length = 0;
+    toast("Yard cleared of fans");
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    plane.flying = false;
+    plane.crumpled = false;
+    plane.x = Math.max(60, vw * 0.1);
+    plane.y = groundY - 90;
+    plane.ang = 0;
+    path = [];
+    setMode("ready");
+    toast("Fresh sheet — fold, aim, throw");
+  });
+
+  /* ============================================================
+     MAIN LOOP
+     ============================================================ */
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var t = now / 1000;
+    if (!document.hidden) {
+      if (!reduced && plane.flying) {
+        stepFlight(dt);
+      } else if (reduced && plane.flying) {
+        /* reduced: jump physics a chunk at a time */
+        stepFlight(Math.min(0.05, dt));
+      }
+      drawSky(t);
+      for (var fi = 0; fi < fans.length; fi++) drawFan(fans[fi], t);
+      drawPath();
+      drawAim();
+      drawPlane(t);
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", sizeCanvas);
+
+  sizeCanvas();
+  windVal.textContent = (wind >= 0 ? "+" : "") + wind.toFixed(1);
+  setMode("ready");
+  toast("Grab the plane, pull back, let go");
+
+  if (!reduced) {
+    rafId = requestAnimationFrame(frame);
+  } else {
+    /* static-ish loop, no clouds drift */
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>

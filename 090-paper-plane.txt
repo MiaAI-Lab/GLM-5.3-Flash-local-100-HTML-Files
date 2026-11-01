@@ -1,0 +1,28 @@
+TITLE: Flight School
+DESCRIPTION: A paper-plane physics playground in a blue-sky classroom yard. Grab the white dart, drag back, and release to throw — velocity scales with pull distance, an aim tether and ghost-trajectory preview guide your hand. The plane glides with speed-dependent gravity, rides placeable updraft fans in rising arrow columns, drifts with a wind slider (headwind to tailwind), and crumples into a paper ball on hard landings. A dotted chalk-blue path draws every flight across the sky; the ground is ruled in meters with a grass edge; a wooden plaque keeps the best distance; mode chips track Ready / Aiming / In flight; and toasts narrate records and crashes.
+TECHNIQUES:
+- Canvas playground: gradient sky with soft sun glow, drifting multi-lobe clouds, grass ground with sine-blade texture and meter tick rulers every 10 m
+- Throw physics: pull vector to launch velocity (260–780 px/s scaled by power), speed-dependent gravity for glide feel, orientation eased toward velocity vector, wind acceleration, and ceiling/wall bounce
+- Updraft fans: placed columns with gradient shimmer, animated rising arrows, and radial lift applied to planes passing through, drawn as wooden base units with a fan grill
+- Dotted flight path recorder (1.5/7 dash pattern) with launch-point dot; ghost-trajectory preview during aim using the same integrator
+- Dart rendering as a two-tone folded paper plane (shadow wing, white wing, fold line, blue nose accent); crumple state as an irregular polygon with crease strokes
+- Poster-style header with wooden record plaque, press-down console buttons, custom wind slider, and mode indicator chips
+INTERACTION:
+- Grab the plane and pull back — a red dashed tether, a growing power ring, and a blue ghost arc preview the throw; release to launch (short pulls cancel)
+- Place up to five updraft fans by activating the Place updraft button and clicking the yard; planes passing through get lifted — the signature long slow arc comes from throwing into a well-placed fan column
+- The wind slider (-0.4 to +0.4) changes drift live; headwinds shorten flights, tailwinds stretch them
+- Hard landings crumple the plane into a ball with a toast; gentle landings let it skid to rest; distance is measured against the meter-marked ground, updating Last throw and the Best distance plaque with record toasts
+PROMPT:
+Build a single-file HTML paper-plane physics playground titled "FLIGHT SCHOOL". Palette: sky #bfe3f2 to #e8f6fc with a soft sun; classroom wall #efe9dc with wood #c9a468 trim; dotted path and accents in chalk-blue #2b6cb0; grass #9bc53d to #7ba32e; plane white with #d9e4ee fold shading; ink #33414e with soft/faint tiers. Type: grade-school serif poster title ("FLIGHT school" with "school" italic blue), ui-monospace uppercase labels at 0.2–0.26em for readouts and buttons.
+
+Layout: a full-viewport classroom — a wall poster header (cream, 4px wood bottom border, shadow) holding the title, a "ROOM 90 · DRAG BACK, RELEASE, BELIEVE" mono sub, and a wooden BEST DISTANCE plaque with a big tabular mono value; below, the entire yard is the sky canvas; a bottom console strip (wood-topped cream bar) holds a Wind slider with a "+0.8" mono readout, PLACE UPDRAFT and CLEAR FANS buttons, NEW PLANE, three mode chips (READY / AIMING / IN FLIGHT that light blue with the state), and a "LAST THROW 0.0 M · THROWS 0" readout.
+
+The yard: gradient sky, warm sun glow upper right, 4–8 drifting three-lobe clouds, and a grass ground strip (blades drawn as quadratic curves, meter ticks every 10 px labeled every 20 m). The white paper dart rests at the left, hovering at launch height.
+
+Signature interaction — the throw: grab the plane (within 64px) to enter AIMING: a red dashed tether runs from the nose to your hand, a power ring grows at the pull point, a blue ghost arc previews the flight using the real integrator, and the nose angles backward along the pull. Release (past 24px) launches with velocity scaled 260–780 px/s by pull power. In flight the plane glides — gravity eases at speed so a strong throw floats, orientation eases toward the velocity vector, and the wind slider pushes it. A dotted chalk-blue path records the whole flight from the launch dot; the ground's meter ruler measures the throw.
+
+Fans: PLACE UPDRAFT arms placement mode (a toast explains); clicking the yard drops a wooden-based fan unit (110px wide) whose column shows a gradient shimmer and animated rising arrows up to 260px; planes inside get radial lift — throw into a fan and the plane rides a long, slow arc across the whole sky ("the perfect throw" — the path draws your signature in the sky).
+
+Consequences: hitting the ground harder than 130 px/s crumples the plane into an irregular paper ball with crease strokes and a toast ("CRUMPLED ON IMPACT — THE SKY REMEMBERS"); gentle landings skid to rest. Every landing measures distance: LAST THROW updates, and beating BEST DISTANCE repaints the plaque and toasts a new school record; exiting the right edge counts as off-the-chart. NEW PLANE refolds a fresh dart and clears the path; up to five fans can dot the yard.
+
+Details: press-down button physics, custom slider thumb (white with blue ring), toast strip with wood border, focus-visible outlines, pointer capture for reliable drags, reduced-motion stops cloud drift and arrow animation but keeps full physics, responsive console wrap under 720px. No network, no images — the classroom is all canvas math.

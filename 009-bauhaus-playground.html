@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAUHAUS BOUNCE — A Physics Toy in Primary Colors</title>
+<meta name="description" content="A Bauhaus physics toy: circles, bars and triangles drop, bounce and can be flung with verlet physics on a warm paper grid, with a gravity slider and a compose button that builds a balanced still-life.">
+<style>
+/* ============================================================
+   BAUHAUS BOUNCE — 009
+   Form follows fun. Red, blue, yellow; then gravity does the rest.
+   ============================================================ */
+
+:root {
+  --paper: #f3ecdd;
+  --paper-deep: #e9e0cc;
+  --red: #d0342c;
+  --blue: #2456a6;
+  --yellow: #f0b429;
+  --black: #17130e;
+  --ink-soft: rgba(23, 19, 14, 0.62);
+  --ink-faint: rgba(23, 19, 14, 0.38);
+  --grid-line: rgba(23, 19, 14, 0.09);
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--black);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--red);
+  color: var(--paper);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--black);
+  outline-offset: 3px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   APP FRAME — poster header above a full-height stage
+   ------------------------------------------------------------ */
+
+.app {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100dvh;
+}
+
+/* ------------------------------------------------------------
+   POSTER HEADER
+   ------------------------------------------------------------ */
+
+.poster {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 4px solid var(--black);
+  background: var(--paper);
+  z-index: 20;
+}
+
+.poster .num {
+  display: grid;
+  place-items: center;
+  min-width: clamp(64px, 8vw, 110px);
+  border-right: 4px solid var(--black);
+  background: var(--black);
+  color: var(--paper);
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3.4vw, 2.6rem);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.poster .word {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(8px, 1.6vh, 16px) clamp(14px, 2.4vw, 30px);
+  min-width: 0;
+}
+
+.poster h1 {
+  font-weight: 800;
+  font-size: clamp(1.35rem, 4.2vw, 3.1rem);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.poster h1 .red { color: var(--red); }
+.poster h1 .blue { color: var(--blue); }
+.poster h1 .yellow {
+  color: var(--yellow);
+  text-shadow: 0 0 1px rgba(23, 19, 14, 0.35);
+}
+
+.poster .sub {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: clamp(8.5px, 1.1vw, 10.5px);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.poster .badges {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  border-left: 4px solid var(--black);
+}
+
+.poster .badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 clamp(10px, 1.6vw, 18px);
+  border-bottom: 4px solid var(--black);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.poster .badge:last-child {
+  border-bottom: none;
+}
+
+.poster .badge i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2.5px solid var(--black);
+}
+
+.poster .badge.b-red i { background: var(--red); }
+.poster .badge.b-blue i { background: var(--blue); }
+.poster .badge.b-yellow i { background: var(--yellow); }
+
+/* ------------------------------------------------------------
+   STAGE
+   ------------------------------------------------------------ */
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+  background:
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 44px 100%,
+    var(--paper);
+  touch-action: none;
+}
+
+#yard {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* floor strip */
+.floorline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(48px, 9vh, 84px);
+  height: 0;
+  border-top: 4px solid var(--black);
+  pointer-events: none;
+}
+
+.floorline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: clamp(48px, 9vh, 84px);
+  background: repeating-linear-gradient(45deg,
+    var(--black) 0 10px,
+    transparent 10px 20px);
+  opacity: 0.08;
+}
+
+/* ------------------------------------------------------------
+   CONSOLE — bottom instrument bar
+   ------------------------------------------------------------ */
+
+.console {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.6vw, 22px);
+  flex-wrap: wrap;
+  border-top: 4px solid var(--black);
+  background: var(--paper);
+  padding: 10px clamp(12px, 2vw, 26px) calc(10px + env(safe-area-inset-bottom));
+  z-index: 20;
+}
+
+.spawn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spawn-group .lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 3px solid var(--black);
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 var(--black);
+  transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background: var(--paper-deep);
+}
+
+.chip:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--black);
+}
+
+.chip .sw {
+  width: 13px;
+  height: 13px;
+  border: 2.5px solid var(--black);
+}
+
+.chip.c-circle .sw { border-radius: 50%; background: var(--red); }
+.chip.c-bar .sw { background: var(--blue); width: 17px; height: 11px; }
+.chip.c-tri .sw {
+  width: 0; height: 0;
+  border: none;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid var(--yellow);
+}
+
+.chip.wide {
+  background: var(--black);
+  color: var(--paper);
+}
+
+.chip.wide:hover {
+  background: var(--black);
+  filter: brightness(1.18);
+}
+
+.chip.compose {
+  background: var(--red);
+  color: var(--paper);
+}
+
+.chip.compose:hover {
+  background: var(--red);
+  filter: brightness(1.12);
+}
+
+.g-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.g-count b {
+  color: var(--black);
+  font-weight: 700;
+}
+
+.gravity-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+input[type="range"].grav {
+  -webkit-appearance: none;
+  appearance: none;
+  width: clamp(110px, 16vw, 190px);
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"].grav::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--black);
+  border-radius: 2px;
+}
+
+input[type="range"].grav::-moz-range-track {
+  height: 4px;
+  background: var(--black);
+  border-radius: 2px;
+}
+
+input[type="range"].grav::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 3px solid var(--black);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+input[type="range"].grav::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 3px solid var(--black);
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+.g-readout {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  min-width: 8ch;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------
+   TOAST
+   ------------------------------------------------------------ */
+
+.toast {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  z-index: 30;
+  padding: 10px 18px;
+  border: 3px solid var(--black);
+  background: var(--yellow);
+  box-shadow: 5px 5px 0 var(--black);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   ------------------------------------------------------------ */
+
+@media (max-width: 760px) {
+  .poster .badges {
+    display: none;
+  }
+  .poster h1 {
+    font-size: clamp(1.15rem, 5.4vw, 2rem);
+  }
+  .chip {
+    padding: 8px 10px;
+    font-size: 9px;
+  }
+  .g-count {
+    display: none;
+  }
+}
+
+/* reduced motion: the toy still works, loops stop */
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: opacity 0.25s;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="poster">
+    <div class="num" aria-hidden="true">09</div>
+    <div class="word">
+      <h1><span class="red">Bauhaus</span> <span class="blue">Bounce</span> <span class="yellow">Yard</span></h1>
+      <p class="sub">A physics toy in primary colors — spawn, fling, compose</p>
+    </div>
+    <div class="badges" aria-hidden="true">
+      <div class="badge b-red"><i></i>Circle · restitution 0.62</div>
+      <div class="badge b-blue"><i></i>Bar · restitution 0.38</div>
+    </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <canvas id="yard" aria-label="Bauhaus physics yard — click to spawn shapes, drag to fling"></canvas>
+    <div class="floorline" aria-hidden="true"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <footer class="console">
+    <div class="spawn-group">
+      <span class="lbl">Spawn</span>
+      <button class="chip c-circle" id="addCircle" type="button"><span class="sw" aria-hidden="true"></span>Circle</button>
+      <button class="chip c-bar" id="addBar" type="button"><span class="sw" aria-hidden="true"></span>Bar</button>
+      <button class="chip c-tri" id="addTri" type="button"><span class="sw" aria-hidden="true"></span>Triangle</button>
+    </div>
+
+    <div class="gravity-group">
+      <label class="lbl" for="gravity">Gravity</label>
+      <input class="grav" id="gravity" type="range" min="10" max="220" value="90" step="1"
+             aria-label="Gravity strength">
+      <span class="g-readout" id="gravityOut">0.90 g</span>
+    </div>
+
+    <button class="chip wide" id="clearBtn" type="button">Sweep</button>
+    <button class="chip compose" id="composeBtn" type="button">Compose</button>
+
+    <p class="g-count">Pieces <b id="pieceCount">0</b> / 60</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  /* ============================================================
+     GEOMETRY — shapes as point masses + distance constraints
+     ============================================================ */
+  var STAGE = document.getElementById("stage");
+  var cv = document.getElementById("yard");
+  var ctx = cv.getContext("2d");
+  var vw = 0, vh = 0;
+  var floorY = 0;          /* y of the ground plane */
+
+  var MAX_PIECES = 60;
+  var shapes = [];
+
+  var COLORS = {
+    red: "#d0342c",
+    blue: "#2456a6",
+    yellow: "#f0b429",
+    black: "#17130e"
+  };
+
+  function makePoint(x, y) {
+    return { x: x, y: y, px: x, py: y };
+  }
+
+  /* circle: 12-gon rim + center hub (center locked to rim average) */
+  function shapeCircle(x, y, r, color) {
+    var pts = [];
+    var n = 12;
+    for (var i = 0; i < n; i++) {
+      var a = i / n * Math.PI * 2;
+      pts.push(makePoint(x + Math.cos(a) * r, y + Math.sin(a) * r));
+    }
+    var cons = [];
+    for (var j = 0; j < n; j++) {
+      cons.push([pts[j], pts[(j + 1) % n], r]);
+    }
+    for (var k = 0; k < n; k += 2) {
+      cons.push([pts[k], pts[(k + 6) % n], 2 * r]);   /* cross-brace for rigidity */
+    }
+    var hub = makePoint(x, y);
+    for (var h = 0; h < n; h++) cons.push([hub, pts[h], r]);
+    return {
+      kind: "circle", color: color, r: r,
+      pts: pts.concat([hub]), cons: cons,
+      rest: 0.62
+    };
+  }
+
+  /* bar: rectangle with cross braces */
+  function shapeBar(x, y, w, h, color) {
+    var hw = w / 2, hh = h / 2;
+    var p1 = makePoint(x - hw, y - hh);
+    var p2 = makePoint(x + hw, y - hh);
+    var p3 = makePoint(x + hw, y + hh);
+    var p4 = makePoint(x - hw, y + hh);
+    var cons = [
+      [p1, p2, w], [p2, p3, h], [p3, p4, w], [p4, p1, h],
+      [p1, p3, Math.hypot(w, h)], [p2, p4, Math.hypot(w, h)]
+    ];
+    return { kind: "bar", color: color, w: w, h: h, pts: [p1, p2, p3, p4], cons: cons, rest: 0.38 };
+  }
+
+  /* triangle: three points, equilateral-ish */
+  function shapeTri(x, y, s, color) {
+    var h = s * Math.sqrt(3) / 2;
+    var p1 = makePoint(x, y - h * 2 / 3);
+    var p2 = makePoint(x - s / 2, y + h / 3);
+    var p3 = makePoint(x + s / 2, y + h / 3);
+    var L = s;
+    var cons = [
+      [p1, p2, L], [p2, p3, L], [p3, p1, L]
+    ];
+    return { kind: "tri", color: color, s: s, pts: [p1, p2, p3], cons: cons, rest: 0.5 };
+  }
+
+  function addShape(shape) {
+    if (shapes.length >= MAX_PIECES) shapes.shift();
+    shapes.push(shape);
+    updateCount();
+  }
+
+  function spawnRandomAt(x, y) {
+    var t = Math.random();
+    if (t < 0.42) {
+      addShape(shapeCircle(x, y, 16 + Math.random() * 22, Math.random() < 0.75 ? COLORS.red : COLORS.blue));
+    } else if (t < 0.74) {
+      addShape(shapeBar(x, y, 60 + Math.random() * 90, 13 + Math.random() * 8, Math.random() < 0.8 ? COLORS.blue : COLORS.black));
+    } else {
+      addShape(shapeTri(x, y, 34 + Math.random() * 40, Math.random() < 0.85 ? COLORS.yellow : COLORS.red));
+    }
+  }
+
+  /* ============================================================
+     VERLET PHYSICS
+     ============================================================ */
+  var gravity = 0.9;          /* in g units, 0.1..2.2 */
+  var G = 900;                /* px/s^2 at 1g */
+  var ITER = 5;               /* constraint iterations */
+  var boundsPad = 6;
+
+  function integrate(dt) {
+    var gy = gravity * G;
+    for (var s = 0; s < shapes.length; s++) {
+      var sh = shapes[s];
+      for (var i = 0; i < sh.pts.length; i++) {
+        var p = sh.pts[i];
+        var vx = (p.x - p.px) * 0.995;
+        var vy = (p.y - p.py) * 0.995;
+        p.px = p.x;
+        p.py = p.y;
+        p.x += vx;
+        p.y += vy + gy * dt * dt;
+      }
+    }
+  }
+
+  function solveConstraints() {
+    for (var it = 0; it < ITER; it++) {
+      for (var s = 0; s < shapes.length; s++) {
+        var sh = shapes[s];
+        var cons = sh.cons;
+        for (var c = 0; c < cons.length; c++) {
+          var a = cons[c][0], b = cons[c][1];
+          var rest = cons[c][2];
+          var dx = b.x - a.x, dy = b.y - a.y;
+          var d = Math.hypot(dx, dy) || 0.0001;
+          var diff = (d - rest) / d * 0.5;
+          var ox = dx * diff, oy = dy * diff;
+          a.x += ox; a.y += oy;
+          b.x -= ox; b.y -= oy;
+        }
+        keepInBounds(sh);
+      }
+      collide();
+    }
+  }
+
+  function keepInBounds(sh) {
+    var maxX = vw - boundsPad, maxY = floorY, minX = boundsPad;
+    for (var i = 0; i < sh.pts.length; i++) {
+      var p = sh.pts[i];
+      if (p.y > maxY) {
+        p.y = maxY;
+        p.px = p.x - (p.x - p.px) * sh.rest;   /* bounce via restitution */
+        p.py = p.y + (p.y - p.py) * sh.rest;
+      }
+      if (p.x > maxX) { p.x = maxX; p.px = p.x + (p.x - p.px) * sh.rest; }
+      if (p.x < minX) { p.x = minX; p.px = p.x + (p.x - p.px) * sh.rest; }
+      if (p.y < boundsPad) { p.y = boundsPad; p.py = p.y + (p.y - p.py) * sh.rest; }
+    }
+  }
+
+  /* shape-shape collision: sample points vs other shapes' edges (coarse but stable) */
+  function collide() {
+    for (var s = 0; s < shapes.length; s++) {
+      var A = shapes[s];
+      var aabbA = bbox(A);
+      for (var t = s + 1; t < shapes.length; t++) {
+        var B = shapes[t];
+        var aabbB = bbox(B);
+        if (!aabbOverlap(aabbA, aabbB, 2)) continue;
+        resolvePointsVsShape(A, B);
+        resolvePointsVsShape(B, A);
+      }
+    }
+  }
+
+  function bbox(sh) {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (var i = 0; i < sh.pts.length; i++) {
+      var p = sh.pts[i];
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    }
+    return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+  }
+
+  function aabbOverlap(a, b, pad) {
+    return a.minX - pad < b.maxX && a.maxX + pad > b.minX &&
+           a.minY - pad < b.maxY && a.maxY + pad > b.minY;
+  }
+
+  function resolvePointsVsShape(A, B) {
+    /* push A's points out of B (approximate B as circle or convex polygon) */
+    var ptsB = B.pts;
+    for (var i = 0; i < A.pts.length; i++) {
+      var p = A.pts[i];
+      if (B.kind === "circle") {
+        var cxB = ptsB[ptsB.length - 1];
+        var dx = p.x - cxB.x, dy = p.y - cxB.y;
+        var d = Math.hypot(dx, dy);
+        var minD = B.r + 1.5;
+        if (d < minD && d > 0.001) {
+          var push = (minD - d);
+          p.x += dx / d * push;
+          p.y += dy / d * push;
+        }
+      } else if (B.kind === "bar") {
+        /* push point above the bar's local plane using its two long edges */
+        var p1 = ptsB[0], p2 = ptsB[1], p3 = ptsB[2], p4 = ptsB[3];
+        pushFromSegment(p, p4, p3, 1.5);
+        pushFromSegment(p, p1, p2, 1.5);
+        pushFromSegment(p, p1, p4, 1.5);
+        pushFromSegment(p, p2, p3, 1.5);
+      } else {
+        var t1 = ptsB[0], t2 = ptsB[1], t3 = ptsB[2];
+        pushFromSegment(p, t1, t2, 1.5);
+        pushFromSegment(p, t2, t3, 1.5);
+        pushFromSegment(p, t3, t1, 1.5);
+      }
+    }
+  }
+
+  function pushFromSegment(p, a, b, pad) {
+    var ex = b.x - a.x, ey = b.y - a.y;
+    var len2 = ex * ex + ey * ey;
+    if (len2 < 0.001) return;
+    var tt = ((p.x - a.x) * ex + (p.y - a.y) * ey) / len2;
+    if (tt < 0 || tt > 1) return;
+    var cx = a.x + ex * tt, cy = a.y + ey * tt;
+    var dx = p.x - cx, dy = p.y - cy;
+    var d = Math.hypot(dx, dy);
+    if (d < pad) {
+      if (d < 0.001) { dx = 0; dy = -1; d = 1; }
+      p.x += dx / d * (pad - d);
+      p.y += dy / d * (pad - d);
+    }
+  }
+
+  /* ============================================================
+     POINTER — spawn on click, grab & fling on drag
+     ============================================================ */
+  var grab = null;          /* {shape, pt, ox, oy} */
+  var downX = 0, downY = 0, moved = false;
+
+  function localXY(e) {
+    var rect = STAGE.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function nearestPoint(x, y, radius) {
+    var best = null, bestD = radius;
+    for (var s = 0; s < shapes.length; s++) {
+      var sh = shapes[s];
+      for (var i = 0; i < sh.pts.length; i++) {
+        var p = sh.pts[i];
+        var d = Math.hypot(p.x - x, p.y - y);
+        if (d < bestD) { bestD = d; best = { shape: sh, pt: p }; }
+      }
+    }
+    return best;
+  }
+
+  STAGE.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    var pos = localXY(e);
+    downX = pos.x; downY = pos.y;
+    moved = false;
+    var hit = nearestPoint(pos.x, pos.y, 30);
+    if (hit) {
+      grab = { shape: hit.shape, pt: hit.pt };
+      STAGE.setPointerCapture(e.pointerId);
+    }
+  });
+
+  STAGE.addEventListener("pointermove", function (e) {
+    if (!grab) return;
+    var pos = localXY(e);
+    if (Math.abs(pos.x - downX) + Math.abs(pos.y - downY) > 6) moved = true;
+    /* soft-rubber band drag: pulls the point toward the hand */
+    grab.pt.px = grab.pt.x - (pos.x - grab.pt.x) * 0.28;
+    grab.pt.py = grab.pt.y - (pos.y - grab.pt.y) * 0.28;
+  });
+
+  function release() {
+    grab = null;
+  }
+  STAGE.addEventListener("pointerup", release);
+  STAGE.addEventListener("pointercancel", release);
+
+  /* click empty space spawns */
+  STAGE.addEventListener("click", function (e) {
+    if (moved || grab) return;
+    var pos = localXY(e);
+    spawnRandomAt(pos.x, Math.min(pos.y, floorY - 10));
+  });
+
+  /* ============================================================
+     CONSOLE
+     ============================================================ */
+  var toastEl = document.getElementById("toast");
+  var toastTimer = 0;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toastEl.classList.remove("show");
+    }, 1900);
+  }
+
+  document.getElementById("addCircle").addEventListener("click", function () {
+    addShape(shapeCircle(vw * (0.2 + Math.random() * 0.6), 60 + Math.random() * 80, 16 + Math.random() * 22, Math.random() < 0.75 ? COLORS.red : COLORS.blue));
+  });
+  document.getElementById("addBar").addEventListener("click", function () {
+    addShape(shapeBar(vw * (0.2 + Math.random() * 0.6), 60 + Math.random() * 80, 60 + Math.random() * 90, 13 + Math.random() * 8, Math.random() < 0.8 ? COLORS.blue : COLORS.black));
+  });
+  document.getElementById("addTri").addEventListener("click", function () {
+    addShape(shapeTri(vw * (0.2 + Math.random() * 0.6), 60 + Math.random() * 80, 34 + Math.random() * 40, Math.random() < 0.85 ? COLORS.yellow : COLORS.red));
+  });
+
+  var gravEl = document.getElementById("gravity");
+  var gravOut = document.getElementById("gravityOut");
+  function applyGravity() {
+    gravity = gravEl.value / 100;
+    gravOut.textContent = gravity.toFixed(2) + " g";
+  }
+  gravEl.addEventListener("input", applyGravity);
+  applyGravity();
+
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    shapes.length = 0;
+    updateCount();
+    toast("Swept clean — a fresh wall");
+  });
+
+  /* COMPOSE — arrange a balanced still-life (signature moment 2) */
+  document.getElementById("composeBtn").addEventListener("click", function () {
+    shapes.length = 0;
+    var cx = vw / 2;
+    var base = floorY;
+    /* a red circle on a blue bar on a yellow triangle — the classic balance */
+    var bar = shapeBar(cx, base - 10, Math.min(240, vw * 0.3), 18, COLORS.blue);
+    addShape(bar);
+    var tri = shapeTri(cx - Math.min(150, vw * 0.22), base - 10, 52, COLORS.yellow);
+    addShape(tri);
+    var circ = shapeCircle(cx + Math.min(140, vw * 0.2), base - 60, 34, COLORS.red);
+    addShape(circ);
+    var circ2 = shapeCircle(cx - 24, base - 120, 22, COLORS.red);
+    addShape(circ2);
+    var bar2 = shapeBar(cx + 8, base - 160, 90, 14, COLORS.black);
+    addShape(bar2);
+    var tri2 = shapeTri(cx + 60, base - 200, 40, COLORS.yellow);
+    addShape(tri2);
+    updateCount();
+    toast("Composed — balance is a choice");
+  });
+
+  var pieceCount = document.getElementById("pieceCount");
+  function updateCount() {
+    pieceCount.textContent = String(shapes.length);
+    if (reduced) {
+      /* calm mode: settle and redraw one static frame */
+      integrate(0.016);
+      solveConstraints();
+      draw(0);
+    }
+  }
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+  function drawShadow(shape) {
+    /* hard offset shadow on the floor plane */
+    var bb = bbox(shape);
+    var h = Math.max(0, floorY - bb.maxY);
+    var shrink = Math.max(0.35, 1 - h / 420);
+    ctx.fillStyle = "rgba(23,19,14,0.16)";
+    var sy = floorY + 3;
+    if (shape.kind === "circle") {
+      var c = shape.pts[shape.pts.length - 1];
+      ctx.beginPath();
+      ctx.ellipse(c.x, sy, shape.r * shrink, shape.r * 0.26 * shrink, 0, 0, 6.2832);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.ellipse((bb.minX + bb.maxX) / 2, sy, (bb.maxX - bb.minX) / 2 * shrink, 5 * shrink, 0, 0, 6.2832);
+      ctx.fill();
+    }
+  }
+
+  function drawShape(sh, t) {
+    ctx.save();
+    var pts = sh.pts;
+
+    if (sh.kind === "circle") {
+      var c = pts[pts.length - 1];
+      /* radius from rim average — physics drives geometry */
+      var rAvg = 0;
+      for (var i = 0; i < 12; i++) rAvg += Math.hypot(pts[i].x - c.x, pts[i].y - c.y);
+      rAvg /= 12;
+      /* rotation from first rim point */
+      var ang = Math.atan2(pts[0].y - c.y, pts[0].x - c.x);
+      ctx.translate(c.x, c.y);
+      ctx.rotate(ang);
+      /* offset shadow inside canvas for depth */
+      ctx.fillStyle = "rgba(23,19,14,0.9)";
+      ctx.beginPath();
+      ctx.arc(0, 0, rAvg, 0, 6.2832);
+      ctx.fill();
+      /* red face offset by 5px — the hard Bauhaus shadow */
+      ctx.fillStyle = sh.color;
+      ctx.beginPath();
+      ctx.arc(-4, -4, rAvg - 2.5, 0, 6.2832);
+      ctx.fill();
+      /* inner ink ring detail */
+      ctx.strokeStyle = "rgba(23,19,14,0.85)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(-4, -4, rAvg - 2.5, 0, 6.2832);
+      ctx.stroke();
+    } else {
+      /* polygon centroid + rotation from first edge */
+      var cx2 = 0, cy2 = 0;
+      for (var k = 0; k < pts.length; k++) { cx2 += pts[k].x; cy2 += pts[k].y; }
+      cx2 /= pts.length; cy2 /= pts.length;
+      var a0 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+      ctx.translate(cx2, cy2);
+      ctx.rotate(a0);
+      ctx.fillStyle = "rgba(23,19,14,0.9)";
+      ctx.beginPath();
+      for (var j = 0; j < pts.length; j++) {
+        var lx = pts[j].x - cx2, ly = pts[j].y - cy2;
+        if (j === 0) ctx.moveTo(lx, ly); else ctx.lineTo(lx, ly);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = sh.color;
+      ctx.beginPath();
+      for (var j2 = 0; j2 < pts.length; j2++) {
+        var lx2 = pts[j2].x - cx2 - 4, ly2 = pts[j2].y - cy2 - 4;
+        if (j2 === 0) ctx.moveTo(lx2, ly2); else ctx.lineTo(lx2, ly2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "rgba(23,19,14,0.85)";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, vw, vh);
+    /* floor contact shadows */
+    for (var s = 0; s < shapes.length; s++) drawShadow(shapes[s]);
+    for (var k = 0; k < shapes.length; k++) drawShape(shapes[k], t);
+    /* grab indicator */
+    if (grab) {
+      ctx.strokeStyle = "rgba(23,19,14,0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(grab.pt.x, grab.pt.y);
+      ctx.lineTo(grab.pt.x - (grab.pt.x - grab.pt.px) * 3.5, grab.pt.y - (grab.pt.y - grab.pt.py) * 3.5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  /* ============================================================
+     SIZE + SEED
+     ============================================================ */
+  function size() {
+    vw = STAGE.clientWidth;
+    vh = STAGE.clientHeight;
+    cv.width = Math.round(vw * DPR);
+    cv.height = Math.round(vh * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    floorY = vh - (parseFloat(getComputedStyle(document.querySelector(".floorline")).bottom) || 60);
+  }
+
+  function seed() {
+    /* a small opening still-life: two circles, a bar, a triangle */
+    addShape(shapeTri(vw * 0.32, vh * 0.3, 52, COLORS.yellow));
+    addShape(shapeBar(vw * 0.55, vh * 0.22, 150, 16, COLORS.blue));
+    addShape(shapeCircle(vw * 0.72, vh * 0.16, 30, COLORS.red));
+    addShape(shapeCircle(vw * 0.45, vh * 0.1, 20, COLORS.red));
+  }
+
+  var rafId = 0;
+  var last = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+    if (!document.hidden) {
+      if (!reduced) {
+        integrate(dt);
+        solveConstraints();
+        draw(now);
+      }
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("resize", function () {
+    size();
+    if (reduced) draw(0);
+  });
+
+  size();
+  seed();
+
+  if (reduced) {
+    /* settle once, draw once; button spawns redraw statically */
+    integrate(0.016);
+    solveConstraints();
+    draw(0);
+  } else {
+    rafId = requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("pagehide", function () {
+    if (rafId) cancelAnimationFrame(rafId);
+  });
+})();
+</script>
+</body>
+</html>
